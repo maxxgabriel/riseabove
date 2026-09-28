@@ -146,6 +146,11 @@ pub fn assign(w: &mut World) {
             }
         }
     }
+    // People who have stopped playing leave their local club.
+    let gone: Vec<PlayerId> = w.youth.member_of.keys().copied().filter(|&p| w.players.hot[p].status == PlayerStatus::Retired).collect();
+    for p in gone {
+        w.youth.leave(p);
+    }
     // Schools by town.
     let mut schools: FxHashMap<(NationId, String), SmallVec<[u32; 2]>> = FxHashMap::default();
     let mut unis: FxHashMap<NationId, Vec<u32>> = FxHashMap::default();
@@ -286,10 +291,21 @@ fn squad(w: &World, e: Entrant, kind: MinorKind) -> SmallVec<[PlayerId; 16]> {
         Entrant::Inst(i) => &w.minor.institutions[i as usize].members,
         Entrant::Local(l) => &w.youth.local[l].members,
     };
-    let mut v: SmallVec<[(u8, PlayerId); 32]> =
-        members.iter().copied().filter(|&p| w.players.hot[p].injury_days == 0 && (kind != MinorKind::GrassrootsCup || w.age(p) >= 13)).map(|p| (w.players.cold[p].ca, p)).collect();
+    let mut v: SmallVec<[(u8, PlayerId); 32]> = members
+        .iter()
+        .copied()
+        .filter(|&p| eligible(w, e, p) && w.players.hot[p].injury_days == 0 && (kind != MinorKind::GrassrootsCup || w.age(p) >= 13))
+        .map(|p| (w.players.cold[p].ca, p))
+        .collect();
     v.sort_by(|a, b| b.cmp(a));
     v.into_iter().take(14).map(|x| x.1).collect()
+}
+
+/// Retired people do not play; a local club's side has no one registered
+/// with a professional club (schools may field academy children).
+fn eligible(w: &World, e: Entrant, p: PlayerId) -> bool {
+    let h = &w.players.hot[p];
+    h.status != PlayerStatus::Retired && (matches!(e, Entrant::Inst(_)) || h.club.is_none())
 }
 
 fn coaching(w: &World, e: Entrant) -> f32 {

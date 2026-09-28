@@ -578,16 +578,23 @@ fn close_old(w: &mut World) {
 }
 
 /// Monthly: old, closed items keep only their first holders and the
-/// journalists who knew them (so a story's source path stays checkable).
+/// journalists whose stories rest on them (so every story's source path
+/// stays checkable, even after its journalist leaves the trade).
 pub fn compact(w: &mut World) {
     let before = w.date.add_days(-180);
-    let journalists = &w.media.journalists;
+    let mut cited: FxHashSet<(u32, PersonId)> = FxHashSet::default();
+    for s in w.media.stories.iter() {
+        if let Cause::Fact(Fact::Heard { info, .. }) = s.source {
+            cited.insert((info, s.journalist));
+        }
+    }
     for it in w.grapevine.items.iter_mut() {
         if it.closed && it.date < before && it.holders.len() > 4 {
             let mut i = 0;
+            let id = it.id;
             it.holders.retain(|k| {
                 i += 1;
-                i <= 4 || journalists.contains_key(&k.person)
+                i <= 4 || cited.contains(&(id, k.person))
             });
         }
     }
