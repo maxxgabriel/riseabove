@@ -140,7 +140,7 @@ pub fn refresh_sources(w: &mut World) {
 // ------------------------------------------------------------------ publishing
 
 #[allow(clippy::too_many_arguments)]
-fn publish(
+pub(crate) fn publish(
     w: &mut World,
     journalist: PersonId,
     kind: StoryKind,
@@ -178,7 +178,7 @@ fn publish(
     id
 }
 
-fn outlet_journalist(w: &World, nation: NationId, club: ClubId, key: u64) -> Option<PersonId> {
+pub(crate) fn outlet_journalist(w: &World, nation: NationId, club: ClubId, key: u64) -> Option<PersonId> {
     let mut cands: Vec<PersonId> = w
         .media
         .journalists
@@ -193,7 +193,7 @@ fn outlet_journalist(w: &World, nation: NationId, club: ClubId, key: u64) -> Opt
     Some(cands[(hash_key(&[w.seed, key]) % cands.len() as u64) as usize])
 }
 
-fn big_enough(w: &World, club: ClubId) -> bool {
+pub(crate) fn big_enough(w: &World, club: ClubId) -> bool {
     if club.is_none() {
         return false;
     }
@@ -207,6 +207,7 @@ pub fn weekly(w: &mut World) {
     form_and_pressure(w);
     fan_performance(w);
     settle_credibility(w);
+    crate::press::weekly(w);
     if w.date.month() == 7 && w.date.day() <= 7 {
         ensure_media(w);
     }

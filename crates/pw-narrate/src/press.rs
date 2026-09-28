@@ -1,7 +1,9 @@
 //! Headlines, articles and fan reactions. The claim strength and the outlet's
 //! style shape the words; what the story rests on is always a real source.
 
-use pw_world::media::{OutletKind, Reaction, Story};
+use pw_world::event::{MilestoneKind, RecordKind};
+use pw_world::media::{OutletKind, Reaction, Stance, Story, StoryLink};
+use pw_world::perf::Label;
 use pw_world::{FanReason, StoryKind, World};
 
 use crate::fmt::{club, club_short, money, person, player};
@@ -39,15 +41,103 @@ pub fn headline(w: &World, s: &Story) -> String {
         StoryKind::ManagerPressure => format!("{}: {}", club(w, s.club), pick(key, &["board patience wearing thin", "pressure mounts on the manager", "crisis talks expected"])),
         StoryKind::ManagerChange => format!("{}: {}", club(w, s.club), pick(key, &["change in the dugout", "new era begins", "manager news"])),
         StoryKind::Unhappy => {
-            if loud { format!("{who} WANTS OUT") } else { format!("{who} {}", pick(key, &["unsettled at", "frustrated at", "considering his future at"])) + &format!(" {}", club_short(w, s.club)) }
+            if loud { format!("{who} WANTS OUT") } else { format!("{who} {}", pick(key, &["unsettled at", "frustrated at", "considering their future at"])) + &format!(" {}", club_short(w, s.club)) }
         }
         StoryKind::Discipline => format!("{who} {}", pick(key, &["disciplined by club", "in hot water", "fined after internal row"])),
         StoryKind::Injury => format!("Blow for {}: {who} {}", club_short(w, s.club), pick(key, &["faces spell out", "sidelined for weeks", "out injured"])),
-        StoryKind::Praise => format!("{who}: {}", pick(key, &["the talk of the league", "a star in the making", "form of his life", "one to watch"])),
+        StoryKind::Praise => format!("{who}: {}", pick(key, &["the talk of the league", "a star in the making", "in the form of their life", "one to watch"])),
         StoryKind::Criticism => format!("{who} {}", pick(key, &["under fire after poor run", "must improve, say critics", "struggling for form"])),
         StoryKind::Contract => format!("{who} contract talks {}", pick(key, &["stall", "continue", "hit a snag"])),
         StoryKind::Personal => format!("{who} {}", pick(key, &["ties the knot", "celebrates at home", "happy off the pitch"])),
         StoryKind::Season => format!("{} {}", club(w, s.club), pick(key, &["are champions", "lift the title", "crowned champions"])),
+        StoryKind::Interview => match w.media.links.get(&s.id) {
+            Some(StoryLink::Quote(q)) => {
+                let speaker = person(w, q.speaker);
+                let target = if q.about.is_some() { person(w, q.about) } else { String::new() };
+                match q.stance {
+                    Stance::Praise => format!("{speaker} hails {target}"),
+                    Stance::Criticise => if loud { format!("{speaker} SLAMS {}", target.to_uppercase()) } else { format!("{speaker} criticises {target}") },
+                    Stance::Support => format!("{speaker} backs {target}"),
+                    Stance::Complain => format!("{speaker} speaks out over role"),
+                    Stance::Ambition => format!("{speaker}: \"I want to win the biggest trophies\""),
+                    Stance::Loyalty => format!("{speaker}: \"I am happy here\""),
+                    Stance::Deflect => format!("{speaker} gives little away"),
+                }
+            }
+            _ => format!("{who} speaks"),
+        },
+        StoryKind::MatchReport => match w.media.links.get(&s.id) {
+            Some(StoryLink::Fixture { home, away, hg, ag, star, .. }) => {
+                let base = format!("{} {hg}-{ag} {}", club_short(w, *home), club_short(w, *away));
+                if star.is_some() { format!("{base}: {} {}", player(w, *star), pick(key, &["stars", "shines", "makes the difference", "steals the show"])) } else { base }
+            }
+            _ => format!("Report: {}", club(w, s.club)),
+        },
+        StoryKind::Feature | StoryKind::Analysis => match w.media.links.get(&s.id) {
+            Some(StoryLink::Reading(l)) => reading_headline(&who, *l, key),
+            _ => format!("The rise of {who}"),
+        },
+        StoryKind::WonderkidList => format!("{}: the {} young players to watch", pick(key, &["Ranked", "Revealed", "The list"]), match w.media.links.get(&s.id) {
+            Some(StoryLink::List(v)) => v.len(),
+            _ => 10,
+        }),
+        StoryKind::SeasonReview => format!("Season review: {} on top", club(w, s.club)),
+        StoryKind::Retrospective => match w.media.links.get(&s.id) {
+            Some(StoryLink::Honour(i)) => {
+                let h = &w.history.honours[*i as usize];
+                format!("{} years on: when {} won the {}", w.date.year() - h.season, club(w, h.club), w.comps[h.comp].name)
+            }
+            _ => format!("{who}: a career remembered"),
+        },
+        StoryKind::AwardNews => match w.media.links.get(&s.id) {
+            Some(StoryLink::Award(a)) => format!("{who} wins {}", a.label()),
+            _ => format!("Honour for {who}"),
+        },
+        StoryKind::International => match w.media.links.get(&s.id) {
+            Some(StoryLink::Tournament(t)) => {
+                let t = &w.intl.tournaments[*t as usize];
+                format!("{} win the {} {}", crate::fmt::nation(w, t.winner), t.kind.label(), t.year)
+            }
+            _ => "International football".into(),
+        },
+        StoryKind::Milestone => match w.media.links.get(&s.id) {
+            Some(StoryLink::Milestone(k, n)) => match k {
+                MilestoneKind::ClubApps => format!("{who} reaches {n} games for {}", club_short(w, s.club)),
+                MilestoneKind::CareerGoals => format!("{n} and counting for {who}"),
+                MilestoneKind::SeniorApps => format!("{who} brings up {n} appearances"),
+                MilestoneKind::Caps => format!("{who} wins cap number {n}"),
+            },
+            Some(StoryLink::Record(k, v)) => match k {
+                RecordKind::ClubTopScorer => format!("{who} becomes {}'s record scorer", club_short(w, s.club)),
+                RecordKind::ClubMostApps => format!("{who} breaks {} appearance record", club_short(w, s.club)),
+                RecordKind::ClubRecordSigning => format!("{who} becomes {} record signing", club_short(w, s.club)),
+                RecordKind::ClubRecordSale => format!("{} record sale: {who}", club_short(w, s.club)),
+                RecordKind::ClubBiggestWin => format!("Record win for {}", club_short(w, s.club)),
+                RecordKind::LeagueGoalsInSeason => format!("{who} breaks the scoring record ({v})"),
+                RecordKind::NationMostCaps => format!("{who} becomes most-capped ever"),
+                RecordKind::NationTopScorer => format!("{who} becomes national record scorer"),
+                RecordKind::WorldRecordFee => format!("World record: {who} for {}", money(*v)),
+            },
+            _ => format!("Landmark for {who}"),
+        },
+    }
+}
+
+fn reading_headline(who: &str, l: Label, key: u64) -> String {
+    match l {
+        Label::BigGamePlayer => format!("{who}: {}", pick(key, &["the player for the big occasions", "made for the biggest nights"])),
+        Label::FlatTrackBully => format!("Does {who} disappear when it matters?"),
+        Label::InForm => format!("{who} {}", pick(key, &["in the form of their life", "cannot stop performing"])),
+        Label::InSlump => format!("What has happened to {who}?"),
+        Label::Underrated => format!("The numbers say {who} is {}", pick(key, &["underrated", "far better than people think"])),
+        Label::Overrated => format!("Is {who} overrated? The data suggests so"),
+        Label::GoalThreat => format!("{who}: {}", pick(key, &["goals, goals, goals", "the most dangerous forward around"])),
+        Label::Workhorse => format!("{who}, the engine nobody notices"),
+        Label::Unreliable => format!("Brilliant or baffling: the two sides of {who}"),
+        Label::Breakthrough => format!("{who}: {}", pick(key, &["the breakthrough of the season", "a star is born"])),
+        Label::FrozenOut => format!("Why has {who} disappeared from the side?"),
+        Label::Durable => format!("{who}, never injured, always there"),
+        Label::InjuryProne => format!("The body keeps failing {who}"),
     }
 }
 
@@ -69,9 +159,41 @@ pub fn body(w: &World, s: &Story) -> String {
         ),
         StoryKind::Unhappy => format!("{who} is understood to be unhappy, {outlet} has been told by {source}."),
         StoryKind::Discipline => format!("{who} has been disciplined internally, according to {source}."),
-        StoryKind::Criticism => format!("{who}'s recent performances have drawn criticism, with {outlet} questioning his place in the side."),
+        StoryKind::Criticism => format!("{who}'s recent performances have drawn criticism, with {outlet} questioning their place in the side."),
+        StoryKind::Interview => match w.media.links.get(&s.id) {
+            Some(StoryLink::Quote(q)) => format!("{} spoke to {outlet}: \"{}\"", person(w, q.speaker), quote_line(w, q.about, q.stance, key)),
+            _ => headline(w, s),
+        },
+        StoryKind::WonderkidList => match w.media.links.get(&s.id) {
+            Some(StoryLink::List(v)) => {
+                let names: Vec<String> = v.iter().enumerate().map(|(i, &p)| format!("{}. {}", i + 1, player(w, p))).collect();
+                format!("{outlet} ranks the best young players: {}", names.join("; "))
+            }
+            _ => headline(w, s),
+        },
+        StoryKind::SeasonReview => match w.media.links.get(&s.id) {
+            Some(StoryLink::List(v)) if !v.is_empty() => {
+                let names: Vec<String> = v.iter().map(|&p| player(w, p)).collect();
+                format!("{} are champions. {outlet}'s team of the season: {}.", club(w, s.club), names.join(", "))
+            }
+            _ => headline(w, s),
+        },
         StoryKind::Praise => format!("{who} continues to impress, {outlet} reports."),
         _ => headline(w, s),
+    }
+}
+
+/// What a stance sounds like in someone's mouth.
+fn quote_line(w: &World, about: pw_core::PersonId, stance: Stance, key: u64) -> String {
+    let name = if about.is_some() { person(w, about) } else { String::new() };
+    match stance {
+        Stance::Praise => format!("{name} {}", pick(key, &["has been outstanding.", "deserves everything coming their way.", "is a joy to work with."])),
+        Stance::Criticise => format!("{name} {}", pick(key, &["has to do much better.", "knows it has not been good enough.", "needs to look at themselves."])),
+        Stance::Support => format!("{name} {}", pick(key, &["has my full support.", "will come good, I have no doubt.", "is going through a spell every player has."])),
+        Stance::Complain => pick(key, &["I want to play. I am not here to sit and watch.", "Nobody has explained my role to me.", "I deserve more minutes than I am getting."]).to_string(),
+        Stance::Ambition => pick(key, &["I want to play at the very highest level.", "Every player dreams of the biggest stage.", "I have ambitions I need to fulfil."]).to_string(),
+        Stance::Loyalty => pick(key, &["I am happy here. This club is my home.", "I have no intention of leaving.", "The fans know how much this club means to me."]).to_string(),
+        Stance::Deflect => pick(key, &["We take it game by game.", "I will not comment on that.", "The focus is on the next match."]).to_string(),
     }
 }
 
@@ -81,11 +203,11 @@ pub fn reaction(w: &World, r: &Reaction) -> String {
     let name = person(w, r.about);
     let fans = if r.club.is_some() { format!("{} fans", club_short(w, r.club)) } else { "Fans".into() };
     let line = match (r.reason, r.sentiment) {
-        (FanReason::JoinedRival, _) => pick(key, &["Never forget what he did.", "Traitor. Simple as.", "Don't bother coming back."]),
-        (FanReason::TransferRequest, _) => pick(key, &["Wants out? Let him go.", "After everything we gave him.", "Disappointing. Thought he was one of us."]),
-        (FanReason::Leaving, s) if s < 0 => pick(key, &["Sad to see this.", "Worried about this one.", "Don't let him go."]),
+        (FanReason::JoinedRival, _) => pick(key, &["Never forget what they did.", "Traitor. Simple as.", "Don't bother coming back."]),
+        (FanReason::TransferRequest, _) => pick(key, &["Wants out? Let them go.", "After everything we gave them.", "Disappointing. Thought they were one of us."]),
+        (FanReason::Leaving, s) if s < 0 => pick(key, &["Sad to see this.", "Worried about this one.", "Don't let them go."]),
         (FanReason::Loyalty, _) => pick(key, &["Thank you for everything.", "A proper servant of this club.", "Legend."]),
-        (FanReason::Performances, s) if s > 20 => pick(key, &["What a signing.", "Get in!", "Can't wait to see him play."]),
+        (FanReason::Performances, s) if s > 20 => pick(key, &["What a signing.", "Get in!", "Can't wait to see them play."]),
         (FanReason::Performances, s) if s < -10 => pick(key, &["Not good enough.", "Time for a change.", "Poor again."]),
         (_, s) if s >= 0 => pick(key, &["Good news.", "Happy with that.", "Fair enough."]),
         _ => pick(key, &["Not having it.", "Poor show.", "Unacceptable."]),

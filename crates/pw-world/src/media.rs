@@ -77,6 +77,59 @@ pub enum StoryKind {
     Personal,
     /// Season-end, title, relegation.
     Season,
+    /// Someone said something on the record.
+    Interview,
+    MatchReport,
+    /// A longer piece on a player, from how the media reads them.
+    Feature,
+    /// A ranked list of young talents.
+    WonderkidList,
+    SeasonReview,
+    /// Looking back: anniversaries, careers.
+    Retrospective,
+    AwardNews,
+    /// Data-led analysis (underrated / overrated).
+    Analysis,
+    International,
+    Milestone,
+}
+
+/// What a quoted person said, as a stance (the words come from narration).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Stance {
+    Praise,
+    Criticise,
+    /// Deflect, say nothing of substance.
+    Deflect,
+    /// Talk up ambitions (hints at wanting a bigger stage).
+    Ambition,
+    /// Declare commitment to the club.
+    Loyalty,
+    /// Complain about minutes, role or treatment.
+    Complain,
+    /// Back a teammate or the manager publicly.
+    Support,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Quote {
+    pub speaker: PersonId,
+    pub about: PersonId,
+    pub stance: Stance,
+}
+
+/// Extra structured content a story refers to.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum StoryLink {
+    Quote(Quote),
+    Fixture { uid: u64, home: ClubId, away: ClubId, hg: u8, ag: u8, star: PlayerId },
+    List(Vec<PlayerId>),
+    Reading(crate::perf::Label),
+    Honour(u32),
+    Tournament(u32),
+    Award(crate::event::AwardKind),
+    Milestone(crate::event::MilestoneKind, u16),
+    Record(crate::event::RecordKind, i64),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -193,6 +246,8 @@ pub struct Media {
     pub insider: FxHashMap<PersonId, i16>,
     /// Club rivalries (both directions stored), 0–100 intensity.
     pub rivals: FxHashMap<(ClubId, ClubId), u8>,
+    /// Structured content behind stories (quotes, lists, match facts).
+    pub links: FxHashMap<StoryId, StoryLink>,
 }
 
 impl Media {

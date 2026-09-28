@@ -14,6 +14,7 @@ pub mod generate;
 pub mod governance;
 pub mod growth;
 pub mod health;
+pub mod honours;
 pub mod hungarian;
 pub mod intents;
 pub mod interpret;
@@ -30,6 +31,8 @@ pub mod negotiation;
 pub mod people;
 pub mod perception;
 pub mod planning;
+pub mod press;
+pub mod renown;
 pub mod reputation;
 pub mod save;
 pub mod schedule;
@@ -75,6 +78,9 @@ impl Sim {
         life::sync(w);
 
         // 1. Calendar: seasons, draws, contract expiries, loan ends, intakes.
+        if today.month() == 12 && today.day() == 20 {
+            honours::yearly_votes(w);
+        }
         if today.month() == 7 && today.day() == 1 {
             economy::yearly(w);
             governance::yearly(w);
@@ -107,6 +113,8 @@ impl Sim {
             growth::monthly(w);
             dressing::monthly(w);
             interpret::monthly(w);
+            honours::monthly(w);
+            renown::monthly(w);
             if today.month() == 6 {
                 youth::reviews(w);
             }

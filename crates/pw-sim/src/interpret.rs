@@ -58,6 +58,7 @@ pub fn record(w: &mut World, fx: &Fixture, home: &Selection, away: &Selection, r
         if recent.len() > RECENT {
             recent.remove(0);
         }
+        crate::honours::on_appearance(w, p, club, line.goals);
         let own_rep = reps[side];
         let big = importance >= 0.75 || opp_rep > own_rep.saturating_add(1000);
         let small = opp_rep.saturating_add(1500) < own_rep;
@@ -78,6 +79,11 @@ pub fn record(w: &mut World, fx: &Fixture, home: &Selection, away: &Selection, r
             l.small_sum += u32::from(app.rating);
             l.small_apps += 1;
         }
+    }
+    // Biggest wins.
+    if senior[0] && senior[1] && r.home_goals != r.away_goals {
+        let (win, lose) = if r.home_goals > r.away_goals { (clubs[0], clubs[1]) } else { (clubs[1], clubs[0]) };
+        crate::honours::on_result(w, win, lose, r.home_goals.abs_diff(r.away_goals));
     }
     // Left out altogether.
     for (i, sel) in sides.iter().enumerate() {

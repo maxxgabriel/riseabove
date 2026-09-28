@@ -1,7 +1,7 @@
 //! Rendering events and their causes. Every line names its source event.
 
 use pw_core::PersonId;
-use pw_world::event::{AwardKind, Cause, CoachNote, Event, EventKind, Fact, LifeEventKind};
+use pw_world::event::{Cause, CoachNote, Event, EventKind, Fact, LifeEventKind};
 use pw_world::{MemoryKind, World};
 
 use crate::fmt::{club, money, nation, person, player};
@@ -53,14 +53,12 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         BidAccepted { player: p, club: c, fee } => format!("A {} bid from {} for {} was accepted.", money(fee), club(w, c), player(w, p)),
         TransferListed { player: p, club: c } => format!("{} placed {} on the transfer list.", club(w, c), player(w, p)),
         Award { player: p, comp, award, season } => {
-            let a = match award {
-                AwardKind::PlayerOfSeason => "Player of the Season",
-                AwardKind::YoungPlayerOfSeason => "Young Player of the Season",
-                AwardKind::TopScorer => "the Golden Boot",
-                AwardKind::TeamOfSeason => "a place in the Team of the Season",
-                AwardKind::PlayerOfMonth => "Player of the Month",
-            };
-            format!("{} won {a} in the {} ({season}).", pl(p), w.comps[comp].name)
+            let a = award.label();
+            if comp.is_some() {
+                format!("{} won {a} in the {} ({season}).", pl(p), w.comps[comp].name)
+            } else {
+                format!("{} won {a} ({season}).", pl(p))
+            }
         }
         CallUp { player: p } => format!("{} received an international call-up.", pl(p)),
         Meeting { meeting, from, with } => {
@@ -165,6 +163,29 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             if up { format!("People around {} have noticed a new maturity.", me(x)) } else { format!("People around {} worry about their attitude lately.", me(x)) }
         }
         Stagnated { player: p } => format!("Without football, {}'s development has stalled.", pl(p)),
+        Milestone { player: p, kind, count, club: c } => match kind {
+            pw_world::event::MilestoneKind::ClubApps => format!("{} made appearance number {count} for {}.", pl(p), club(w, c)),
+            pw_world::event::MilestoneKind::CareerGoals => format!("{} scored career goal number {count}.", pl(p)),
+            pw_world::event::MilestoneKind::SeniorApps => format!("{} reached {count} senior appearances.", pl(p)),
+            pw_world::event::MilestoneKind::Caps => format!("{} won cap number {count}.", pl(p)),
+        },
+        RecordBroken { player: p, kind, club: c, value } => {
+            use pw_world::event::RecordKind as R;
+            match kind {
+                R::ClubTopScorer => format!("{} became {}'s all-time top scorer ({value} goals).", pl(p), club(w, c)),
+                R::ClubMostApps => format!("{} now has more appearances for {} than anyone ({value}).", pl(p), club(w, c)),
+                R::ClubRecordSigning => format!("{} became {}'s record signing ({}).", pl(p), club(w, c), money(value)),
+                R::ClubRecordSale => format!("{} became {}'s record sale ({}).", pl(p), club(w, c), money(value)),
+                R::ClubBiggestWin => format!("{} recorded their biggest ever win (by {value}).", club(w, c)),
+                R::LeagueGoalsInSeason => format!("{} set a new league record of {value} goals in a season.", pl(p)),
+                R::NationMostCaps => format!("{} became their country's most-capped player ({value}).", pl(p)),
+                R::NationTopScorer => format!("{} became their country's all-time top scorer ({value}).", pl(p)),
+                R::WorldRecordFee => format!("{} became the most expensive player in history ({}).", pl(p), money(value)),
+            }
+        }
+        BecameLegend { person: x, club: c } => format!("{} {} now spoken of as a legend at {}.", me(x), if x == viewer { "are" } else { "is" }, club(w, c)),
+        InductedHallOfFame { person: x } => format!("{} {} inducted into the Hall of Fame.", me(x), if x == viewer { "were" } else { "was" }),
+        ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })
 }
 
@@ -227,6 +248,11 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::ContractRunningDown { player: p, days } => format!("{} contract has {days} days left", who(p)),
         Fact::PublicCriticism { story } => format!("criticism in the press: {}", crate::press::headline(w, &w.media.stories[story])),
         Fact::Rule { reason } => reason.text(),
+        Fact::Said { person: x } => format!("{} said so publicly", person(w, x)),
+        Fact::Played { .. } => "the match itself".into(),
+        Fact::Reading { player: p } => format!("how {} performances are being read", who(p)),
+        Fact::Ranking => "a published ranking".into(),
+        Fact::Anniversary { year } => format!("the anniversary of {year}"),
     }
 }
 

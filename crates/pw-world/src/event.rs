@@ -67,6 +67,16 @@ pub enum Fact {
     PublicCriticism { story: StoryId },
     /// A football rule stood in the way.
     Rule { reason: crate::rules::Reason },
+    /// Someone said it on the record.
+    Said { person: PersonId },
+    /// A match was played (fixture uid).
+    Played { fixture: u64 },
+    /// How the media/analysts currently read a player.
+    Reading { player: PlayerId },
+    /// A published ranking.
+    Ranking,
+    /// An anniversary of a season.
+    Anniversary { year: i32 },
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
@@ -221,6 +231,12 @@ pub enum EventKind {
     CharacterChanged { person: PersonId, up: bool },
     /// Went too long without football; the ceiling came down.
     Stagnated { player: PlayerId },
+    Milestone { player: PlayerId, kind: MilestoneKind, count: u16, club: ClubId },
+    RecordBroken { player: PlayerId, kind: RecordKind, club: ClubId, value: i64 },
+    /// A club's supporters now count a player among their legends.
+    BecameLegend { person: PersonId, club: ClubId },
+    InductedHallOfFame { person: PersonId },
+    ManagerOfSeason { staff: StaffId, comp: CompId, season: i32 },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -238,6 +254,65 @@ pub enum AwardKind {
     TopScorer,
     TeamOfSeason,
     PlayerOfMonth,
+    /// Most assists in a league season.
+    Playmaker,
+    /// Best goalkeeper of a league season.
+    GoldenGlove,
+    /// Voted best player in the world for the calendar year (by rank).
+    WorldPlayer { rank: u8 },
+    WorldYoungPlayer,
+    /// Best player at clubs of a confederation.
+    ContinentalPlayer(crate::nation::Confed),
+}
+
+impl AwardKind {
+    pub fn label(self) -> String {
+        match self {
+            AwardKind::PlayerOfSeason => "Player of the Season".into(),
+            AwardKind::YoungPlayerOfSeason => "Young Player of the Season".into(),
+            AwardKind::TopScorer => "the Golden Boot".into(),
+            AwardKind::TeamOfSeason => "a place in the Team of the Season".into(),
+            AwardKind::PlayerOfMonth => "Player of the Month".into(),
+            AwardKind::Playmaker => "the Playmaker award".into(),
+            AwardKind::GoldenGlove => "the Golden Glove".into(),
+            AwardKind::WorldPlayer { rank: 1 } => "the World Player of the Year award".into(),
+            AwardKind::WorldPlayer { rank } => format!("{} place in the World Player of the Year vote", crate::event::ordinal(rank)),
+            AwardKind::WorldYoungPlayer => "the World Young Player of the Year award".into(),
+            AwardKind::ContinentalPlayer(c) => format!("{} Player of the Year", c.code()),
+        }
+    }
+}
+
+pub fn ordinal(n: u8) -> String {
+    let suffix = match (n % 10, n % 100) {
+        (_, 11..=13) => "th",
+        (1, _) => "st",
+        (2, _) => "nd",
+        (3, _) => "rd",
+        _ => "th",
+    };
+    format!("{n}{suffix}")
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum MilestoneKind {
+    ClubApps,
+    CareerGoals,
+    SeniorApps,
+    Caps,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum RecordKind {
+    ClubTopScorer,
+    ClubMostApps,
+    ClubRecordSigning,
+    ClubRecordSale,
+    ClubBiggestWin,
+    LeagueGoalsInSeason,
+    NationMostCaps,
+    NationTopScorer,
+    WorldRecordFee,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -302,6 +377,8 @@ impl EventKind {
             | PlayerSettled { player, .. }
             | LeaderEmerged { player, .. }
             | Stagnated { player }
+            | Milestone { player, .. }
+            | RecordBroken { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -315,6 +392,7 @@ impl EventKind {
         let mut v = SmallVec::new();
         match *self {
             Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } | ExamsSat { person, .. } | CharacterChanged { person, .. } => v.push(person),
+            BecameLegend { person, .. } | InductedHallOfFame { person } => v.push(person),
             TookUnderWing { mentor, mentee } => {
                 v.push(mentor);
                 v.push(mentee);

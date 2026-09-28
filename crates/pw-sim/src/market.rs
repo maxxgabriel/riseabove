@@ -390,6 +390,7 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
     if seller.is_some() {
         crate::deals::on_transfer_fee(w, p, seller, fee);
     }
+    crate::honours::on_transfer(w, p, buyer, seller, fee);
     w.clubs[buyer].market.signed_this_window += 1;
     w.clubs[buyer].market.needs.retain(|n| n.group != w.players.cold[p].best_pos.group());
     if seller.is_some() {

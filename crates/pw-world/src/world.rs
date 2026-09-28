@@ -118,6 +118,10 @@ pub struct World {
     pub perf: crate::perf::Perf,
     /// Development records: mentors, trajectories, stagnation.
     pub growth: crate::growth::Growth,
+    /// Records, tallies, legends, hall of fame, award votes.
+    pub honours: crate::honours::Honours,
+    /// Local, continental and celebrity standing, followers.
+    pub renown: crate::renown::Renowns,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -166,6 +170,8 @@ impl World {
             rooms: Default::default(),
             perf: Default::default(),
             growth: Default::default(),
+            honours: Default::default(),
+            renown: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

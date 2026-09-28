@@ -47,6 +47,8 @@ pub enum Intent {
     PlayThroughPain(bool),
     /// Offer to take a younger teammate under your wing.
     Mentor(PersonId),
+    /// Say something on the record about someone (or yourself).
+    SpeakToPress { about: PersonId, stance: crate::media::Stance },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
