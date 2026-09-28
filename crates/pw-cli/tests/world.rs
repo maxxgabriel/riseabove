@@ -379,3 +379,50 @@ fn twenty_seasons_small() {
 fn fifty_seasons_tiny() {
     long_run(Scale::TINY, 103, 50);
 }
+
+/// A report of the causal chains a world produced (run with --ignored --nocapture).
+#[test]
+#[ignore = "report"]
+fn causal_chain_report() {
+    use pw_world::EventKind as E;
+    use pw_world::event::{Cause, Fact};
+    for seed in [301u64, 302, 303] {
+        let s = ran(Scale::SMALL, seed, 730);
+        let w = &s.world;
+        let mut n: std::collections::BTreeMap<&str, usize> = Default::default();
+        for e in w.events.since(pw_core::Date(0)) {
+            let k = match e.kind {
+                E::LeakSuspected { .. } => "leak suspected",
+                E::BoardQuery { .. } => "board asks manager to explain",
+                E::AgentExploring { .. } => "agent explores the market",
+                E::CaptainMediated { .. } => "captain mediates",
+                E::IncidentResponse { .. } => "incident responses",
+                E::AppealDecided { .. } => "appeals decided",
+                E::Charged { .. } => "charges",
+                E::SupporterAction { .. } => "supporter actions",
+                E::Record { .. } => "records (all levels)",
+                E::HallInduction { .. } | E::InductedHallOfFame { .. } => "hall inductions",
+                E::Chronicle { .. } => "chronicle entries",
+                E::SchoolFounded { .. } => "tactical schools",
+                E::RuleChanged { .. } => "rule changes",
+                _ => continue,
+            };
+            *n.entry(k).or_default() += 1;
+        }
+        let leaks = w.media.stories.iter().filter(|s| matches!(s.source, Cause::Fact(Fact::Heard { .. }))).count();
+        let viral = w.media.stories.iter().filter(|s| matches!(s.source, Cause::Fact(Fact::Viral { .. }))).count();
+        let denials = w.media.stories.iter().filter(|s| s.kind == pw_world::StoryKind::Denial).count();
+        let callouts = w.net.posts.iter().chain(w.net.kept.values()).filter(|p| p.concept == pw_world::socialnet::Concept::CallOut).count();
+        let concede = w
+            .net
+            .posts
+            .iter()
+            .chain(w.net.kept.values())
+            .filter(|p| matches!(p.concept, pw_world::socialnet::Concept::ConcedeWrong | pw_world::socialnet::Concept::DoubleDown | pw_world::socialnet::Concept::ReluctantPraise))
+            .count();
+        let threads_closed = w.media.threads.iter().filter(|t| t.state != pw_world::media::ThreadState::Open).count();
+        println!(
+            "seed {seed}: {n:?}\n  stories from sources {leaks}, from viral posts {viral}, denials {denials}, closed threads {threads_closed}, call-outs {callouts}, changed/doubled-down opinions {concede}"
+        );
+    }
+}

@@ -228,7 +228,7 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
             if team.is_none() {
                 0.0
             } else {
-                let n = w.fixtures.between(w.date.add_days(-10), w.date).filter(|&f| w.fixtures.get(f).involves(team)).count();
+                let n = w.fixtures.of_team_between(team, w.date.add_days(-10), w.date).count();
                 (n as f32 / 4.0).min(1.0)
             }
         }
