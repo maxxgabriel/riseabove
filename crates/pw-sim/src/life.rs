@@ -224,8 +224,17 @@ fn tax_rate(w: &World, nation: NationId) -> f32 {
 
 fn finances(w: &mut World, who: PersonId) {
     let today = w.date;
+    // Children's lives are paid for by their families.
+    if consider::age(w, who) < 18.0 {
+        return;
+    }
     let person = &w.people[who];
     let mut gross_week: i64 = 0;
+    // Amateur footballers have day jobs.
+    if person.player.is_some() && w.players.hot[person.player].status == PlayerStatus::Amateur {
+        let econ = w.nations.get(person.nation).map_or(0.5, |n| n.economy);
+        gross_week += (500.0 * econ * w.economy.global()) as i64;
+    }
     if person.player.is_some() && w.players.hot[person.player].status == PlayerStatus::Active {
         gross_week += w.players.cold[person.player].contract.current_wage(today);
     }

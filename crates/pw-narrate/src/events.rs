@@ -124,6 +124,12 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         OptionExercised { player: p, club: c, fee } => format!("{} made {}'s loan permanent for {}.", club(w, c), player(w, p), money(fee)),
         AddOnPaid { player: p, from, to, amount } => format!("{} paid {} {} in add-ons for {}.", club(w, from), club(w, to), money(amount), player(w, p)),
         SellOnPaid { player: p, to, amount } => format!("{} received a {} sell-on payment for {}.", club(w, to), money(amount), player(w, p)),
+        AcademyJoined { player: p, club: c } => format!("{} joined the {} academy.", pl(p), club(w, c)),
+        AcademyReleased { player: p, club: c } => format!("{} was released by the {} academy.", pl(p), club(w, c)),
+        ScholarshipOffered { player: p, club: c } => format!("{} was offered a scholarship by {}.", pl(p), club(w, c)),
+        JoinedLocalClub { player: p, local } => format!("{} signed up with {}.", pl(p), w.youth.local[local].name),
+        AcademyTrialStarted { player: p, club: c } => format!("{} began a trial with the {} academy.", pl(p), club(w, c)),
+        ExamsSat { person: x, passed } => format!("{} {} school exams.", me(x), if passed { "passed" } else { "struggled in" }),
     })
 }
 

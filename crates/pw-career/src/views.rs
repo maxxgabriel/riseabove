@@ -59,6 +59,10 @@ pub fn status(w: &World, me: PersonId) -> Vec<String> {
             }
             PlayerStatus::FreeAgent => v.push("Unattached — a free agent.".into()),
             PlayerStatus::Retired => v.push("Retired from playing.".into()),
+            PlayerStatus::Amateur => {
+                let local = w.youth.member_of.get(&p).map(|&l| w.youth.local[l].name.clone());
+                v.push(format!("Playing amateur football{}.", local.map_or(String::new(), |n| format!(" for {n}"))));
+            }
         }
         if h.status != PlayerStatus::Retired {
             v.push(format!(
@@ -473,6 +477,7 @@ pub fn find(w: &World, text: &str, limit: usize) -> Vec<(PersonId, String)> {
             PlayerStatus::Active => pw_narrate::fmt::club_short(w, h.club),
             PlayerStatus::FreeAgent => "free agent".into(),
             PlayerStatus::Retired => "retired".into(),
+            PlayerStatus::Amateur => w.youth.member_of.get(&p).map_or("amateur".to_string(), |&l| w.youth.local[l].name.clone()),
         };
         v.push((id, format!("{:<26} {:>2}  {:<4} {}", name, pe.age(w.date), w.players.cold[p].best_pos.code(), where_)));
         if v.len() >= limit {

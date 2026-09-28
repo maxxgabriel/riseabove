@@ -181,6 +181,15 @@ pub enum EventKind {
     OptionExercised { player: PlayerId, club: ClubId, fee: Money },
     AddOnPaid { player: PlayerId, from: ClubId, to: ClubId, amount: Money },
     SellOnPaid { player: PlayerId, to: ClubId, amount: Money },
+    /// A child or teenager joined an academy after a trial.
+    AcademyJoined { player: PlayerId, club: ClubId },
+    /// An academy let a young player go at its review.
+    AcademyReleased { player: PlayerId, club: ClubId },
+    ScholarshipOffered { player: PlayerId, club: ClubId },
+    /// Signed up with a local grassroots or amateur side.
+    JoinedLocalClub { player: PlayerId, local: pw_core::LocalClubId },
+    AcademyTrialStarted { player: PlayerId, club: ClubId },
+    ExamsSat { person: PersonId, passed: bool },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -245,6 +254,11 @@ impl EventKind {
             | TrialEnded { player, .. }
             | LoanRecalled { player, .. }
             | OptionExercised { player, .. }
+            | AcademyJoined { player, .. }
+            | AcademyReleased { player, .. }
+            | ScholarshipOffered { player, .. }
+            | JoinedLocalClub { player, .. }
+            | AcademyTrialStarted { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -257,7 +271,7 @@ impl EventKind {
         use EventKind::*;
         let mut v = SmallVec::new();
         match *self {
-            Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } => v.push(person),
+            Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } | ExamsSat { person, .. } => v.push(person),
             Meeting { from, with, .. } => {
                 v.push(from);
                 v.push(with);
@@ -320,6 +334,7 @@ impl EventKind {
                 v.push(buyer);
                 v.push(seller);
             }
+            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } => v.push(club),
             PreContractSigned { club, .. } | TrialStarted { club, .. } | TrialEnded { club, .. } | LoanRecalled { club, .. } | OptionExercised { club, .. } => v.push(club),
             _ => {}
         }

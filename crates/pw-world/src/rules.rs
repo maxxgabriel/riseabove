@@ -107,7 +107,7 @@ pub fn can_sign(w: &World, club: ClubId, p: PlayerId, today: Date) -> RuleOutcom
     if h.status == PlayerStatus::Retired {
         o.deny(Reason::Retired);
     }
-    let free_agent = h.status == PlayerStatus::FreeAgent;
+    let free_agent = matches!(h.status, PlayerStatus::FreeAgent | PlayerStatus::Amateur);
     if !free_agent && !w.nations[buyer.nation].season.window_open(today) {
         o.deny(Reason::WindowClosed);
     }

@@ -241,7 +241,11 @@ pub fn resolve_due(w: &mut World) {
             }
             DecisionKind::Trial { club, .. } => {
                 if choice == Choice::Accept && w.players.hot[p].status != pw_world::PlayerStatus::Active {
-                    crate::deals::start_trial(w, club, p);
+                    if w.age(p) < 16 {
+                        crate::youth::start_trial(w, club, p);
+                    } else {
+                        crate::deals::start_trial(w, club, p);
+                    }
                 }
             }
             DecisionKind::TransferTalks { .. } => {}

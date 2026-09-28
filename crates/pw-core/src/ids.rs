@@ -82,4 +82,5 @@ define_ids!(
     OutletId,
     StoryId,
     MeetingId,
+    LocalClubId,
 );

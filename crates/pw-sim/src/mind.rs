@@ -142,6 +142,12 @@ pub fn weekly(w: &mut World) {
                     queued.push((who, Intent::SeekStaffJob(role)));
                 }
             }
+            PlayerStatus::Amateur => {
+                // Adults in the amateur game may give it up; children don't retire.
+                if consider::age(w, who) >= 23.0 && retirement_choice(w, p, &mut rng) {
+                    queued.push((who, Intent::Retire));
+                }
+            }
             PlayerStatus::Active => {}
         }
     }

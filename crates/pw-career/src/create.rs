@@ -43,7 +43,10 @@ pub fn create_person(w: &mut World, np: NewPerson) -> (PersonId, PlayerId) {
     let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
     let dob = Date(today.0 - (age * 365.25) as i32 - rng.range_i32(0, 300));
 
-    let (team, contract) = if np.club.is_some() {
+    // Children start where every child in the world starts: at a local club.
+    // Academies find them (or don't) through their own scouting and trials.
+    let child = age < 16.0;
+    let (team, contract) = if np.club.is_some() && !child {
         let kinds: &[TeamKind] = if age < 18.0 {
             &[TeamKind::U18, TeamKind::U19, TeamKind::U21, TeamKind::Reserve, TeamKind::First]
         } else if age < 21.0 {
@@ -66,7 +69,8 @@ pub fn create_person(w: &mut World, np: NewPerson) -> (PersonId, PlayerId) {
     } else {
         (pw_core::TeamId::NONE, Contract::default())
     };
-    let p = spawn_player(w, NewPlayer { nation, dob, pos: np.pos, ca, pa: pa as u8, club: np.club, team, contract }, &mut rng);
+    let club = if child { ClubId::NONE } else { np.club };
+    let p = spawn_player(w, NewPlayer { nation, dob, pos: np.pos, ca, pa: pa as u8, club, team, contract }, &mut rng);
     let person = w.players.cold[p].person;
     if !np.first.trim().is_empty() {
         w.people[person].first = w.names.intern(&np.first);
@@ -74,9 +78,19 @@ pub fn create_person(w: &mut World, np: NewPerson) -> (PersonId, PlayerId) {
     if !np.last.trim().is_empty() {
         w.people[person].last = w.names.intern(&np.last);
     }
-    if np.club.is_some() {
+    pw_sim::life::sync(w);
+    if child {
+        w.players.hot[p].status = pw_world::PlayerStatus::Amateur;
+        w.youth.school.insert(person, Default::default());
+        // Near the chosen club's town if one was given.
+        let city = if np.club.is_some() { Some(w.clubs[np.club].city.clone()) } else { None };
+        let local = city.and_then(|c| w.youth.local.ids().find(|&l| w.youth.local[l].city == c && w.youth.local[l].level == pw_world::youth::LocalLevel::Grassroots));
+        match local {
+            Some(l) => w.youth.join(p, l),
+            None => pw_sim::youth::join_local_near(w, p, person),
+        }
+    } else if np.club.is_some() {
         w.knowledge.observe(np.club, p, 300, today);
     }
-    pw_sim::life::sync(w);
     (person, p)
 }

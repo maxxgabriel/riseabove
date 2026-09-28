@@ -29,6 +29,7 @@ pub mod social;
 pub mod staff;
 pub mod stats;
 pub mod world;
+pub mod youth;
 
 pub use club::{Club, Team, TeamKind};
 pub use comp::{CompKind, Competition, Fixture, Fixtures, Format, Score, TableRow};

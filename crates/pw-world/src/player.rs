@@ -11,6 +11,9 @@ pub enum PlayerStatus {
     Active,
     FreeAgent,
     Retired,
+    /// Playing outside professional registration: grassroots children, and
+    /// adults in amateur and semi-professional football.
+    Amateur,
 }
 
 /// Fields touched every simulated day. Kept small and `Copy` so daily passes

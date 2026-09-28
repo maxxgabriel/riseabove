@@ -91,10 +91,15 @@ pub fn weekly(w: &mut World) {
             continue;
         }
         let age = w.age(p);
-        let wanted = match c.status {
-            SquadStatus::NotNeeded | SquadStatus::Backup => false,
-            SquadStatus::Fringe => age <= 21 && c.pa >= c.ca + 15,
-            _ => age < 33 || c.ca >= 130,
+        let wanted = if c.contract.kind == pw_world::ContractKind::Youth {
+            // Scholars earn a first professional deal only if the club believes in them.
+            crate::youth::worth_pro_contract(w, p)
+        } else {
+            match c.status {
+                SquadStatus::NotNeeded | SquadStatus::Backup => false,
+                SquadStatus::Fringe => age <= 21 && c.pa >= c.ca + 15,
+                _ => age < 33 || c.ca >= 130,
+            }
         };
         if !wanted || w.market.on_cooldown(h.club, p, today) {
             continue;

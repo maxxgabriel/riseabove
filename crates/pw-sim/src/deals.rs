@@ -640,7 +640,7 @@ pub fn trials(w: &mut World) {
         let cands: Vec<PlayerId> = w
             .knowledge
             .known(club)
-            .filter(|(p, s)| s.minutes >= 45 && w.players.hot[*p].status == PlayerStatus::FreeAgent)
+            .filter(|(p, s)| s.minutes >= 45 && matches!(w.players.hot[*p].status, PlayerStatus::FreeAgent | PlayerStatus::Amateur) && w.age(*p) >= 17)
             .map(|(p, _)| p)
             .filter(|&p| w.deals.on_trial(p).is_none() && !w.market.talking.contains_key(&p) && !w.market.on_cooldown(club, p, today))
             .filter(|&p| {

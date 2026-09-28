@@ -94,6 +94,9 @@ fn team_kind(s: &str) -> TeamKind {
         "u21" | "u23" => TeamKind::U21,
         "u19" => TeamKind::U19,
         "u18" | "u17" | "youth" => TeamKind::U18,
+        "u16" | "u15" => TeamKind::U16,
+        "u14" | "u13" => TeamKind::U14,
+        "u12" | "u11" | "u10" | "u9" => TeamKind::U12,
         _ => TeamKind::First,
     }
 }

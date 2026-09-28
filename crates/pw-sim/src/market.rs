@@ -366,6 +366,8 @@ fn landing_team(w: &World, p: PlayerId, club: ClubId) -> TeamId {
 pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fee: Money, contract: Contract) {
     let today = w.date;
     remove_from_team(w, p);
+    // Leaving the amateur game for a professional club.
+    w.youth.leave(p);
     let team = landing_team(w, p, buyer);
     w.teams[team].squad.push(p);
     {

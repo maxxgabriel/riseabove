@@ -34,6 +34,7 @@ pub mod selection;
 pub mod social;
 pub mod staffing;
 pub mod talk;
+pub mod youth;
 
 use pw_core::{DecisionId, Weekday};
 use pw_world::World;
@@ -95,6 +96,13 @@ impl Sim {
             managers::monthly(w);
             scouting::ensure(w);
             scouting::assign(w);
+            youth::school(w);
+            if today.month() == 6 {
+                youth::reviews(w);
+            }
+            if today.month() == 9 {
+                youth::yearly(w);
+            }
             vacancies(w);
             w.beliefs.forget(today.add_days(-240));
         }
@@ -139,6 +147,7 @@ impl Sim {
             morale::weekly(w);
             talk::manager_summons(w);
             mind::weekly(w);
+            youth::weekly(w);
             agents::weekly(w);
             media::weekly(w);
             reputation::weekly(w);
@@ -186,6 +195,7 @@ pub fn prepare(w: &mut World) {
     governance::ensure(w);
     managers::ensure(w);
     scouting::ensure(w);
+    youth::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

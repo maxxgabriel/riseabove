@@ -304,7 +304,7 @@ fn still_valid(w: &World, id: TalkId) -> bool {
     match t.kind {
         TalkKind::Transfer => h.club == t.seller && h.status == PlayerStatus::Active,
         TalkKind::Renewal | TalkKind::FirstPro => h.club == t.club && h.status == PlayerStatus::Active,
-        TalkKind::FreeAgent => h.status == PlayerStatus::FreeAgent,
+        TalkKind::FreeAgent => matches!(h.status, PlayerStatus::FreeAgent | PlayerStatus::Amateur),
         TalkKind::Loan => h.club == t.seller,
         TalkKind::PreContract => h.club == t.seller && h.status == PlayerStatus::Active,
     }

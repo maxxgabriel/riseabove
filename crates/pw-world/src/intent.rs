@@ -37,6 +37,8 @@ pub enum Intent {
     AskPartner(PartnerAsk),
     /// Look for a relationship (social life becomes open to it).
     OpenToDating(bool),
+    /// Sign up to play amateur football locally.
+    JoinAmateurFootball,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]

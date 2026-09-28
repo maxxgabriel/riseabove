@@ -78,6 +78,10 @@ fn apply(w: &mut World, who: PersonId, intent: Intent) {
         Intent::OpenToDating(open) => {
             w.intents.dating.insert(who, open);
         }
+        Intent::JoinAmateurFootball if p.is_some() && w.players.hot[p].status == PlayerStatus::FreeAgent => {
+            w.players.hot[p].status = PlayerStatus::Amateur;
+            crate::youth::join_local_near(w, p, who);
+        }
         _ => {}
     }
 }

@@ -135,7 +135,7 @@ fn covered(w: &World, brief: &Brief, club: ClubId) -> Vec<(TeamId, Date, CompId)
 }
 
 /// A scout's estimate of one player after watching them, with their biases.
-fn judge(w: &World, s: StaffId, club: ClubId, p: PlayerId, context: u16) -> Report {
+pub(crate) fn judge(w: &World, s: StaffId, club: ClubId, p: PlayerId, context: u16) -> Report {
     let st = &w.staff[s];
     let prof = &w.scouting.profiles[&s];
     let c = &w.players.cold[p];
