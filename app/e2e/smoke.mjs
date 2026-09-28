@@ -17,14 +17,16 @@ const player = (await first("players", { kind: "first", inhabitable: true })).id
 const club = (await first("clubs")).id;
 const match = (await first("fixtures", { played: true })).open.id;
 
+const SOCIETY = ["posts", "chants", "memes", "groups", "rivalries", "conferences", "quotes", "outlets", "journalists", "grapevine", "incidents", "referees", "controversies", "charges", "record_book", "records_broken", "votes", "hall_members", "chronicle", "schools", "rule_changes", "institutions", "minor_seasons"];
 const observer = [
   "overview", "people", `person/${player}`, ...["attributes", "stats", "career", "events"].map((t) => `person/${player}/${t}`),
   "clubs", `club/${club}`, ...["squad", "staff", "fixtures", "finances", "history"].map((t) => `club/${club}/${t}`),
   "comps", "comp/0", ...["fixtures", "leaders", "history", "rules"].map((t) => `comp/0/${t}`), "nations", "nation/0",
   "fixtures", "transfers", "events", "history", "history?tab=awards", "staff", `match/${match}`,
+  "society", ...SOCIETY.map((t) => `society/${t}`), "society/nope",
   `compare?ids=${player}`, "bookmarks", "settings", "help", "diagnostics", "saves", "inhabit", "nope/nothing",
 ];
-const inhabited = ["today", "messages", "calendar", "football", "contract", "me", `person/${player}`];
+const inhabited = ["today", "messages", "calendar", "football", "contract", "life", "relationships", "press", "social", "journal", "society", "society/posts", "society/incidents", "me", `person/${player}`];
 
 const { browser, page, errors } = await launch();
 page.on("response", async (r) => {

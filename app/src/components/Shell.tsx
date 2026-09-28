@@ -27,6 +27,7 @@ function useNav(): { top: NavItem[]; groups: { label: string; items: NavItem[] }
     { label: "Nations", to: "/nations", icon: "globe", match: ["/nation"] },
     { label: "Fixtures", to: "/fixtures", icon: "list", match: ["/match"] },
     { label: "Transfers", to: "/transfers", icon: "transfer" },
+    { label: "Society", to: "/society", icon: "chat" },
     { label: "Events", to: "/events", icon: "pulse" },
     { label: "History", to: "/history", icon: "clock" },
   ];

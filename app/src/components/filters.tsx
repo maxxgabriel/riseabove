@@ -82,15 +82,15 @@ export function Chip({ on, onClick, children }: { on: boolean; onClick: () => vo
   );
 }
 
-/** Pick a club, competition or nation by typing. */
-export function EntityFilter({ kind, id, onChange, label, placeholder }: { kind: "club" | "comp" | "nation"; id: number | undefined; onChange: (id: number | null) => void; label: string; placeholder: string }) {
+/** Pick a club, competition, nation or person by typing. */
+export function EntityFilter({ kind, id, onChange, label, placeholder }: { kind: "club" | "comp" | "nation" | "person"; id: number | undefined; onChange: (id: number | null) => void; label: string; placeholder: string }) {
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<SearchItem[]>([]);
   const [sel, setSel] = useState(0);
   const listId = useId();
   const known = useApi<{ name: string }>(id != null ? kind : null, id != null ? { id } : {}, { live: false });
-  const groupLabel = kind === "club" ? "Clubs" : kind === "comp" ? "Competitions" : "Nations";
+  const groupLabel = kind === "club" ? "Clubs" : kind === "comp" ? "Competitions" : kind === "person" ? "People" : "Nations";
 
   useEffect(() => {
     const t = text.trim();
