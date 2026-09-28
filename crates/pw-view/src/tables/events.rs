@@ -336,6 +336,7 @@ pub fn award_text(k: AwardKind) -> String {
         AwardKind::PlayerOfMonth => "Player of the Month".into(),
         AwardKind::Playmaker => "Playmaker".into(),
         AwardKind::GoldenGlove => "Golden Glove".into(),
+        AwardKind::PlayersPlayer => "Players' Player of the Season".into(),
         AwardKind::WorldPlayer { rank: 1 } => "World Player of the Year".into(),
         AwardKind::WorldPlayer { rank } => format!("World Player of the Year, {}", pw_world::event::ordinal(rank)),
         AwardKind::WorldYoungPlayer => "World Young Player of the Year".into(),

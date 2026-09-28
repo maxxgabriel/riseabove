@@ -168,6 +168,8 @@ pub fn intent_text(c: &Ctx, i: &Intent) -> String {
         Intent::Invest { .. } => "Invest money".into(),
         Intent::PursueCareer(p) => format!("Start working in {}", p.label()),
         Intent::LeaveCareer => "Leave your current work".into(),
+        Intent::Thank { to } => format!("Thank {}", c.person_name(to)),
+        Intent::Tell { to, .. } => format!("Pass what you heard on to {}", c.person_name(to)),
         Intent::Post { about, concept, reply_to, .. } => {
             let who = if Some(about) == c.me() { "yourself".to_string() } else { c.person_name(about) };
             let what = concept_label(concept).to_lowercase();

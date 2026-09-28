@@ -55,6 +55,9 @@ pub fn group_of(k: &E) -> Group {
         Incident { .. } | IncidentResponse { .. } | CaptainMediated { .. } | InvestigationCleared { .. } | LeakSuspected { .. } => Group::Incidents,
         JournalistMoved { .. } | JournalistLeft { .. } | JournalistHired { .. } | SupporterAction { .. } => Group::Media,
         BoardWarning { .. } | BoardQuery { .. } => Group::Board,
+        EnrolledUniversity { .. } | Graduated { .. } => Group::Life,
+        Record { .. } | Voted { .. } | HallInduction { .. } => Group::Career,
+        MinorTitle { .. } | Chronicle { .. } | RefereeControversy { .. } | AppealDecided { .. } | Charged { .. } | SchoolFounded { .. } | RuleChanged { .. } => Group::Competition,
         AgentExploring { .. } => Group::Transfers,
         Milestone { .. } | RecordBroken { .. } | BecameLegend { .. } | InductedHallOfFame { .. } | AcademyJoined { .. } | AcademyReleased { .. } | ScholarshipOffered { .. } | JoinedLocalClub { .. } | AcademyTrialStarted { .. } | Stagnated { .. } | CharacterChanged { .. } => Group::Career,
         _ => Group::Club,
@@ -167,6 +170,18 @@ pub fn label(k: &E) -> &'static str {
         InvestigationCleared { .. } => "Investigation",
         JournalistMoved { .. } | JournalistLeft { .. } | JournalistHired { .. } => "Press corps",
         SupporterAction { .. } => "Supporters",
+        EnrolledUniversity { .. } => "University",
+        Graduated { .. } => "Graduation",
+        MinorTitle { .. } => "Title",
+        Record { .. } => "Record",
+        Voted { .. } => "Vote",
+        HallInduction { .. } => "Hall of fame",
+        Chronicle { .. } => "Chronicle",
+        RefereeControversy { .. } => "Referee",
+        AppealDecided { .. } => "Appeal",
+        Charged { .. } => "Charge",
+        SchoolFounded { .. } => "Tactical school",
+        RuleChanged { .. } => "Rule change",
     }
 }
 

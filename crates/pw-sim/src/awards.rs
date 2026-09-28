@@ -473,12 +473,14 @@ pub fn scan(w: &mut World) {
     let new: Vec<pw_world::history::Honour> = w.history.honours[w.acclaim.honours_seen.min(w.history.honours.len())..].to_vec();
     w.acclaim.honours_seen = w.history.honours.len();
     for h in &new {
-        let comp = &w.comps[h.comp];
-        if comp.team_kind != TeamKind::First || h.club.is_none() {
+        let (comp_kind, comp_tier, comp_team_kind, nation) = {
+            let comp = &w.comps[h.comp];
+            (comp.kind, comp.tier, comp.team_kind, comp.nation)
+        };
+        if comp_team_kind != TeamKind::First || h.club.is_none() {
             continue;
         }
-        let nation = comp.nation;
-        if comp.kind == CompKind::League && comp.tier == 1 {
+        if comp_kind == CompKind::League && comp_tier == 1 {
             let before = w.history.honours.iter().filter(|x| x.club == h.club && x.comp == h.comp && x.season < h.season).count() + w.backfill.titles(h.club, h.comp);
             let known_past = w.history.honours.iter().any(|x| x.comp == h.comp && x.season < h.season) || w.backfill.seasons_of(h.comp).next().is_some();
             if before == 0 && known_past {
@@ -495,8 +497,8 @@ pub fn scan(w: &mut World) {
             .collect();
         let league = won.iter().any(|&(k, t)| k == CompKind::League && t == 1);
         let cup = won.iter().any(|&(k, _)| k == CompKind::Cup);
-        let this_completes = match comp.kind {
-            CompKind::League => comp.tier == 1 && cup,
+        let this_completes = match comp_kind {
+            CompKind::League => comp_tier == 1 && cup,
             CompKind::Cup => league && won.iter().filter(|&&(k, _)| k == CompKind::Cup).count() == 1,
             _ => false,
         };

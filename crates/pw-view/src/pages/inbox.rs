@@ -37,6 +37,7 @@ pub fn kind_key(k: &DecisionKind) -> &'static str {
         DecisionKind::IncidentAsk { ask: Ask::RequestLeave, .. } => "incident_leave",
         DecisionKind::IncidentAsk { ask: Ask::Apologise, .. } => "incident_apology",
         DecisionKind::PressQuestion { .. } => "press_question",
+        DecisionKind::Appeal { .. } => "appeal",
     }
 }
 
@@ -59,6 +60,7 @@ fn folder_of(d: &Decision, state: &str) -> &'static str {
         DecisionKind::Partner { .. } => "life",
         DecisionKind::Treatment { .. } | DecisionKind::NationChoice { .. } | DecisionKind::Incident { .. } | DecisionKind::IncidentAsk { .. } => "work",
         DecisionKind::PressQuestion { .. } => "press",
+        DecisionKind::Appeal { .. } => "work",
         _ => "contracts",
     }
 }
@@ -91,6 +93,10 @@ pub fn decision_from(c: &Ctx, d: &Decision) -> Value {
             let q = w.pressroom.conferences.get(*conference as usize).and_then(|cf| cf.questions.get(usize::from(*question)));
             q.map_or(Value::Null, |q| named(Ref::person(q.journalist), c.person_name(q.journalist)))
         }
+        DecisionKind::Appeal { controversy } => match w.officials.controversies.get(*controversy as usize) {
+            Some(x) => named(Ref::club(x.against), c.club_name(x.against)),
+            None => Value::Null,
+        },
     }
 }
 
@@ -135,6 +141,8 @@ fn option_label(c: &Ctx, d: &Decision, ch: &Choice) -> String {
         (K::IncidentAsk { ask: Ask::RequestLeave, .. }, Choice::Reject) => "Carry on as normal".into(),
         (K::IncidentAsk { ask: Ask::Apologise, .. }, Choice::Accept) => "Apologise".into(),
         (K::IncidentAsk { ask: Ask::Apologise, .. }, Choice::Reject) => "Refuse to apologise".into(),
+        (K::Appeal { .. }, Choice::Accept) => "Appeal the card".into(),
+        (K::Appeal { .. }, Choice::Reject) => "Accept the decision".into(),
         (K::Incident { .. }, Choice::Handle(r)) => response_label(c, *r),
         (K::PressQuestion { .. }, Choice::Say(st)) => pw_narrate::press::stance_label(*st).into(),
         (K::Meeting { meeting }, Choice::Respond(t)) => {
@@ -493,6 +501,14 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
                 Ask::RequestLeave => consequences.push("Asking tells the person in charge. It is theirs to grant or refuse, and they will remember how you handled it.".into()),
                 Ask::Apologise => consequences.push("Apologising settles it and eases the tension between you. Refusing is remembered by the person who asked, and the row stays open.".into()),
             }
+        }
+        DecisionKind::Appeal { controversy } => {
+            if let Some(x) = w.officials.controversies.get(*controversy as usize) {
+                paragraphs.push(pw_narrate::officiating::controversy(w, x));
+            }
+            consequences.push("Appealing sends it to a panel, which sits two days later. It can rescind the card, uphold it, or, if it finds the appeal frivolous, add a match to the ban.".into());
+            consequences.push("Not appealing leaves the ban as it stands.".into());
+            consequences.push("Whichever you choose, the player notices whether you stood up for them.".into());
         }
         DecisionKind::PressQuestion { conference, question } => {
             press_block = press_json(c, *conference, usize::from(*question));
