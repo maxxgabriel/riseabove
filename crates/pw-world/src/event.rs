@@ -151,6 +151,19 @@ pub enum EventKind {
     StatusChanged { player: PlayerId, club: ClubId, from: crate::contract::SquadStatus, to: crate::contract::SquadStatus },
     /// A manager named a new captain.
     Captaincy { player: PlayerId, team: TeamId },
+    /// A club changed hands.
+    Takeover { club: ClubId, owner: PersonId, previous: PersonId },
+    /// A club entered administration.
+    Administration { club: ClubId },
+    PointsDeducted { club: ClubId, points: u8 },
+    /// The board cut budgets and put earners up for sale.
+    Austerity { club: ClubId },
+    /// The owner put money in.
+    OwnerInvestment { club: ClubId, amount: Money },
+    ProjectStarted { club: ClubId, kind: crate::governance::ProjectKind },
+    ProjectCompleted { club: ClubId, kind: crate::governance::ProjectKind },
+    /// A nation's top flight signed a new broadcast deal.
+    BroadcastDeal { nation: NationId, pool: Money },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -264,6 +277,13 @@ impl EventKind {
             | TalksCollapsed { club, .. }
             | AgentPitch { club, .. }
             | StatusChanged { club, .. }
+            | Takeover { club, .. }
+            | Administration { club }
+            | PointsDeducted { club, .. }
+            | Austerity { club }
+            | OwnerInvestment { club, .. }
+            | ProjectStarted { club, .. }
+            | ProjectCompleted { club, .. }
             | JoinedStaff { club, .. } => v.push(club),
             _ => {}
         }

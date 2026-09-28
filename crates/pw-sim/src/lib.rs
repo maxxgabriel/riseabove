@@ -6,8 +6,10 @@ pub mod consider;
 pub mod contracts;
 pub mod decisions;
 pub mod development;
+pub mod economy;
 pub mod finance;
 pub mod generate;
+pub mod governance;
 pub mod health;
 pub mod hungarian;
 pub mod intents;
@@ -63,6 +65,10 @@ impl Sim {
         life::sync(w);
 
         // 1. Calendar: seasons, draws, contract expiries, loan ends, intakes.
+        if today.month() == 7 && today.day() == 1 {
+            economy::yearly(w);
+            governance::yearly(w);
+        }
         season::daily(w);
         contracts::daily(w);
         people::daily(w);
@@ -78,6 +84,7 @@ impl Sim {
             mind::monthly(w);
             social::monthly(w);
             staffing::monthly(w);
+            governance::monthly(w);
             vacancies(w);
             w.beliefs.forget(today.add_days(-240));
         }
@@ -159,6 +166,8 @@ impl Sim {
 pub fn prepare(w: &mut World) {
     w.knowledge.resize(w.clubs.len());
     life::sync(w);
+    economy::ensure(w);
+    governance::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

@@ -97,6 +97,9 @@ pub struct World {
     pub media: Media,
     pub meetings: Meetings,
     pub intents: Intents,
+    /// Owners, boards, policies and projects, per club.
+    pub governance: FxHashMap<ClubId, crate::governance::Governance>,
+    pub economy: crate::governance::Economy,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -134,6 +137,8 @@ impl World {
             media: Media::default(),
             meetings: Meetings::default(),
             intents: Intents::default(),
+            governance: FxHashMap::default(),
+            economy: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

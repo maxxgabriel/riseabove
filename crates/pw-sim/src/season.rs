@@ -314,6 +314,7 @@ fn crown(w: &mut World, c: CompId, winner: TeamId) {
     }
     let prize = w.comps[c].prize_pool / 3;
     w.clubs[club].finance.balance += prize;
+    crate::economy::record_continental(w, c);
     archive_stats(w, c, year);
 }
 

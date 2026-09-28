@@ -103,8 +103,11 @@ fn club_limit(w: &World, club: ClubId, p: PlayerId, offer: &Terms) -> Terms {
     let want = ((ca - ideal) / 20.0 + (pa - ca).max(0.0) / 60.0 + consider::club_need_for(w, club, p) * 0.3).clamp(-0.5, 1.0);
     let stretch = (1.12 + 0.35 * want).clamp(1.02, 1.6);
     let status = if want > 0.5 { Some(SquadStatus::Important) } else if want > 0.1 { Some(SquadStatus::Regular) } else { None };
+    // The board's wage structure caps what anyone earns, unless this is a signing
+    // the club badly wants.
+    let ceiling = if want > 0.6 { Money::MAX } else { crate::governance::wage_ceiling(w, club).max(offer.wage) };
     Terms {
-        wage: ((offer.wage as f32 * stretch) as Money).min(offer.wage + room),
+        wage: ((offer.wage as f32 * stretch) as Money).min(offer.wage + room).min(ceiling),
         signing_fee: (offer.signing_fee as f32 * stretch * 1.5) as Money,
         release_clause: 0,
         status,

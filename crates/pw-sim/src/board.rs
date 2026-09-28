@@ -48,10 +48,13 @@ pub fn weekly(w: &mut World) {
         let target = f32::from(c.board.target_position);
         let gap = (target - pos) / size; // + ahead of target
         let relegation = pos > size - f32::from(comp.relegate) - 0.5;
-        let b = &mut w.clubs[club].board;
         let delta = gap * 6.0 - if relegation { 2.0 } else { 0.0 } + 0.5;
-        let patience = 0.6 + f32::from(b.patience) / 100.0;
-        b.satisfaction = (f32::from(b.satisfaction) + delta / patience).clamp(0.0, 100.0) as u8;
+        let patience = 0.6 + f32::from(w.clubs[club].board.patience) / 100.0;
+        // Hot-headed or ambitious chairmen feel bad results more sharply.
+        let temper = crate::governance::owner_temper(w, club);
+        let felt = if delta < 0.0 { delta * temper } else { delta };
+        let b = &mut w.clubs[club].board;
+        b.satisfaction = (f32::from(b.satisfaction) + felt / patience).clamp(0.0, 100.0) as u8;
         if b.satisfaction < 15 {
             b.warnings += 1;
             b.satisfaction = 40;
@@ -66,7 +69,9 @@ pub fn weekly(w: &mut World) {
             w.staff[m].record.sackings += 1;
             w.clubs[club].staff.retain(|&s| s != m);
             w.clubs[club].manager = StaffId::NONE;
-            w.events.push(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club });
+            let warnings = w.clubs[club].board.warnings;
+            let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+            w.events.push_caused(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club }, causes);
         }
         appoint(w, club);
     }

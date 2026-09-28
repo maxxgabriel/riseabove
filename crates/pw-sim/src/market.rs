@@ -32,7 +32,7 @@ pub fn value_of(w: &World, p: PlayerId) -> Money {
     let contract = if h.status == PlayerStatus::FreeAgent { 0.3 } else { 0.35 + 0.65 * (years / 3.0).min(1.0) };
     let rep = 0.85 + 0.3 * f32::from(c.rep.world) / 10_000.0;
     let inj = if h.injury_days > 60 { 0.8 } else { 1.0 };
-    let v = t.value_base * exp(t.value_exp * (ca - 100.0)) * potential * age_mult * contract * rep * inj;
+    let v = t.value_base * exp(t.value_exp * (ca - 100.0)) * potential * age_mult * contract * rep * inj * w.economy.global();
     (v.max(5_000.0) as Money / 5_000) * 5_000
 }
 
@@ -46,7 +46,8 @@ pub fn wage_demand(w: &World, p: PlayerId, club: ClubId) -> Money {
     } else {
         (0.5, 0.3)
     };
-    let base = 400.0 * exp(0.048 * (ca - 60.0));
+    let index = if club.is_some() { w.economy.wage_index(w.clubs[club].nation) } else { w.economy.global() };
+    let base = 400.0 * exp(0.048 * (ca - 60.0)) * index;
     let club_scale = 0.3 + 1.3 * rep;
     let fame = 1.0 + 0.5 * f32::from(c.rep.world) / 10_000.0;
     ((base * club_scale * fame * econ.max(0.2)).max(150.0) as Money / 50) * 50
@@ -286,7 +287,9 @@ pub fn asking_price(w: &World, p: PlayerId) -> Money {
     let years = c.contract.days_left(w.date) as f32 / 365.0;
     let expiring = if years < 1.0 { 0.7 } else { 1.0 };
     let unsettled = if w.market.requests.contains_key(&p) || w.market.listed.contains_key(&p) { 0.75 } else { 1.0 };
-    let v = (c.value as f32 * stance * expiring * unsettled) as Money;
+    let club = w.players.hot[p].club;
+    let board = if club.is_some() { crate::governance::selling_stance(w, club) } else { 1.0 };
+    let v = (c.value as f32 * stance * expiring * unsettled * board) as Money;
     if c.contract.release_clause > 0 { v.min(c.contract.release_clause) } else { v }
 }
 

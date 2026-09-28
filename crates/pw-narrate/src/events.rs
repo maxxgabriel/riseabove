@@ -103,6 +103,14 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         }
         StatusChanged { player: p, club: c, from, to } => format!("{} now see {} as {} (was {}).", club(w, c), player(w, p), to.label(), from.label()),
         Captaincy { player: p, team } => format!("{} was named captain of {}.", pl(p), w.team_name(team)),
+        Takeover { club: c, owner, .. } => format!("{} have been taken over by {}.", club(w, c), person(w, owner)),
+        Administration { club: c } => format!("{} have entered administration.", club(w, c)),
+        PointsDeducted { club: c, points } => format!("{} were deducted {points} points.", club(w, c)),
+        Austerity { club: c } => format!("{} cut budgets and made high earners available.", club(w, c)),
+        OwnerInvestment { club: c, amount } => format!("The owner of {} invested {}.", club(w, c), money(amount)),
+        ProjectStarted { club: c, kind } => format!("{} began work on a new {}.", club(w, c), kind.label()),
+        ProjectCompleted { club: c, kind } => format!("{} opened their new {}.", club(w, c), kind.label()),
+        BroadcastDeal { nation: n, pool } => format!("{}'s top flight signed a {} broadcast deal.", nation(w, n), money(pool)),
     })
 }
 

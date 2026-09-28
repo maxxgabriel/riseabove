@@ -9,6 +9,7 @@ pub mod comp;
 pub mod contract;
 pub mod decision;
 pub mod event;
+pub mod governance;
 pub mod history;
 pub mod intent;
 pub mod interaction;
