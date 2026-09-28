@@ -524,8 +524,17 @@ fn minute_for(w: &World, outlet: OutletId, earliest: u16, key: u64) -> u16 {
 }
 
 /// Run a candidate through one journalist's desk. Returns the story if it ran.
-fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryId> {
+fn run(w: &mut World, mut c: Candidate, j: PersonId, age_days: i32) -> Option<StoryId> {
     let today = w.date;
+    // A journalist writes only what they know: private information they
+    // never heard can be used only once it has been published, and then it
+    // rests on the published story, not on a source of their own.
+    if c.info != u32::MAX && !w.grapevine.get(c.info).knows(j) {
+        let published = w.grapevine.get(c.info).published?;
+        c.public = true;
+        c.event = w.media.stories[published].event;
+        c.info = u32::MAX;
+    }
     let outlet = w.media.journalists.get(&j)?.outlet;
     if outlet.is_none() {
         return None;

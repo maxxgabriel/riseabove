@@ -194,6 +194,145 @@ fn history_before_the_start_is_marked_and_never_names_real_people() {
     assert!(w.backfill.figures.iter().all(|f| !real.contains(&f.name)));
 }
 
+#[test]
+fn narration_never_changes_the_world() {
+    // Rendering is a pure function of state: a world whose every line is
+    // rendered each day evolves exactly like one nobody reads.
+    let mut a = sim(Scale::TINY, 31);
+    let mut b = sim(Scale::TINY, 31);
+    for _ in 0..150 {
+        a.step();
+        b.step();
+        let w = &b.world;
+        for e in w.events.since(w.date.add_days(-1)) {
+            let _ = pw_narrate::events::line(w, e, PersonId::NONE);
+        }
+        for p in w.net.posts.iter().rev().take(50) {
+            let _ = pw_narrate::social::post(w, p);
+        }
+        for s in w.media.stories.iter().rev().take(20) {
+            let _ = pw_narrate::press::headline(w, s);
+        }
+    }
+    assert_eq!(digest(&a.world), digest(&b.world));
+}
+
+#[test]
+fn identities_are_stable_within_a_save() {
+    let mut a = ran(Scale::TINY, 37, 90);
+    let handles: Vec<(u32, String)> = a.world.net.accounts.iter().map(|x| (x.id, x.handle.clone())).collect();
+    let dir = std::env::temp_dir().join(format!("pw-test-ids-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("w.sav");
+    pw_sim::save::save(&a.world, &path).unwrap();
+    let mut b = Sim::new(pw_sim::save::load::<World>(&path).unwrap());
+    a.run(200);
+    b.run(200);
+    for (id, h) in &handles {
+        assert_eq!(&a.world.net.accounts[*id as usize].handle, h, "a handle changed over time");
+        assert_eq!(&b.world.net.accounts[*id as usize].handle, h, "a handle changed through save/load");
+    }
+    // History survives save and load.
+    assert_eq!(a.world.records.records.len(), b.world.records.records.len());
+    assert_eq!(a.world.acclaim.votes.len(), b.world.acclaim.votes.len());
+    assert_eq!(a.world.minor.history.len(), b.world.minor.history.len());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn suspended_players_are_not_selected() {
+    let mut s = ran(Scale::TINY, 41, 40);
+    let w = &mut s.world;
+    let team = w.teams.ids().find(|&t| w.teams[t].kind == pw_world::TeamKind::First).unwrap();
+    let comp = w.clubs[w.teams[team].club].league;
+    let best = *w.teams[team].squad.iter().max_by_key(|&&p| w.players.cold[p].ca).unwrap();
+    w.players.hot[best].ban = 2;
+    let sel = pw_sim::selection::select_in(w, team, comp, w.date, 0.5, 9, 0).expect("a side");
+    assert!(!sel.xi.contains(&best) && !sel.bench.contains(&best), "a suspended player was picked");
+}
+
+#[test]
+fn record_ties_do_not_break_records() {
+    use pw_world::minor::Level;
+    use pw_world::records::{Holder, Mark, RecordKey, Scope, Stat};
+    let mut s = sim(Scale::TINY, 43);
+    let w = &mut s.world;
+    let key = RecordKey { scope: Scope::World, stat: Stat::Goals, level: Level::Professional };
+    let people: Vec<PersonId> = w.people.ids().take(3).collect();
+    let mark = |p: PersonId, v: i64| Mark { holder: Holder::Person(p), value: v, date: pw_core::Date(0), against: None };
+    let before = w.records.broken.len();
+    pw_sim::records::note(w, key, mark(people[0], 10), 1, false);
+    assert!(pw_sim::records::note(w, key, mark(people[1], 10), 1, false).is_none(), "a tie is not a new record");
+    assert!(pw_sim::records::note(w, key, mark(people[2], 11), 1, false).is_some(), "a better mark is");
+    assert_eq!(w.records.get(&key).unwrap().current.holder, Holder::Person(people[2]));
+    assert_eq!(w.records.get(&key).unwrap().previous.last().unwrap().holder, Holder::Person(people[0]));
+    assert_eq!(w.records.broken.len(), before + 1);
+}
+
+#[test]
+fn a_world_without_a_protagonist_is_alive() {
+    let s = ran(Scale::SMALL, 47, 730);
+    let w = &s.world;
+    assert!(w.people.iter().all(|p| p.mind != MindKind::External));
+    use pw_world::EventKind as E;
+    let mut seen: std::collections::BTreeMap<&str, usize> = Default::default();
+    for e in w.events.since(pw_core::Date(0)) {
+        let k = match e.kind {
+            E::Incident { .. } => "incidents",
+            E::Published { .. } => "news",
+            E::Transfer { .. } => "transfers",
+            E::ManagerSacked { .. } => "sackings",
+            E::ManagerAppointed { .. } => "appointments",
+            E::Retired { .. } => "retirements",
+            E::NewCareer { .. } => "post-playing careers",
+            E::Award { .. } | E::Voted { .. } => "awards",
+            E::Record { .. } | E::RecordBroken { .. } => "records",
+            E::JournalistMoved { .. } | E::JournalistHired { .. } | E::JournalistLeft { .. } => "journalist careers",
+            E::MinorTitle { .. } => "minor football",
+            E::RefereeControversy { .. } => "controversies",
+            _ => continue,
+        };
+        *seen.entry(k).or_default() += 1;
+    }
+    let rumours = w.media.stories.iter().filter(|s| s.kind == pw_world::StoryKind::TransferRumour).count();
+    println!("{seen:?} rumours {rumours} posts {}", w.net.posts.len());
+    for k in ["incidents", "news", "transfers", "retirements", "awards", "records", "minor football", "controversies", "appointments"] {
+        assert!(seen.get(k).copied().unwrap_or(0) > 0, "no {k} in two autonomous seasons: {seen:?}");
+    }
+    assert!(rumours > 0 && !w.net.posts.is_empty());
+    // Players develop and decline.
+    let grew = w.players.cold.iter().filter(|c| c.senior_apps > 20).count();
+    assert!(grew > 0);
+}
+
+#[test]
+fn incidents_become_causal_chains_that_differ_by_seed() {
+    let mut shapes = Vec::new();
+    for seed in [51u64, 52, 53] {
+        let s = ran(Scale::SMALL, seed, 300);
+        let w = &s.world;
+        // A contextual incident: caused by recorded pressures, learned by
+        // people, responded to by someone with authority.
+        let mut chains = 0;
+        let mut shape: Vec<String> = Vec::new();
+        for inc in w.incidents.list.iter() {
+            let Some(ev) = w.events.get(inc.event) else { continue };
+            let pressured = ev.causes.iter().any(|c| matches!(c, pw_world::event::Cause::Fact(pw_world::event::Fact::Pressure { .. })));
+            let known = w.grapevine.items.iter().rev().take(20_000).any(|it| matches!(it.kind, pw_world::info::InfoKind::Incident { incident } if incident == inc.id) && it.holders.len() >= 2);
+            if pressured && known && !inc.responses.is_empty() {
+                chains += 1;
+                if shape.len() < 5 {
+                    shape.push(format!("{:?}->{:?}", inc.kind, inc.responses[0].response));
+                }
+            }
+        }
+        println!("seed {seed}: {chains} chains, e.g. {shape:?}");
+        assert!(chains > 0, "seed {seed}: no incident went pressure -> knowledge -> response");
+        shapes.push(shape);
+    }
+    assert!(shapes[0] != shapes[1] || shapes[1] != shapes[2], "chains identical across seeds");
+}
+
 // ---------------------------------------------------------------------------
 // Long runs (ignored by default)
 // ---------------------------------------------------------------------------

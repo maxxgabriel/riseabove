@@ -43,6 +43,22 @@ pub enum Violation {
     PastFigureNamedLikeReal {
         figure: u32,
     },
+    /// A transfer reported as done that rests on no transfer.
+    TransferNewsWithoutTransfer {
+        story: u32,
+    },
+    /// A story from a source the journalist never heard it from.
+    SourcelessLeak {
+        story: u32,
+    },
+    /// A post that cites a story published after it.
+    PostBeforeItsStory {
+        post: u32,
+    },
+    /// A voter or a result naming nobody.
+    VoteWithoutPerson {
+        vote: u32,
+    },
     /// Minor football membership lists disagree.
     MembershipMismatch {
         player: u32,
@@ -75,10 +91,28 @@ pub fn audit(w: &World) -> Vec<Violation> {
 }
 
 fn stories(w: &World, v: &mut Vec<Violation>) {
+    use pw_world::event::{Cause, EventKind, Fact};
     for s in w.media.stories.iter() {
-        let public = matches!(s.source, pw_world::event::Cause::Event(_));
+        let public = matches!(s.source, Cause::Event(_));
         if s.claim_type == ClaimType::Fact && !s.grounded && !public {
             v.push(Violation::UngroundedFact { story: s.id.0 });
+        }
+        // A completed move must rest on the transfer (while the log still holds it).
+        if s.kind == pw_world::StoryKind::TransferNews {
+            let ok = match s.source {
+                Cause::Event(e) => w.events.get(e).is_none_or(|e| matches!(e.kind, EventKind::Transfer { player, .. } if player == s.player)),
+                _ => false,
+            };
+            if !ok {
+                v.push(Violation::TransferNewsWithoutTransfer { story: s.id.0 });
+            }
+        }
+        // Private information reaches print only through someone who told the journalist.
+        if let Cause::Fact(Fact::Heard { info, .. }) = s.source {
+            let knew = w.grapevine.items.get(info as usize).is_some_and(|it| it.knows(s.journalist));
+            if !knew {
+                v.push(Violation::SourcelessLeak { story: s.id.0 });
+            }
         }
     }
 }
@@ -100,6 +134,11 @@ fn posts(w: &World, v: &mut Vec<Violation>) {
         }
         if p.concept == Concept::Relay && !matches!(p.frame, Frame::Story { .. }) {
             v.push(Violation::RelayWithoutStory { post: p.id });
+        }
+        if let pw_world::socialnet::Knew::Read { story } = p.knew
+            && w.media.stories.get(story).is_none_or(|st| st.date > p.date)
+        {
+            v.push(Violation::PostBeforeItsStory { post: p.id });
         }
     }
 }
@@ -165,6 +204,10 @@ fn votes(w: &World, v: &mut Vec<Violation>) {
                 pts.iter().take(c.picks.len()).sum::<u32>()
             })
             .sum();
+        let n = w.people.len();
+        if vote.casts.iter().any(|c| c.voter.0 as usize >= n || c.picks.iter().any(|x| x.0.0 as usize >= n)) {
+            v.push(Violation::VoteWithoutPerson { vote: vote.id });
+        }
         let got: u32 = vote.result.iter().map(|r| r.1).sum();
         if expected != got {
             v.push(Violation::VoteTally { vote: vote.id });
