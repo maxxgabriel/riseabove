@@ -217,6 +217,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         "form": h.form.iter().filter(|&&r| r > 0).map(|&r| f64::from(r) / 10.0).collect::<Vec<_>>(),
         "minutes_4w": h.minutes_4w,
         "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
+        "queued": c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).collect::<Vec<_>>(),
         "last_viewed": c.s.meta.last_viewed,
         "conceal_mine": c.s.meta.conceal_mine,
     }))

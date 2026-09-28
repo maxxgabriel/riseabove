@@ -1,9 +1,12 @@
 import { EntityLink, Money, Dt } from "../components/links";
 import { duration } from "../format";
 import { href } from "../router";
-import { useApi } from "../store";
+import { useApi, useStatus } from "../store";
 import type { Named, Part } from "../types";
 import { Parts } from "../components/links";
+import { AgentPanel } from "../components/AgentPanel";
+import { ConfirmAction } from "../components/Actions";
+import { TalkBlock } from "../components/Decision";
 import { Empty, KeyVal, Section } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
@@ -23,11 +26,15 @@ interface ContractResp {
   offers?: { id: string; title: string; deadline: number }[];
   history?: { date: number; parts: Part[] }[];
   guaranteed_note?: string;
+  talks?: React.ComponentProps<typeof TalkBlock>["t"] | null;
+  transfer_request?: number | null;
+  listed?: boolean;
 }
 
 export function Contract() {
   usePageTitle("Contract");
   const q = useApi<ContractResp>("me.contract");
+  const today = useStatus().date ?? 0;
   return (
     <div className="page">
       <Async q={q}>
@@ -36,6 +43,9 @@ export function Contract() {
             <>
               <PageHead title="Contract" />
               <Empty title="You do not have a contract" icon="contract">You are {c.status?.toLowerCase() ?? "without a club"}. Offers from clubs arrive in your <a href={href("/messages")}>messages</a>.</Empty>
+              <div className="stack" style={{ maxWidth: "36rem", marginTop: "1rem" }}>
+                <Section title="Your agent"><AgentPanel today={today} /></Section>
+              </div>
             </>
           ) : (
             <>
@@ -56,6 +66,11 @@ export function Contract() {
                       {c.guaranteed_note && <p className="hint" style={{ marginTop: "0.6rem" }}>{c.guaranteed_note}</p>}
                     </div>
                   </Section>
+                  {c.talks && (
+                    <Section title="Talks in progress">
+                      <TalkBlock t={c.talks} />
+                    </Section>
+                  )}
                   {c.loan && (
                     <Section title="On loan">
                       <div className="card">
@@ -74,6 +89,33 @@ export function Contract() {
                   )}
                 </div>
                 <aside className="stack">
+                  <Section title="Wanting to leave">
+                    <div className="card form">
+                      {c.listed && <div className="note warn"><span>The club has put you up for transfer.</span></div>}
+                      {c.transfer_request != null ? (
+                        <>
+                          <p>You handed in a transfer request on <Dt d={c.transfer_request} />. The club, and the people who follow the club, know it.</p>
+                          <div className="formfoot">
+                            <ConfirmAction label="Withdraw the request" title="Withdraw your transfer request?" action="withdraw_request">
+                              <p>You stay. The manager and the fans will remember you asked.</p>
+                            </ConfirmAction>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="muted">Asking to leave is not private for long. Clubs may respond, supporters and the press will notice, and the manager will remember.</p>
+                          <div className="formfoot">
+                            <ConfirmAction label="Hand in a transfer request" title="Hand in a transfer request?" action="transfer_request" danger>
+                              <p>The club is told the next day. It may put you up for sale, refuse, or ignore it, and people will talk. You can withdraw the request, but not the fact that you made it.</p>
+                            </ConfirmAction>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </Section>
+                  <Section title="Your agent">
+                    <AgentPanel today={today} />
+                  </Section>
                   <Section title="Offers waiting">
                     <div className="card list-card">
                       {c.offers && c.offers.length > 0 ? (

@@ -1,60 +1,301 @@
-import { useState } from "react";
-import { EntityLink, Money, Parts, Dt } from "../components/links";
-import { prose, relativeDays } from "../format";
+import { useEffect, useState } from "react";
+import { DecisionCard, MeetingBlock, StoryCard, kindLabel, type DecisionDetail } from "../components/Decision";
+import { Dt, EntityLink, Parts } from "../components/links";
+import { prose } from "../format";
+import { call } from "../api";
 import { href, navigate, useRoute } from "../router";
-import { act, notify, useApi, useStatus } from "../store";
+import { act, notify, useApi } from "../store";
 import type { Named, Part } from "../types";
-import { Icon } from "../ui/Icon";
-import { Badge, Button, Dialog, Empty } from "../ui/ui";
+import { Icon, type IconName } from "../ui/Icon";
+import { Badge, Button, Empty, Tabs } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
+
+// ---- conversations ----------------------------------------------------------------------------
+
+interface ThreadRow {
+  id: number;
+  title: string;
+  with: Named | null;
+  kind: "person" | "press" | "post" | "club" | "decision";
+  last: number;
+  count: number;
+  unread: number;
+  needs_action: boolean;
+  preview: string;
+  last_kind: string;
+}
+interface Reply {
+  key: string;
+  label: string;
+  effect: string | null;
+  quiet: boolean;
+}
+interface PostView {
+  id: number;
+  date: number;
+  author: { handle: string; display: string; kind: string; you: boolean; person: Named | null };
+  text: string;
+  likes: number;
+  reposts: number;
+  replies: number;
+}
+interface ThreadMessage {
+  id: number;
+  kind: "decision" | "tell" | "meeting" | "story" | "mention" | "private" | "question";
+  date: number;
+  from: Named | null;
+  read: boolean;
+  text: string;
+  replied: { label: string; date: number } | null;
+  replies: Reply[];
+  decision?: { id: string; state: string; title: string };
+  press?: { club: Named; date: number; number: number; of: number };
+  answered_with?: string;
+  confidence?: number;
+  meeting?: DecisionDetail["meeting"];
+  parts?: Part[];
+  label?: string;
+  story?: NonNullable<DecisionDetail["story"]>;
+  post?: PostView;
+}
+interface ThreadResp {
+  id: number;
+  title: string;
+  with: Named | null;
+  kind: ThreadRow["kind"];
+  opened: number;
+  last: number;
+  messages: ThreadMessage[];
+}
+
+const THREAD_ICON: Record<ThreadRow["kind"], IconName> = { person: "person", press: "mail", post: "pulse", club: "club", decision: "contract" };
+
+const FILTERS = [
+  { id: "all", label: "All" },
+  { id: "action", label: "Needs an answer" },
+  { id: "unread", label: "Unread" },
+] as const;
+
+export function Messages() {
+  usePageTitle("Messages");
+  const route = useRoute();
+  const seg = route.segs[1];
+  const activity = route.query.get("view") === "activity" || (seg != null && /^[de]\d+$/.test(seg));
+  return (
+    <div className="page fill inbox-page">
+      <PageHead title="Messages" sub="Conversations with the people who reach you, and everything that has been decided or reported about you." />
+      <Tabs
+        label="Messages"
+        value={activity ? "activity" : "conversations"}
+        onChange={(v) => navigate(v === "activity" ? "/messages?view=activity" : "/messages")}
+        tabs={[
+          { id: "conversations", label: "Conversations" },
+          { id: "activity", label: "All activity" },
+        ]}
+      />
+      {activity ? <Activity /> : <Conversations />}
+    </div>
+  );
+}
+
+function Conversations() {
+  const route = useRoute();
+  const filter = route.query.get("filter") ?? "all";
+  const selected = route.segs[1] === "t" ? Number(route.segs[2]) : null;
+  const q = useApi<{ threads: ThreadRow[]; unread: number; awaiting: number }>("me.inbox");
+  return (
+    <Async q={q}>
+      {(d) => {
+        const list = d.threads.filter((t) => (filter === "action" ? t.needs_action : filter === "unread" ? t.unread > 0 : true));
+        const current = selected ?? list[0]?.id ?? null;
+        return (
+          <div className="inbox">
+            <div className="inbox-list">
+              <div className="chips" role="group" aria-label="Show">
+                {FILTERS.map((f) => {
+                  const n = f.id === "action" ? d.awaiting : f.id === "unread" ? d.unread : 0;
+                  return (
+                    <button key={f.id} className="chip" aria-pressed={filter === f.id} onClick={() => navigate(`/messages${selected != null ? `/t/${selected}` : ""}${f.id === "all" ? "" : `?filter=${f.id}`}`, { replace: true })}>
+                      {f.label}{n > 0 ? ` (${n})` : ""}
+                    </button>
+                  );
+                })}
+              </div>
+              {list.length === 0 ? (
+                <Empty title={filter === "all" ? "No conversations yet" : "Nothing here"} icon="mail">
+                  {filter === "all" ? "People will get in touch as time passes: teammates, your manager, your agent, journalists, supporters. Offers and decisions arrive here too." : "Try another filter."}
+                </Empty>
+              ) : (
+                <ul className="msglist" aria-label="Conversations">
+                  {list.map((t) => (
+                    <li key={t.id}>
+                      <a href={href(`/messages/t/${t.id}${filter === "all" ? "" : `?filter=${filter}`}`)} aria-current={t.id === current ? "true" : undefined} className={`msg ${t.id === current ? "sel" : ""} ${t.needs_action ? "urgent" : ""}`}>
+                        <div className="msg-top">
+                          <strong className={`msg-subject ${t.unread > 0 ? "unread" : ""}`}>
+                            <Icon name={THREAD_ICON[t.kind]} size={13} /> {t.title}
+                          </strong>
+                          <span className="hint"><Dt d={t.last} year={false} /></span>
+                        </div>
+                        <div className="msg-sub">
+                          {t.needs_action && <Badge tone="warn">Needs an answer</Badge>}
+                          {t.unread > 0 && <Badge tone="you">{t.unread} new</Badge>}
+                          {t.count > 1 && <span className="hint">{t.count} messages</span>}
+                        </div>
+                        <div className="msg-preview">{prose(t.preview)}</div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="inbox-detail">{current != null ? <ThreadView id={current} key={current} onRead={q.reload} /> : <Empty title="No conversation selected" icon="mail" />}</div>
+          </div>
+        );
+      }}
+    </Async>
+  );
+}
+
+function ThreadView({ id, onRead }: { id: number; onRead: () => void }) {
+  const q = useApi<ThreadResp>("me.thread", { id });
+  const unread = q.data?.messages.some((m) => !m.read) ?? false;
+  useEffect(() => {
+    if (!unread) return;
+    const t = setTimeout(() => {
+      void call("me.thread_read", { id }).then(onRead, () => undefined);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [unread, id, onRead]);
+  return (
+    <Async q={q}>
+      {(t) => (
+        <div className="thread">
+          <header className="thread-head">
+            <h2>{t.with ? <EntityLink r={t.with}>{t.title}</EntityLink> : t.title}</h2>
+            <div className="hint">Since <Dt d={t.opened} /> · {t.messages.length} {t.messages.length === 1 ? "message" : "messages"}</div>
+          </header>
+          <ol className="thread-msgs">
+            {t.messages.map((m) => (
+              <li key={m.id} className={m.read ? "" : "fresh"}>
+                <MessageCard m={m} threadTitle={t.title} onDone={q.reload} />
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </Async>
+  );
+}
+
+const SOURCE_LABEL: Record<ThreadMessage["kind"], string> = {
+  decision: "Needs your decision",
+  question: "Press question",
+  tell: "Told you",
+  meeting: "Conversation",
+  story: "In the press",
+  mention: "Online",
+  private: "Private",
+};
+
+function MessageCard({ m, onDone }: { m: ThreadMessage; threadTitle: string; onDone: () => void }) {
+  const head = (
+    <div className="mc-head">
+      <span className="mc-kind">{SOURCE_LABEL[m.kind]}</span>
+      {m.from && <span className="hint">from <EntityLink r={m.from}>{m.from.name}</EntityLink></span>}
+      <span className="hint mc-date"><Dt d={m.date} /></span>
+    </div>
+  );
+  if ((m.kind === "decision" || m.kind === "question") && m.decision) {
+    return (
+      <div className="mc">
+        {head}
+        <DecisionCard id={m.decision.id} showTitle={m.kind === "decision"} />
+      </div>
+    );
+  }
+  return (
+    <div className="mc">
+      {head}
+      {m.kind === "story" && m.story ? (
+        <StoryCard s={m.story} />
+      ) : m.kind === "mention" && m.post ? (
+        <div className="card post">
+          <div className="post-head"><strong>{m.post.author.display}</strong> <span className="hint">@{m.post.author.handle} · {m.post.author.kind}</span></div>
+          <p>{m.post.text}</p>
+          <div className="hint">{m.post.replies} replies · {m.post.reposts} reposts · {m.post.likes} likes</div>
+        </div>
+      ) : m.kind === "meeting" && m.meeting ? (
+        <>
+          {m.parts && <p><Parts parts={m.parts} /></p>}
+          <MeetingBlock m={m.meeting} />
+        </>
+      ) : m.parts ? (
+        <p><Parts parts={m.parts} /></p>
+      ) : (
+        <p>{prose(m.text)}</p>
+      )}
+      {m.kind === "tell" && m.confidence != null && <div className="hint">You are about {m.confidence}% sure this is right. People pass things on imperfectly.</div>}
+      {m.kind === "question" && m.answered_with && <div className="note"><Icon name="check" size={15} /><span>You answered: {m.answered_with.toLowerCase()}.</span></div>}
+      {m.replied ? (
+        <div className="note"><Icon name="check" size={15} /><span>You replied: {m.replied.label}. <span className="hint"><Dt d={m.replied.date} year={false} /></span></span></div>
+      ) : (
+        m.replies.length > 0 && <ReplyBar message={m} onDone={onDone} />
+      )}
+    </div>
+  );
+}
+
+function ReplyBar({ message, onDone }: { message: ThreadMessage; onDone: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const send = async (r: Reply) => {
+    setBusy(r.key);
+    try {
+      const res = await act<{ text: string; applies: string }>("me.reply", { message: message.id, key: r.key });
+      notify({ tone: "pos", text: res.applies === "now" ? `${res.text}.` : `Queued: ${res.text}. The world acts on it when the day ends.` });
+      onDone();
+    } catch (e) {
+      notify({ tone: "neg", text: (e as Error).message });
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <div className="replybar" role="group" aria-label="Reply">
+      {message.replies.map((r) => (
+        <Button key={r.key} size="sm" variant={r.quiet ? "ghost" : "default"} title={r.effect ?? undefined} disabled={busy != null} onClick={() => send(r)}>
+          {r.label}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+// ---- all activity ------------------------------------------------------------------------------
 
 interface Msg {
   id: string;
   kind: "decision" | "event";
+  dkind?: string;
   date: number;
   subject: string;
   preview: string | null;
   parts?: Part[];
   from: Named | null;
   state: "awaiting" | "answered" | "settled" | "expired" | "info";
-  folder: "awaiting" | "contracts" | "work" | "invitations";
+  folder: "awaiting" | "contracts" | "work" | "invitations" | "conversations" | "life" | "press";
   needs_action: boolean;
   deadline: number | null;
-}
-interface TermRow {
-  label: string;
-  money?: number | null;
-  date?: number;
-  text?: string | null;
-}
-interface Detail {
-  id: string;
-  kind: "decision" | "event";
-  title: string;
-  from?: Named;
-  created?: number;
-  deadline?: number;
-  state?: Msg["state"];
-  paragraphs?: string[];
-  options?: { i: number; label: string }[];
-  answer?: number | null;
-  default?: { i: number; label: string };
-  without_response?: string;
-  consequences?: string[];
-  terms?: TermRow[] | null;
-  current_terms?: TermRow[] | null;
-  outcome?: string | null;
-  date?: number;
-  parts?: Part[];
-  primary?: { k: string; id: number } | null;
+  unread?: boolean;
 }
 
 const FOLDERS = [
   { id: "all", label: "All" },
   { id: "awaiting", label: "Needs an answer" },
   { id: "contracts", label: "Contracts and moves" },
+  { id: "conversations", label: "Conversations" },
+  { id: "press", label: "Press" },
+  { id: "life", label: "Life" },
   { id: "work", label: "Work" },
-  { id: "invitations", label: "Invitations" },
 ] as const;
 
 const STATE_LABEL: Record<Msg["state"], { text: string; tone: "warn" | "pos" | "muted" | "info" | "neg" }> = {
@@ -65,202 +306,84 @@ const STATE_LABEL: Record<Msg["state"], { text: string; tone: "warn" | "pos" | "
   info: { text: "", tone: "muted" },
 };
 
-export function Messages() {
-  usePageTitle("Messages");
+function Activity() {
   const route = useRoute();
-  const sel = route.segs[1];
+  const sel = route.segs[1] && /^[de]\d+$/.test(route.segs[1]) ? route.segs[1] : undefined;
   const folder = route.query.get("folder") ?? "all";
   const q = useApi<{ messages: Msg[]; awaiting: number }>("me.messages");
   return (
-    <div className="page fill inbox-page">
-      <PageHead title="Messages" sub="Offers, decisions and news about you." />
-      <Async q={q}>
-        {(d) => {
-          const list = d.messages.filter((m) => folder === "all" || m.folder === folder);
-          const selected = sel ?? list[0]?.id;
-          return (
-            <div className="inbox">
-              <div className="inbox-list">
-                <div className="chips" role="tablist" aria-label="Folders">
-                  {FOLDERS.map((f) => {
-                    const n = f.id === "awaiting" ? d.awaiting : 0;
-                    return (
-                      <button key={f.id} role="tab" aria-selected={folder === f.id} className="chip" aria-pressed={folder === f.id} onClick={() => navigate(`/messages${sel ? `/${sel}` : ""}${f.id === "all" ? "" : `?folder=${f.id}`}`, { replace: true })}>
-                        {f.label}{n > 0 ? ` (${n})` : ""}
-                      </button>
-                    );
-                  })}
-                </div>
-                {list.length === 0 ? (
-                  <Empty title="Nothing here" icon="mail">Offers and news about you will arrive as time passes.</Empty>
-                ) : (
-                  <ul className="msglist" role="listbox" aria-label="Messages">
-                    {list.map((m) => (
-                      <li key={m.id}>
-                        <a
-                          href={href(`/messages/${m.id}${folder === "all" ? "" : `?folder=${folder}`}`)}
-                          role="option"
-                          aria-selected={m.id === selected}
-                          className={`msg ${m.id === selected ? "sel" : ""} ${m.needs_action ? "urgent" : ""}`}
-                        >
-                          <div className="msg-top">
-                            <strong className="msg-subject">{m.subject}</strong>
-                            <span className="hint"><Dt d={m.date} year={false} /></span>
-                          </div>
-                          <div className="msg-sub">
-                            {m.from ? m.from.name : ""}
-                            {m.state !== "info" && <Badge tone={STATE_LABEL[m.state].tone}>{STATE_LABEL[m.state].text}</Badge>}
-                          </div>
-                          {m.preview && <div className="msg-preview">{prose(m.preview)}</div>}
-                          {m.parts && <div className="msg-preview"><Parts parts={m.parts} /></div>}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+    <Async q={q}>
+      {(d) => {
+        const list = d.messages.filter((m) => folder === "all" || m.folder === folder);
+        const selected = sel ?? list[0]?.id;
+        const qs = (f: string) => `?view=activity${f === "all" ? "" : `&folder=${f}`}`;
+        return (
+          <div className="inbox">
+            <div className="inbox-list">
+              <div className="chips" role="group" aria-label="Folders">
+                {FOLDERS.map((f) => {
+                  const n = f.id === "awaiting" ? d.awaiting : 0;
+                  return (
+                    <button key={f.id} className="chip" aria-pressed={folder === f.id} onClick={() => navigate(`/messages${sel ? `/${sel}` : ""}${qs(f.id)}`, { replace: true })}>
+                      {f.label}{n > 0 ? ` (${n})` : ""}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="inbox-detail">{selected ? <MessageDetail id={selected} key={selected} /> : <Empty title="No message selected" icon="mail" />}</div>
+              {list.length === 0 ? (
+                <Empty title="Nothing here" icon="mail">Offers and news about you will arrive as time passes.</Empty>
+              ) : (
+                <ul className="msglist" aria-label="Activity">
+                  {list.map((m) => (
+                    <li key={m.id}>
+                      <a href={href(`/messages/${m.id}${qs(folder)}`)} aria-current={m.id === selected ? "true" : undefined} className={`msg ${m.id === selected ? "sel" : ""} ${m.needs_action ? "urgent" : ""}`}>
+                        <div className="msg-top">
+                          <strong className="msg-subject">{m.kind === "decision" ? kindLabel(m.dkind) : m.subject}</strong>
+                          <span className="hint"><Dt d={m.date} year={false} /></span>
+                        </div>
+                        <div className="msg-sub">
+                          {m.from ? m.from.name : ""}
+                          {m.state !== "info" && <Badge tone={STATE_LABEL[m.state].tone}>{STATE_LABEL[m.state].text}</Badge>}
+                        </div>
+                        {m.preview && <div className="msg-preview">{prose(m.preview)}</div>}
+                        {m.parts && <div className="msg-preview"><Parts parts={m.parts} /></div>}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          );
-        }}
-      </Async>
-    </div>
+            <div className="inbox-detail">{selected ? <ActivityDetail id={selected} key={selected} /> : <Empty title="No message selected" icon="mail" />}</div>
+          </div>
+        );
+      }}
+    </Async>
   );
 }
 
-/** Whether an offered term is better or worse for the player than what they have now, where that is unambiguous. */
-function direction(label: string, cur: TermRow | undefined, next: TermRow): "pos" | "neg" | null {
-  if (!cur) return null;
-  const pct = (r: TermRow) => parseFloat(r.text ?? "");
-  if (next.money != null && cur.money != null && next.money !== cur.money && /wage|bonus/i.test(label)) return next.money > cur.money ? "pos" : "neg";
-  if (/relegat/i.test(label) && !Number.isNaN(pct(next)) && !Number.isNaN(pct(cur)) && pct(next) !== pct(cur)) return pct(next) > pct(cur) ? "neg" : "pos";
-  if (/rise/i.test(label) && !Number.isNaN(pct(next)) && !Number.isNaN(pct(cur)) && pct(next) !== pct(cur)) return pct(next) > pct(cur) ? "pos" : "neg";
-  return null;
+function ActivityDetail({ id }: { id: string }) {
+  if (id.startsWith("d")) return <DecisionCard id={id} />;
+  return <EventDetail id={id} />;
 }
 
-function TermValue({ r }: { r: TermRow }) {
-  if (r.text != null && r.text !== "") return <>{r.text}</>;
-  if (r.date != null) return <Dt d={r.date} />;
-  if (r.money != null) return <Money v={r.money} exact />;
-  return <span className="faint">None</span>;
-}
-
-function MessageDetail({ id }: { id: string }) {
-  const st = useStatus();
-  const q = useApi<Detail>("me.message", { id });
-  const [choice, setChoice] = useState<number | null>(null);
-  const [busy, setBusy] = useState(false);
-  const today = st.date ?? 0;
-
-  const confirm = async (d: Detail) => {
-    if (choice == null) return;
-    setBusy(true);
-    try {
-      await act("me.answer", { id: d.id, choice });
-      setChoice(null);
-      q.reload();
-      notify({ tone: "pos", text: "Your answer has been given. It takes effect when the day ends." });
-    } catch (e) {
-      notify({ tone: "neg", text: (e as Error).message });
-    } finally {
-      setBusy(false);
-    }
-  };
-
+function EventDetail({ id }: { id: string }) {
+  const q = useApi<DecisionDetail>("me.message", { id });
   return (
     <Async q={q}>
-      {(d) => {
-        if (d.kind === "event") {
-          return (
-            <article className="msg-article">
-              <header>
-                <h2>{d.title}</h2>
-                {d.date != null && <div className="hint"><Dt d={d.date} /></div>}
-              </header>
-              <p className="msg-body">{d.parts && <Parts parts={d.parts} />}</p>
-            </article>
-          );
-        }
-        const open = d.state === "awaiting";
-        const opt = d.options?.find((o) => o.i === choice);
-        return (
-          <article className="msg-article">
-            <header>
-              <div className="hint">{d.from && <>From <EntityLink r={d.from}>{d.from.name}</EntityLink> · </>}{d.created != null && <Dt d={d.created} />}</div>
-              <h2>{d.title}</h2>
-            </header>
-            <div className="msg-body">
-              {d.paragraphs?.map((p, i) => <p key={i}>{prose(p)}</p>)}
-            </div>
-            {d.terms && d.terms.length > 0 && (
-              <div className="card list-card">
-                <table className="minitable terms">
-                  <thead>
-                    <tr>
-                      <th>Terms</th>
-                      {d.current_terms && <th>Now</th>}
-                      <th>{d.current_terms ? "Offered" : ""}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {d.terms.map((r, i) => {
-                      const cur = d.current_terms?.[i];
-                      const changed = cur && JSON.stringify([cur.money, cur.date, cur.text]) !== JSON.stringify([r.money, r.date, r.text]);
-                      const dir = direction(r.label, cur, r);
-                      return (
-                        <tr key={i}>
-                          <td className="muted">{r.label}</td>
-                          {cur && <td className="num faint"><TermValue r={cur} /></td>}
-                          <td className={`num ${changed ? "changed" : ""} ${dir ?? ""}`}><TermValue r={r} /></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {d.consequences && d.consequences.length > 0 && (
-              <ul className="consequences">
-                {d.consequences.map((c, i) => <li key={i}>{prose(c)}</li>)}
-              </ul>
-            )}
-            {open && d.options && (
-              <div className="answer">
-                <div className="hint">Reply by <Dt d={d.deadline} /> ({relativeDays(d.deadline ?? today, today)}).</div>
-                <div className="answer-buttons">
-                  {d.options.map((o, i) => (
-                    <Button key={o.i} variant={i === 0 ? "primary" : "default"} onClick={() => setChoice(o.i)}>{o.label}</Button>
-                  ))}
-                </div>
-                {d.without_response && <div className="hint">{prose(d.without_response)}</div>}
-              </div>
-            )}
-            {!open && d.outcome && (
-              <div className="note"><Icon name="check" size={15} /><span>{prose(d.outcome)}</span></div>
-            )}
-            {d.state === "answered" && (
-              <div className="note"><Icon name="info" size={15} /><span>Your answer is recorded. It takes effect when the day ends.</span></div>
-            )}
-            <Dialog
-              open={choice != null}
-              onClose={() => setChoice(null)}
-              title={opt ? `${opt.label}?` : "Confirm"}
-              width={430}
-              footer={
-                <>
-                  <Button variant="ghost" onClick={() => setChoice(null)}>Not yet</Button>
-                  <Button variant="primary" disabled={busy} onClick={() => confirm(d)}>{opt?.label ?? "Confirm"}</Button>
-                </>
-              }
-            >
-              <p>This answer cannot be changed once it is given.</p>
-              {d.consequences && d.consequences[d.options?.findIndex((o) => o.i === choice) ?? 0] && (
-                <p className="muted">{d.consequences[d.options?.findIndex((o) => o.i === choice) ?? 0]}</p>
-              )}
-            </Dialog>
-          </article>
-        );
-      }}
+      {(d) => (
+        <article className="msg-article">
+          <header>
+            <h2>{d.title}</h2>
+            {d.date != null && <div className="hint"><Dt d={d.date} /></div>}
+          </header>
+          <p className="msg-body">{d.parts && <Parts parts={d.parts} />}</p>
+          {d.story && <StoryCard s={d.story} />}
+          {d.meeting && <MeetingBlock m={d.meeting} />}
+          {d.why && d.why.length > 0 && (
+            <div className="hint">Why: {d.why.map(prose).join("; ")}</div>
+          )}
+        </article>
+      )}
     </Async>
   );
 }

@@ -8,7 +8,12 @@ import { Inhabit } from "./pages/Inhabit";
 import { Calendar } from "./pages/Calendar";
 import { Contract } from "./pages/Contract";
 import { Football } from "./pages/Football";
+import { Journal } from "./pages/Journal";
+import { Life } from "./pages/Life";
 import { Messages } from "./pages/Messages";
+import { PressFans } from "./pages/PressFans";
+import { Relationships } from "./pages/Relationships";
+import { Social } from "./pages/Social";
 import { Today } from "./pages/Today";
 import { Compare } from "./pages/Compare";
 import { Bookmarks } from "./pages/Bookmarks";
@@ -65,6 +70,16 @@ function Page() {
       return <Football />;
     case "contract":
       return <Contract />;
+    case "life":
+      return <Life />;
+    case "relationships":
+      return <Relationships />;
+    case "press":
+      return <PressFans />;
+    case "social":
+      return <Social />;
+    case "journal":
+      return <Journal />;
     case "me":
       return <Me />;
     case "compare":

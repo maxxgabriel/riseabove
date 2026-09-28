@@ -43,6 +43,16 @@ function useNav(): { top: NavItem[]; groups: { label: string; items: NavItem[] }
         { label: "Contract", to: "/contract", icon: "contract" as IconName },
       ],
     });
+    groups.push({
+      label: "My life",
+      items: [
+        { label: "Life", to: "/life", icon: "home" as IconName },
+        { label: "People", to: "/relationships", icon: "people" as IconName },
+        { label: "Press and fans", to: "/press", icon: "star" as IconName },
+        { label: "Social", to: "/social", icon: "pulse" as IconName },
+        { label: "Journal", to: "/journal", icon: "bookmark" as IconName },
+      ],
+    });
   }
   groups.push({ label: "World", items: world });
   groups.push({ label: "Yours", items: [{ label: "Bookmarks", to: "/bookmarks", icon: "bookmark" as IconName }] });

@@ -8,6 +8,7 @@ import { href, navigate, useRoute } from "../router";
 import { useApi, useStatus } from "../store";
 import type { Named, Ref } from "../types";
 import { Avatar, Badge, Button, IconButton, KeyVal, Meter, Section, Tabs } from "../ui/ui";
+import { PersonActions } from "../components/Actions";
 import { InhabitDialog } from "../components/InhabitDialog";
 import { Async, PageHead, usePageTitle } from "./common";
 import { Icon } from "../ui/Icon";
@@ -154,6 +155,7 @@ function PersonBody({ p, tab }: { p: PersonResp; tab: Tab }) {
             {isPlayer && (
               <Button icon="compare" onClick={() => navigate(`/compare?ids=${p.id}`)}>Compare</Button>
             )}
+            {st.perspective?.mode === "inhabit" && !p.is_me && <PersonActions who={{ k: "person", id: p.id, name: p.name }} canMentor={isPlayer} />}
             {p.can_inhabit && !p.is_me && (
               <Button variant="primary" icon="person" onClick={() => setInhabit(true)} disabled={busy} title={busy ? "Wait for the world to stop advancing" : undefined}>
                 Inhabit

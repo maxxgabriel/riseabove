@@ -205,11 +205,11 @@ pub fn people(c: &Ctx) -> ApiResult<Value> {
 pub fn promises(c: &Ctx) -> ApiResult<Value> {
     let me = need(c)?;
     let w = c.w;
+    // Both indexes: what was promised to me and what I promised. A promise to myself is listed once.
     let mut rows: Vec<Value> = w
         .social
-        .promises
-        .iter()
-        .filter(|pr| pr.to == me || pr.from == me)
+        .promises_to(me)
+        .chain(w.social.promises_by(me).filter(|pr| pr.to != me))
         .map(|pr| {
             let mine = pr.from == me;
             let other = if mine { pr.to } else { pr.from };

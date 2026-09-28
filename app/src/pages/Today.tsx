@@ -41,6 +41,11 @@ export interface TodayResp {
   minutes_4w: number;
   plan: { focus: { kind: string; value: string | null }; intensity: string; extra: number; recovery: number };
   conceal_mine: boolean;
+  queued: string[];
+  mind: { text: string; value: number }[];
+  promises: { open: number; next_due: number | null };
+  plan_pending: unknown | null;
+  routine_hours: number;
 }
 
 const KIND_ICON: Record<string, IconName> = { match: "pitch", training: "training", recovery: "refresh", rest: "clock", medical: "warn", discipline: "warn" };
@@ -73,6 +78,15 @@ export function Today() {
                           <a className="btn btn-primary btn-md" href={href(`/messages/${d.id}`)}>Open</a>
                         </div>
                       ))}
+                    </div>
+                  </Section>
+                )}
+                {t.queued.length > 0 && (
+                  <Section title="Set in motion" aside="Happens when the day ends">
+                    <div className="card list-card">
+                      <ul className="rows">
+                        {t.queued.map((q, i) => <li key={i}><span className="iconrow"><Icon name="clock" size={15} />{q}</span></li>)}
+                      </ul>
                     </div>
                   </Section>
                 )}
@@ -164,6 +178,24 @@ export function Today() {
                     )}
                   </div>
                 </Section>
+                {t.mind.length > 0 && (
+                  <Section title="On your mind" aside={<a href={href("/life")}>More</a>}>
+                    <div className="card list-card">
+                      <ul className="rows compact">
+                        {t.mind.slice(0, 4).map((m, i) => (
+                          <li key={i}><span>{m.text}</span><span className={`num ${m.value > 0 ? "tone-pos" : "tone-neg"}`}>{m.value > 0 ? "+" : "−"}{Math.abs(m.value)}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Section>
+                )}
+                {t.promises.open > 0 && (
+                  <Section title="Promises" aside={<a href={href("/relationships?tab=promises")}>See all</a>}>
+                    <div className="card">
+                      <div>{t.promises.open} open {t.promises.open === 1 ? "promise" : "promises"}{t.promises.next_due != null && <>, the next due <Dt d={t.promises.next_due} year={false} /></>}.</div>
+                    </div>
+                  </Section>
+                )}
                 <Section title="Form">
                   <div className="card">
                     <KeyVal
