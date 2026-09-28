@@ -21,10 +21,12 @@ fn wanted(rep: u16, role: StaffRole) -> usize {
         StaffRole::Physio => if big { 2 } else { 1 },
         StaffRole::SportsScientist => usize::from(big),
         StaffRole::DirectorOfFootball => usize::from(rep >= 6500),
+        StaffRole::Analyst => if rep >= 7000 { 3 } else if rep >= 3500 { 1 } else { 0 },
     }
 }
 
-const HIRED_ROLES: [StaffRole; 8] = [
+const HIRED_ROLES: [StaffRole; 9] = [
+    StaffRole::Analyst,
     StaffRole::Assistant,
     StaffRole::Coach,
     StaffRole::GkCoach,
@@ -49,6 +51,11 @@ pub fn monthly(w: &mut World) {
             }
             let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(club.0), month, role as u64]);
             if let Some(s) = best_candidate(w, club, role, &mut rng) {
+                hire(w, club, s);
+            } else if rng.chance(0.35) {
+                // Nobody suitable on the market: someone from outside the game
+                // (a coach from lower levels, a graduate analyst) gets a chance.
+                let s = fresh(w, club, role, &mut rng);
                 hire(w, club, s);
             }
         }
@@ -76,6 +83,48 @@ fn best_candidate(w: &World, club: ClubId, role: StaffRole, rng: &mut Rng) -> Op
         .filter(|(_, sc)| *sc > 0.35)
         .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)))
         .map(|(id, _)| id)
+}
+
+fn fresh(w: &mut World, club: ClubId, role: StaffRole, rng: &mut Rng) -> StaffId {
+    let nation = w.clubs[club].nation;
+    let (first, last) = crate::people::random_name(w, nation, rng);
+    let dob = w.date.add_days(-(365 * rng.range_i32(26, 55)));
+    let person = w.people.push(pw_world::Person {
+        first,
+        last,
+        common: pw_world::NameId::NONE,
+        dob,
+        nation,
+        nation2: Default::default(),
+        hidden: crate::generate::hidden_random(rng),
+        player: Default::default(),
+        staff: Default::default(),
+        mind: pw_world::MindKind::Ai,
+    });
+    let level = 5.0 + f32::from(w.clubs[club].reputation) / 1100.0;
+    let mut attrs = pw_core::StaffAttrs::default();
+    for a in pw_core::StaffAttr::ALL {
+        attrs.set(a, rng.normal_ms(level, 2.5).round().clamp(1.0, 20.0) as u8);
+    }
+    for &a in role.key_attrs() {
+        let v = attrs.get(a);
+        attrs.set(a, v.saturating_add(2));
+    }
+    let id = w.staff.push(pw_world::Staff {
+        person,
+        role,
+        club: ClubId::NONE,
+        attrs,
+        wage: 0,
+        contract_end: w.date,
+        reputation: (f32::from(w.clubs[club].reputation) * 0.3) as u16,
+        philosophy: Default::default(),
+        joined: w.date,
+        record: Default::default(),
+        retired: false,
+    });
+    w.people[person].staff = id;
+    id
 }
 
 fn hire(w: &mut World, club: ClubId, s: StaffId) {

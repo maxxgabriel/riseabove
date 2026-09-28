@@ -26,6 +26,7 @@ pub mod perception;
 pub mod reputation;
 pub mod save;
 pub mod schedule;
+pub mod scouting;
 pub mod season;
 pub mod selection;
 pub mod social;
@@ -88,6 +89,8 @@ impl Sim {
             staffing::monthly(w);
             governance::monthly(w);
             managers::monthly(w);
+            scouting::ensure(w);
+            scouting::assign(w);
             vacancies(w);
             w.beliefs.forget(today.add_days(-240));
         }
@@ -172,6 +175,7 @@ pub fn prepare(w: &mut World) {
     economy::ensure(w);
     governance::ensure(w);
     managers::ensure(w);
+    scouting::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

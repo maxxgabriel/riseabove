@@ -23,6 +23,7 @@ pub mod nation;
 pub mod person;
 pub mod player;
 pub mod rules;
+pub mod scouting;
 pub mod social;
 pub mod staff;
 pub mod stats;

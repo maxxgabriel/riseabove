@@ -125,6 +125,7 @@ fn staff_role(s: &str) -> Option<StaffRole> {
         "sports_scientist" => StaffRole::SportsScientist,
         "head_of_youth" | "head_of_youth_development" => StaffRole::HeadOfYouth,
         "director_of_football" | "dof" => StaffRole::DirectorOfFootball,
+        "analyst" | "performance_analyst" | "data_analyst" => StaffRole::Analyst,
         _ => return None,
     })
 }

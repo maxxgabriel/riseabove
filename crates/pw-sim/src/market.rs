@@ -254,7 +254,7 @@ fn search(w: &mut World, club: ClubId) {
             if w.age(p) > u32::from(need.max_age) || w.market.on_cooldown(club, p, today) || w.market.is_pending(p) || crate::negotiation::in_talks(w, p) {
                 continue;
             }
-            let (ca, _, pa, _) = club_view(w, club, p);
+            let (ca, _, pa, _) = crate::scouting::view(w, club, p);
             if ca < f32::from(need.min_ability) {
                 continue;
             }
