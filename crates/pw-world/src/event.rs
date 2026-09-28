@@ -282,6 +282,29 @@ pub enum EventKind {
     JournalistMoved { person: PersonId, from: pw_core::OutletId, to: pw_core::OutletId },
     JournalistLeft { person: PersonId, outlet: pw_core::OutletId },
     JournalistHired { person: PersonId, outlet: pw_core::OutletId },
+    EnrolledUniversity { person: PersonId, institution: u32 },
+    /// Left university (`early`: to turn professional).
+    Graduated { person: PersonId, institution: u32, early: bool },
+    /// A minor competition's season finished (`World::minor.history` index).
+    MinorTitle { history: u32 },
+    /// A record fell (`World::records.broken` index).
+    Record { broken: u32, person: PersonId, club: ClubId },
+    /// A voted award was decided (`World::acclaim.votes` index).
+    Voted { vote: u32, person: PersonId },
+    /// Someone entered a hall of fame (other than the world's, which has
+    /// `InductedHallOfFame`).
+    HallInduction { hall: u32, person: PersonId },
+    /// An entry in the world's chronicle of achievements.
+    Chronicle { entry: u32 },
+    /// A big refereeing call that one side's supporters dispute.
+    RefereeControversy { controversy: u32 },
+    AppealDecided { appeal: u32, player: PlayerId },
+    /// A club was charged by its federation (`World::officials.charges`).
+    Charged { charge: u32, club: ClubId },
+    /// A tactical school was born around a manager.
+    SchoolFounded { school: u32, founder: PersonId },
+    /// A federation changed a rule (`World::evolution.changes`).
+    RuleChanged { change: u32 },
     /// A supporter group acted together (see `World::net.groups`).
     SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
@@ -310,6 +333,8 @@ pub enum AwardKind {
     WorldYoungPlayer,
     /// Best player at clubs of a confederation.
     ContinentalPlayer(crate::nation::Confed),
+    /// Voted best player of a league season by the league's players.
+    PlayersPlayer,
 }
 
 impl AwardKind {
@@ -321,6 +346,7 @@ impl AwardKind {
             AwardKind::TeamOfSeason => "a place in the Team of the Season".into(),
             AwardKind::PlayerOfMonth => "Player of the Month".into(),
             AwardKind::Playmaker => "the Playmaker award".into(),
+            AwardKind::PlayersPlayer => "the Players' Player of the Season award".into(),
             AwardKind::GoldenGlove => "the Golden Glove".into(),
             AwardKind::WorldPlayer { rank: 1 } => "the World Player of the Year award".into(),
             AwardKind::WorldPlayer { rank } => format!("{} place in the World Player of the Year vote", crate::event::ordinal(rank)),
@@ -427,6 +453,7 @@ impl EventKind {
             | Milestone { player, .. }
             | RecordBroken { player, .. }
             | AgentExploring { player, .. }
+            | AppealDecided { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -451,7 +478,12 @@ impl EventKind {
             | SponsorClash { person, .. }
             | NewCareer { person, .. }
             | CareerEnded { person, .. }
-            | Investment { person, .. } => v.push(person),
+            | Investment { person, .. }
+            | EnrolledUniversity { person, .. }
+            | Graduated { person, .. } => v.push(person),
+            Record { person, .. } if person.is_some() => v.push(person),
+            Voted { person, .. } | HallInduction { person, .. } => v.push(person),
+            SchoolFounded { founder, .. } => v.push(founder),
             BoardQuery { manager, .. } => v.push(manager),
             IncidentResponse { by, .. } => v.push(by),
             JournalistMoved { person, .. } | JournalistLeft { person, .. } | JournalistHired { person, .. } => v.push(person),
@@ -503,6 +535,8 @@ impl EventKind {
             | BoardQuery { club, .. }
             | InvestigationCleared { club }
             | SupporterAction { club, .. }
+            | Record { club, .. }
+            | Charged { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

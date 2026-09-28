@@ -243,6 +243,7 @@ pub fn on_transfer(w: &mut World, p: PlayerId, from: ClubId, to: ClubId, ev: Eve
 /// A manager took a job at a rival of a former club.
 pub fn on_manager_move(w: &mut World, staff: StaffId, to: ClubId, ev: EventId) {
     let today = w.date;
+    crate::evolution::on_appointed(w, staff);
     let former: Vec<ClubId> = w.careers.managers.get(&staff).map(|p| p.jobs.iter().map(|j| j.club).filter(|&c| c != to).collect()).unwrap_or_default();
     for from in former {
         let (a, b) = (Side::Club(from), Side::Club(to));

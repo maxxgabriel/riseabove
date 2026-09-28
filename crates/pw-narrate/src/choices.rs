@@ -40,6 +40,7 @@ pub fn title(w: &World, d: &Decision) -> String {
             format!("{} ({}) offer {} a year for {years} years, {days} appearance days a month", b.name, b.sector.label(), money(*fee_year))
         }
         DecisionKind::PressQuestion { conference, question } => crate::press::question(w, *conference, *question),
+        DecisionKind::Appeal { controversy } => w.officials.controversies.get(*controversy as usize).map_or_else(String::new, |c| format!("Appeal {}'s red card against {}?", crate::fmt::player(w, c.player), crate::history::holder(w, pw_world::records::Holder::Club(c.benefited)))),
         DecisionKind::Incident { incident } => format!("You need to deal with this: {}", crate::incidents::summary(w, *incident, false, false)),
         DecisionKind::IncidentAsk { incident, ask } => match ask {
             pw_world::incident::Ask::RequestLeave => format!("Ask for time away? ({})", crate::incidents::summary(w, *incident, false, false)),

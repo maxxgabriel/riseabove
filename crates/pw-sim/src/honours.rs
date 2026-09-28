@@ -6,14 +6,15 @@
 //! gain reputation and fame (and value), legends are loved by their fans for
 //! good, record signings carry the weight of their fee.
 
-use pw_core::{ClubId, CompId, Date, NationId, PersonId, PlayerId, PosGroup, StaffId};
+use pw_core::{ClubId, CompId, Date, NationId, PlayerId, PosGroup, StaffId};
 use pw_world::event::{AwardKind, EventKind, MilestoneKind, RecordKind, Visibility};
 use pw_world::history::AwardRecord;
-use pw_world::honours::{Holder, Inductee, Vote};
+use pw_world::honours::{Holder, Vote};
 use pw_world::intl::Level;
 use pw_world::nation::Confed;
+use pw_world::records::{Holder as RHolder, Scope, Stat};
 use pw_world::stats::StatLine;
-use pw_world::{CompKind, FanReason, FxHashMap, PlayerStatus, TeamKind, World};
+use pw_world::{CompKind, FanReason, PlayerStatus, TeamKind, World};
 
 const CLUB_APPS: [u16; 5] = [100, 200, 300, 400, 500];
 const CAREER_GOALS: [u16; 5] = [50, 100, 200, 300, 400];
@@ -85,6 +86,7 @@ pub fn on_result(w: &mut World, winner: ClubId, loser: ClubId, margin: u8) {
         let first = rec.biggest_win.value == 0;
         rec.biggest_win = Holder { player: PlayerId::NONE, value: i64::from(margin), date: today };
         rec.biggest_win_against = loser;
+        crate::records::mirror(w, Scope::Club(winner), Stat::BiggestWin, RHolder::Club(winner), i64::from(margin), Some(RHolder::Club(loser)));
         if !first {
             w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: PlayerId::NONE, kind: RecordKind::ClubBiggestWin, club: winner, value: i64::from(margin) });
         }
@@ -116,6 +118,9 @@ pub fn on_cap(w: &mut World, p: PlayerId, n: NationId) {
     for (kind, value) in broke {
         w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: p, kind, club: ClubId::NONE, value });
     }
+    let who = w.players.cold[p].person;
+    crate::records::mirror(w, Scope::Nation(n), Stat::Caps, RHolder::Person(who), i64::from(caps), None);
+    crate::records::mirror(w, Scope::Nation(n), Stat::IntlGoals, RHolder::Person(who), i64::from(goals), None);
 }
 
 /// After a transfer: record signings, sales, and the world record.
@@ -155,6 +160,14 @@ pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fe
     for (kind, club) in events {
         w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: p, kind, club, value: fee });
     }
+    let who = w.players.cold[p].person;
+    if buyer.is_some() {
+        crate::records::mirror(w, Scope::Club(buyer), Stat::FeePaid, RHolder::Person(who), fee, None);
+    }
+    if seller.is_some() {
+        crate::records::mirror(w, Scope::Club(seller), Stat::FeeReceived, RHolder::Person(who), fee, None);
+    }
+    crate::records::mirror(w, Scope::World, Stat::FeePaid, RHolder::Person(who), fee, None);
     // A record fee is a weight: fans expect, the media watch.
     if w.honours.clubs.get(&buyer).is_some_and(|r| r.record_signing.player == p) {
         let who = w.players.cold[p].person;
@@ -224,6 +237,7 @@ pub fn season_awards(w: &mut World, c: CompId, year: i32, lines: &[StatLine], ga
         w.staff[m].reputation = w.staff[m].reputation.saturating_add(400).min(10_000);
         w.events.push(date, Visibility::Public, EventKind::ManagerOfSeason { staff: m, comp: c, season: year });
     }
+    crate::awards::players_player(w, c, year, lines, min_apps);
 }
 
 /// What winning an award does to a player's standing.
@@ -298,27 +312,7 @@ fn legends_and_hall(w: &mut World) {
             w.media.move_fans(club, who, 300, FanReason::Loyalty, today);
         }
     }
-    // Hall of fame: a year after retiring.
-    let retired: Vec<PlayerId> = w
-        .events
-        .since(today.add_days(-395))
-        .iter()
-        .filter(|e| e.date <= today.add_days(-365))
-        .filter_map(|e| if let EventKind::Retired { person } = e.kind { w.people[person].player.get() } else { None })
-        .collect();
-    for p in retired {
-        let who = w.players.cold[p].person;
-        if w.honours.in_hall(who) {
-            continue;
-        }
-        let score = career_score(w, p);
-        if score >= 1000 {
-            w.honours.hall.push(Inductee { person: who, date: today, score });
-            w.events.push(today, Visibility::Public, EventKind::InductedHallOfFame { person: who });
-            let r = w.renown.people.entry(who).or_default();
-            r.fame = r.fame.saturating_add(800).min(10_000);
-        }
-    }
+    // Halls of fame are voted each January (see `awards::inductions`).
 }
 
 /// A whole career in one number: trophies, awards, caps, appearances, peak.
@@ -334,7 +328,7 @@ pub fn career_score(w: &World, p: PlayerId) -> u32 {
         .map(|a| match a.kind {
             AwardKind::WorldPlayer { rank: 1 } => 400,
             AwardKind::WorldPlayer { .. } => 80,
-            AwardKind::PlayerOfSeason | AwardKind::ContinentalPlayer(_) => 120,
+            AwardKind::PlayerOfSeason | AwardKind::ContinentalPlayer(_) | AwardKind::PlayersPlayer => 120,
             AwardKind::TopScorer | AwardKind::GoldenGlove | AwardKind::WorldYoungPlayer => 60,
             AwardKind::TeamOfSeason | AwardKind::Playmaker | AwardKind::YoungPlayerOfSeason => 25,
             AwardKind::PlayerOfMonth => 5,
@@ -362,23 +356,11 @@ pub fn yearly_votes(w: &mut World) {
         if pool.len() < 3 {
             continue;
         }
-        let mut tally: FxHashMap<PlayerId, u32> = FxHashMap::default();
-        // National managers vote on performances and trophies.
-        let managers: Vec<StaffId> = w.intl.sides.values().filter(|s| s.level == Level::Senior).map(|s| s.manager).collect();
-        for m in managers {
-            let key = u64::from(m.0);
-            let mut ranked: Vec<(PlayerId, f32)> = pool.iter().map(|&(p, perf, trophies, _)| (p, perf * 1.0 + trophies * 0.35 + noise(w, key, p) * 0.25)).collect();
-            vote(&mut ranked, &mut tally);
+        // Real voters decide, and their ballots are kept (see `awards`).
+        let mut ranking = crate::awards::world_player(w, young, &pool);
+        if ranking.len() < 3 {
+            continue;
         }
-        // Journalists vote on fame, goals and moments.
-        let journalists: Vec<PersonId> = w.media.journalists.keys().copied().collect();
-        for j in journalists {
-            let key = u64::from(j.0) | 1 << 40;
-            let mut ranked: Vec<(PlayerId, f32)> = pool.iter().map(|&(p, perf, trophies, fame)| (p, perf * 0.6 + trophies * 0.3 + fame * 1.2 + noise(w, key, p) * 0.3)).collect();
-            vote(&mut ranked, &mut tally);
-        }
-        let mut ranking: Vec<(PlayerId, u32)> = tally.into_iter().collect();
-        ranking.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
         ranking.truncate(20);
         for (i, &(p, pts)) in ranking.iter().enumerate().take(if young { 1 } else { 3 }) {
             let kind = if young { AwardKind::WorldYoungPlayer } else { AwardKind::WorldPlayer { rank: i as u8 + 1 } };
@@ -393,7 +375,7 @@ pub fn yearly_votes(w: &mut World) {
 }
 
 /// (player, performance, trophies, fame), normalised 0–~3.
-fn candidates(w: &World, year: i32, young: bool) -> Vec<(PlayerId, f32, f32, f32)> {
+pub(crate) fn candidates(w: &World, year: i32, young: bool) -> Vec<(PlayerId, f32, f32, f32)> {
     let mut v: Vec<(PlayerId, f32, f32, f32)> = w
         .players
         .ids()
@@ -415,19 +397,6 @@ fn candidates(w: &World, year: i32, young: bool) -> Vec<(PlayerId, f32, f32, f32
     v.sort_by(|a, b| (b.1 + b.2 + b.3).total_cmp(&(a.1 + a.2 + a.3)).then(a.0.cmp(&b.0)));
     v.truncate(60);
     v
-}
-
-fn noise(w: &World, key: u64, p: PlayerId) -> f32 {
-    pw_core::rng::noise(&[w.seed, key, u64::from(p.0), 0xba11])
-}
-
-fn vote(ranked: &mut [(PlayerId, f32)], tally: &mut FxHashMap<PlayerId, u32>) {
-    ranked.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
-    for (i, pts) in [5u32, 3, 1].iter().enumerate() {
-        if let Some(&(p, _)) = ranked.get(i) {
-            *tally.entry(p).or_default() += pts;
-        }
-    }
 }
 
 /// Best player at each confederation's clubs, by performance and trophies.

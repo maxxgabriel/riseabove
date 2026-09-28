@@ -168,6 +168,8 @@ pub enum Frame {
     Record { player: PlayerId },
     Injury { player: PlayerId },
     Incident { incident: u32 },
+    /// A disputed refereeing call (`World::officials.controversies`).
+    Controversy { controversy: u32 },
     /// A person's own post (the human's, or an AI person's).
     Post { post: u32 },
 }

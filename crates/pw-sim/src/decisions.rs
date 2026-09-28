@@ -259,6 +259,7 @@ pub fn resolve_due(w: &mut World) {
                 }
             }
             DecisionKind::PressQuestion { conference, question } => crate::pressroom::decide(w, conference, question, choice),
+            DecisionKind::Appeal { controversy } => crate::officials::decide_appeal(w, controversy, choice == Choice::Accept),
             DecisionKind::IncidentAsk { incident, ask } => crate::responses::answer_ask(w, incident, person, ask, choice == Choice::Accept),
             DecisionKind::TransferTalks { .. } => {}
         }

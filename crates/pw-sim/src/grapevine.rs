@@ -419,6 +419,27 @@ pub fn tell(w: &mut World, info: u32, from: PersonId, to: PersonId, fidelity: Fi
     react(w, to, info);
 }
 
+/// Someone deliberately passes on what they know (a human's reply, or any
+/// mind's intent). Only what they actually know can be told, in the form they
+/// know it, retold once more; telling a journalist is how leaks begin.
+pub fn pass_on(w: &mut World, from: PersonId, to: PersonId, info: u32) {
+    if to.is_none() || to == from || info as usize >= w.grapevine.items.len() {
+        return;
+    }
+    let Some(k) = w.grapevine.items[info as usize].knower(from).copied() else { return };
+    let honest = consider::hid(w, from, pw_core::Hidden::Professionalism) / 20.0;
+    let roll = w.roll(stream::GRAPEVINE, &[u64::from(from.0), u64::from(to.0), u64::from(info), 0x9a55]);
+    let fidelity = k.fidelity.degrade(roll, honest);
+    let motive = if w.media.journalists.contains_key(&to) {
+        Motive::PressFriendship
+    } else if w.lives.get(from).and_then(|l| l.household.partner).is_some_and(|pt| pt.person == to) {
+        Motive::Confiding
+    } else {
+        Motive::Gossip
+    };
+    tell(w, info, from, to, fidelity, motive, k.confidence);
+}
+
 /// People act on what they learn.
 fn react(w: &mut World, who: PersonId, info: u32) {
     let today = w.date;

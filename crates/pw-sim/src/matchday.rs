@@ -60,7 +60,8 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         // This match's home side is the tie's `b` (away in leg one).
         (t.goals_b, t.goals_a)
     });
-    let strict = 0.75 + 0.5 * (hash_key(&[w.seed, fx.uid, 0x7ef]) % 1000) as f32 / 1000.0;
+    // The appointed referee's strictness; unrefereed levels vary by match.
+    let strict = crate::officials::strictness(w, fx).unwrap_or_else(|| 0.75 + 0.5 * (hash_key(&[w.seed, fx.uid, 0x7ef]) % 1000) as f32 / 1000.0);
     let lod = if watched.contains(&fx.home) || watched.contains(&fx.away) { Lod::Full } else { Lod::Standard };
     let input = MatchInput {
         seed: hash_key(&[w.seed, stream::MATCH, fx.uid]),
@@ -251,6 +252,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
     crate::interpret::record(w, &fx, home, away, &r, imp);
     crate::culture::after_result(w, &fx, hg, ag, r.pens, pw_core::EventId::NONE);
     crate::facts::record(w, &fx, f, &r);
+    crate::officials::after_match(w, &fx, &r);
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);

@@ -104,6 +104,21 @@ Hidden keys: `consistency important_matches injury_proneness versatility
 adaptability ambition loyalty pressure professionalism sportsmanship
 temperament controversy dirtiness`
 
+## `history.csv` (optional — generated if absent)
+
+Past seasons before the start date. Seasons given here are marked **imported**; any top-flight
+season not given is generated from the world seed and marked **generated**. Only include history you
+have the right to use (see `docs/DATA_PACK_BOUNDARY.md`).
+
+| column | req | meaning |
+|---|---|---|
+| `competition` | ✓ | competition `id` from `competitions.csv` |
+| `season` | ✓ | year the season started |
+| `champion` | ✓ | club `id` |
+| `runner_up` | | club `id` |
+| `top_scorer` | | name as text (not linked to a player) |
+| `top_goals` | | goals |
+
 ## `staff.csv` (optional — generated per club if absent)
 
 | column | req | meaning |

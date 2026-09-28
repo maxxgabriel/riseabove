@@ -490,6 +490,29 @@ pub fn load_dir_seeded(dir: &Path, pack: DataPack, seed: Option<u64>) -> Result<
         w.players.cold[pid].pa = pa.round().clamp(ours, 200.0) as u8;
     }
 
+    // Past seasons, if the pack has them (otherwise history is generated
+    // when the world is prepared, and marked as generated).
+    if let Some(t) = Table::load(dir, "history.csv", false)? {
+        use pw_world::backfill::{PastFigure, PastSeason, Provenance};
+        for (i, r) in t.rows.iter().enumerate() {
+            let Some(&comp) = comps.get(t.s(r, "competition")) else { return Err(t.err(i, "unknown competition")) };
+            let Some(season) = t.num::<i32>(r, "season") else { return Err(t.err(i, "missing season")) };
+            let Some(&champion) = clubs.get(t.s(r, "champion")) else { return Err(t.err(i, "unknown champion club")) };
+            let runner_up = clubs.get(t.s(r, "runner_up")).copied().unwrap_or(ClubId::NONE);
+            let scorer = t.s(r, "top_scorer");
+            let top_goals = t.num::<u16>(r, "top_goals").unwrap_or(0);
+            let top_scorer = if scorer.is_empty() {
+                u32::MAX
+            } else {
+                let id = w.backfill.figures.len() as u32;
+                let nation = w.comps[comp].nation;
+                w.backfill.figures.push(PastFigure { id, name: scorer.to_string(), nation, club: ClubId::NONE, born: season - 27, apps: 0, goals: top_goals, provenance: Provenance::Imported });
+                id
+            };
+            w.backfill.seasons.push(PastSeason { comp, season, champion, runner_up, top_scorer, top_goals, provenance: Provenance::Imported });
+        }
+    }
+
     builder::finalize(&mut w);
     builder::ensure_staff(&mut w);
     fill_contracts(&mut w, start);

@@ -10,10 +10,15 @@
 pub mod choices;
 pub mod events;
 pub mod fmt;
+pub mod grammar;
 pub mod grapevine;
+pub mod history;
+pub mod inbox;
 pub mod incidents;
 pub mod lexicon;
+pub mod officiating;
 pub mod press;
+pub mod quality;
 pub mod social;
 pub mod talk;
 

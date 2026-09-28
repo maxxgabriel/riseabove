@@ -476,6 +476,67 @@ pub fn feed(w: &World, me: PersonId, n: usize) -> Vec<String> {
         .collect()
 }
 
+/// Records held by you and by your club, with who held them before.
+pub fn records(w: &World, me: PersonId) -> Vec<String> {
+    use pw_world::records::Holder;
+    let mut v = Vec::new();
+    for r in w.records.held_by(Holder::Person(me)) {
+        v.push(format!("You hold {}: {}", pw_narrate::history::record_name(w, r.key), pw_narrate::history::value(r.key.stat, r.current.value)));
+    }
+    let club = w.club_of_person(me);
+    if club.is_some() {
+        for r in w.records.in_scope(pw_world::records::Scope::Club(club)) {
+            let prev = r.previous.last().map_or_else(String::new, |m| format!(" (before: {}, {})", pw_narrate::history::holder(w, m.holder), pw_narrate::history::value(r.key.stat, m.value)));
+            v.push(format!("{}: {}, {}{prev}", pw_narrate::history::record_name(w, r.key), pw_narrate::history::holder(w, r.current.holder), pw_narrate::history::value(r.key.stat, r.current.value)));
+        }
+    }
+    if club.is_some() {
+        let past: Vec<&pw_world::backfill::PastSeason> = w.backfill.seasons.iter().filter(|s| s.champion == club).collect();
+        if !past.is_empty() {
+            let generated = past.iter().filter(|s| s.provenance == pw_world::backfill::Provenance::Generated).count();
+            let years: Vec<String> = past.iter().map(|s| format!("{}/{:02}", s.season, (s.season + 1) % 100)).collect();
+            let note = if generated == past.len() { " (generated history)" } else if generated > 0 { " (partly generated history)" } else { "" };
+            v.push(format!("League titles before this era{note}: {}", years.join(", ")));
+        }
+    }
+    if v.is_empty() {
+        v.push("No records yet.".into());
+    }
+    v
+}
+
+/// Where you played before the professional game, and what you won there.
+pub fn history(w: &World, me: PersonId) -> Vec<String> {
+    let mut v = Vec::new();
+    let p = w.people[me].player;
+    if p.is_some() {
+        for l in w.minor.career(p) {
+            v.push(format!(
+                "{}/{:02}  {} ({}): {} apps, {} goals",
+                l.season,
+                (l.season + 1) % 100,
+                pw_narrate::history::entrant(w, l.entrant),
+                pw_narrate::history::level(pw_sim::records::minor_level(w, l.entrant, l.kind)),
+                l.apps,
+                l.goals
+            ));
+        }
+        for s in w.minor.history.iter().filter(|s| s.top_scorer == p || s.best == p) {
+            v.push(format!("  {}", pw_narrate::history::season_line(w, s)));
+        }
+    }
+    for (scope, m) in w.acclaim.halls_of(me) {
+        v.push(format!("{}: inducted into {} ({}% of the vote)", m.year, pw_narrate::history::hall_name(w, scope), m.share));
+    }
+    for vote in w.acclaim.votes.iter().rev().take(200).filter(|x| x.result.iter().take(3).any(|r| r.0 == me)) {
+        v.push(format!("{}: {}", vote.year, pw_narrate::history::vote(w, vote, me)));
+    }
+    if v.is_empty() {
+        v.push("No history yet — below the professional game or above it.".into());
+    }
+    v
+}
+
 /// People a human could step into: players matching a name fragment.
 pub fn find(w: &World, text: &str, limit: usize) -> Vec<(PersonId, String)> {
     let q = text.to_lowercase();

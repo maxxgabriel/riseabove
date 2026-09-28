@@ -2,6 +2,9 @@
 
 pub mod affairs;
 pub mod agents;
+pub mod audit;
+pub mod awards;
+pub mod backfill;
 pub mod board;
 pub mod commerce;
 pub mod consider;
@@ -12,12 +15,14 @@ pub mod decisions;
 pub mod development;
 pub mod dressing;
 pub mod economy;
+pub mod evolution;
 pub mod facts;
 pub mod finance;
 pub mod generate;
 pub mod governance;
 pub mod grapevine;
 pub mod growth;
+pub mod inbox;
 pub mod health;
 pub mod honours;
 pub mod incidents;
@@ -31,15 +36,18 @@ pub mod market;
 pub mod matchday;
 pub mod media;
 pub mod medical;
+pub mod minor;
 pub mod mind;
 pub mod morale;
 pub mod negotiation;
+pub mod officials;
 pub mod newsroom;
 pub mod people;
 pub mod perception;
 pub mod planning;
 pub mod press;
 pub mod pressroom;
+pub mod records;
 pub mod renown;
 pub mod responses;
 pub mod reputation;
@@ -92,6 +100,8 @@ impl Sim {
             honours::yearly_votes(w);
         }
         if today.month() == 7 && today.day() == 1 {
+            officials::season_review(w);
+            evolution::yearly(w);
             economy::yearly(w);
             governance::yearly(w);
             managers::yearly(w);
@@ -135,7 +145,13 @@ impl Sim {
             affairs::monthly(w);
             commerce::monthly(w);
             socialnet::monthly(w);
+            awards::scan(w);
+            if today.month() == 1 {
+                awards::inductions(w);
+            }
             if today.month() == 6 {
+                minor::season_end(w);
+                awards::minor_players(w);
                 youth::reviews(w);
             }
             if today.month() == 9 {
@@ -178,7 +194,9 @@ impl Sim {
 
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
+        officials::pre_match(w);
         matchday::play_today(w);
+        officials::daily(w);
         // National teams: windows, qualifiers, tournaments.
         intl::daily(w);
 
@@ -188,6 +206,7 @@ impl Sim {
         newsroom::daily(w);
         socialnet::persons_post(w);
         socialnet::daily(w);
+        inbox::daily(w);
 
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
@@ -204,6 +223,7 @@ impl Sim {
             talk::manager_summons(w);
             mind::weekly(w);
             youth::weekly(w);
+            minor::weekly(w);
             agents::weekly(w);
             media::weekly(w);
             reputation::weekly(w);
@@ -252,9 +272,12 @@ pub fn prepare(w: &mut World) {
     managers::ensure(w);
     scouting::ensure(w);
     youth::ensure(w);
+    minor::ensure(w);
+    officials::ensure(w);
     intl::ensure(w);
     commerce::ensure(w);
     culture::ensure(w);
+    backfill::generate(w);
     newsroom::ensure_profiles(w);
     socialnet::ensure(w);
     let weights = w.data.weights.clone();

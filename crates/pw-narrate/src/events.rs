@@ -183,7 +183,7 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         },
         RecordBroken { player: p, kind, club: c, value } => {
             use pw_world::event::RecordKind as R;
-            match kind {
+            let base = match kind {
                 R::ClubTopScorer => format!("{} became {}'s all-time top scorer ({value} goals).", pl(p), club(w, c)),
                 R::ClubMostApps => format!("{} now has more appearances for {} than anyone ({value}).", pl(p), club(w, c)),
                 R::ClubRecordSigning => format!("{} became {}'s record signing ({}).", pl(p), club(w, c), money(value)),
@@ -193,7 +193,8 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
                 R::NationMostCaps => format!("{} became their country's most-capped player ({value}).", pl(p)),
                 R::NationTopScorer => format!("{} became their country's all-time top scorer ({value}).", pl(p)),
                 R::WorldRecordFee => format!("{} became the most expensive player in history ({}).", pl(p), money(value)),
-            }
+            };
+            format!("{base}{}", crate::history::pro_context(w, e.date, kind, c))
         }
         BecameLegend { person: x, club: c } => format!("{} {} now spoken of as a legend at {}.", me(x), if x == viewer { "are" } else { "is" }, club(w, c)),
         InductedHallOfFame { person: x } => format!("{} {} inducted into the Hall of Fame.", me(x), if x == viewer { "were" } else { "was" }),
@@ -237,6 +238,27 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JournalistMoved { person: x, from, to } => format!("{} left {} for {}.", me(x), w.media.outlets[from].name, w.media.outlets[to].name),
         JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
         JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
+        EnrolledUniversity { person: x, institution } => format!("{} enrolled at {}.", me(x), crate::history::institution(w, institution)),
+        Graduated { person: x, institution, early } => {
+            if early {
+                format!("{} left {} to turn professional.", me(x), crate::history::institution(w, institution))
+            } else {
+                format!("{} graduated from {}.", me(x), crate::history::institution(w, institution))
+            }
+        }
+        Record { broken, .. } => w.records.broken.get(broken as usize).map_or_else(String::new, |b| crate::history::broken(w, b)),
+        Voted { vote, person: x } => w.acclaim.votes.get(vote as usize).map_or_else(String::new, |v| crate::history::vote(w, v, x)),
+        HallInduction { hall, person: x } => w.acclaim.halls.get(hall as usize).map_or_else(String::new, |h| {
+            let share = h.members.iter().find(|m| m.person == x).map_or(String::new(), |m| format!(" with {}% of the committee's votes", m.share));
+            format!("{} {} inducted into {}{share}.", me(x), if x == viewer { "were" } else { "was" }, crate::history::hall_name(w, h.scope))
+        }),
+        Chronicle { entry } => w.acclaim.chronicle.get(entry as usize).map_or_else(String::new, |e| crate::history::chronicle(w, e)),
+        RefereeControversy { controversy } => w.officials.controversies.get(controversy as usize).map_or_else(String::new, |c| crate::officiating::controversy(w, c)),
+        AppealDecided { appeal, .. } => w.officials.appeals.get(appeal as usize).map_or_else(String::new, |a| crate::officiating::appeal(w, a)),
+        Charged { charge, .. } => w.officials.charges.get(charge as usize).map_or_else(String::new, |c| crate::officiating::charge(w, c)),
+        SchoolFounded { school, .. } => w.evolution.schools.get(school as usize).map_or_else(String::new, |s| crate::history::school_founded(w, s)),
+        RuleChanged { change } => w.evolution.changes.get(change as usize).map_or_else(String::new, |c| crate::history::rule_change(w, c)),
+        MinorTitle { history } => w.minor.history.get(history as usize).map_or_else(String::new, |s| crate::history::season_line(w, s)),
         SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })

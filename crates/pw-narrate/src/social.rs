@@ -14,8 +14,9 @@ use crate::fmt::{club_short, person, player};
 use crate::lexicon::{emoji, loud, word, AgeBand, Locale, Register, Slot, Voice};
 use crate::pick;
 
-/// The voice of an account.
-pub fn voice(a: &SocialAccount) -> Voice {
+/// The voice of an account: its kind, age band and persona, where it
+/// lives (vocabulary only) and when it is.
+pub fn voice(w: &World, a: &SocialAccount) -> Voice {
     let register = match a.kind {
         AccountKind::Stats => Register::Analytical,
         AccountKind::FanNews | AccountKind::ClubOfficial => Register::Neutral,
@@ -31,6 +32,9 @@ pub fn voice(a: &SocialAccount) -> Voice {
     };
     Voice {
         locale: Locale::En,
+        dialect: if a.nation.is_some() { crate::lexicon::Dialect::for_code(&w.nations[a.nation].code) } else { crate::lexicon::Dialect::International },
+        era: crate::lexicon::Era::of_year(w.date.year()),
+        platform: crate::lexicon::Platform::Social,
         register,
         age,
         emoji: matches!(register, Register::Casual | Register::Terrace) && age == AgeBand::Young,
@@ -40,9 +44,9 @@ pub fn voice(a: &SocialAccount) -> Voice {
 }
 
 /// What the frame is, in a few words (only facts the frame holds).
-fn frame_words(w: &World, f: Frame, about_club: pw_core::ClubId) -> String {
+fn frame_words(w: &World, v: &Voice, f: Frame, about_club: pw_core::ClubId) -> String {
     match f {
-        Frame::Result { uid } => w.recent_matches.by_uid(uid).map_or_else(String::new, |m| format!("{} {}-{} {}", club_short(w, m.home), m.hg, m.ag, club_short(w, m.away))),
+        Frame::Result { uid } => w.recent_matches.by_uid(uid).map_or_else(String::new, |m| format!("{} {} {}", club_short(w, m.home), crate::grammar::score(v, m.hg, m.ag, uid), club_short(w, m.away))),
         Frame::LateWinner { player: p, .. } => format!("{}'s late winner", player(w, p)),
         Frame::HatTrick { player: p, .. } => format!("{}'s hat-trick", player(w, p)),
         Frame::RedCard { player: p, .. } => format!("{}'s red card", player(w, p)),
@@ -64,6 +68,7 @@ fn frame_words(w: &World, f: Frame, about_club: pw_core::ClubId) -> String {
         Frame::Record { player: p } => format!("{}'s record", player(w, p)),
         Frame::Injury { player: p } => format!("{}'s injury", player(w, p)),
         Frame::Incident { incident } => if w.incidents.get(incident).is_some() { crate::incidents::summary(w, incident, false, false) } else { String::new() },
+        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or_else(String::new, |c| crate::officiating::call(w, c)),
         Frame::Post { .. } => {
             if about_club.is_some() {
                 club_short(w, about_club)
@@ -77,19 +82,36 @@ fn frame_words(w: &World, f: Frame, about_club: pw_core::ClubId) -> String {
 /// One post, as its author would write it.
 pub fn post(w: &World, p: &Post) -> String {
     let Some(a) = w.net.accounts.get(p.author as usize) else { return String::new() };
-    let v = voice(a);
+    let v = voice(w, a);
     let key = u64::from(p.id);
     let subj = if p.about.is_some() { person(w, p.about) } else { String::new() };
-    let what = frame_words(w, p.frame, p.club);
+    let what = frame_words(w, &v, p.frame, p.club);
+    // A manager's football, in the words of someone who watches it.
+    let style = {
+        let s = if p.about.is_some() { w.people[p.about].staff } else { pw_core::StaffId::NONE };
+        s.get().filter(|&s| w.staff[s].role == pw_world::StaffRole::Manager).map(|s| w.staff[s].philosophy)
+    };
     let hedge = if v.hedging > 60 && matches!(p.claim, pw_world::media::ClaimType::Rumour | pw_world::media::ClaimType::Speculation) { format!("{} ", word(&v, Slot::Hedge, key)) } else { String::new() };
     let target = if subj.is_empty() { what.clone() } else { subj.clone() };
     let s = match p.concept {
-        Concept::Praise => format!("{} {} {}", target, pick(key, &["is", "was", "looked"]), word(&v, Slot::PraiseAdj, key)),
+        Concept::Praise => match style {
+            Some(ph) if key % 2 == 0 => format!("{target} {}: {}", word(&v, Slot::PraiseAdj, key), crate::grammar::style(&v, ph.press, ph.tempo, ph.directness, key)),
+            _ => format!("{} {} {}", target, pick(key, &["is", "was", "looked"]), word(&v, Slot::PraiseAdj, key)),
+        },
         Concept::ReluctantPraise => format!("{} — {}", word(&v, Slot::Concede, key), format!("{} {}", target, word(&v, Slot::PraiseAdj, key))),
         Concept::ConcedeWrong => format!("{}. {}", word(&v, Slot::Concede, key), target),
         Concept::DoubleDown => format!("{}. {}", target, word(&v, Slot::DoubleDown, key)),
-        Concept::Criticise => format!("{} {} {}", target, pick(key, &["is", "was", "looked"]), word(&v, Slot::CriticAdj, key)),
-        Concept::Mock => format!("{} {}", what, word(&v, Slot::Mock, key)),
+        Concept::Criticise => match style.and_then(|ph| crate::grammar::style_complaint(&v, ph.press, ph.tempo, ph.directness, key)) {
+            Some(c) => format!("{target}: {c}"),
+            None => format!("{} {} {}", target, pick(key, &["is", "was", "looked"]), word(&v, Slot::CriticAdj, key)),
+        },
+        Concept::Mock => {
+            if a.persona.humour >= 60 || a.persona.hostility >= 60 {
+                format!("{} {}", what, crate::grammar::banter(&v, a.persona.humour, a.persona.hostility, key))
+            } else {
+                format!("{} {}", what, word(&v, Slot::Mock, key))
+            }
+        }
         Concept::Celebrate => format!("{}! {}", what, word(&v, Slot::Celebrate, key)),
         Concept::Lament => format!("{}. {}", what, word(&v, Slot::Lament, key)),
         Concept::Worry => format!("{} {}", word(&v, Slot::Worry, key), target),
