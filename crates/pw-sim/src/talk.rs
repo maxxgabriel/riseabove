@@ -655,6 +655,16 @@ pub fn manager_summons(w: &mut World) {
     let today = w.date;
     let week = (today.0 / 7) as u64;
     let teams: Vec<pw_core::TeamId> = w.teams.ids().filter(|&t| matches!(w.teams[t].kind, TeamKind::First | TeamKind::Reserve | TeamKind::U21)).collect();
+    // Long bans in the last week, found once rather than per player.
+    let banned: pw_world::FxHashSet<PlayerId> = w
+        .events
+        .since(today.add_days(-7))
+        .iter()
+        .filter_map(|e| match e.kind {
+            EventKind::Suspended { player, matches } if matches >= 3 => Some(player),
+            _ => None,
+        })
+        .collect();
     for team in teams {
         let Some(mgr) = crate::social::team_manager(w, team) else { continue };
         let club = w.teams[team].club;
@@ -679,7 +689,7 @@ pub fn manager_summons(w: &mut World) {
             let low = life.train_low_weeks;
             let high = life.train_high_weeks;
             let trust = consider::trust(w, mgr, who);
-            let banned_recently = w.events.since(today.add_days(-7)).iter().any(|e| matches!(e.kind, EventKind::Suspended { player, matches } if player == p && matches >= 3));
+            let banned_recently = banned.contains(&p);
             let (topic, causes, chance): (Topic, Causes, f32) = if banned_recently {
                 (Topic::Discipline, Causes::new(), 0.3 + discipline / 30.0)
             } else if low >= 3 {

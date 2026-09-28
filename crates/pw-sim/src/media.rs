@@ -602,12 +602,12 @@ pub fn react(w: &mut World, club: ClubId, about: PersonId, sentiment: i8, reason
 }
 
 /// A player moves: both fanbases react, and rivals remember.
-pub fn on_move(w: &mut World, p: PlayerId, seller: ClubId, buyer: ClubId, ev: EventId) {
+/// `requested`: the player had handed in a transfer request.
+pub fn on_move(w: &mut World, p: PlayerId, seller: ClubId, buyer: ClubId, ev: EventId, requested: bool) {
     let today = w.date;
     let who = w.players.cold[p].person;
     if seller.is_some() {
         let rival = w.media.rivalry(seller, buyer);
-        let requested = w.events.since(today.add_days(-365)).iter().any(|e| matches!(e.kind, EventKind::TransferRequested { player, club } if player == p && club == seller));
         let years = w.history.spells.get(&p).and_then(|s| s.iter().rev().nth(1)).map_or(0.0, |s| s.from.days_until(today) as f32 / 365.0);
         let (by, reason) = if rival >= 50 {
             (-(200 + i16::from(rival) * 4), FanReason::JoinedRival)

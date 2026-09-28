@@ -2,12 +2,12 @@
 //! reply and telling graphs without cycles, rule history reconstruction,
 //! record sequences, and text checks on arbitrary input.
 
+use proptest::prelude::*;
 use pw_core::PersonId;
 use pw_data::DataPack;
 use pw_import::synthetic::{self, Scale};
 use pw_sim::Sim;
 use pw_world::{MindKind, World};
-use proptest::prelude::*;
 
 fn ran(seed: u64, days: u32) -> Sim {
     let mut s = Sim::new(synthetic::build(DataPack::builtin(), seed, Scale::TINY));

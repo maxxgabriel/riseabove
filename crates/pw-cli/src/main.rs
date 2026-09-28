@@ -1,6 +1,6 @@
 //! Headless runner: build or load a world, simulate, report, save.
 //!
-//! pathway-sim synth [tiny|small|huge] [--days N] [--seed S] [--save FILE]
+//! pathway-sim synth [tiny|small|huge|NATIONS] [--days N] [--seed S] [--save FILE]
 //! pathway-sim import DIR [--days N] [--seed S] [--save FILE]
 //!
 //! Without `--seed` every new world gets a fresh random seed (printed, so a
@@ -46,6 +46,8 @@ fn main() {
             let scale = match a.positional.as_deref() {
                 Some("tiny") => pw_import::synthetic::Scale::TINY,
                 Some("huge") => pw_import::synthetic::Scale::HUGE,
+                // `synth N`: N nations of four 22-club divisions (for scale runs).
+                Some(n) if n.parse::<u16>().is_ok() => pw_import::synthetic::Scale { nations: n.parse().unwrap_or(1), ..pw_import::synthetic::Scale::HUGE },
                 _ => pw_import::synthetic::Scale::SMALL,
             };
             let t = Instant::now();
@@ -102,6 +104,12 @@ fn simulate(sim: &mut Sim, days: u32) {
     }
     let el = t.elapsed();
     println!("simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches", el.as_secs_f64() * 1000.0 / f64::from(days.max(1)), worst as f64 / 1000.0);
+    // Peak memory, where the platform reports it.
+    if let Ok(status) = std::fs::read_to_string("/proc/self/status")
+        && let Some(line) = status.lines().find(|l| l.starts_with("VmHWM"))
+    {
+        println!("peak memory: {}", line.trim_start_matches("VmHWM:").trim());
+    }
     if pw_sim::profile::enabled() {
         println!("time by system (PW_PROFILE):");
         for (name, us, calls) in pw_sim::profile::take().into_iter().take(25) {
