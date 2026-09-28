@@ -3,7 +3,7 @@
 //! out by the same rules: a meeting is requested and the other side decides; a
 //! transfer request goes public and people react; an agent may say no.
 
-use pw_core::{PersonId, PlayerId};
+use pw_core::{EventId, PersonId, PlayerId};
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
 use pw_world::interaction::Topic;
 use pw_world::intent::PendingIntent;
@@ -88,6 +88,11 @@ fn apply(w: &mut World, who: PersonId, intent: Intent) {
         Intent::Mentor(mentee) if playing => crate::growth::offer_mentoring(w, who, mentee),
         Intent::SpeakToPress { about, stance } => {
             crate::press::speak(w, who, about, stance);
+        }
+        Intent::Tell { to, info } => crate::grapevine::pass_on(w, who, to, info),
+        Intent::Thank { to } => {
+            let compat = crate::consider::compat(w, to, who);
+            w.social.remember(to, who, MemoryKind::Supported, today, EventId::NONE, false, 0.3, compat);
         }
         Intent::Post { about, concept, reply_to, quote_of } => {
             crate::socialnet::person_post(w, who, about, concept, reply_to, quote_of);

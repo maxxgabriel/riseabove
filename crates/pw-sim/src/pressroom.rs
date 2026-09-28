@@ -156,7 +156,8 @@ fn answer_or_ask(w: &mut World, conf: u32, qi: usize) {
             kind: DecisionKind::PressQuestion { conference: conf, question: qi as u8 },
             options: options.iter().map(|&s| Choice::Say(s)).collect(),
             created: today,
-            deadline: today,
+            // A human gets until kick-off day to answer.
+            deadline: today.add_days(1),
             default,
             answer: None,
             resolved: false,

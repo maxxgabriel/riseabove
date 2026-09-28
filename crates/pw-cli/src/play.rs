@@ -152,7 +152,54 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
                 println!("{}", pw_career::views::personality_hint(g.world(), me));
             }
         }
-        "inbox" | "feed" => {
+        "inbox" => {
+            if let Some(me) = me_or_warn(g) {
+                let w = g.world();
+                let threads = w.inbox.threads_of(me);
+                if threads.is_empty() {
+                    println!("No messages.");
+                }
+                for t in threads.into_iter().take(arg(1).parse().unwrap_or(20)) {
+                    let unread = t.messages.iter().filter(|&&m| !w.inbox.messages[m as usize].read).count();
+                    println!("{} [{}] {}  ({} messages{})", t.last, t.id, pw_narrate::inbox::thread_title(w, t), t.messages.len(), if unread > 0 { format!(", {unread} new") } else { String::new() });
+                }
+            }
+        }
+        "thread" => {
+            let Ok(n) = arg(1).parse::<u32>() else {
+                println!("thread <thread #>  (see `inbox`)");
+                return true;
+            };
+            let Some(me) = me_or_warn(g) else { return true };
+            {
+                let w = g.world();
+                let Some(t) = w.inbox.threads.get(n as usize).filter(|t| t.owner == me) else {
+                    println!("No such thread.");
+                    return true;
+                };
+                println!("— {} —", pw_narrate::inbox::thread_title(w, t));
+                for &mid in &t.messages {
+                    let m = &w.inbox.messages[mid as usize];
+                    println!("{} <{}> {}", m.date, mid, pw_narrate::inbox::message(w, m));
+                    if let Some(r) = pw_narrate::inbox::replied(w, m, me) {
+                        println!("    {r}");
+                    } else {
+                        for (i, o) in pw_sim::inbox::options(w, mid).into_iter().enumerate() {
+                            println!("    reply {mid} {i}: {}", pw_narrate::inbox::reply(w, m, o));
+                        }
+                    }
+                }
+            }
+            g.read_thread(n);
+        }
+        "reply" => {
+            let (Ok(m), Ok(k)) = (arg(1).parse::<u32>(), arg(2).parse::<usize>()) else {
+                println!("reply <message #> <option #>  (see `thread`)");
+                return true;
+            };
+            println!("{}", if g.reply(m, k) { "Sent. What happens next is up to them." } else { "That isn't a valid reply." });
+        }
+        "events" => {
             if let Some(me) = me_or_warn(g) {
                 let n: usize = arg(1).parse().unwrap_or(25);
                 for it in pw_career::feed::recent(g.world(), me, n) {
@@ -597,7 +644,7 @@ World:     find <name> · clubs · become <id> · create <first> <last> <age> <p
 You:       me · self · life · people · promises · contract · rumours · goals · goal <apps N|goals N|topflight|text> · note <text>
 Club:      club · table · fixtures · news · social · feed [n]
 Post:      post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <#>] [reply <post #>|quote <post #>]
-Feed:      new · inbox [n] · why <event #> · meetings
+Feed:      new · events [n] · inbox [n] · thread <#> · reply <msg #> <option #> · why <event #> · meetings
 Decide:    decisions · answer <decision #> <option #>
 Act:       meet manager|agent|<id> <topic> [tone] · train … · routine k=v … · lifestyle …
            request-transfer · withdraw-request · agents · hire-agent <#> · drop-agent

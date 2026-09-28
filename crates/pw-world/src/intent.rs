@@ -52,6 +52,10 @@ pub enum Intent {
     /// Post on social media: a concept about someone, optionally replying to
     /// or quoting a post that exists (`socialnet::NO_POST` for none).
     Post { about: PersonId, concept: crate::socialnet::Concept, reply_to: u32, quote_of: u32 },
+    /// Pass on something you know (a grapevine item) to someone.
+    Tell { to: PersonId, info: u32 },
+    /// Thank someone privately for telling you something.
+    Thank { to: PersonId },
     /// Start a course (coaching badges, degrees, media training…).
     Enrol(crate::affairs::Course),
     MoveHome { buy: bool, quality: u8 },

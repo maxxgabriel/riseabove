@@ -19,6 +19,7 @@ pub mod event;
 pub mod governance;
 pub mod growth;
 pub mod history;
+pub mod inbox;
 pub mod incident;
 pub mod info;
 pub mod honours;

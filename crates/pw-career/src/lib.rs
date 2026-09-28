@@ -177,6 +177,22 @@ impl Game {
         true
     }
 
+    /// Reply to an inbox message with one of its options (by index). The
+    /// reply becomes an intent or an answer, like any other choice.
+    pub fn reply(&mut self, msg: u32, option: usize) -> bool {
+        let Some(me) = self.session.controlled else { return false };
+        let opts = pw_sim::inbox::options(&self.sim.world, msg);
+        let Some(&r) = opts.get(option) else { return false };
+        pw_sim::inbox::reply(&mut self.sim.world, me, msg, r)
+    }
+
+    /// Mark a thread read.
+    pub fn read_thread(&mut self, thread: u32) {
+        if let Some(me) = self.session.controlled {
+            pw_sim::inbox::read(&mut self.sim.world, me, thread);
+        }
+    }
+
     pub fn pending(&self) -> Vec<DecisionId> {
         let Some(me) = self.session.controlled else { return Vec::new() };
         self.sim.world.decisions.pending_for(me).filter(|(_, d)| d.answer.is_none()).map(|(id, _)| id).collect()

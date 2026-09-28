@@ -140,6 +140,8 @@ pub struct World {
     pub pressroom: crate::pressroom::Pressroom,
     /// Social media: accounts, opinions, posts, supporter groups, chants, memes.
     pub net: crate::socialnet::SocialNet,
+    /// Messages and conversation threads for people humans control.
+    pub inbox: crate::inbox::Inbox,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -199,6 +201,7 @@ impl World {
             recent_matches: Default::default(),
             pressroom: Default::default(),
             net: Default::default(),
+            inbox: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

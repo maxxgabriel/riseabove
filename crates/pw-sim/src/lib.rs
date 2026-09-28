@@ -18,6 +18,7 @@ pub mod generate;
 pub mod governance;
 pub mod grapevine;
 pub mod growth;
+pub mod inbox;
 pub mod health;
 pub mod honours;
 pub mod incidents;
@@ -188,6 +189,7 @@ impl Sim {
         newsroom::daily(w);
         socialnet::persons_post(w);
         socialnet::daily(w);
+        inbox::daily(w);
 
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
