@@ -180,7 +180,8 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
                     }) + w.clubs[club].manager.get().map_or(0.0, |s| crate::managers::preference(w, s, p) * 0.06)
                         + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
                     youth: if age <= 21.5 { f32::from(phil.youth_trust) / 100.0 * (1.0 - ((age - 17.0) / 5.0).clamp(0.0, 1.0)) } else { 0.0 },
-                    rotation: if rested <= 3 { 1.0 } else { 0.0 },
+                    // Players with a managed condition need longer between games.
+                    rotation: if rested <= 3 || (rested <= 5 && w.medical.needs_managing(p)) { 1.0 } else { 0.0 },
                 },
                 keeper: c.familiarity[Pos::GK.idx()] >= 12,
                 leadership: c.attrs.get(Attr::Leadership),

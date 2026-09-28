@@ -43,6 +43,10 @@ pub enum Intent {
     DeclareForNation(NationId),
     /// Stop being available for national selection.
     RetireFromInternational,
+    /// Tell the medical staff whether you will push to play through pain.
+    PlayThroughPain(bool),
+    /// Offer to take a younger teammate under your wing.
+    Mentor(PersonId),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]

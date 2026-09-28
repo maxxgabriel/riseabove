@@ -93,6 +93,7 @@ pub fn hazard_mult(w: &World, p: PlayerId) -> f32 {
         * (1.0 + 0.6 * wear / 100.0)
         * age_mult
         * wellbeing
+        * w.medical.fragility(p)
 }
 
 /// Pick an injury from the catalogue for a mechanism; returns (catalogue index, days).
@@ -241,7 +242,9 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
         let vis = if o.club.is_some() { Visibility::Club(o.club) } else { Visibility::Public };
         if let Some((k, d)) = o.injury {
             apply_injury_effects(w, o.player, k);
-            w.events.push(today, vis, EventKind::Injured { player: o.player, injury: k, days: d });
+            // The world hears the medical team's estimate, not the truth.
+            let est = crate::medical::on_injury(w, o.player, k, d);
+            w.events.push(today, vis, EventKind::Injured { player: o.player, injury: k, days: est });
         } else if o.recovered {
             w.events.push(today, vis, EventKind::Recovered { player: o.player });
         }
@@ -258,8 +261,9 @@ pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng) {
         h.injury_total = d;
         let club = h.club;
         apply_injury_effects(w, p, k as u16 + 1);
+        let est = crate::medical::on_injury(w, p, k as u16 + 1, d);
         let vis = if club.is_some() { Visibility::Club(club) } else { Visibility::Public };
-        w.events.push(w.date, vis, EventKind::Injured { player: p, injury: k as u16 + 1, days: d });
+        w.events.push(w.date, vis, EventKind::Injured { player: p, injury: k as u16 + 1, days: est });
     }
 }
 

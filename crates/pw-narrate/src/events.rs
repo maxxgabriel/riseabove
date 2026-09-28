@@ -147,6 +147,24 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             format!("{} {} the {} {} job.", w.staff_name(staff), if sacked { "was dismissed from" } else { "left" }, nation(w, n), level.label())
         }
         WithdrewFromSquad { player: p, nation: n } => format!("{} withdrew from the {} squad.", pl(p), nation(w, n)),
+        Diagnosed { player: p, injury, estimate, treatment } => format!(
+            "The medical team expect {} to miss around {} with a {} ({}).",
+            pl(p),
+            crate::fmt::duration_days(estimate),
+            w.data.injuries.get(usize::from(injury).saturating_sub(1)).map_or("problem", |d| d.name.as_str()),
+            treatment.label()
+        ),
+        InjurySetback { player: p, days } => format!("{} suffered a setback in rehabilitation: another {} out.", pl(p), crate::fmt::duration_days(days)),
+        RushedBack { player: p } => format!("{} was passed fit ahead of schedule.", pl(p)),
+        ChronicCondition { player: p } => format!("{} now has a condition that will need managing.", pl(p)),
+        PlayerSettled { player: p, club: c } => format!("{} has settled in at {}.", pl(p), club(w, c)),
+        DressingRoomSplit { club: c, leader } => format!("A group around {} at {} has lost faith in the manager.", pl(leader), club(w, c)),
+        LeaderEmerged { player: p, club: c } => format!("{} has become one of the voices of the {} dressing room.", pl(p), club(w, c)),
+        TookUnderWing { mentor, mentee } => format!("{} has taken {} under their wing.", me(mentor), me_lc(mentee)),
+        CharacterChanged { person: x, up } => {
+            if up { format!("People around {} have noticed a new maturity.", me(x)) } else { format!("People around {} worry about their attitude lately.", me(x)) }
+        }
+        Stagnated { player: p } => format!("Without football, {}'s development has stalled.", pl(p)),
     })
 }
 

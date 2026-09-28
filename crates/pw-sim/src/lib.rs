@@ -7,19 +7,23 @@ pub mod contracts;
 pub mod deals;
 pub mod decisions;
 pub mod development;
+pub mod dressing;
 pub mod economy;
 pub mod finance;
 pub mod generate;
 pub mod governance;
+pub mod growth;
 pub mod health;
 pub mod hungarian;
 pub mod intents;
+pub mod interpret;
 pub mod intl;
 pub mod life;
 pub mod managers;
 pub mod market;
 pub mod matchday;
 pub mod media;
+pub mod medical;
 pub mod mind;
 pub mod morale;
 pub mod negotiation;
@@ -99,6 +103,10 @@ impl Sim {
             scouting::assign(w);
             youth::school(w);
             intl::ensure(w);
+            medical::monthly(w);
+            growth::monthly(w);
+            dressing::monthly(w);
+            interpret::monthly(w);
             if today.month() == 6 {
                 youth::reviews(w);
             }
@@ -146,6 +154,8 @@ impl Sim {
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
             development::weekly(w);
+            medical::weekly(w);
+            dressing::weekly(w);
             perception::weekly(w);
             social::weekly(w);
             morale::weekly(w);

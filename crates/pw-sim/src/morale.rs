@@ -70,6 +70,14 @@ fn compose(w: &World, p: pw_core::PlayerId) -> (f32, Mood) {
             push(MoodFactor::Teammates, avg * 15.0);
         }
     }
+    // The dressing room: settling in, and the mood of one's group.
+    let (settling, group) = crate::dressing::mood_inputs(w, p);
+    if let Some(s) = settling {
+        push(MoodFactor::Settling, s);
+    }
+    if let Some(g) = group {
+        push(MoodFactor::Manager, g);
+    }
     let left = consider::contract_days_left(w, p);
     if (0..240).contains(&left) && !crate::negotiation::in_talks(w, p) {
         push(MoodFactor::Contract, -4.0 * (1.0 - loyalty * 0.5));

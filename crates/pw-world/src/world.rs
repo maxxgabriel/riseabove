@@ -110,6 +110,14 @@ pub struct World {
     pub youth: crate::youth::Youth,
     /// National sides, caps, international matches and tournaments.
     pub intl: crate::intl::Intl,
+    /// Injury cases, histories, fragile regions, chronic conditions.
+    pub medical: crate::medical::Medical,
+    /// Dressing-room hierarchies, groups and integration, per club.
+    pub rooms: crate::dressing::Rooms,
+    /// Appearance records, season lines and how observers read them.
+    pub perf: crate::perf::Perf,
+    /// Development records: mentors, trajectories, stagnation.
+    pub growth: crate::growth::Growth,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -154,6 +162,10 @@ impl World {
             deals: Default::default(),
             youth: Default::default(),
             intl: Default::default(),
+            medical: Default::default(),
+            rooms: Default::default(),
+            perf: Default::default(),
+            growth: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

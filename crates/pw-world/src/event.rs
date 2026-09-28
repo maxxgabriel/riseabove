@@ -205,6 +205,22 @@ pub enum EventKind {
     NationalManagerLeft { staff: StaffId, nation: NationId, level: crate::intl::Level, sacked: bool },
     /// A player was withdrawn from a national squad (injury, club pressure, refusal).
     WithdrewFromSquad { player: PlayerId, nation: NationId },
+    /// The medical team's verdict on an injury.
+    Diagnosed { player: PlayerId, injury: u16, estimate: u16, treatment: crate::medical::Treatment },
+    InjurySetback { player: PlayerId, days: u16 },
+    RushedBack { player: PlayerId },
+    ChronicCondition { player: PlayerId },
+    /// A newcomer has become part of the dressing room.
+    PlayerSettled { player: PlayerId, club: ClubId },
+    /// A leader's group has turned against the manager.
+    DressingRoomSplit { club: ClubId, leader: PlayerId },
+    LeaderEmerged { player: PlayerId, club: ClubId },
+    /// An experienced player took a younger one under their wing.
+    TookUnderWing { mentor: PersonId, mentee: PersonId },
+    /// A player has visibly changed as a person/professional.
+    CharacterChanged { person: PersonId, up: bool },
+    /// Went too long without football; the ceiling came down.
+    Stagnated { player: PlayerId },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -279,6 +295,13 @@ impl EventKind {
             | ChoseNation { player, .. }
             | RetiredFromInternational { player, .. }
             | WithdrewFromSquad { player, .. }
+            | Diagnosed { player, .. }
+            | InjurySetback { player, .. }
+            | RushedBack { player }
+            | ChronicCondition { player }
+            | PlayerSettled { player, .. }
+            | LeaderEmerged { player, .. }
+            | Stagnated { player }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -291,7 +314,11 @@ impl EventKind {
         use EventKind::*;
         let mut v = SmallVec::new();
         match *self {
-            Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } | ExamsSat { person, .. } => v.push(person),
+            Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } | ExamsSat { person, .. } | CharacterChanged { person, .. } => v.push(person),
+            TookUnderWing { mentor, mentee } => {
+                v.push(mentor);
+                v.push(mentee);
+            }
             Meeting { from, with, .. } => {
                 v.push(from);
                 v.push(with);
@@ -321,6 +348,9 @@ impl EventKind {
             | Released { club, .. }
             | ManagerSacked { club, .. }
             | ManagerAppointed { club, .. }
+            | PlayerSettled { club, .. }
+            | DressingRoomSplit { club, .. }
+            | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }
             | Interest { club, .. }
             | BidRejected { club, .. }

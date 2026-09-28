@@ -35,6 +35,11 @@ pub fn title(w: &World, d: &Decision) -> String {
             crate::fmt::nation(w, *n),
             crate::fmt::nation(w, *other)
         ),
+        DecisionKind::Treatment { surgery_days, rehab_days } => format!(
+            "Surgery (about {}, lower risk of recurrence) or rehabilitation (about {}, setbacks likelier)?",
+            crate::fmt::duration_days(*surgery_days),
+            crate::fmt::duration_days(*rehab_days)
+        ),
     }
 }
 

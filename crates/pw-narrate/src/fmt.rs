@@ -77,3 +77,15 @@ pub fn nation(w: &World, n: pw_core::NationId) -> String {
     }
     w.nations[n].name.clone()
 }
+
+/// "three weeks", "about two months", "a few days".
+pub fn duration_days(d: u16) -> String {
+    match d {
+        0..=3 => "a few days".into(),
+        4..=10 => "a week or so".into(),
+        11..=24 => format!("{} weeks", (d + 3) / 7),
+        25..=75 => format!("about {} weeks", (d + 3) / 7),
+        76..=300 => format!("about {} months", (d + 15) / 30),
+        _ => "the rest of the year or longer".into(),
+    }
+}

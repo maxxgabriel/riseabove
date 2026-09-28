@@ -43,6 +43,8 @@ pub enum DecisionKind {
     /// A dual national has been called up; accepting commits them to `nation`,
     /// rejecting commits them to `other`.
     NationChoice { nation: NationId, other: NationId },
+    /// A serious injury: accept = surgery, reject = rehabilitation.
+    Treatment { surgery_days: u16, rehab_days: u16 },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -77,6 +79,7 @@ impl DecisionKind {
             DecisionKind::Partner { .. } => "Your partner",
             DecisionKind::Trial { .. } => "Trial invitation",
             DecisionKind::NationChoice { .. } => "International allegiance",
+            DecisionKind::Treatment { .. } => "Treatment",
         }
     }
 

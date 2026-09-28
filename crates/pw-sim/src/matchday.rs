@@ -246,6 +246,8 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
         *mood = (i32::from(*mood) + result_sign[side] * 3).clamp(0, 100) as u8;
     }
     gate_receipts(w, clubs[0], comp_kind, senior[0]);
+    let imp = importance(w, fx.comp, fx.decisive);
+    crate::interpret::record(w, &fx, home, away, &r, imp);
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);
