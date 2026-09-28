@@ -289,6 +289,13 @@ pub enum EventKind {
     MinorTitle { history: u32 },
     /// A record fell (`World::records.broken` index).
     Record { broken: u32, person: PersonId, club: ClubId },
+    /// A voted award was decided (`World::acclaim.votes` index).
+    Voted { vote: u32, person: PersonId },
+    /// Someone entered a hall of fame (other than the world's, which has
+    /// `InductedHallOfFame`).
+    HallInduction { hall: u32, person: PersonId },
+    /// An entry in the world's chronicle of achievements.
+    Chronicle { entry: u32 },
     /// A supporter group acted together (see `World::net.groups`).
     SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
@@ -317,6 +324,8 @@ pub enum AwardKind {
     WorldYoungPlayer,
     /// Best player at clubs of a confederation.
     ContinentalPlayer(crate::nation::Confed),
+    /// Voted best player of a league season by the league's players.
+    PlayersPlayer,
 }
 
 impl AwardKind {
@@ -328,6 +337,7 @@ impl AwardKind {
             AwardKind::TeamOfSeason => "a place in the Team of the Season".into(),
             AwardKind::PlayerOfMonth => "Player of the Month".into(),
             AwardKind::Playmaker => "the Playmaker award".into(),
+            AwardKind::PlayersPlayer => "the Players' Player of the Season award".into(),
             AwardKind::GoldenGlove => "the Golden Glove".into(),
             AwardKind::WorldPlayer { rank: 1 } => "the World Player of the Year award".into(),
             AwardKind::WorldPlayer { rank } => format!("{} place in the World Player of the Year vote", crate::event::ordinal(rank)),
@@ -462,6 +472,7 @@ impl EventKind {
             | EnrolledUniversity { person, .. }
             | Graduated { person, .. } => v.push(person),
             Record { person, .. } if person.is_some() => v.push(person),
+            Voted { person, .. } | HallInduction { person, .. } => v.push(person),
             BoardQuery { manager, .. } => v.push(manager),
             IncidentResponse { by, .. } => v.push(by),
             JournalistMoved { person, .. } | JournalistLeft { person, .. } | JournalistHired { person, .. } => v.push(person),

@@ -235,6 +235,12 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             }
         }
         Record { broken, .. } => w.records.broken.get(broken as usize).map_or_else(String::new, |b| crate::history::broken(w, b)),
+        Voted { vote, person: x } => w.acclaim.votes.get(vote as usize).map_or_else(String::new, |v| crate::history::vote(w, v, x)),
+        HallInduction { hall, person: x } => w.acclaim.halls.get(hall as usize).map_or_else(String::new, |h| {
+            let share = h.members.iter().find(|m| m.person == x).map_or(String::new(), |m| format!(" with {}% of the committee's votes", m.share));
+            format!("{} {} inducted into {}{share}.", me(x), if x == viewer { "were" } else { "was" }, crate::history::hall_name(w, h.scope))
+        }),
+        Chronicle { entry } => w.acclaim.chronicle.get(entry as usize).map_or_else(String::new, |e| crate::history::chronicle(w, e)),
         MinorTitle { history } => w.minor.history.get(history as usize).map_or_else(String::new, |s| crate::history::season_line(w, s)),
         SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),

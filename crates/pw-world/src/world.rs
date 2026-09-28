@@ -146,6 +146,8 @@ pub struct World {
     pub minor: crate::minor::Minor,
     /// Records at every level, with their histories.
     pub records: crate::records::RecordBook,
+    /// Votes with ballots, halls of fame, the chronicle of achievements.
+    pub acclaim: crate::awards::Acclaim,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -208,6 +210,7 @@ impl World {
             inbox: Default::default(),
             minor: Default::default(),
             records: Default::default(),
+            acclaim: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

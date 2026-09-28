@@ -179,3 +179,85 @@ pub fn pro_context(w: &World, date: pw_core::Date, kind: pw_world::event::Record
     s.push('.');
     s
 }
+
+// ---------------------------------------------------------------------------
+// Votes, halls, the chronicle
+// ---------------------------------------------------------------------------
+
+use pw_world::awards::{Ballot, Feat, FirstTo, HallScope, Vote, Why};
+
+pub fn why(w: Why) -> &'static str {
+    match w {
+        Why::Performances => "performances",
+        Why::Trophies => "trophies",
+        Why::Fame => "profile",
+        Why::Goals => "goals",
+        Why::Familiarity => "what they saw week in, week out",
+        Why::Longevity => "longevity",
+        Why::Loyalty => "loyalty",
+        Why::International => "international career",
+    }
+}
+
+pub fn ballot(w: &World, b: Ballot) -> String {
+    match b {
+        Ballot::WorldPlayer { young: false } => "World Player of the Year".into(),
+        Ballot::WorldPlayer { young: true } => "World Young Player of the Year".into(),
+        Ballot::PlayersPlayer { comp } => format!("{} Players' Player of the Season", w.comps.get(comp).map_or("?", |c| c.name.as_str())),
+        Ballot::MinorPlayer { nation: n, university } => format!("{} {} Player of the Year", nation(w, n), if university { "University" } else { "Schools" }),
+        Ballot::Hall { hall } => w.acclaim.halls.get(hall as usize).map_or_else(|| "a hall of fame".into(), |h| hall_name(w, h.scope)),
+    }
+}
+
+pub fn hall_name(w: &World, s: HallScope) -> String {
+    match s {
+        HallScope::World => "the Hall of Fame".into(),
+        HallScope::Nation(n) => format!("the {} Football Hall of Fame", nation(w, n)),
+        HallScope::Club(c) => format!("the {} Hall of Fame", crate::fmt::club(w, c)),
+        HallScope::Institution(i) => format!("the {} sports hall of fame", institution(w, i)),
+    }
+}
+
+/// "X won the vote, named on 61 of 180 ballots, mostly for their goals."
+pub fn vote(w: &World, v: &Vote, person_: pw_core::PersonId) -> String {
+    let rank = v.result.iter().position(|x| x.0 == person_);
+    let name = crate::fmt::person(w, person_);
+    let what = ballot(w, v.ballot);
+    let mut s = match rank {
+        Some(0) => format!("{name} won {what}"),
+        Some(r) => format!("{name} finished {} in the {what} vote", pw_world::event::ordinal(r as u8 + 1)),
+        None => return format!("{name} was not named in the {what} vote."),
+    };
+    if !v.casts.is_empty() {
+        s.push_str(&format!(", named on {} of {} ballots", v.named_by(person_), v.voters));
+        if let Some(r) = v.main_reason(person_) {
+            s.push_str(&format!(", mostly for {}", why(r)));
+        }
+    }
+    s.push('.');
+    s
+}
+
+pub fn chronicle(w: &World, e: &pw_world::awards::Entry) -> String {
+    let club = |c| crate::fmt::club(w, c);
+    let nth = |n: u16| if n == 0 { "the first".to_string() } else { format!("the {}", pw_world::event::ordinal((n + 1).min(255) as u8)) };
+    match e.feat {
+        Feat::Double { club: c, season } => format!("{} won the league and cup double in {season}/{:02} — {} in {}'s history.", club(c), (season + 1) % 100, nth(e.before), nation(w, w.clubs[c].nation)),
+        Feat::Unbeaten { club: c, comp, season } => format!("{} went through the {} {season}/{:02} season unbeaten — {} to do it there.", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100, nth(e.before)),
+        Feat::FirstTournament { nation: n, tournament } => {
+            let t = w.intl.tournaments.iter().find(|t| t.id == tournament).map_or(String::new(), |t| format!(" ({})", t.year));
+            format!("{} won an international tournament for the first time{t}.", nation(w, n))
+        }
+        Feat::FirstWorldPlayerFrom { nation: n, person: p, year } => format!("{} became the first player from {} to be named World Player of the Year ({year}).", crate::fmt::person(w, p), nation(w, n)),
+        Feat::WorldPlayerAgain { person: p, times, year } => format!("{} was named World Player of the Year for the {} time ({year}).", crate::fmt::person(w, p), pw_world::event::ordinal(times)),
+        Feat::FirstTo { person: p, what } => {
+            let what = match what {
+                FirstTo::SeniorApps(n) => format!("{n} senior appearances"),
+                FirstTo::CareerGoals(n) => format!("{n} career goals"),
+                FirstTo::Caps(n) => format!("{n} international caps"),
+            };
+            format!("{} became the first player in the world to reach {what}.", crate::fmt::person(w, p))
+        }
+        Feat::FirstTitle { club: c, comp, season } => format!("{} won the {} for the first time in their history ({season}/{:02}).", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100),
+    }
+}

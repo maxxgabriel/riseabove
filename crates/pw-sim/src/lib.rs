@@ -2,6 +2,7 @@
 
 pub mod affairs;
 pub mod agents;
+pub mod awards;
 pub mod board;
 pub mod commerce;
 pub mod consider;
@@ -138,8 +139,13 @@ impl Sim {
             affairs::monthly(w);
             commerce::monthly(w);
             socialnet::monthly(w);
+            awards::scan(w);
+            if today.month() == 1 {
+                awards::inductions(w);
+            }
             if today.month() == 6 {
                 minor::season_end(w);
+                awards::minor_players(w);
                 youth::reviews(w);
             }
             if today.month() == 9 {

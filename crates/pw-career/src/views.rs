@@ -516,8 +516,14 @@ pub fn history(w: &World, me: PersonId) -> Vec<String> {
             v.push(format!("  {}", pw_narrate::history::season_line(w, s)));
         }
     }
+    for (scope, m) in w.acclaim.halls_of(me) {
+        v.push(format!("{}: inducted into {} ({}% of the vote)", m.year, pw_narrate::history::hall_name(w, scope), m.share));
+    }
+    for vote in w.acclaim.votes.iter().rev().take(200).filter(|x| x.result.iter().take(3).any(|r| r.0 == me)) {
+        v.push(format!("{}: {}", vote.year, pw_narrate::history::vote(w, vote, me)));
+    }
     if v.is_empty() {
-        v.push("No football history below the professional game.".into());
+        v.push("No history yet — below the professional game or above it.".into());
     }
     v
 }

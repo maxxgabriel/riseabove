@@ -4,6 +4,7 @@
 pub mod affairs;
 pub mod agenda;
 pub mod agent;
+pub mod awards;
 pub mod beliefs;
 pub mod calendar;
 pub mod careers;
