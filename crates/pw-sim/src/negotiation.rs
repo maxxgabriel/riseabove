@@ -324,18 +324,18 @@ fn complete(w: &mut World, id: TalkId) {
         TalkKind::Loan => Some(pw_world::rules::can_loan(w, t.club, t.seller, t.player, today)),
         _ => None,
     };
-    if let Some(o) = check {
-        if let Some(&reason) = o.reasons.first() {
-            w.talks[id].log.push((today, TalkLine::ClubWalkedAway));
-            let person = w.players.cold[t.player].person;
-            let causes: Causes = pw_world::causes![Cause::Event(t.event), Cause::Fact(pw_world::Fact::Rule { reason })];
-            w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
-            let x = &mut w.talks[id];
-            x.state = TalkState::Collapsed;
-            x.end = Some(TalkEnd::Blocked);
-            w.market.talking.remove(&t.player);
-            return;
-        }
+    if let Some(o) = check
+        && let Some(&reason) = o.reasons.first()
+    {
+        w.talks[id].log.push((today, TalkLine::ClubWalkedAway));
+        let person = w.players.cold[t.player].person;
+        let causes: Causes = pw_world::causes![Cause::Event(t.event), Cause::Fact(pw_world::Fact::Rule { reason })];
+        w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
+        let x = &mut w.talks[id];
+        x.state = TalkState::Collapsed;
+        x.end = Some(TalkEnd::Blocked);
+        w.market.talking.remove(&t.player);
+        return;
     }
     let kind = if w.age(t.player) < 17 { ContractKind::Youth } else { ContractKind::Professional };
     let contract = t.offer.to_contract(t.club, kind, today);
@@ -393,13 +393,13 @@ fn end(w: &mut World, id: TalkId, how: TalkEnd) {
     w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
     w.market.cooldown.insert((t.club, t.player), today.add_days(if t.kind == TalkKind::Renewal { 90 } else { 120 }));
     // A renewal that breaks down sours things with the club's decision-makers.
-    if t.kind == TalkKind::Renewal {
-        if let Some(n) = club_negotiator(w, t.club) {
-            let compat = consider::compat(w, person, n);
-            let kind = if how == TalkEnd::ClubWalkedAway { MemoryKind::LetDown } else { MemoryKind::HardBargain };
-            w.social.remember(person, n, kind, today, t.event, false, 0.8, compat);
-            w.social.remember(n, person, MemoryKind::HardBargain, today, t.event, false, 0.6, compat);
-        }
+    if t.kind == TalkKind::Renewal
+        && let Some(n) = club_negotiator(w, t.club)
+    {
+        let compat = consider::compat(w, person, n);
+        let kind = if how == TalkEnd::ClubWalkedAway { MemoryKind::LetDown } else { MemoryKind::HardBargain };
+        w.social.remember(person, n, kind, today, t.event, false, 0.8, compat);
+        w.social.remember(n, person, MemoryKind::HardBargain, today, t.event, false, 0.6, compat);
     }
 }
 

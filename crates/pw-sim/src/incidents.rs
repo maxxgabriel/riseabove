@@ -305,10 +305,10 @@ fn witnesses(w: &World, loc: Location, c: &Ctx, key: u64) -> SmallVec<[PersonId;
             }
         }
         Location::Home => {
-            if let Some(pt) = w.lives.get(c.a).and_then(|l| l.household.partner) {
-                if pt.person != c.b {
-                    v.push(pt.person);
-                }
+            if let Some(pt) = w.lives.get(c.a).and_then(|l| l.household.partner)
+                && pt.person != c.b
+            {
+                v.push(pt.person);
             }
         }
         Location::Office => {
@@ -384,10 +384,10 @@ pub fn trigger(w: &mut World, d: &IncidentDef, c: Ctx, top: SmallVec<[(Pressure,
         led_to: None,
         follows,
     });
-    if let Some(f) = follows {
-        if let Some(prev) = w.incidents.list.get_mut(f as usize) {
-            prev.led_to = Some(id);
-        }
+    if let Some(f) = follows
+        && let Some(prev) = w.incidents.list.get_mut(f as usize)
+    {
+        prev.led_to = Some(id);
     }
     // Information: private and club matters travel from those who know.
     if d.exposure != Exposure::Public {
@@ -496,12 +496,12 @@ pub fn weekly(w: &mut World) {
                     best = Some((j, f));
                 }
             }
-            if let Some((j, f)) = best {
-                if f > 0.25 {
-                    let pair = if i < j { (i, j) } else { (j, i) };
-                    if !pairs.contains(&pair) {
-                        pairs.push(pair);
-                    }
+            if let Some((j, f)) = best
+                && f > 0.25
+            {
+                let pair = if i < j { (i, j) } else { (j, i) };
+                if !pairs.contains(&pair) {
+                    pairs.push(pair);
                 }
             }
         }
@@ -510,10 +510,10 @@ pub fn weekly(w: &mut World) {
             let (x, y) = if consider::hid(w, people[i], Hidden::Temperament) <= consider::hid(w, people[j], Hidden::Temperament) { (i, j) } else { (j, i) };
             let c = Ctx { a: people[x], b: people[y], pa: squad[x], pb: squad[y], club, nation, ..Ctx::default() };
             let prev = last_between(w, people[x], people[y]);
-            if let Some(id) = consider_incident(w, IncidentKind::TrainingConfrontation, c, &[u64::from(squad[x].0), u64::from(squad[y].0), week]) {
-                if prev.is_some() {
-                    w.incidents.list[id as usize].follows = prev;
-                }
+            if let Some(id) = consider_incident(w, IncidentKind::TrainingConfrontation, c, &[u64::from(squad[x].0), u64::from(squad[y].0), week])
+                && prev.is_some()
+            {
+                w.incidents.list[id as usize].follows = prev;
             }
         }
         for (k, &p) in squad.iter().enumerate() {
@@ -822,10 +822,10 @@ fn consequences(w: &mut World, id: u32) {
                 l.finances.savings -= loss;
                 l.stress = l.stress.saturating_add((10.0 + sev * 15.0) as u8).min(100);
             }
-            if let Some(pt) = w.lives.get(a).and_then(|l| l.household.partner).map(|p| p.person) {
-                if let Some(l) = w.lives.get_mut(pt) {
-                    l.stress = l.stress.saturating_add(10).min(100);
-                }
+            if let Some(pt) = w.lives.get(a).and_then(|l| l.household.partner).map(|p| p.person)
+                && let Some(l) = w.lives.get_mut(pt)
+            {
+                l.stress = l.stress.saturating_add(10).min(100);
             }
         }
         IncidentKind::ExamClash | IncidentKind::ChildcareClash => crate::responses::personal_request(w, id),
@@ -930,10 +930,10 @@ fn investigations(w: &mut World) {
             let league = w.clubs[club].league;
             let team = w.clubs[club].first_team();
             let points: i16 = 6;
-            if league.is_some() {
-                if let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team) {
-                    r.points -= points;
-                }
+            if league.is_some()
+                && let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team)
+            {
+                r.points -= points;
             }
             w.events.push_caused(today, Visibility::Public, EventKind::PointsDeducted { club, points: points as u8 }, causes);
         } else {

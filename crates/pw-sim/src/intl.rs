@@ -572,11 +572,11 @@ pub fn retire(w: &mut World, p: PlayerId) {
 fn withdraw(w: &mut World, p: PlayerId, n: NationId) {
     let mut was = false;
     for level in Level::ALL {
-        if let Some(s) = w.intl.sides.get_mut(&(n, level)) {
-            if s.squad.contains(&p) {
-                s.squad.retain(|&x| x != p);
-                was = true;
-            }
+        if let Some(s) = w.intl.sides.get_mut(&(n, level))
+            && s.squad.contains(&p)
+        {
+            s.squad.retain(|&x| x != p);
+            was = true;
         }
     }
     if was {
@@ -615,7 +615,7 @@ fn schedule_friendlies(w: &mut World, a: Date, b: Date) {
             let order: Vec<NationId> = if k == 0 { free.iter().map(|x| x.1).collect() } else { free.iter().skip(1).chain(free.iter().take(1)).map(|x| x.1).collect() };
             for pair in order.chunks(2) {
                 if let &[x, y] = pair {
-                    let flip = hash_key(&[w.seed, u64::from(x.0), u64::from(y.0), a.0 as u64]) % 2 == 0;
+                    let flip = hash_key(&[w.seed, u64::from(x.0), u64::from(y.0), a.0 as u64]).is_multiple_of(2);
                     let (home, away) = if flip { (x, y) } else { (y, x) };
                     w.intl.fixtures.push(IntlFixture { date: a.add_days(off), level, home, away, kind: MatchKind::Friendly, neutral: false });
                 }
@@ -1089,7 +1089,7 @@ fn plan_tournaments(w: &mut World) {
             let mut groups: Vec<Vec<(NationId, Standing)>> = vec![Vec::new(); n_groups];
             for (i, &n) in field.iter().enumerate() {
                 let row = i / n_groups;
-                let g = if row % 2 == 0 { i % n_groups } else { n_groups - 1 - i % n_groups };
+                let g = if row.is_multiple_of(2) { i % n_groups } else { n_groups - 1 - i % n_groups };
                 groups[g].push((n, Standing::default()));
             }
             for g in &groups {

@@ -310,21 +310,21 @@ pub fn monthly(w: &mut World) {
         let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(m.0), month]);
         let sat = w.clubs[club].board.satisfaction;
         // Tactical change under pressure, if he's the adaptable kind.
-        if sat < 40 && rng.chance(f32::from(prof.adaptability) / 250.0) {
-            if let Some(f) = best_formation(w, club) {
-                if !w.staff[m].philosophy.formations.contains(&f) {
-                    let ph = &mut w.staff[m].philosophy;
-                    ph.formations = [f, ph.formations[0]];
-                    if let Some(p) = w.careers.managers.get_mut(&m) {
-                        p.systems.push(f);
-                        if p.systems.len() > 4 {
-                            p.systems.remove(0);
-                        }
-                    }
-                    let causes: Causes = pw_world::causes![Cause::Fact(Fact::BoardPressure { club, warnings: w.clubs[club].board.warnings })];
-                    w.events.push_caused(today, Visibility::Public, EventKind::TacticalChange { club, staff: m, formation: f }, causes);
+        if sat < 40
+            && rng.chance(f32::from(prof.adaptability) / 250.0)
+            && let Some(f) = best_formation(w, club)
+            && !w.staff[m].philosophy.formations.contains(&f)
+        {
+            let ph = &mut w.staff[m].philosophy;
+            ph.formations = [f, ph.formations[0]];
+            if let Some(p) = w.careers.managers.get_mut(&m) {
+                p.systems.push(f);
+                if p.systems.len() > 4 {
+                    p.systems.remove(0);
                 }
             }
+            let causes: Causes = pw_world::causes![Cause::Fact(Fact::BoardPressure { club, warnings: w.clubs[club].board.warnings })];
+            w.events.push_caused(today, Visibility::Public, EventKind::TacticalChange { club, staff: m, formation: f }, causes);
         }
         // Resignation: proud managers walk when the owner turns on them.
         let chair = w.governance.get(&club).map(|g| g.chairman);

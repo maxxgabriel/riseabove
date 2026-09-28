@@ -473,18 +473,19 @@ fn react(w: &mut World, who: PersonId, info: u32) {
         }
         InfoKind::Unhappy { player, .. } | InfoKind::Discipline { player, .. } | InfoKind::DressingRoom { leader: player, .. } | InfoKind::ContractTalks { player, .. } => {
             // An agent who hears a client is unsettled starts sounding out clubs.
-            if let Some(a) = w.agents.agent_of(player) {
-                if w.agents.list[a].person == who && !w.grapevine.known_by(who).any(|i| matches!(i.kind, InfoKind::Exploring { player: q, .. } if q == player) && i.date.days_until(today) < 60) {
-                    crate::agents::explore(w, a, player, ev);
-                }
+            if let Some(a) = w.agents.agent_of(player)
+                && w.agents.list[a].person == who
+                && !w.grapevine.known_by(who).any(|i| matches!(i.kind, InfoKind::Exploring { player: q, .. } if q == player) && i.date.days_until(today) < 60)
+            {
+                crate::agents::explore(w, a, player, ev);
             }
             // A manager who hears a player is unhappy trusts them a little less.
-            if let InfoKind::Unhappy { player, with } = item.kind {
-                if with == who {
-                    let pp = w.players.cold[player].person;
-                    let compat = consider::compat(w, who, pp);
-                    w.social.adjust(who, pp, today, compat, -1, -3, 0);
-                }
+            if let InfoKind::Unhappy { player, with } = item.kind
+                && with == who
+            {
+                let pp = w.players.cold[player].person;
+                let compat = consider::compat(w, who, pp);
+                w.social.adjust(who, pp, today, compat, -1, -3, 0);
             }
         }
         InfoKind::Incident { incident } => crate::responses::on_learn(w, who, incident),
@@ -530,13 +531,13 @@ pub fn on_published(w: &mut World, info: u32, story: StoryId) {
             (s, grudge * 1.5 + distrust + loose * 0.5 + past + n)
         })
         .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));
-    if let Some((suspect, score)) = best {
-        if score > 0.8 {
-            let causes = pw_world::causes![Cause::Fact(Fact::Heard { info, from: noticer })];
-            let ev = w.events.push_caused(today, Visibility::Club(club), EventKind::LeakSuspected { by: noticer, suspect, info }, causes);
-            let compat = consider::compat(w, noticer, suspect);
-            w.social.remember(noticer, suspect, MemoryKind::Leaked, today, ev, false, (0.5 + f32::from(item.sensitivity) / 100.0).min(1.5), compat);
-        }
+    if let Some((suspect, score)) = best
+        && score > 0.8
+    {
+        let causes = pw_world::causes![Cause::Fact(Fact::Heard { info, from: noticer })];
+        let ev = w.events.push_caused(today, Visibility::Club(club), EventKind::LeakSuspected { by: noticer, suspect, info }, causes);
+        let compat = consider::compat(w, noticer, suspect);
+        w.social.remember(noticer, suspect, MemoryKind::Leaked, today, ev, false, (0.5 + f32::from(item.sensitivity) / 100.0).min(1.5), compat);
     }
     // The board wants to know how it got out.
     let ch = chairman(w, club);

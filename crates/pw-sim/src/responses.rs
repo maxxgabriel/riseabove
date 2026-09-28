@@ -162,15 +162,18 @@ fn profile(w: &World, who: PersonId, id: u32) -> Profile {
     Profile { discipline: disc, empathy: mm, temper, authority, pressure, favouritism, culture, guarded, combative, evidence }
 }
 
+/// A response with its utility and the three reasons that weigh most.
+type Scored = (Response, f32, [(Reason, u8); 3]);
+
 /// Options this incident allows, each with a utility and its reasons.
-fn options(w: &World, who: PersonId, id: u32, pr: &Profile) -> SmallVec<[(Response, f32, [(Reason, u8); 3]); 10]> {
+fn options(w: &World, who: PersonId, id: u32, pr: &Profile) -> SmallVec<[Scored; 10]> {
     let inc = w.incidents.get(id).expect("incident");
     let sev = f32::from(inc.severity) / 100.0;
     let r = |a: (Reason, f32), b: (Reason, f32), c: (Reason, f32)| -> [(Reason, u8); 3] {
         let q = |x: f32| (x.clamp(0.0, 1.0) * 100.0) as u8;
         [(a.0, q(a.1)), (b.0, q(b.1)), (c.0, q(c.1))]
     };
-    let mut v: SmallVec<[(Response, f32, [(Reason, u8); 3]); 10]> = SmallVec::new();
+    let mut v: SmallVec<[Scored; 10]> = SmallVec::new();
     let s = w.people[who].staff;
     // How much the next match needs the people involved.
     let needed = inc
@@ -468,13 +471,14 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
                 // Some go anyway — and that is a new problem.
                 let family = w.lives.get(a).map_or(0.5, |l| f32::from(l.household.parents.closeness) / 100.0);
                 let prof = consider::hid(w, a, Hidden::Professionalism) / 20.0;
-                if w.people[a].mind == MindKind::Ai && sev * 0.6 + family * 0.4 > prof + 0.2 {
-                    if let Some(&p) = inc.players.first() {
-                        w.incidents.away.insert(p, today.add_days(3));
-                        let d = pw_world::incident::def(IncidentKind::LateArrival);
-                        let c = crate::incidents::Ctx { a, pa: p, club, nation: inc.nation, ..crate::incidents::Ctx::default() };
-                        crate::incidents::trigger(w, &d, c, SmallVec::new(), Some(id));
-                    }
+                if w.people[a].mind == MindKind::Ai
+                    && sev * 0.6 + family * 0.4 > prof + 0.2
+                    && let Some(&p) = inc.players.first()
+                {
+                    w.incidents.away.insert(p, today.add_days(3));
+                    let d = pw_world::incident::def(IncidentKind::LateArrival);
+                    let c = crate::incidents::Ctx { a, pa: p, club, nation: inc.nation, ..crate::incidents::Ctx::default() };
+                    crate::incidents::trigger(w, &d, c, SmallVec::new(), Some(id));
                 }
             }
             resolve(w, id);

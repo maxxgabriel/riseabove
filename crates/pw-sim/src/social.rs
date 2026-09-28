@@ -19,10 +19,10 @@ use crate::consider;
 pub fn team_manager(w: &World, team: TeamId) -> Option<PersonId> {
     let t = &w.teams[team];
     let club = &w.clubs[t.club];
-    if t.kind.is_youth() {
-        if let Some(&s) = club.staff.iter().find(|&&s| w.staff[s].role == StaffRole::HeadOfYouth) {
-            return Some(w.staff[s].person);
-        }
+    if t.kind.is_youth()
+        && let Some(&s) = club.staff.iter().find(|&&s| w.staff[s].role == StaffRole::HeadOfYouth)
+    {
+        return Some(w.staff[s].person);
     }
     club.manager.get().map(|m| w.staff[m].person)
 }
@@ -104,12 +104,12 @@ fn coach_observes(w: &mut World, p: PlayerId, who: PersonId, mgr: PersonId, club
     let high = w.lives[who].train_high_weeks;
     // Strict managers notice sooner; a streak is remembered once, then again if it drags on.
     let notice = 0.25 + discipline / 40.0;
-    if low >= 3 && low % 3 == 0 && rng.chance(notice) {
+    if low >= 3 && low.is_multiple_of(3) && rng.chance(notice) {
         let causes: Causes = pw_world::causes![Cause::Fact(Fact::TrainingSlump { player: p, weeks: low })];
         let ev = w.events.push_caused(today, Visibility::Club(club), EventKind::CoachNote { player: p, by: mgr, note: CoachNote::PoorTraining }, causes);
         w.social.remember(mgr, who, MemoryKind::PoorAttitude, today, ev, false, 0.8 + discipline / 40.0, compat);
     }
-    if high >= 3 && high % 3 == 0 && rng.chance(0.5 + discipline / 60.0) {
+    if high >= 3 && high.is_multiple_of(3) && rng.chance(0.5 + discipline / 60.0) {
         let causes: Causes = pw_world::causes![Cause::Fact(Fact::TrainingSurge { player: p, weeks: high })];
         let ev = w.events.push_caused(today, Visibility::Club(club), EventKind::CoachNote { player: p, by: mgr, note: CoachNote::ExcellentTraining }, causes);
         w.social.remember(mgr, who, MemoryKind::ExtraWork, today, ev, false, 1.0, compat);
@@ -256,15 +256,15 @@ fn promises(w: &mut World, teams: &[TeamId], team_mins: &[u32]) {
             w.social.promises[i].state = PromiseState::Void;
             continue;
         }
-        if let PromiseKind::Minutes { .. } = pr.kind {
-            if promisee_player.is_some() {
-                let team = w.players.hot[promisee_player].team;
-                let tm = if team.is_some() { team_mins[team.0 as usize] } else { 0 };
-                let pm = u32::from(w.players.hot[promisee_player].minutes_week);
-                let e = &mut w.social.promises[i];
-                e.team_minutes += tm;
-                e.player_minutes += pm;
-            }
+        if let PromiseKind::Minutes { .. } = pr.kind
+            && promisee_player.is_some()
+        {
+            let team = w.players.hot[promisee_player].team;
+            let tm = if team.is_some() { team_mins[team.0 as usize] } else { 0 };
+            let pm = u32::from(w.players.hot[promisee_player].minutes_week);
+            let e = &mut w.social.promises[i];
+            e.team_minutes += tm;
+            e.player_minutes += pm;
         }
         if today < pr.due {
             continue;

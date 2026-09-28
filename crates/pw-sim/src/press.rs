@@ -95,30 +95,30 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
         }
         Stance::Complain => {
             // A complaint about minutes or treatment is aimed at the manager.
-            if let Some(p) = w.people[speaker].player.get() {
-                if let Some(m) = w.manager_of_player(p) {
-                    let c = consider::compat(w, m, speaker);
-                    w.social.remember(m, speaker, MemoryKind::PublicCriticism, today, ev, true, 0.9, c);
-                }
+            if let Some(p) = w.people[speaker].player.get()
+                && let Some(m) = w.manager_of_player(p)
+            {
+                let c = consider::compat(w, m, speaker);
+                w.social.remember(m, speaker, MemoryKind::PublicCriticism, today, ev, true, 0.9, c);
             }
             w.media.move_fans(club, speaker, -20, FanReason::Interview, today);
         }
         Stance::Ambition => {
-            if let Some(p) = w.people[speaker].player.get() {
-                if let Some(m) = w.manager_of_player(p) {
-                    let c = consider::compat(w, m, speaker);
-                    w.social.remember(m, speaker, MemoryKind::LetDown, today, ev, true, 0.5, c);
-                }
+            if let Some(p) = w.people[speaker].player.get()
+                && let Some(m) = w.manager_of_player(p)
+            {
+                let c = consider::compat(w, m, speaker);
+                w.social.remember(m, speaker, MemoryKind::LetDown, today, ev, true, 0.5, c);
             }
             w.media.move_fans(club, speaker, -40, FanReason::Interview, today);
         }
         Stance::Loyalty => {
             w.media.move_fans(club, speaker, 60, FanReason::Loyalty, today);
-            if let Some(p) = w.people[speaker].player.get() {
-                if let Some(m) = w.manager_of_player(p) {
-                    let c = consider::compat(w, m, speaker);
-                    w.social.adjust(m, speaker, today, c, 2, 3, 0);
-                }
+            if let Some(p) = w.people[speaker].player.get()
+                && let Some(m) = w.manager_of_player(p)
+            {
+                let c = consider::compat(w, m, speaker);
+                w.social.adjust(m, speaker, today, c, 2, 3, 0);
             }
         }
         _ => {}
@@ -233,11 +233,11 @@ fn features(w: &mut World) {
         // Being written up moves the crowd a little; "frozen out" turns them on the manager.
         let by = i16::from(tone) / 3;
         w.media.move_fans(club, who, by, FanReason::Performances, w.date);
-        if label == Label::FrozenOut {
-            if let Some(m) = w.clubs.get(club).and_then(|c| c.manager.get()) {
-                let mp = w.staff[m].person;
-                w.media.move_fans(club, mp, -15, FanReason::Performances, w.date);
-            }
+        if label == Label::FrozenOut
+            && let Some(m) = w.clubs.get(club).and_then(|c| c.manager.get())
+        {
+            let mp = w.staff[m].person;
+            w.media.move_fans(club, mp, -15, FanReason::Performances, w.date);
         }
         if label == Label::Underrated {
             // Clubs read the analysis too.

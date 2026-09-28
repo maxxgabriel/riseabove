@@ -233,11 +233,11 @@ impl Game {
                 rep.stopped_for = Some("A decision needs your answer.".into());
                 break;
             }
-            if let Some(me) = self.session.controlled {
-                if feed::important_since(&self.sim.world, me, before) {
-                    rep.stopped_for = Some("Something important happened.".into());
-                    break;
-                }
+            if let Some(me) = self.session.controlled
+                && feed::important_since(&self.sim.world, me, before)
+            {
+                rep.stopped_for = Some("Something important happened.".into());
+                break;
             }
             if self.match_tomorrow() {
                 rep.stopped_for = Some("Match tomorrow.".into());

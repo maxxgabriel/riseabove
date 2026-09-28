@@ -1,0 +1,3 @@
+# Simulation functions take the world plus the facts of one situation;
+# grouping unrelated facts into ad-hoc structs would only hide them.
+too-many-arguments-threshold = 11

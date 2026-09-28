@@ -89,10 +89,10 @@ pub fn status(w: &World, me: PersonId) -> Vec<String> {
                 v.push(format!("  {} {}", feeling(*x), f.label()));
             }
         }
-        if let Some(b) = w.beliefs.about(me, me).find(|b| matches!(b.kind, BeliefKind::SelectionOutlook { .. })) {
-            if let BeliefKind::SelectionOutlook { start_pct } = b.kind {
-                v.push(format!("Last time you spoke, {} put your chances of starting at about {}% ({}).", channel(w, &b.channel), start_pct, b.date));
-            }
+        if let Some(b) = w.beliefs.about(me, me).find(|b| matches!(b.kind, BeliefKind::SelectionOutlook { .. }))
+            && let BeliefKind::SelectionOutlook { start_pct } = b.kind
+        {
+            v.push(format!("Last time you spoke, {} put your chances of starting at about {}% ({}).", channel(w, &b.channel), start_pct, b.date));
         }
     }
     if pe.staff.is_some() && w.staff[pe.staff].employed() {
@@ -280,10 +280,10 @@ pub fn promises(w: &World, me: PersonId) -> Vec<String> {
         };
         let (a, b) = if pr.from == me { ("You".to_string(), person(w, pr.to)) } else { (person(w, pr.from), "you".to_string()) };
         let mut line = format!("{} promised {b} {} — {state}", a, pr.kind.text());
-        if let pw_world::PromiseKind::Minutes { share } = pr.kind {
-            if pr.team_minutes > 0 {
-                line += &format!(" (so far {:.0}% of {:.0}% promised)", pr.player_minutes as f32 / pr.team_minutes as f32 * 100.0, share * 100.0);
-            }
+        if let pw_world::PromiseKind::Minutes { share } = pr.kind
+            && pr.team_minutes > 0
+        {
+            line += &format!(" (so far {:.0}% of {:.0}% promised)", pr.player_minutes as f32 / pr.team_minutes as f32 * 100.0, share * 100.0);
         }
         v.push(line);
     }

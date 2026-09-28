@@ -81,7 +81,7 @@ fn names(w: &World, nation: NationId, club: ClubId, kind: AccountKind, rng: &mut
             1 => (format!("{}_{}", clean(&first), clean(&short)), format!("{first} {}", last.chars().next().map_or(String::new(), |c| format!("{c}.")))),
             2 => (format!("{}{}{}", clean(&first).chars().take(3).collect::<String>(), clean(&last), rng.below(1000)), format!("{first} {last}")),
             3 => (format!("{}_til_{:02}", clean(&short), rng.below(100)), first.clone()),
-            _ => (format!("the_real_{}", clean(&last)), format!("{last}")),
+            _ => (format!("the_real_{}", clean(&last)), last.to_string()),
         },
     };
     (handle, display)
@@ -436,9 +436,7 @@ fn valence(w: &World, f: Frame, club: ClubId) -> i8 {
         Frame::Award { .. } | Frame::Milestone { .. } | Frame::Record { .. } | Frame::ManagerAppointed { .. } => 1,
         Frame::Story { story } => {
             let s = &w.media.stories[story];
-            if s.kind == StoryKind::TransferRumour && s.club == club {
-                -1
-            } else if s.tone < -20 {
+            if (s.kind == StoryKind::TransferRumour && s.club == club) || s.tone < -20 {
                 -1
             } else if s.tone > 20 {
                 1
@@ -595,11 +593,10 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
     Some((c, PersonId::NONE, refs))
 }
 
-fn create_post(
-    w: &mut World,
-    author: AccountId,
+/// Everything a new post is made of.
+struct NewPost {
     frame: Frame,
-    c: Concept,
+    concept: Concept,
     about: PersonId,
     about2: PersonId,
     club: ClubId,
@@ -610,7 +607,16 @@ fn create_post(
     refs: SmallVec<[u32; 2]>,
     knew: Knew,
     minute: u16,
-) -> u32 {
+}
+
+impl NewPost {
+    fn new(frame: Frame, concept: Concept, about: PersonId, club: ClubId, knew: Knew, minute: u16) -> Self {
+        NewPost { frame, concept, about, about2: PersonId::NONE, club, intensity: 50, claim: ClaimType::Opinion, reply_to: NO_POST, quote_of: NO_POST, refs: SmallVec::new(), knew, minute }
+    }
+}
+
+fn create_post(w: &mut World, author: AccountId, n: NewPost) -> u32 {
+    let NewPost { frame, concept: c, about, about2, club, intensity, claim, reply_to, quote_of, refs, knew, minute } = n;
     let today = w.date;
     let id = w.net.next_post_id();
     let prior = w.net.opinion(author, about).map_or(0, |o| o.score);
@@ -644,10 +650,10 @@ fn create_post(
     let a = &mut w.net.accounts[author as usize];
     a.last_post = today;
     a.today = a.today.saturating_add(1);
-    if about.is_some() {
-        if let Some(o) = w.net.opinions.get_mut(&author).and_then(|v| v.iter_mut().find(|o| o.about == about)) {
-            o.voiced = id;
-        }
+    if about.is_some()
+        && let Some(o) = w.net.opinions.get_mut(&author).and_then(|v| v.iter_mut().find(|o| o.about == about))
+    {
+        o.voiced = id;
     }
     id
 }
@@ -743,14 +749,12 @@ fn react(w: &mut World, f: Frame, clubs: &[ClubId], about: PersonId, ev: EventId
     }
     // Neutrals notice the famous.
     let fame = if about.is_some() { f32::from(w.renown.of(about).fame) / 10_000.0 } else { 0.0 };
-    if fame > 0.5 {
-        if let Some(&c) = clubs.first() {
-            if c.is_some() {
-                if let Some(v) = w.net.by_nation.get(&w.clubs[c].nation) {
-                    audience.extend(v.iter().filter(|&&a| w.net.accounts[a as usize].club.is_none()).map(|&a| (a, false)));
-                }
-            }
-        }
+    if fame > 0.5
+        && let Some(&c) = clubs.first()
+        && c.is_some()
+        && let Some(v) = w.net.by_nation.get(&w.clubs[c].nation)
+    {
+        audience.extend(v.iter().filter(|&&a| w.net.accounts[a as usize].club.is_none()).map(|&a| (a, false)));
     }
     audience.sort();
     audience.dedup_by_key(|x| x.0);
@@ -809,7 +813,7 @@ fn react(w: &mut World, f: Frame, clubs: &[ClubId], about: PersonId, ev: EventId
         };
         let intensity = (fw * 70.0 + f32::from(acc.intensity) * 0.3) as u8;
         let minute = if wave > 0 { 480 + (r3 * 600.0) as u16 } else { (u16::from(acc.peak_hour) * 60).min(1380) + (r3 * 50.0) as u16 };
-        let id = create_post(w, a, f, c, about, about2, club, intensity, claim, NO_POST, NO_POST, refs, knew, minute);
+        let id = create_post(w, a, NewPost { about2, intensity, claim, refs, ..NewPost::new(f, c, about, club, knew, minute) });
         posted.push(id);
     }
     posted
@@ -825,10 +829,10 @@ fn threads(w: &mut World, new_posts: &[u32]) {
             let Some(post) = w.net.post(pid).cloned() else { continue };
             let club = post.club;
             let mut pool: Vec<AccountId> = w.net.by_club.get(&club).cloned().unwrap_or_default();
-            if let Some(r) = w.net.accounts.get(post.author as usize).map(|a| a.rival) {
-                if r.is_some() {
-                    pool.extend(w.net.by_club.get(&r).cloned().unwrap_or_default());
-                }
+            if let Some(r) = w.net.accounts.get(post.author as usize).map(|a| a.rival)
+                && r.is_some()
+            {
+                pool.extend(w.net.by_club.get(&r).cloned().unwrap_or_default());
             }
             pool.retain(|&a| a != post.author && !w.net.is_muted(a, post.author));
             let momentum = (f32::from(post.intensity) / 100.0) * (1.0 + (w.net.accounts[post.author as usize].followers as f32).log10() / 6.0);
@@ -869,22 +873,14 @@ fn threads(w: &mut World, new_posts: &[u32]) {
                 };
                 // Rivals quote rather than reply.
                 let (reply_to, quote_of) = if !own && depth == 0 { (NO_POST, pid) } else { (pid, NO_POST) };
-                let id = create_post(
-                    w,
-                    a,
-                    Frame::Post { post: pid },
-                    c,
-                    post.about,
-                    PersonId::NONE,
-                    if own { club } else { acc.club },
-                    post.intensity.saturating_sub(10),
-                    ClaimType::Opinion,
+                let n = NewPost {
+                    intensity: post.intensity.saturating_sub(10),
                     reply_to,
                     quote_of,
                     refs,
-                    Knew::Saw { post: pid },
-                    post.minute.saturating_add(20 + (r * 200.0) as u16).min(1439),
-                );
+                    ..NewPost::new(Frame::Post { post: pid }, c, post.about, if own { club } else { acc.club }, Knew::Saw { post: pid }, post.minute.saturating_add(20 + (r * 200.0) as u16).min(1439))
+                };
+                let id = create_post(w, a, n);
                 next.push(id);
                 // Hostile back-and-forth ends in mutes.
                 if c == Concept::Disagree && acc.persona.hostility > 80 && r < p * 0.2 {
@@ -1021,13 +1017,14 @@ fn memes(w: &mut World, new_posts: &[u32]) {
         }
     }
     for &pid in new_posts {
-        if let Some(p) = w.net.post(pid) {
-            if p.reposts >= 800 && !w.net.memes.iter().any(|m| m.source == MemeSource::Post { post: pid }) {
-                let id = w.net.memes.len() as u32;
-                let (about, club) = (p.about, p.club);
-                w.net.kept.insert(pid, p.clone());
-                w.net.memes.push(Meme { id, source: MemeSource::Post { post: pid }, about, club, born: today, recognition: 25, uses: 0, variants: 1, peak: today, alive: true });
-            }
+        if let Some(p) = w.net.post(pid)
+            && p.reposts >= 800
+            && !w.net.memes.iter().any(|m| m.source == MemeSource::Post { post: pid })
+        {
+            let id = w.net.memes.len() as u32;
+            let (about, club) = (p.about, p.club);
+            w.net.kept.insert(pid, p.clone());
+            w.net.memes.push(Meme { id, source: MemeSource::Post { post: pid }, about, club, born: today, recognition: 25, uses: 0, variants: 1, peak: today, alive: true });
         }
     }
     // Rival accounts reuse live memes against the club.
@@ -1037,15 +1034,14 @@ fn memes(w: &mut World, new_posts: &[u32]) {
         for a in mockers {
             let r = w.roll(stream::SOCIAL_ACTIVITY, &[u64::from(a), u64::from(m.id), period::day(today)]);
             if r < f32::from(m.recognition) / 400.0 {
-                let id =
-                    create_post(w, a, Frame::Post { post: NO_POST }, Concept::Meme, m.about, PersonId::NONE, m.club, 50, ClaimType::Opinion, NO_POST, NO_POST, SmallVec::new(), Knew::Watched, 1200);
+                let id = create_post(w, a, NewPost::new(Frame::Post { post: NO_POST }, Concept::Meme, m.about, m.club, Knew::Watched, 1200));
                 if let Some(p) = w.net.post_mut(id) {
                     p.extra = m.id;
                 }
                 let mm = &mut w.net.memes[m.id as usize];
                 mm.uses += 1;
                 mm.recognition = (mm.recognition + 3).min(100);
-                if mm.uses % 10 == 0 {
+                if mm.uses.is_multiple_of(10) {
                     mm.variants = mm.variants.saturating_add(1);
                 }
                 mm.peak = today;
@@ -1322,10 +1318,10 @@ pub fn person_post(w: &mut World, who: PersonId, about: PersonId, concept: Conce
             new_account(w, AccountKind::Person, nation, club, who, (u64::from(who.0) << 24) | 0x77)
         }
     };
-    if let Some(p) = w.net.post(reply_to) {
-        if w.net.is_muted(p.author, a) {
-            return None;
-        }
+    if let Some(p) = w.net.post(reply_to)
+        && w.net.is_muted(p.author, a)
+    {
+        return None;
     }
     let club = w.club_of_person(who);
     let frame = if reply_to != NO_POST {
@@ -1335,7 +1331,7 @@ pub fn person_post(w: &mut World, who: PersonId, about: PersonId, concept: Conce
     } else {
         Frame::Post { post: NO_POST }
     };
-    let id = create_post(w, a, frame, concept, about, PersonId::NONE, club, 70, ClaimType::Opinion, reply_to, quote_of, SmallVec::new(), Knew::Own, 720);
+    let id = create_post(w, a, NewPost { intensity: 70, reply_to, quote_of, ..NewPost::new(frame, concept, about, club, Knew::Own, 720) });
     // What saying it publicly does.
     if about.is_some() && about != who {
         let compat = consider::compat(w, about, who);
@@ -1345,12 +1341,14 @@ pub fn person_post(w: &mut World, who: PersonId, about: PersonId, concept: Conce
                 w.social.remember(about, who, MemoryKind::PublicCriticism, today, EventId::NONE, true, 0.7, compat);
                 // Teammates close ranks; the manager notices.
                 let p = w.people[about].player;
-                if p.is_some() && w.players.hot[p].club == club && club.is_some() {
-                    if let Some(m) = w.clubs[club].manager.get() {
-                        let mp = w.staff[m].person;
-                        let c = consider::compat(w, mp, who);
-                        w.social.remember(mp, who, MemoryKind::PoorAttitude, today, EventId::NONE, true, 0.5, c);
-                    }
+                if p.is_some()
+                    && w.players.hot[p].club == club
+                    && club.is_some()
+                    && let Some(m) = w.clubs[club].manager.get()
+                {
+                    let mp = w.staff[m].person;
+                    let c = consider::compat(w, mp, who);
+                    w.social.remember(mp, who, MemoryKind::PoorAttitude, today, EventId::NONE, true, 0.5, c);
                 }
                 w.media.nudge_image(who, -8);
             }

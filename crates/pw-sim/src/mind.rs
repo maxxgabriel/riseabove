@@ -133,10 +133,11 @@ pub fn weekly(w: &mut World) {
         let mut rng = Rng::keyed(&[w.seed, stream::INTENT, u64::from(p.0), week, 1]);
         match status {
             PlayerStatus::FreeAgent => {
-                if w.agents.agent_of(p).is_none() && rng.chance(0.15) {
-                    if let Some(a) = crate::agents::best_available(w, p) {
-                        queued.push((who, Intent::HireAgent(a)));
-                    }
+                if w.agents.agent_of(p).is_none()
+                    && rng.chance(0.15)
+                    && let Some(a) = crate::agents::best_available(w, p)
+                {
+                    queued.push((who, Intent::HireAgent(a)));
                 }
                 if retirement_choice(w, p, &mut rng) {
                     queued.push((who, Intent::Retire));
@@ -146,10 +147,12 @@ pub fn weekly(w: &mut World) {
                 // A working life after playing: coaching (badges first), the
                 // media, agency, scouting, a club role or business.
                 let idle = person.staff.is_none() && w.affairs.of(who).is_none_or(|a| a.work.is_none() && a.studying.is_none());
-                if idle && today.month() == 8 && rng.chance(staff_calling(w, p).max(0.25)) {
-                    if let Some(i) = crate::affairs::ai_next_step(w, who, p) {
-                        queued.push((who, i));
-                    }
+                if idle
+                    && today.month() == 8
+                    && rng.chance(staff_calling(w, p).max(0.25))
+                    && let Some(i) = crate::affairs::ai_next_step(w, who, p)
+                {
+                    queued.push((who, i));
                 }
             }
             PlayerStatus::Amateur => {
@@ -178,12 +181,14 @@ fn consider_player(w: &World, p: PlayerId, who: PersonId, rng: &mut Rng) -> Opti
     let grievance_mins = consider::minutes_grievance(w, p);
 
     // An agent first: most professionals have one.
-    if w.agents.agent_of(p).is_none() && age >= 16.0 && rng.chance(0.03 + ambition * 0.05) {
-        if let Some(a) = crate::agents::best_available(w, p) {
-            return Some(Intent::HireAgent(a));
-        }
+    if w.agents.agent_of(p).is_none()
+        && age >= 16.0
+        && rng.chance(0.03 + ambition * 0.05)
+        && let Some(a) = crate::agents::best_available(w, p)
+    {
+        return Some(Intent::HireAgent(a));
     }
-    let Some(mgr) = mgr else { return None };
+    let mgr = mgr?;
     let met_recently = w.meetings.days_since_any(who, mgr, today).is_some_and(|d| d < 28) || w.meetings.has_pending(who, mgr);
     let grievance_mgr = consider::grievance(w, who, mgr);
     let failing = consider::failing_promises(w, mgr, who);

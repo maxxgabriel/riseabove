@@ -41,12 +41,12 @@ fn snapshots(w: &mut World) {
     // Forget records of players who have moved past the age anyone tracks.
     let old: Vec<PlayerId> = w.growth.records.keys().copied().filter(|&p| w.age(p) > 27 || w.players.hot[p].status == PlayerStatus::Retired).collect();
     for p in old {
-        if let Some(r) = w.growth.records.remove(&p) {
-            if r.mentor.is_some() {
-                let me = w.players.cold[p].person;
-                if let Some(v) = w.growth.mentees.get_mut(&r.mentor) {
-                    v.retain(|x| *x != me);
-                }
+        if let Some(r) = w.growth.records.remove(&p)
+            && r.mentor.is_some()
+        {
+            let me = w.players.cold[p].person;
+            if let Some(v) = w.growth.mentees.get_mut(&r.mentor) {
+                v.retain(|x| *x != me);
             }
         }
     }
@@ -133,10 +133,10 @@ fn end_mentoring(w: &mut World, mentor: PersonId, mentee: PersonId) {
     if let Some(v) = w.growth.mentees.get_mut(&mentor) {
         v.retain(|x| *x != mentee);
     }
-    if let Some(p) = w.people[mentee].player.get() {
-        if let Some(r) = w.growth.records.get_mut(&p) {
-            r.mentor = PersonId::NONE;
-        }
+    if let Some(p) = w.people[mentee].player.get()
+        && let Some(r) = w.growth.records.get_mut(&p)
+    {
+        r.mentor = PersonId::NONE;
     }
 }
 
@@ -203,13 +203,13 @@ fn drift(w: &mut World) {
         }
         // A manager good with people steadies temperaments.
         let club = w.players.hot[p].club;
-        if club.is_some() {
-            if let Some(m) = w.clubs[club].manager.get() {
-                if w.staff[m].attrs.f(StaffAttr::ManManagement) >= 15.0 && rng.chance(0.05) {
-                    let v = w.people[me].hidden.get(Hidden::Temperament);
-                    w.people[me].hidden.set(Hidden::Temperament, v + 1);
-                }
-            }
+        if club.is_some()
+            && let Some(m) = w.clubs[club].manager.get()
+            && w.staff[m].attrs.f(StaffAttr::ManManagement) >= 15.0
+            && rng.chance(0.05)
+        {
+            let v = w.people[me].hidden.get(Hidden::Temperament);
+            w.people[me].hidden.set(Hidden::Temperament, v + 1);
         }
         if moved != 0 {
             let r = w.growth.records.get_mut(&p).expect("record");

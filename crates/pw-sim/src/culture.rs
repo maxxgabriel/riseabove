@@ -209,20 +209,18 @@ pub fn after_result(w: &mut World, fx: &Fixture, hg: u8, ag: u8, pens: Option<(u
         bump += 3;
     }
     // Revenge taken (or not).
-    if let (Some(due), Some(win)) = (r.revenge_due, winner) {
-        if due == win {
-            r.revenge_due = None;
-            bump += 2;
-        }
+    if let (Some(due), Some(win)) = (r.revenge_due, winner)
+        && due == win
+    {
+        r.revenge_due = None;
+        bump += 2;
     }
-    if knockout {
-        if let Some(win) = winner {
-            r.revenge_due = Some(if win == h { a } else { h });
-            if !r.kinds.contains(&RivalryKind::CupRevenge) {
-                r.kinds.push(RivalryKind::CupRevenge);
-            }
-            bump += 3;
+    if knockout && let Some(win) = winner {
+        r.revenge_due = Some(if win == h { a } else { h });
+        if !r.kinds.contains(&RivalryKind::CupRevenge) {
+            r.kinds.push(RivalryKind::CupRevenge);
         }
+        bump += 3;
     }
     r.intensity = r.intensity.saturating_add(bump).min(100);
     let memorable = margin >= 3 || r.intensity >= 60 || knockout;
@@ -405,10 +403,11 @@ pub fn meaning(w: &World, fx: &Fixture) -> MatchMeaning {
                 m.returns.push((w.players.cold[p].person, other));
             }
         }
-        if let Some(mgr) = w.clubs[clubs[i]].manager.get() {
-            if w.careers.managers.get(&mgr).is_some_and(|pr| pr.jobs.iter().any(|j| j.club == other)) && m.returns.len() < 3 {
-                m.returns.push((w.staff[mgr].person, other));
-            }
+        if let Some(mgr) = w.clubs[clubs[i]].manager.get()
+            && w.careers.managers.get(&mgr).is_some_and(|pr| pr.jobs.iter().any(|j| j.club == other))
+            && m.returns.len() < 3
+        {
+            m.returns.push((w.staff[mgr].person, other));
         }
     }
     let s = f32::from(m.rivalry) * 0.6

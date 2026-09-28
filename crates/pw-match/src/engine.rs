@@ -410,6 +410,8 @@ impl<'a> Engine<'a> {
         let ment = side.mentality.level() as f32;
         let width_u = Tactics::unit(t.width);
         let line_u = Tactics::unit(t.line);
+        // Several per-slot arrays are indexed together.
+        #[allow(clippy::needless_range_loop)]
         for i in 0..11 {
             side.outfield[i] = side.on[i] != NONE && side.slots[i].pos != Pos::GK;
             if side.on[i] == NONE {
@@ -458,6 +460,8 @@ impl<'a> Engine<'a> {
         }
 
         let r = reach();
+        // Zones and slots index several arrays together.
+        #[allow(clippy::needless_range_loop)]
         for b in 0..N_ZONES {
             for i in 0..11 {
                 if side.on[i] == NONE {

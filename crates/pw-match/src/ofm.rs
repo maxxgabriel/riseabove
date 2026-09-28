@@ -48,7 +48,7 @@ pub fn simulate(inp: &MatchInput) -> MatchResult {
         // The AI manager snapshots the whole match; consult it only when a
         // decision is plausible (second half on, every other minute, or after a card).
         let carded = r.events.iter().any(|e| matches!(e.event_type, EventType::RedCard | EventType::SecondYellow | EventType::Injury));
-        if carded || (r.minute >= 55 && r.minute % 2 == 0) {
+        if carded || (r.minute >= 55 && r.minute.is_multiple_of(2)) {
             for (side, prof) in [(Side::Home, &profiles[0]), (Side::Away, &profiles[1])] {
                 for cmd in ai::ai_decide(&state, side, prof, &mut rng) {
                     let _ = state.apply_command(cmd);

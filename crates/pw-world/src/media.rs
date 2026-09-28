@@ -491,10 +491,10 @@ impl Media {
             r.2 = (r.2 + by).clamp(-1000, 1000);
         } else {
             f.reasons.push((reason, date, by));
-            if f.reasons.len() > 6 {
-                if let Some(i) = f.reasons.iter().enumerate().min_by_key(|(_, r)| r.2.unsigned_abs()).map(|(i, _)| i) {
-                    f.reasons.remove(i);
-                }
+            if f.reasons.len() > 6
+                && let Some(i) = f.reasons.iter().enumerate().min_by_key(|(_, r)| r.2.unsigned_abs()).map(|(i, _)| i)
+            {
+                f.reasons.remove(i);
             }
         }
     }

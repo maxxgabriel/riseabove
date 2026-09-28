@@ -252,10 +252,10 @@ pub fn sign(w: &mut World, who: PersonId, brand: u32, fee_year: Money, years: u8
 
 /// Answer to a human's endorsement decision.
 pub fn answer(w: &mut World, who: PersonId, kind: &DecisionKind, choice: Choice) {
-    if let DecisionKind::Endorsement { brand, fee_year, years, days } = *kind {
-        if choice == Choice::Accept {
-            sign(w, who, brand, fee_year, years, days);
-        }
+    if let DecisionKind::Endorsement { brand, fee_year, years, days } = *kind
+        && choice == Choice::Accept
+    {
+        sign(w, who, brand, fee_year, years, days);
     }
 }
 
@@ -293,7 +293,7 @@ fn review(w: &mut World) {
             }
             let star = p.is_some() && w.players.cold[p].status == SquadStatus::Star;
             let key = hash_key(&[w.seed, u64::from(e.person.0), i as u64, today.year() as u64]);
-            if key % 3 == 0 {
+            if key.is_multiple_of(3) {
                 w.events.push(today, Visibility::Public, EventKind::SponsorClash { person: e.person, brand: e.brand, club });
             }
             // Stars are tolerated; others are told to drop the deal.

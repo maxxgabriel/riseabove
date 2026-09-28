@@ -258,7 +258,7 @@ pub fn words(v: &Voice, slot: Slot) -> Words {
 
 /// One word or phrase for a slot, stable for a key.
 pub fn word(v: &Voice, slot: Slot, key: u64) -> &'static str {
-    pick(key ^ slot as u64 * 0x9e37, words(v, slot))
+    pick(key ^ (slot as u64 * 0x9e37), words(v, slot))
 }
 
 /// Emoji for a sentiment, only where the voice uses them.

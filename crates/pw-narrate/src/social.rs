@@ -107,7 +107,7 @@ pub fn post(w: &World, p: &Post) -> String {
             Some(ph) if key % 2 == 0 => format!("{target} {}: {}", word(&v, Slot::PraiseAdj, key), crate::grammar::style(&v, ph.press, ph.tempo, ph.directness, key)),
             _ => format!("{} {} {}", target, pick(key, &["is", "was", "looked"]), word(&v, Slot::PraiseAdj, key)),
         },
-        Concept::ReluctantPraise => format!("{} — {}", word(&v, Slot::Concede, key), format!("{} {}", target, word(&v, Slot::PraiseAdj, key))),
+        Concept::ReluctantPraise => format!("{} — {} {}", word(&v, Slot::Concede, key), target, word(&v, Slot::PraiseAdj, key)),
         Concept::ConcedeWrong => format!("{}. {}", word(&v, Slot::Concede, key), target),
         Concept::DoubleDown => format!("{}. {}", target, word(&v, Slot::DoubleDown, key)),
         Concept::Criticise => match style.and_then(|ph| crate::grammar::style_complaint(&v, ph.press, ph.tempo, ph.directness, key)) {

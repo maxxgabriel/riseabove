@@ -343,10 +343,10 @@ impl Social {
         let list = self.held.entry(from).or_default();
         list.push(Memory { from, about, kind, date, salience, public, cause });
         // Bound memory per person: forget the weakest non-formative episode.
-        if list.len() > 48 {
-            if let Some(i) = list.iter().enumerate().filter(|(_, m)| !m.kind.formative()).min_by_key(|(_, m)| (m.salience, m.date)).map(|(i, _)| i) {
-                list.remove(i);
-            }
+        if list.len() > 48
+            && let Some(i) = list.iter().enumerate().filter(|(_, m)| !m.kind.formative()).min_by_key(|(_, m)| (m.salience, m.date)).map(|(i, _)| i)
+        {
+            list.remove(i);
         }
     }
 

@@ -83,10 +83,10 @@ pub fn daily(w: &mut World) {
 
 /// An external responder answered (or the default applied).
 pub fn respond(w: &mut World, id: MeetingId, tone: Tone) {
-    if let Some(m) = w.meetings.list.get_mut(id) {
-        if m.state == MeetingState::Pending {
-            m.response = Some(tone);
-        }
+    if let Some(m) = w.meetings.list.get_mut(id)
+        && m.state == MeetingState::Pending
+    {
+        m.response = Some(tone);
     }
     hold(w, id);
 }

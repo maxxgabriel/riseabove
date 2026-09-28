@@ -148,10 +148,10 @@ pub fn broken(w: &World, b: &Broken) -> String {
         if let Some(t) = stood(b.stood_days) {
             s.push_str(&format!(", which had stood for {t}"));
         }
-        if let Holder::Past(f) = h {
-            if w.backfill.figures.get(f as usize).is_some_and(|x| x.provenance == pw_world::backfill::Provenance::Generated) {
-                s.push_str(" (a mark from this world's generated history)");
-            }
+        if let Holder::Past(f) = h
+            && w.backfill.figures.get(f as usize).is_some_and(|x| x.provenance == pw_world::backfill::Provenance::Generated)
+        {
+            s.push_str(" (a mark from this world's generated history)");
         }
     }
     if let Some(a) = b.new.against {

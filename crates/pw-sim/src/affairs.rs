@@ -279,10 +279,8 @@ fn helpers(w: &mut World, who: PersonId) {
         let by = if img < 0 { i16::from(q) } else { i16::from(q) / 3 };
         w.media.nudge_image(who, by);
     }
-    if security {
-        if let Some(l) = w.lives.get_mut(who) {
-            l.stress = l.stress.saturating_sub(2);
-        }
+    if security && let Some(l) = w.lives.get_mut(who) {
+        l.stress = l.stress.saturating_sub(2);
     }
     if let Some(q) = tutor {
         let home = home_of(w, who);
@@ -582,10 +580,10 @@ fn work(w: &mut World, who: PersonId) {
             let club = if employed { w.staff[s].club } else { ClubId::NONE };
             income = if employed { w.staff[s].wage * 52 / 12 } else { 0 };
             standing += if employed { 2.0 } else { -2.5 };
-            if let Some(a) = w.affairs.people.get_mut(&who) {
-                if let Some(x) = a.work.as_mut() {
-                    x.employer = if employed { Employer::Club(club) } else { Employer::None };
-                }
+            if let Some(a) = w.affairs.people.get_mut(&who)
+                && let Some(x) = a.work.as_mut()
+            {
+                x.employer = if employed { Employer::Club(club) } else { Employer::None };
             }
         }
         CareerPath::Agent => {
@@ -609,11 +607,11 @@ fn work(w: &mut World, who: PersonId) {
         }
     }
     let standing = standing.clamp(0.0, 100.0);
-    if let Some(a) = w.affairs.people.get_mut(&who) {
-        if let Some(x) = a.work.as_mut() {
-            x.standing = standing as u8;
-            x.income = income.max(0);
-        }
+    if let Some(a) = w.affairs.people.get_mut(&who)
+        && let Some(x) = a.work.as_mut()
+    {
+        x.standing = standing as u8;
+        x.income = income.max(0);
     }
     if let Some(l) = w.lives.get_mut(who) {
         l.fulfilment = (f32::from(l.fulfilment) + (standing - 40.0) * 0.05).clamp(5.0, 100.0) as u8;

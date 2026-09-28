@@ -12,7 +12,7 @@ pub fn round_robin(n: usize, legs: u8) -> Vec<Vec<(usize, usize)>> {
     if n < 2 {
         return Vec::new();
     }
-    let m = if n % 2 == 0 { n } else { n + 1 };
+    let m = if n.is_multiple_of(2) { n } else { n + 1 };
     let mut ring: Vec<usize> = (0..m).collect();
     let mut first: Vec<Vec<(usize, usize)>> = Vec::with_capacity(m - 1);
     for r in 0..m - 1 {

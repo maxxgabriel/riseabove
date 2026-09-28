@@ -129,10 +129,10 @@ pub fn options(w: &World, msg: u32) -> SmallVec<[Reply; 6]> {
             v.push(Reply::AskToMeet { tone: Tone::Calm });
             v.push(Reply::AskToMeet { tone: Tone::Assertive });
             v.push(Reply::KeepQuiet);
-            if let Some(pt) = w.lives.get(m.to).and_then(|l| l.household.partner) {
-                if pt.person != from {
-                    v.push(Reply::PassOn { to: pt.person });
-                }
+            if let Some(pt) = w.lives.get(m.to).and_then(|l| l.household.partner)
+                && pt.person != from
+            {
+                v.push(Reply::PassOn { to: pt.person });
             }
         }
         MsgSource::Story { .. } => {

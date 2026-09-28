@@ -303,14 +303,14 @@ fn scout_local(w: &mut World) {
     for a in assignments {
         let Brief::Youth(_) = a.brief else {
             // Senior scouts of smaller clubs sometimes take in an amateur game.
-            if let Brief::Nation(n) = a.brief {
-                if w.clubs[a.club].reputation < 3500 {
-                    let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(a.scout.0), week, 0xa]);
-                    let amateur: Vec<LocalClubId> = w.youth.local.ids().filter(|&l| w.youth.local[l].level == LocalLevel::Amateur && w.youth.local[l].nation == n).collect();
-                    if !amateur.is_empty() && rng.chance(0.3) {
-                        let l = amateur[rng.index(amateur.len())];
-                        watch(w, a.scout, a.club, l);
-                    }
+            if let Brief::Nation(n) = a.brief
+                && w.clubs[a.club].reputation < 3500
+            {
+                let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(a.scout.0), week, 0xa]);
+                let amateur: Vec<LocalClubId> = w.youth.local.ids().filter(|&l| w.youth.local[l].level == LocalLevel::Amateur && w.youth.local[l].nation == n).collect();
+                if !amateur.is_empty() && rng.chance(0.3) {
+                    let l = amateur[rng.index(amateur.len())];
+                    watch(w, a.scout, a.club, l);
                 }
             }
             continue;
@@ -375,7 +375,7 @@ fn trials(w: &mut World) {
         v
     };
     for club in clubs {
-        if (club.0 + (today.0 / 7) as u32) % 2 != 0 {
+        if !(club.0 + (today.0 / 7) as u32).is_multiple_of(2) {
             continue;
         }
         let threshold = bar(w, club);
@@ -637,11 +637,13 @@ pub fn school(w: &mut World) {
         let target = 40.0 + hours * 4.0 + (prof - 10.0) * 1.5 + support * 10.0;
         s.grades = (f32::from(s.grades) * 0.85 + target.clamp(0.0, 100.0) * 0.15) as u8;
         // Academies notice when schoolwork is being neglected.
-        if club.is_some() && hours < f32::from(required) && today.month() % 3 == 0 {
-            if let Some(h) = head_of_youth(w, club) {
-                let compat = consider::compat(w, h, who);
-                w.social.remember(h, who, MemoryKind::PoorAttitude, today, pw_core::EventId::NONE, false, 0.5, compat);
-            }
+        if club.is_some()
+            && hours < f32::from(required)
+            && today.month().is_multiple_of(3)
+            && let Some(h) = head_of_youth(w, club)
+        {
+            let compat = consider::compat(w, h, who);
+            w.social.remember(h, who, MemoryKind::PoorAttitude, today, pw_core::EventId::NONE, false, 0.5, compat);
         }
         if (16.0..16.1).contains(&age) {
             let passed = w.youth.school[&who].grades >= 50;

@@ -240,12 +240,12 @@ pub fn weekly(w: &mut World) {
             }
         }
         // Familiarity with the country grows with time spent there.
-        if target_nation.is_some() {
-            if let Some(pp) = w.scouting.profiles.get_mut(&a.scout) {
-                match pp.knows.iter_mut().find(|(n, _)| *n == target_nation) {
-                    Some((_, f)) => *f = (*f + 2).min(100),
-                    None => pp.knows.push((target_nation, 10)),
-                }
+        if target_nation.is_some()
+            && let Some(pp) = w.scouting.profiles.get_mut(&a.scout)
+        {
+            match pp.knows.iter_mut().find(|(n, _)| *n == target_nation) {
+                Some((_, f)) => *f = (*f + 2).min(100),
+                None => pp.knows.push((target_nation, 10)),
             }
         }
     }

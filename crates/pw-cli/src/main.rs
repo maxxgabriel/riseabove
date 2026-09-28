@@ -145,11 +145,11 @@ fn report(w: &World) {
     for (id, c) in w.comps.iter_enumerated().filter(|(_, c)| c.kind == CompKind::League && c.team_kind == TeamKind::First && c.tier == 1).take(3) {
         let mut rows = c.state.table.clone();
         let mut season = c.state.season;
-        if rows.iter().all(|r| r.played == 0) {
-            if let Some(t) = w.history.tables.iter().rev().find(|t| t.comp == id) {
-                rows = t.rows.clone();
-                season = t.season;
-            }
+        if rows.iter().all(|r| r.played == 0)
+            && let Some(t) = w.history.tables.iter().rev().find(|t| t.comp == id)
+        {
+            rows = t.rows.clone();
+            season = t.season;
         }
         sort_table(&mut rows);
         println!("\n{} {} — {}", c.name, season, w.nations.get(c.nation).map_or("", |n| n.name.as_str()));

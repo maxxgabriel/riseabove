@@ -227,11 +227,11 @@ fn administration(w: &mut World, club: ClubId) {
     // Points deduction in the current league season.
     let league = w.clubs[club].league;
     let team = w.clubs[club].first_team();
-    if league.is_some() {
-        if let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team) {
-            r.points -= 10;
-            w.events.push_caused(today, Visibility::Public, EventKind::PointsDeducted { club, points: 10 }, pw_world::causes![Cause::Event(ev)]);
-        }
+    if league.is_some()
+        && let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team)
+    {
+        r.points -= 10;
+        w.events.push_caused(today, Visibility::Public, EventKind::PointsDeducted { club, points: 10 }, pw_world::causes![Cause::Event(ev)]);
     }
     // Everyone of value is for sale; wages are frozen.
     let squad = w.teams[team].squad.clone();

@@ -189,10 +189,10 @@ pub fn referees(w: &World) -> Vec<Violation> {
     let mut v = Vec::new();
     for m in &w.recent_matches.list {
         let fx = w.fixtures.get(m.fixture);
-        if let Some(&r) = w.officials.assigned.get(&m.uid) {
-            if crate::officials::referee_for(w, fx) != Some(r) {
-                v.push(Violation::RefereeAssignment { uid: m.uid });
-            }
+        if let Some(&r) = w.officials.assigned.get(&m.uid)
+            && crate::officials::referee_for(w, fx) != Some(r)
+        {
+            v.push(Violation::RefereeAssignment { uid: m.uid });
         }
     }
     v

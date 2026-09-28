@@ -208,6 +208,9 @@ pub fn select(w: &World, team: TeamId, date: Date, importance: f32, bench_size: 
 }
 
 /// Pick the line-up for a match in `comp`, honouring its eligibility rules.
+/// The best starting XI found so far while trying formations.
+type BestXi = (f32, u8, [Slot; 11], Vec<Candidate>, Vec<usize>);
+
 pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: f32, bench_size: u8, noise: u64) -> Option<Selection> {
     let phil = philosophy_of(w, team);
     let wt = weights(phil.archetype);
@@ -222,7 +225,8 @@ pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: 
         formations.push(0);
     }
 
-    let mut best: Option<(f32, u8, [Slot; 11], Vec<Candidate>, Vec<usize>)> = None;
+    // (score, formation, slots, candidates, chosen candidate per slot)
+    let mut best: Option<BestXi> = None;
     for &f in &formations {
         let slots = w.data.formations[usize::from(f)].slots;
         let cands = candidates(w, team, comp, &slots, &phil, date, noise_key);

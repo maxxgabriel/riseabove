@@ -108,7 +108,7 @@ pub fn weekly(w: &mut World) {
             continue;
         }
         // Stagger: each player is looked at once a month.
-        if (p.0 + (today.0 / 7) as u32) % 4 != 0 {
+        if !(p.0 + (today.0 / 7) as u32).is_multiple_of(4) {
             continue;
         }
         offers.push((p, h.club));

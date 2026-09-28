@@ -269,7 +269,7 @@ fn finances(w: &mut World, who: PersonId) {
         f.debt += -net - draw;
     }
     let trouble = f.debt > income.max(1_000) * 3;
-    if trouble && today.month() % 3 == 0 {
+    if trouble && today.month().is_multiple_of(3) {
         w.events.push_caused(today, Visibility::Person(who), EventKind::Life { person: who, kind: LifeEventKind::FinancialTrouble }, Causes::new());
     }
 }
@@ -386,12 +386,12 @@ pub fn advance_relationship(w: &mut World, a: PersonId, b: PersonId, ask: pw_wor
     };
     let home = w.lives[a].home;
     for (x, other) in [(a, b), (b, a)] {
-        if let Some(p) = w.lives[x].household.partner.as_mut() {
-            if p.person == other {
-                p.status = status;
-                p.bond = p.bond.saturating_add(6).min(100);
-                p.lives = home;
-            }
+        if let Some(p) = w.lives[x].household.partner.as_mut()
+            && p.person == other
+        {
+            p.status = status;
+            p.bond = p.bond.saturating_add(6).min(100);
+            p.lives = home;
         }
         w.lives[x].fulfilment = w.lives[x].fulfilment.saturating_add(6).min(100);
     }
@@ -457,11 +457,11 @@ fn languages(w: &mut World, who: PersonId) {
     let hours = f32::from(w.lives[who].routine.language);
     let gain = 1.2 * (0.5 + adapt / 20.0) + hours * 0.9;
     w.lives[who].learn_language(home, gain);
-    if let Some(pt) = w.lives[who].household.partner {
-        if pt.lives == home {
-            let pa = w.people[pt.person].hidden.f(Hidden::Adaptability);
-            w.lives[pt.person].learn_language(home, 1.0 * (0.5 + pa / 20.0));
-        }
+    if let Some(pt) = w.lives[who].household.partner
+        && pt.lives == home
+    {
+        let pa = w.people[pt.person].hidden.f(Hidden::Adaptability);
+        w.lives[pt.person].learn_language(home, 1.0 * (0.5 + pa / 20.0));
     }
 }
 
@@ -494,7 +494,7 @@ fn wellbeing(w: &mut World, who: PersonId, rng: &mut Rng) {
         let left = consider::contract_days_left(w, player);
         let insecure = if w.players.hot[player].status == PlayerStatus::FreeAgent {
             1.0
-        } else if left < 180 && left >= 0 {
+        } else if (0..180).contains(&left) {
             0.5
         } else {
             0.0

@@ -28,7 +28,7 @@ pub fn value_of(w: &World, p: PlayerId) -> Money {
     let youth = interp(&[(21.0, 1.0), (27.0, 0.0)], age);
     let potential = 1.0 + (f32::from(c.pa) - ca).max(0.0) / 100.0 * youth * 1.5;
     let age_mult = interp(&[(16.0, 0.55), (19.0, 1.0), (24.0, 1.1), (28.0, 1.0), (31.0, 0.7), (33.0, 0.45), (36.0, 0.2)], age);
-    let years = (h.club.is_some()).then(|| c.contract.days_left(w.date) as f32 / 365.0).unwrap_or(0.0);
+    let years = if h.club.is_some() { c.contract.days_left(w.date) as f32 / 365.0 } else { 0.0 };
     let contract = if h.status == PlayerStatus::FreeAgent { 0.3 } else { 0.35 + 0.65 * (years / 3.0).min(1.0) };
     let rep = 0.85 + 0.3 * f32::from(c.rep.world) / 10_000.0;
     // Current internationals carry a premium buyers pay for.
@@ -213,7 +213,7 @@ pub fn daily(w: &mut World) {
     let max = w.data.tuning.market.max_transfers_per_club_window;
     let day = today.0 as u32;
     for club in w.clubs.ids() {
-        if (club.0 + day) % interval != 0 {
+        if !(club.0 + day).is_multiple_of(interval) {
             continue;
         }
         let nation = w.clubs[club].nation;
@@ -502,7 +502,7 @@ pub fn free_agent_sweep(w: &mut World) {
         return;
     }
     for club in w.clubs.ids() {
-        if w.clubs[club].market.needs.is_empty() || (club.0 + today.0 as u32) % 7 != 0 {
+        if w.clubs[club].market.needs.is_empty() || !(club.0 + today.0 as u32).is_multiple_of(7) {
             continue;
         }
         let need = w.clubs[club].market.needs[0];

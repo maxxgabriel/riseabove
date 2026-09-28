@@ -287,10 +287,10 @@ pub(crate) fn publish_draft(w: &mut World, d: Draft) -> StoryId {
         news: d.news,
         refs,
     });
-    if outlet.is_some() {
-        if let Some(p) = w.media.outlet_profiles.get_mut(&outlet) {
-            p.published_this_week = p.published_this_week.saturating_add(1);
-        }
+    if outlet.is_some()
+        && let Some(p) = w.media.outlet_profiles.get_mut(&outlet)
+    {
+        p.published_this_week = p.published_this_week.saturating_add(1);
     }
     let person = d.person;
     // The subject reads it (or hears about it) — at the outlet's credibility.
@@ -507,24 +507,26 @@ fn form_and_pressure(w: &mut World) {
             .collect();
         let defeats = recent.iter().filter(|&&r| r < 0).count();
         let already = w.media.stories.iter().rev().take(300).any(|s| s.club == club && s.kind == StoryKind::ManagerPressure && s.date.days_until(today) < 14);
-        if defeats >= 4 && !already && w.clubs[club].manager.is_some() {
-            if let Some(j) = outlet_journalist(w, nation, club, hash_key(&[u64::from(club.0), week])) {
-                publish(
-                    w,
-                    j,
-                    StoryKind::ManagerPressure,
-                    PlayerId::NONE,
-                    PersonId::NONE,
-                    club,
-                    ClubId::NONE,
-                    0,
-                    55,
-                    true,
-                    Cause::Fact(Fact::PoorRun { club, defeats: defeats as u8, games: recent.len() as u8 }),
-                    PersonId::NONE,
-                    -30,
-                );
-            }
+        if defeats >= 4
+            && !already
+            && w.clubs[club].manager.is_some()
+            && let Some(j) = outlet_journalist(w, nation, club, hash_key(&[u64::from(club.0), week]))
+        {
+            publish(
+                w,
+                j,
+                StoryKind::ManagerPressure,
+                PlayerId::NONE,
+                PersonId::NONE,
+                club,
+                ClubId::NONE,
+                0,
+                55,
+                true,
+                Cause::Fact(Fact::PoorRun { club, defeats: defeats as u8, games: recent.len() as u8 }),
+                PersonId::NONE,
+                -30,
+            );
         }
         let first = w.clubs[club].first_team();
         let squad = w.teams[first].squad.clone();
@@ -536,15 +538,17 @@ fn form_and_pressure(w: &mut World) {
             let low = w.lives[who].form_low_weeks;
             let hot = w.players.hot[p].form_avg().unwrap_or(0.0);
             let key = hash_key(&[u64::from(p.0), week, 0x51]);
-            if low == 3 && key % 2 == 0 {
+            if low == 3 && key.is_multiple_of(2) {
                 if let Some(j) = outlet_journalist(w, nation, club, key) {
                     publish(w, j, StoryKind::Criticism, p, who, club, ClubId::NONE, 0, 60, true, Cause::Fact(Fact::FormSlump { player: p }), PersonId::NONE, -45);
                     w.media.move_fans(club, who, -30, FanReason::Performances, today);
                 }
-            } else if hot >= 7.6 && w.players.hot[p].form.iter().all(|&r| r >= 70) && key % 3 == 0 {
-                if let Some(j) = outlet_journalist(w, nation, club, key) {
-                    publish(w, j, StoryKind::Praise, p, who, club, ClubId::NONE, 0, 70, true, Cause::Fact(Fact::FormSurge { player: p }), PersonId::NONE, 45);
-                }
+            } else if hot >= 7.6
+                && w.players.hot[p].form.iter().all(|&r| r >= 70)
+                && key.is_multiple_of(3)
+                && let Some(j) = outlet_journalist(w, nation, club, key)
+            {
+                publish(w, j, StoryKind::Praise, p, who, club, ClubId::NONE, 0, 70, true, Cause::Fact(Fact::FormSurge { player: p }), PersonId::NONE, 45);
             }
         }
     }

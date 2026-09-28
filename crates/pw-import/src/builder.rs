@@ -152,10 +152,10 @@ pub fn ensure_staff(w: &mut World) {
                 }
             }
         }
-        if w.clubs[club].manager.is_none() {
-            if let Some(&m) = w.clubs[club].staff.iter().find(|&&s| w.staff[s].role == StaffRole::Manager) {
-                w.clubs[club].manager = m;
-            }
+        if w.clubs[club].manager.is_none()
+            && let Some(&m) = w.clubs[club].staff.iter().find(|&&s| w.staff[s].role == StaffRole::Manager)
+        {
+            w.clubs[club].manager = m;
         }
     }
 }

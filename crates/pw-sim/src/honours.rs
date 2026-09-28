@@ -195,7 +195,7 @@ pub fn season_awards(w: &mut World, c: CompId, year: i32, lines: &[StatLine], ga
     }
     let keepers: Vec<&StatLine> = lines.iter().filter(|l| l.apps >= min_apps.max(1) && w.players.cold[l.player].best_pos.group() == PosGroup::Gk).collect();
     if let Some(l) = keepers.iter().max_by(|a, b| (a.clean_sheets, (a.avg_rating() * 100.0) as i32).cmp(&(b.clean_sheets, (b.avg_rating() * 100.0) as i32))) {
-        give(w, AwardKind::GoldenGlove, *l, f32::from(l.clean_sheets));
+        give(w, AwardKind::GoldenGlove, l, f32::from(l.clean_sheets));
     }
     // Team of the season: 1 keeper, 4 defenders, 3 midfielders, 3 forwards.
     let mut team: Vec<&StatLine> = Vec::new();

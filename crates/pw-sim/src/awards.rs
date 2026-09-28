@@ -534,7 +534,7 @@ pub fn scan(w: &mut World) {
             let before = w.history.honours.iter().filter(|x| x.club == h.club && x.comp == h.comp && x.season < h.season).count() + w.backfill.titles(h.club, h.comp);
             let known_past = w.history.honours.iter().any(|x| x.comp == h.comp && x.season < h.season) || w.backfill.seasons_of(h.comp).next().is_some();
             if before == 0 && known_past {
-                chronicle(w, Feat::FirstTitle { club: h.club, comp: h.comp, season: h.season }, 1, u32::from(h.club.0));
+                chronicle(w, Feat::FirstTitle { club: h.club, comp: h.comp, season: h.season }, 1, h.club.0);
             }
         }
         // A double: this honour completes league + cup for the season.
@@ -553,7 +553,7 @@ pub fn scan(w: &mut World) {
             _ => false,
         };
         if this_completes {
-            chronicle(w, Feat::Double { club: h.club, season: h.season }, 2, u32::from(nation.0));
+            chronicle(w, Feat::Double { club: h.club, season: h.season }, 2, nation.0);
         }
     }
     // Unbeaten league seasons.
@@ -567,7 +567,7 @@ pub fn scan(w: &mut World) {
         let nation = c.nation;
         if let Some(r) = t.rows.first().filter(|r| r.lost == 0 && r.played >= 20) {
             let club = w.teams[r.team].club;
-            chronicle(w, Feat::Unbeaten { club, comp: t.comp, season: t.season }, 3, u32::from(nation.0));
+            chronicle(w, Feat::Unbeaten { club, comp: t.comp, season: t.season }, 3, nation.0);
         }
     }
     // International tournaments.
@@ -584,7 +584,7 @@ pub fn scan(w: &mut World) {
         }
         let before = w.intl.tournaments.iter().filter(|t| t.winner == winner && t.year < year).count();
         if before == 0 {
-            chronicle(w, Feat::FirstTournament { nation: winner, tournament: id }, 4, u32::from(winner.0));
+            chronicle(w, Feat::FirstTournament { nation: winner, tournament: id }, 4, winner.0);
         }
         w.acclaim.tournaments_seen = i + 1;
     }
@@ -605,7 +605,7 @@ pub fn scan(w: &mut World) {
             .filter(|x| x.kind == AwardKind::WorldPlayer { rank: 1 } && x.season < a.season)
             .any(|x| w.intl.locked_to(x.player).unwrap_or(w.people[person_of(w, x.player)].nation) == nation);
         if !from_nation {
-            chronicle(w, Feat::FirstWorldPlayerFrom { nation, person: who, year: a.season }, 6, u32::from(nation.0));
+            chronicle(w, Feat::FirstWorldPlayerFrom { nation, person: who, year: a.season }, 6, nation.0);
         }
     }
     // Firsts to a career milestone.
