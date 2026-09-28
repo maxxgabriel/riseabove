@@ -490,6 +490,15 @@ pub fn records(w: &World, me: PersonId) -> Vec<String> {
             v.push(format!("{}: {}, {}{prev}", pw_narrate::history::record_name(w, r.key), pw_narrate::history::holder(w, r.current.holder), pw_narrate::history::value(r.key.stat, r.current.value)));
         }
     }
+    if club.is_some() {
+        let past: Vec<&pw_world::backfill::PastSeason> = w.backfill.seasons.iter().filter(|s| s.champion == club).collect();
+        if !past.is_empty() {
+            let generated = past.iter().filter(|s| s.provenance == pw_world::backfill::Provenance::Generated).count();
+            let years: Vec<String> = past.iter().map(|s| format!("{}/{:02}", s.season, (s.season + 1) % 100)).collect();
+            let note = if generated == past.len() { " (generated history)" } else if generated > 0 { " (partly generated history)" } else { "" };
+            v.push(format!("League titles before this era{note}: {}", years.join(", ")));
+        }
+    }
     if v.is_empty() {
         v.push("No records yet.".into());
     }

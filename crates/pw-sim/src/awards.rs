@@ -479,8 +479,9 @@ pub fn scan(w: &mut World) {
         }
         let nation = comp.nation;
         if comp.kind == CompKind::League && comp.tier == 1 {
-            let before = w.history.honours.iter().filter(|x| x.club == h.club && x.comp == h.comp && x.season < h.season).count();
-            if before == 0 && w.history.honours.iter().any(|x| x.comp == h.comp && x.season < h.season) {
+            let before = w.history.honours.iter().filter(|x| x.club == h.club && x.comp == h.comp && x.season < h.season).count() + w.backfill.titles(h.club, h.comp);
+            let known_past = w.history.honours.iter().any(|x| x.comp == h.comp && x.season < h.season) || w.backfill.seasons_of(h.comp).next().is_some();
+            if before == 0 && known_past {
                 chronicle(w, Feat::FirstTitle { club: h.club, comp: h.comp, season: h.season }, 1, u32::from(h.club.0));
             }
         }

@@ -78,6 +78,8 @@ pub enum Holder {
     Club(ClubId),
     Entrant(Entrant),
     Nation(NationId),
+    /// A figure of the world's past (`World::backfill.figures`).
+    Past(u32),
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

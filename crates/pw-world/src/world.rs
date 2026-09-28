@@ -152,6 +152,8 @@ pub struct World {
     pub officials: crate::officials::Officials,
     /// Tactical schools and rule changes.
     pub evolution: crate::evolution::Evolution,
+    /// The world's past before the start date (imported or generated).
+    pub backfill: crate::backfill::Backfill,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -217,6 +219,7 @@ impl World {
             acclaim: Default::default(),
             officials: Default::default(),
             evolution: Default::default(),
+            backfill: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

@@ -74,6 +74,7 @@ pub fn holder(w: &World, h: Holder) -> String {
         Holder::Club(c) => crate::fmt::club(w, c),
         Holder::Entrant(e) => entrant(w, e),
         Holder::Nation(n) => nation(w, n),
+        Holder::Past(f) => w.backfill.figures.get(f as usize).map_or_else(|| "?".into(), |x| x.name.clone()),
     }
 }
 
@@ -146,6 +147,11 @@ pub fn broken(w: &World, b: &Broken) -> String {
         s.push_str(&format!(", surpassing {} ({})", holder(w, h), value(b.key.stat, v)));
         if let Some(t) = stood(b.stood_days) {
             s.push_str(&format!(", which had stood for {t}"));
+        }
+        if let Holder::Past(f) = h {
+            if w.backfill.figures.get(f as usize).is_some_and(|x| x.provenance == pw_world::backfill::Provenance::Generated) {
+                s.push_str(" (a mark from this world's generated history)");
+            }
         }
     }
     if let Some(a) = b.new.against {

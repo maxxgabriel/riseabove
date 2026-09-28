@@ -3,6 +3,7 @@
 pub mod affairs;
 pub mod agents;
 pub mod awards;
+pub mod backfill;
 pub mod board;
 pub mod commerce;
 pub mod consider;
@@ -275,6 +276,7 @@ pub fn prepare(w: &mut World) {
     intl::ensure(w);
     commerce::ensure(w);
     culture::ensure(w);
+    backfill::generate(w);
     newsroom::ensure_profiles(w);
     socialnet::ensure(w);
     let weights = w.data.weights.clone();
