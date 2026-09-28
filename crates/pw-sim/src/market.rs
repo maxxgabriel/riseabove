@@ -397,7 +397,7 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
     let ev = w.events.push(today, Visibility::Public, EventKind::ContractSigned { player: p, club: buyer, wage: contract.wage, until: contract.end, renewal: false });
     w.history.start_spell(p, buyer, today, false, fee);
     w.knowledge.observe(buyer, p, 300, today);
-    w.market.requests.remove(&p);
+    let requested = w.market.requests.remove(&p).is_some();
     w.market.listed.remove(&p);
     w.market.loan_listed.remove(&p);
     let who = w.players.cold[p].person;
@@ -406,7 +406,7 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
     if seller.is_some() {
         crate::culture::on_transfer(w, p, seller, buyer, ev);
     }
-    crate::media::on_move(w, p, seller, buyer, ev);
+    crate::media::on_move(w, p, seller, buyer, ev, requested);
 }
 
 pub fn execute_loan(w: &mut World, p: PlayerId, loan: Loan) {
