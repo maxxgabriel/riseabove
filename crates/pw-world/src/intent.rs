@@ -49,6 +49,9 @@ pub enum Intent {
     Mentor(PersonId),
     /// Say something on the record about someone (or yourself).
     SpeakToPress { about: PersonId, stance: crate::media::Stance },
+    /// Post on social media: a concept about someone, optionally replying to
+    /// or quoting a post that exists (`socialnet::NO_POST` for none).
+    Post { about: PersonId, concept: crate::socialnet::Concept, reply_to: u32, quote_of: u32 },
     /// Start a course (coaching badges, degrees, media training…).
     Enrol(crate::affairs::Course),
     MoveHome { buy: bool, quality: u8 },

@@ -1,8 +1,25 @@
 //! Deterministic RNG. There is no global generator: every consumer derives a
-//! stream from `(world seed, system, entity, date, …)`, so results never depend
-//! on iteration order or thread scheduling.
+//! stream from `(world seed, subsystem, stable entity ids, period…)`, so
+//! results never depend on iteration order or thread scheduling, and adding a
+//! random draw in one subsystem cannot shift the future of another.
+//!
+//! Architecture (see `docs/MEDIA_SOCIAL_HISTORY_SYSTEMS.md` §1):
+//! - **World seed.** A new world gets a fresh seed from the operating system
+//!   (`fresh_seed`) unless one is given; the seed is stored in the save, so
+//!   the same save replays exactly and different seeds give different worlds.
+//! - **Named subsystem streams** (`stream::*`). Every subsystem has its own
+//!   tag; streams are never shared between subsystems.
+//! - **Stable keys.** Within a subsystem, a stream is keyed by stable entity
+//!   ids (person, club, account, journalist…) and, where the draw belongs to
+//!   a period, by that period (`period::day/week/month/year`). A draw for one
+//!   entity in one week therefore depends only on the seed, the subsystem,
+//!   that entity and that week.
+//! - **Playthroughs.** Taking control of someone for the first time mixes a
+//!   fresh salt into the seed, so two playthroughs of one world diverge while
+//!   each stays reproducible.
 
-/// System stream tags, mixed into keyed seeds so systems never share streams.
+/// Subsystem stream tags, mixed into keyed seeds so subsystems never share
+/// streams. Values are part of the save format's behaviour: never renumber.
 pub mod stream {
     pub const WORLDGEN: u64 = 0x01;
     pub const MATCH: u64 = 0x02;
@@ -30,6 +47,156 @@ pub mod stream {
     pub const NEGOTIATION: u64 = 0x18;
     pub const NARRATION: u64 = 0x19;
     pub const INTL: u64 = 0x1a;
+    /// Names, birthdays and personalities of generated people.
+    pub const IDENTITY: u64 = 0x1b;
+    /// Supporter populations and social accounts.
+    pub const SUPPORTERS: u64 = 0x1c;
+    /// Journalists and outlets (generation and careers).
+    pub const JOURNALISTS: u64 = 0x1d;
+    /// Who posts, replies, shares and likes, and when.
+    pub const SOCIAL_ACTIVITY: u64 = 0x1e;
+    /// Press conferences, questions and answers.
+    pub const PRESS: u64 = 0x1f;
+    /// Contextual incidents (training rows, travel delays, burglaries…).
+    pub const INCIDENTS: u64 = 0x20;
+    /// World-level shocks (downturns, sponsor collapses, severe weather).
+    pub const SHOCKS: u64 = 0x21;
+    /// Voting noise in awards.
+    pub const AWARDS: u64 = 0x22;
+    /// Information passing from person to person.
+    pub const GRAPEVINE: u64 = 0x23;
+    /// Club cultures and rivalries.
+    pub const CULTURE: u64 = 0x24;
+    /// School, university, amateur and grassroots competitions.
+    pub const MINOR: u64 = 0x25;
+    /// Editorial decisions: which story runs, with what angle.
+    pub const NEWSROOM: u64 = 0x26;
+    /// Responses of people in authority to incidents.
+    pub const RESPONSE: u64 = 0x27;
+
+    // Descriptive aliases for the subsystem names used in design documents.
+    pub const IDENTITY_GENERATION: u64 = IDENTITY;
+    pub const SUPPORTER_GENERATION: u64 = SUPPORTERS;
+    pub const JOURNALIST_GENERATION: u64 = JOURNALISTS;
+    pub const PRESS_ACTIVITY: u64 = PRESS;
+    pub const MATCH_RANDOMNESS: u64 = MATCH;
+    pub const INJURIES: u64 = HEALTH;
+    pub const RELATIONSHIPS: u64 = SOCIAL;
+    pub const WORLD_SHOCKS: u64 = SHOCKS;
+    pub const YOUTH_GENERATION: u64 = YOUTH;
+    pub const MARKET_BEHAVIOUR: u64 = MARKET;
+
+    /// Every stream with its name, for debugging tools and documentation.
+    pub const ALL: [(u64, &str); 39] = [
+        (WORLDGEN, "worldgen"),
+        (MATCH, "match_randomness"),
+        (TRAINING, "training"),
+        (HEALTH, "injuries"),
+        (DEVELOPMENT, "development"),
+        (MARKET, "market_behaviour"),
+        (SELECTION, "selection"),
+        (PERCEPTION, "perception"),
+        (CONTRACTS, "contracts"),
+        (YOUTH, "youth_generation"),
+        (RETIREMENT, "retirement"),
+        (STAFF, "staff"),
+        (DRAW, "draws"),
+        (LIFE, "life"),
+        (MEDIA, "media"),
+        (MIND, "minds"),
+        (BOARD, "boards"),
+        (SOCIAL, "relationships"),
+        (TALK, "conversations"),
+        (AGENT, "agents"),
+        (FAMILY, "family"),
+        (INTENT, "intents"),
+        (PLAYTHROUGH, "playthrough"),
+        (NEGOTIATION, "negotiation"),
+        (NARRATION, "narration"),
+        (INTL, "international"),
+        (IDENTITY, "identity_generation"),
+        (SUPPORTERS, "supporter_generation"),
+        (JOURNALISTS, "journalist_generation"),
+        (SOCIAL_ACTIVITY, "social_activity"),
+        (PRESS, "press_activity"),
+        (INCIDENTS, "incidents"),
+        (SHOCKS, "world_shocks"),
+        (AWARDS, "awards"),
+        (GRAPEVINE, "information_propagation"),
+        (CULTURE, "culture"),
+        (MINOR, "minor_football"),
+        (NEWSROOM, "newsroom"),
+        (RESPONSE, "responses"),
+    ];
+
+    pub fn name(tag: u64) -> &'static str {
+        ALL.iter().find(|x| x.0 == tag).map_or("unknown", |x| x.1)
+    }
+}
+
+/// Period keys for streams whose draws belong to a time window.
+pub mod period {
+    use crate::Date;
+
+    #[inline]
+    pub fn day(d: Date) -> u64 {
+        d.0 as u64
+    }
+
+    #[inline]
+    pub fn week(d: Date) -> u64 {
+        (d.0.div_euclid(7)) as u64
+    }
+
+    #[inline]
+    pub fn month(d: Date) -> u64 {
+        (d.year() as u64) * 12 + u64::from(d.month())
+    }
+
+    #[inline]
+    pub fn year(d: Date) -> u64 {
+        d.year() as u64
+    }
+}
+
+/// A fresh, unpredictable 64-bit seed from the operating system's hashing
+/// entropy and the clock (no external crates). Used for new worlds and new
+/// playthroughs; never called inside the simulation itself.
+pub fn fresh_seed() -> u64 {
+    use std::hash::{BuildHasher, Hasher};
+    let os = std::collections::hash_map::RandomState::new();
+    let mut h = os.build_hasher();
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
+    h.write_u128(now);
+    h.write_u32(std::process::id());
+    let local = 0u8;
+    h.write_usize(&local as *const u8 as usize);
+    mix64(h.finish())
+}
+
+/// A seed as the player sees it: 16 hex digits.
+pub fn seed_label(seed: u64) -> String {
+    format!("{seed:016x}")
+}
+
+/// Parse a seed typed by a person: hex (with or without `0x`), decimal, or
+/// any other word (hashed, so `--seed banana` works and is repeatable).
+pub fn parse_seed(s: &str) -> u64 {
+    let t = s.trim();
+    if let Some(h) = t.strip_prefix("0x") {
+        if let Ok(v) = u64::from_str_radix(h, 16) {
+            return v;
+        }
+    }
+    if t.len() == 16 {
+        if let Ok(v) = u64::from_str_radix(t, 16) {
+            return v;
+        }
+    }
+    if let Ok(v) = t.parse::<u64>() {
+        return v;
+    }
+    hash_key(&t.bytes().map(u64::from).collect::<Vec<u64>>())
 }
 
 #[inline]

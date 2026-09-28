@@ -77,6 +77,18 @@ pub enum Fact {
     Ranking,
     /// An anniversary of a season.
     Anniversary { year: i32 },
+    /// Someone heard something (an information item) from someone.
+    Heard { info: u32, from: PersonId },
+    /// A pressure that made an incident plausible, and how strongly.
+    Pressure { pressure: crate::incident::Pressure, level: u8 },
+    /// A disposition that shaped someone's response.
+    Disposition { person: PersonId, reason: crate::incident::Reason, level: u8 },
+    /// A run of results anyone can see.
+    PoorRun { club: ClubId, defeats: u8, games: u8 },
+    /// How newsworthy a story was judged, and why (0–100 each).
+    Newsworthy { importance: u8, relevance: u8, controversy: u8 },
+    /// A supporter post that spread (see `World::net`).
+    Viral { post: u32, reposts: u32 },
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
@@ -252,6 +264,26 @@ pub enum EventKind {
     NewCareer { person: PersonId, path: crate::affairs::CareerPath },
     CareerEnded { person: PersonId, path: crate::affairs::CareerPath },
     Investment { person: PersonId, gain: Money },
+    /// The board issued a private warning to its manager.
+    BoardWarning { club: ClubId, manager: StaffId, warnings: u8 },
+    /// The board asked the manager to explain something it heard.
+    BoardQuery { club: ClubId, manager: PersonId, info: u32 },
+    /// Someone believes a colleague leaked to the press.
+    LeakSuspected { by: PersonId, suspect: PersonId, info: u32 },
+    /// An agent began quietly sounding out clubs for a client.
+    AgentExploring { agent: PersonId, player: PlayerId },
+    /// An incident (see `World::incidents`).
+    Incident { incident: u32, kind: crate::incident::IncidentKind },
+    /// Someone in authority responded to an incident.
+    IncidentResponse { incident: u32, by: PersonId, response: crate::incident::Response },
+    /// A captain settled a feud on their own initiative.
+    CaptainMediated { captain: PersonId, a: PersonId, b: PersonId },
+    InvestigationCleared { club: ClubId },
+    JournalistMoved { person: PersonId, from: pw_core::OutletId, to: pw_core::OutletId },
+    JournalistLeft { person: PersonId, outlet: pw_core::OutletId },
+    JournalistHired { person: PersonId, outlet: pw_core::OutletId },
+    /// A supporter group acted together (see `World::net.groups`).
+    SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -394,6 +426,7 @@ impl EventKind {
             | Stagnated { player }
             | Milestone { player, .. }
             | RecordBroken { player, .. }
+            | AgentExploring { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -419,6 +452,18 @@ impl EventKind {
             | NewCareer { person, .. }
             | CareerEnded { person, .. }
             | Investment { person, .. } => v.push(person),
+            BoardQuery { manager, .. } => v.push(manager),
+            IncidentResponse { by, .. } => v.push(by),
+            JournalistMoved { person, .. } | JournalistLeft { person, .. } | JournalistHired { person, .. } => v.push(person),
+            CaptainMediated { captain, a, b } => {
+                v.push(captain);
+                v.push(a);
+                v.push(b);
+            }
+            LeakSuspected { by, suspect, .. } => {
+                v.push(by);
+                v.push(suspect);
+            }
             TookUnderWing { mentor, mentee } => {
                 v.push(mentor);
                 v.push(mentee);
@@ -454,6 +499,10 @@ impl EventKind {
             | ManagerAppointed { club, .. }
             | PlayerSettled { club, .. }
             | ClubSponsor { club, .. }
+            | BoardWarning { club, .. }
+            | BoardQuery { club, .. }
+            | InvestigationCleared { club }
+            | SupporterAction { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

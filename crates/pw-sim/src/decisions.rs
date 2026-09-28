@@ -253,6 +253,13 @@ pub fn resolve_due(w: &mut World) {
             }
             DecisionKind::Treatment { .. } => crate::medical::answer_treatment(w, p, choice == Choice::Accept),
             DecisionKind::Endorsement { .. } => crate::commerce::answer(w, person, &kind, choice),
+            DecisionKind::Incident { incident } => {
+                if let Choice::Handle(r) = choice {
+                    crate::responses::apply_choice(w, incident, person, r);
+                }
+            }
+            DecisionKind::PressQuestion { conference, question } => crate::pressroom::decide(w, conference, question, choice),
+            DecisionKind::IncidentAsk { incident, ask } => crate::responses::answer_ask(w, incident, person, ask, choice == Choice::Accept),
             DecisionKind::TransferTalks { .. } => {}
         }
     }

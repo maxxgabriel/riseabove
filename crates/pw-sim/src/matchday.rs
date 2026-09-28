@@ -46,7 +46,8 @@ pub fn play_today(w: &mut World) {
 fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
     let fx = w.fixtures.get(f);
     let comp = &w.comps[fx.comp];
-    let imp = importance(w, fx.comp, fx.decisive);
+    // Derbies, title races and relegation fights raise the stakes.
+    let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, fx)).min(1.0);
     let home = selection::select_in(w, fx.home, fx.comp, w.date, imp, comp.rules.bench, 0);
     let away = selection::select_in(w, fx.away, fx.comp, w.date, imp, comp.rules.bench, 0);
     let (home, away) = match (home, away) {
@@ -246,8 +247,10 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
         *mood = (i32::from(*mood) + result_sign[side] * 3).clamp(0, 100) as u8;
     }
     gate_receipts(w, clubs[0], comp_kind, senior[0]);
-    let imp = importance(w, fx.comp, fx.decisive);
+    let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, &fx)).min(1.0);
     crate::interpret::record(w, &fx, home, away, &r, imp);
+    crate::culture::after_result(w, &fx, hg, ag, r.pens, pw_core::EventId::NONE);
+    crate::facts::record(w, &fx, f, &r);
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);

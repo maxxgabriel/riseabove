@@ -58,8 +58,13 @@ pub fn weekly(w: &mut World) {
         if b.satisfaction < 15 {
             b.warnings += 1;
             b.satisfaction = 40;
-            if b.warnings >= 3 {
+            let warnings = b.warnings;
+            if warnings >= 3 {
                 sack.push(club);
+            } else if let Some(m) = w.clubs[club].manager.get() {
+                // Privately: the manager and the board know; others may hear.
+                let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+                w.events.push_caused(today, Visibility::Club(club), EventKind::BoardWarning { club, manager: m, warnings }, causes);
             }
         }
     }
@@ -120,8 +125,9 @@ pub fn appoint(w: &mut World, club: ClubId) {
     }
     w.clubs[club].board.satisfaction = 60;
     w.clubs[club].board.warnings = 0;
-    w.events.push(today, Visibility::Public, EventKind::ManagerAppointed { staff: m, club });
+    let appointed = w.events.push(today, Visibility::Public, EventKind::ManagerAppointed { staff: m, club });
     crate::managers::on_appointment(w, m, club);
+    crate::culture::on_manager_move(w, m, club, appointed);
 }
 
 /// A newly qualified manager when the market is empty (F7).
@@ -147,12 +153,14 @@ fn new_manager(w: &mut World, club: ClubId) -> StaffId {
     for a in StaffAttr::ALL {
         attrs.set(a, rng.normal_ms(level, 2.5).round().clamp(1.0, 20.0) as u8);
     }
+    // New coaches come up through their nation's football and its fashions.
+    let (press, tempo, directness) = crate::culture::fashion(w, nation, rng.range_i32(30, 75) as u8, rng.range_i32(35, 70) as u8, rng.range_i32(25, 75) as u8);
     let phil = Philosophy {
         formations: [rng.below(w.data.formations.len() as u32) as u8, rng.below(w.data.formations.len() as u32) as u8],
         mentality: rng.range_i32(-1, 1) as i8,
-        press: rng.range_i32(30, 75) as u8,
-        tempo: rng.range_i32(35, 70) as u8,
-        directness: rng.range_i32(25, 75) as u8,
+        press,
+        tempo,
+        directness,
         youth_trust: rng.range_i32(20, 80) as u8,
         archetype: [pw_world::Archetype::Pragmatist, pw_world::Archetype::Developer, pw_world::Archetype::Rotator, pw_world::Archetype::Loyalist][rng.index(4)],
     };

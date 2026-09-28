@@ -1,8 +1,11 @@
 //! `pathway` — live inside the world as one person, in a terminal.
 //!
 //!   pathway new synth [tiny|small|huge] [--seed S] [--warmup DAYS]
-//!   pathway new import DIR [--warmup DAYS]
+//!   pathway new import DIR [--seed S] [--warmup DAYS]
 //!   pathway load FILE
+//!
+//! Every new world gets a fresh random seed unless `--seed` is given; the
+//! seed is printed so the same world can be rebuilt for debugging.
 //!
 //! The world is built (or loaded) and can run on its own for as long as you
 //! like before you choose anyone. Then you `find` a person and `become` them —
@@ -22,12 +25,13 @@ use pw_world::{Focus, Intensity, Intent, Lifestyle, PartnerAsk, StaffRole, Train
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let flag = |name: &str| args.iter().position(|a| a == name).and_then(|i| args.get(i + 1)).and_then(|v| v.parse::<u64>().ok());
+    let seed = args.iter().position(|a| a == "--seed").and_then(|i| args.get(i + 1)).map(|v| pw_core::rng::parse_seed(v));
     let world: World = match args.first().map(String::as_str) {
         Some("new") => match args.get(1).map(String::as_str) {
             Some("import") => {
                 let dir = PathBuf::from(args.get(2).cloned().unwrap_or_else(|| die("new import needs a folder")));
-                let (w, rep) = pw_import::load_dir(&dir, DataPack::builtin()).unwrap_or_else(|e| die(&e.to_string()));
-                println!("Imported {} players, {} clubs.", rep.players, rep.clubs);
+                let (w, rep) = pw_import::load_dir_seeded(&dir, DataPack::builtin(), seed).unwrap_or_else(|e| die(&e.to_string()));
+                println!("Imported {} players, {} clubs. World seed {}.", rep.players, rep.clubs, pw_core::rng::seed_label(w.seed));
                 w
             }
             _ => {
@@ -36,7 +40,9 @@ fn main() {
                     Some("huge") => pw_import::synthetic::Scale::HUGE,
                     _ => pw_import::synthetic::Scale::SMALL,
                 };
-                pw_import::synthetic::build(DataPack::builtin(), flag("--seed").unwrap_or(42), scale)
+                let seed = seed.unwrap_or_else(pw_core::rng::fresh_seed);
+                println!("World seed {}.", pw_core::rng::seed_label(seed));
+                pw_import::synthetic::build(DataPack::builtin(), seed, scale)
             }
         },
         Some("load") => {
@@ -46,7 +52,7 @@ fn main() {
             return;
         }
         _ => {
-            println!("usage: pathway new synth [tiny|small|huge] [--seed S] [--warmup DAYS] | pathway new import DIR [--warmup DAYS] | pathway load FILE");
+            println!("usage: pathway new synth [tiny|small|huge] [--seed S] [--warmup DAYS] | pathway new import DIR [--seed S] [--warmup DAYS] | pathway load FILE");
             return;
         }
     };
@@ -122,7 +128,7 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
                 println!("become <person id>  (ids come from `find`)");
                 return true;
             };
-            let salt = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos() as u64);
+            let salt = pw_core::rng::fresh_seed();
             if g.take_control(PersonId(n), salt) {
                 println!("You are now {}.", pw_narrate::fmt::person(g.world(), PersonId(n)));
                 print(pw_career::views::status(g.world(), PersonId(n)));
@@ -212,6 +218,12 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
                 print(pw_career::views::social(g.world(), me, 15));
             }
         }
+        "feed" => {
+            if let Some(me) = me_or_warn(g) {
+                print(pw_career::views::feed(g.world(), me, arg(1).parse().unwrap_or(15)));
+            }
+        }
+        "post" => post(g, &p[1..]),
         "rumours" | "interest" => {
             if let Some(me) = me_or_warn(g) {
                 print(pw_career::views::rumours(g.world(), me));
@@ -372,6 +384,51 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
     true
 }
 
+/// post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <person #>] [reply <post #>|quote <post #>]
+fn post(g: &mut Game, a: &[&str]) {
+    use pw_world::socialnet::{Concept, NO_POST};
+    let Some(me) = me_or_warn(g) else { return };
+    let concept = match a.first().copied().unwrap_or("") {
+        "praise" => Concept::Praise,
+        "criticise" | "criticize" => Concept::Criticise,
+        "celebrate" => Concept::Celebrate,
+        "lament" => Concept::Lament,
+        "defend" => Concept::Defend,
+        "mock" => Concept::Mock,
+        "agree" => Concept::Agree,
+        "disagree" => Concept::Disagree,
+        "statement" => Concept::Statement,
+        _ => {
+            println!("post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <person #>] [reply <post #>|quote <post #>]");
+            return;
+        }
+    };
+    let (mut about, mut reply_to, mut quote_of) = (me, NO_POST, NO_POST);
+    for pair in a[1..].chunks(2) {
+        let n: u32 = pair.get(1).and_then(|x| x.parse().ok()).unwrap_or(u32::MAX);
+        match pair[0] {
+            "about" if n != u32::MAX && (n as usize) < g.world().people.len() => about = PersonId(n),
+            "reply" => reply_to = n,
+            "quote" => quote_of = n,
+            _ => {}
+        }
+    }
+    // Replies and quotes must point at posts that exist; the subject follows.
+    for id in [reply_to, quote_of] {
+        if id != NO_POST {
+            match g.world().net.post(id) {
+                Some(p) if about == me && p.about.is_some() => about = p.about,
+                Some(_) => {}
+                None => {
+                    println!("There is no post #{id}.");
+                    return;
+                }
+            }
+        }
+    }
+    act(g, Intent::Post { about, concept, reply_to, quote_of });
+}
+
 fn act(g: &mut Game, i: Intent) {
     if me_or_warn(g).is_some() && g.act(i) {
         println!("Noted — it happens as the next day is simulated.");
@@ -524,7 +581,7 @@ fn create(g: &mut Game, p: &[&str]) {
     let age: u8 = p[2].parse().unwrap_or(16);
     let pos = Pos::from_code(&p[3].to_uppercase()).unwrap_or(Pos::MC);
     let club = p.get(4).and_then(|x| x.parse::<u32>().ok()).map_or(ClubId::NONE, ClubId);
-    let salt = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos() as u64);
+    let salt = pw_core::rng::fresh_seed();
     let nation = if club.is_some() { g.world().clubs[club].nation } else { NationId(0) };
     let (person, _) = pw_career::create_person(&mut g.sim.world, NewPerson { first: p[0].into(), last: p[1].into(), nation, club, age, pos, salt });
     if g.take_control(person, salt) {
@@ -538,7 +595,8 @@ fn help() {
         "\
 World:     find <name> · clubs · become <id> · create <first> <last> <age> <pos> [club] · leave
 You:       me · self · life · people · promises · contract · rumours · goals · goal <apps N|goals N|topflight|text> · note <text>
-Club:      club · table · fixtures · news · social
+Club:      club · table · fixtures · news · social · feed [n]
+Post:      post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <#>] [reply <post #>|quote <post #>]
 Feed:      new · inbox [n] · why <event #> · meetings
 Decide:    decisions · answer <decision #> <option #>
 Act:       meet manager|agent|<id> <topic> [tone] · train … · routine k=v … · lifestyle …

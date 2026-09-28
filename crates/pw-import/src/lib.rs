@@ -6,5 +6,5 @@ mod csvimport;
 mod positions;
 pub mod synthetic;
 
-pub use csvimport::{ImportError, ImportReport, load_dir};
+pub use csvimport::{ImportError, ImportReport, load_dir, load_dir_seeded};
 pub use positions::parse_positions;

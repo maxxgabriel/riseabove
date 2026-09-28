@@ -24,7 +24,6 @@ use crate::consider;
 use crate::media::{big_enough, outlet_journalist, publish};
 
 pub fn weekly(w: &mut World) {
-    press_conferences(w);
     player_interviews(w);
     match_reports(w);
     features(w);
@@ -43,22 +42,25 @@ pub fn weekly(w: &mut World) {
 // ---------------------------------------------------------------------------
 
 /// Someone says something publicly. The same path for AI and humans.
-pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) {
+/// Returns the story and the quote record it produced.
+pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) -> Option<(StoryId, u32)> {
     let today = w.date;
     let club = w.club_of_person(speaker);
     let nation = if club.is_some() { w.clubs[club].nation } else { w.people[speaker].nation };
     let key = hash_key(&[u64::from(speaker.0), u64::from(about.0), today.0 as u64]);
-    let Some(j) = outlet_journalist(w, nation, club, key) else { return };
+    let j = outlet_journalist(w, nation, club, key)?;
     let subject_player = if about.is_some() { w.people[about].player } else { w.people[speaker].player };
     let tone: i8 = match stance {
         Stance::Praise | Stance::Support | Stance::Loyalty => 40,
         Stance::Criticise | Stance::Complain => -45,
         Stance::Ambition => -10,
-        Stance::Deflect => 0,
+        Stance::Deflect | Stance::Deny => 0,
     };
     let about_or_self = if about.is_some() { about } else { speaker };
     let id = publish(w, j, StoryKind::Interview, subject_player, about_or_self, club, ClubId::NONE, 0, 90, true, Cause::Fact(Fact::Said { person: speaker }), PersonId::NONE, tone);
     w.media.links.insert(id, StoryLink::Quote(Quote { speaker, about, stance }));
+    let quote = w.pressroom.quotes.len() as u32;
+    w.pressroom.quotes.push(pw_world::pressroom::QuoteRecord { id: quote, speaker, about, stance, topic: None, date: today, conference: u32::MAX, story: id });
     let ev = w.media.stories[id].event;
     let compat = consider::compat(w, about, speaker);
     let fan_club = if about.is_some() { w.club_of_person(about) } else { club };
@@ -129,50 +131,7 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
         _ => 0,
     };
     w.media.nudge_image(speaker, nudge);
-}
-
-/// Managers of big clubs face the press weekly and say something about one
-/// of their players — what they say comes from how they read them and how
-/// they manage people.
-fn press_conferences(w: &mut World) {
-    let today = w.date;
-    let week = (today.0 / 7) as u64;
-    let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| big_enough(w, c)).collect();
-    for club in clubs {
-        if (u64::from(club.0) + week) % 2 == 1 {
-            continue;
-        }
-        let Some(m) = w.clubs[club].manager.get() else { continue };
-        let mp = w.staff[m].person;
-        if w.people[mp].mind == MindKind::External {
-            continue;
-        }
-        let first = w.clubs[club].first_team();
-        let squad = w.teams[first].squad.clone();
-        let man_mgmt = w.staff[m].attrs.f(pw_core::StaffAttr::ManManagement);
-        let temper = consider::hid(w, mp, Hidden::Temperament);
-        let mut said: Option<(PersonId, Stance)> = None;
-        for p in squad {
-            let who = w.players.cold[p].person;
-            if w.perf.has(p, Lens::Manager, Label::InForm) || w.perf.has(p, Lens::Media, Label::Breakthrough) {
-                said = Some((who, Stance::Praise));
-                break;
-            }
-            if w.perf.has(p, Lens::Manager, Label::InSlump) || w.perf.has(p, Lens::Fans, Label::InSlump) {
-                // A good man-manager backs a struggling player; a hothead
-                // with no trust in him says so in public.
-                let trust = consider::trust(w, mp, who);
-                let stance = if man_mgmt >= 12.0 || trust > 0.55 { Stance::Support } else if temper <= 8.0 && trust < 0.4 { Stance::Criticise } else { Stance::Deflect };
-                said = Some((who, stance));
-                break;
-            }
-        }
-        if let Some((about, stance)) = said {
-            if stance != Stance::Deflect {
-                speak(w, mp, about, stance);
-            }
-        }
-    }
+    Some((id, quote))
 }
 
 /// Players with something on their mind sometimes say it.

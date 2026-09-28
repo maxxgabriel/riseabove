@@ -86,7 +86,12 @@ fn apply(w: &mut World, who: PersonId, intent: Intent) {
         Intent::RetireFromInternational if p.is_some() => crate::intl::retire(w, p),
         Intent::PlayThroughPain(b) if p.is_some() => crate::medical::set_willing(w, p, b),
         Intent::Mentor(mentee) if playing => crate::growth::offer_mentoring(w, who, mentee),
-        Intent::SpeakToPress { about, stance } => crate::press::speak(w, who, about, stance),
+        Intent::SpeakToPress { about, stance } => {
+            crate::press::speak(w, who, about, stance);
+        }
+        Intent::Post { about, concept, reply_to, quote_of } => {
+            crate::socialnet::person_post(w, who, about, concept, reply_to, quote_of);
+        }
         Intent::Enrol(course) => crate::affairs::enrol(w, who, course),
         Intent::MoveHome { buy, quality } => crate::affairs::move_home(w, who, buy, quality),
         Intent::HireHelper(h, q) => crate::affairs::hire_helper(w, who, h, q),

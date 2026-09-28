@@ -92,6 +92,211 @@ pub enum StoryKind {
     Analysis,
     International,
     Milestone,
+    /// News that began as information someone leaked.
+    Leak,
+    /// An incident made public (a row, a postponement, a protest).
+    IncidentNews,
+    /// A denial of an earlier story.
+    Denial,
+    /// An outlet correcting its own earlier story.
+    Correction,
+    /// Fans' reaction as news in itself.
+    FanReaction,
+}
+
+/// What kind of claim a story makes. Kept explicit so nothing downstream
+/// mistakes a rumour for a fact.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum ClaimType {
+    /// A matter of public record.
+    Fact,
+    /// Reported with confirmation from sources.
+    Report,
+    /// Unconfirmed, from sources.
+    Rumour,
+    /// The writer's (or a speaker's) view.
+    Opinion,
+    /// Conjecture with little behind it.
+    Speculation,
+    /// Correcting an earlier story.
+    Correction,
+    /// Someone denying an earlier story.
+    Denial,
+}
+
+impl ClaimType {
+    pub const fn label(self) -> &'static str {
+        match self {
+            ClaimType::Fact => "fact",
+            ClaimType::Report => "report",
+            ClaimType::Rumour => "rumour",
+            ClaimType::Opinion => "opinion",
+            ClaimType::Speculation => "speculation",
+            ClaimType::Correction => "correction",
+            ClaimType::Denial => "denial",
+        }
+    }
+}
+
+/// How a story is framed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Angle {
+    Straight,
+    Crisis,
+    Hero,
+    Villain,
+    Numbers,
+    HumanInterest,
+    Conflict,
+    /// The latest chapter of a running story.
+    Saga,
+    Nostalgia,
+    Loyalty,
+}
+
+/// What the journalist did to stand the story up.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Default)]
+pub struct Verification {
+    pub asked: u8,
+    pub confirmed: u8,
+    pub denied: u8,
+    /// 0–100.
+    pub confidence: u8,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Scope {
+    Local,
+    National,
+    International,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Style {
+    Broadsheet,
+    Tabloid,
+    Local,
+    Statistical,
+    Fan,
+    Broadcast,
+}
+
+/// An outlet's institutional identity (separate from its name and reach).
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct OutletProfile {
+    pub scope: Scope,
+    pub style: Style,
+    /// Language it publishes in (as the nation whose language it is).
+    pub language: NationId,
+    /// 0–100 each.
+    pub rumour_appetite: u8,
+    pub tactical_depth: u8,
+    /// How readily it corrects its own mistakes.
+    pub corrections: u8,
+    /// Stories a week the editors want.
+    pub quota: u8,
+    pub published_this_week: u8,
+    pub audience: u32,
+    /// The club it is close to (fan channels, local papers).
+    pub affinity: ClubId,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Focus {
+    Transfers,
+    Tactics,
+    Youth,
+    HumanInterest,
+    Scandal,
+    Data,
+    Local,
+}
+
+/// A journalist's relationship with a source, and what they have learned
+/// about how reliable that source is.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct SourceTie {
+    pub person: PersonId,
+    pub since: Date,
+    /// 0–100.
+    pub strength: u8,
+    /// The journalist's estimate, 0–100.
+    pub reliability: u8,
+    pub hits: u8,
+    pub misses: u8,
+    pub last_used: Date,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct JournalistProfile {
+    /// 0–100 each.
+    pub knowledge: u8,
+    pub tactical: u8,
+    pub ambition: u8,
+    /// Willingness to publish on thin evidence.
+    pub risk: u8,
+    /// A club they cannot help favouring.
+    pub bias: ClubId,
+    pub focus: Focus,
+    /// Professional standing, 0–10,000.
+    pub reputation: u16,
+    pub hits: u16,
+    pub misses: u16,
+    /// When they started covering each club on their beat.
+    pub beat_since: SmallVec<[(ClubId, Date); 4]>,
+    pub ties: SmallVec<[SourceTie; 8]>,
+    /// Past and present employers (outlet, from).
+    pub employers: SmallVec<[(OutletId, Date); 3]>,
+    pub languages: SmallVec<[NationId; 2]>,
+}
+
+impl JournalistProfile {
+    pub fn tie(&self, p: PersonId) -> Option<&SourceTie> {
+        self.ties.iter().find(|t| t.person == p)
+    }
+
+    /// Years on the beat at a club.
+    pub fn tenure(&self, c: ClubId, today: Date) -> f32 {
+        self.beat_since.iter().find(|x| x.0 == c).map_or(0.0, |x| x.1.days_until(today).max(0) as f32 / 365.0)
+    }
+}
+
+/// What a running story is about.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum ThreadSubject {
+    Transfer { player: PlayerId, club: ClubId },
+    Injury { player: PlayerId },
+    Incident { incident: u32 },
+    ManagerPressure { club: ClubId },
+    Unrest { club: ClubId },
+    Contract { player: PlayerId, club: ClubId },
+    Leak { info: u32 },
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum ThreadState {
+    Open,
+    /// What was reported came to pass.
+    Happened,
+    /// It fell through.
+    Collapsed,
+    /// Denied, and nothing came of it.
+    Denied,
+    /// Went quiet.
+    Faded,
+}
+
+/// A story that runs over days or months, with its history.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StoryThread {
+    pub id: u32,
+    pub subject: ThreadSubject,
+    pub opened: Date,
+    pub last: Date,
+    pub stories: Vec<StoryId>,
+    pub events: SmallVec<[EventId; 4]>,
+    pub state: ThreadState,
+    pub closed: Option<Date>,
 }
 
 /// What a quoted person said, as a stance (the words come from narration).
@@ -109,6 +314,8 @@ pub enum Stance {
     Complain,
     /// Back a teammate or the manager publicly.
     Support,
+    /// Deny a story.
+    Deny,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -158,6 +365,19 @@ pub struct Story {
     /// Tone toward the subject, -100..=100.
     pub tone: i8,
     pub event: EventId,
+    pub claim_type: ClaimType,
+    pub angle: Angle,
+    /// The information item it rests on (`u32::MAX` if none).
+    pub info: u32,
+    /// The running story it belongs to (`u32::MAX` if none).
+    pub thread: u32,
+    pub verification: Verification,
+    /// Minute of the day it went out (for ordering within a day).
+    pub minute: u16,
+    /// How newsworthy the editors judged it, 0–100.
+    pub news: u8,
+    /// Earlier stories it refers back to.
+    pub refs: SmallVec<[StoryId; 2]>,
 }
 
 /// A fanbase's feeling about a person (11 §4), with the reasons it formed.
@@ -248,6 +468,10 @@ pub struct Media {
     pub rivals: FxHashMap<(ClubId, ClubId), u8>,
     /// Structured content behind stories (quotes, lists, match facts).
     pub links: FxHashMap<StoryId, StoryLink>,
+    pub outlet_profiles: FxHashMap<OutletId, OutletProfile>,
+    pub journalist_profiles: FxHashMap<PersonId, JournalistProfile>,
+    pub threads: Vec<StoryThread>,
+    pub thread_index: FxHashMap<ThreadSubject, u32>,
 }
 
 impl Media {
@@ -273,6 +497,11 @@ impl Media {
                 }
             }
         }
+    }
+
+    /// The open (or most recent) thread about a subject.
+    pub fn thread(&self, s: ThreadSubject) -> Option<&StoryThread> {
+        self.thread_index.get(&s).map(|&i| &self.threads[i as usize])
     }
 
     pub fn rivalry(&self, a: ClubId, b: ClubId) -> u8 {

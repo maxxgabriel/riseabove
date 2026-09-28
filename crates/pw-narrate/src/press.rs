@@ -58,6 +58,7 @@ pub fn headline(w: &World, s: &Story) -> String {
                     Stance::Praise => format!("{speaker} hails {target}"),
                     Stance::Criticise => if loud { format!("{speaker} SLAMS {}", target.to_uppercase()) } else { format!("{speaker} criticises {target}") },
                     Stance::Support => format!("{speaker} backs {target}"),
+                    Stance::Deny => format!("{speaker} denies the reports"),
                     Stance::Complain => format!("{speaker} speaks out over role"),
                     Stance::Ambition => format!("{speaker}: \"I want to win the biggest trophies\""),
                     Stance::Loyalty => format!("{speaker}: \"I am happy here\""),
@@ -100,6 +101,21 @@ pub fn headline(w: &World, s: &Story) -> String {
             }
             _ => "International football".into(),
         },
+        StoryKind::Leak => format!("{}: {}", club_short(w, s.club), pick(key, &["trouble behind closed doors", "all is not well", "revealed: the story inside the club"])),
+        StoryKind::IncidentNews => match w.grapevine.items.get(s.info as usize) {
+            Some(it) => match it.kind {
+                pw_world::info::InfoKind::Incident { incident } => {
+                    let t = crate::incidents::summary(w, incident, false, loud);
+                    let t = t.strip_prefix("that ").unwrap_or(&t).to_string();
+                    crate::lexicon::loud(&voice(w, s), &t)
+                }
+                _ => format!("Incident at {}", club_short(w, s.club)),
+            },
+            None => format!("Incident at {}", club_short(w, s.club)),
+        },
+        StoryKind::Denial => format!("{who}: {}", pick(key, &["reports denied", "\"no truth\" in the story", "camp plays down speculation"])),
+        StoryKind::Correction => format!("Correction: {who}"),
+        StoryKind::FanReaction => format!("{} fans {}", club_short(w, s.club), pick(key, &["react", "have their say", "are divided"])),
         StoryKind::Milestone => match w.media.links.get(&s.id) {
             Some(StoryLink::Milestone(k, n)) => match k {
                 MilestoneKind::ClubApps => format!("{who} reaches {n} games for {}", club_short(w, s.club)),
@@ -139,6 +155,23 @@ fn reading_headline(who: &str, l: Label, key: u64) -> String {
         Label::Durable => format!("{who}, never injured, always there"),
         Label::InjuryProne => format!("The body keeps failing {who}"),
     }
+}
+
+/// The voice an outlet writes in.
+pub fn voice(w: &World, s: &Story) -> crate::lexicon::Voice {
+    use crate::lexicon::{AgeBand, Locale, Register, Voice};
+    let register = if s.outlet.is_some() {
+        match w.media.outlets[s.outlet].kind {
+            OutletKind::Tabloid => Register::Tabloid,
+            OutletKind::FanChannel => Register::Casual,
+            OutletKind::DataSite => Register::Analytical,
+            OutletKind::National => Register::Formal,
+            _ => Register::Neutral,
+        }
+    } else {
+        Register::Neutral
+    };
+    Voice { locale: Locale::En, register, age: AgeBand::Middle, emoji: false, humour: 20, hedging: 40 }
 }
 
 /// A short article body: who says it, what it rests on (as the paper frames it).
@@ -190,6 +223,7 @@ fn quote_line(w: &World, about: pw_core::PersonId, stance: Stance, key: u64) -> 
         Stance::Praise => format!("{name} {}", pick(key, &["has been outstanding.", "deserves everything coming their way.", "is a joy to work with."])),
         Stance::Criticise => format!("{name} {}", pick(key, &["has to do much better.", "knows it has not been good enough.", "needs to look at themselves."])),
         Stance::Support => format!("{name} {}", pick(key, &["has my full support.", "will come good, I have no doubt.", "is going through a spell every player has."])),
+        Stance::Deny => pick(key, &["There is no truth in it.", "I have heard nothing about that.", "It is not something we recognise."]).to_string(),
         Stance::Complain => pick(key, &["I want to play. I am not here to sit and watch.", "Nobody has explained my role to me.", "I deserve more minutes than I am getting."]).to_string(),
         Stance::Ambition => pick(key, &["I want to play at the very highest level.", "Every player dreams of the biggest stage.", "I have ambitions I need to fulfil."]).to_string(),
         Stance::Loyalty => pick(key, &["I am happy here. This club is my home.", "I have no intention of leaving.", "The fans know how much this club means to me."]).to_string(),
@@ -221,4 +255,50 @@ fn volume(v: u8) -> &'static str {
         4..=9 => "many",
         _ => "trending",
     }
+}
+
+/// A stance as an answer option.
+pub fn stance_label(s: Stance) -> &'static str {
+    match s {
+        Stance::Praise => "Praise",
+        Stance::Criticise => "Criticise",
+        Stance::Deflect => "Deflect",
+        Stance::Ambition => "Talk up ambitions",
+        Stance::Loyalty => "Declare loyalty",
+        Stance::Complain => "Complain",
+        Stance::Support => "Back them",
+        Stance::Deny => "Deny it",
+    }
+}
+
+/// A press-conference question as the journalist asks it.
+pub fn question(w: &World, conference: u32, q: u8) -> String {
+    use pw_world::pressroom::QTopic;
+    let Some(c) = w.pressroom.conferences.get(conference as usize) else { return "A question.".into() };
+    let Some(q) = c.questions.get(usize::from(q)) else { return "A question.".into() };
+    let who = person(w, q.journalist);
+    let outlet = w.media.journalists.get(&q.journalist).map_or("the press".to_string(), |j| w.media.outlets[j.outlet].name.clone());
+    let lead = if q.follow_up { "Just to press you on that — " } else { "" };
+    let body = match q.topic {
+        QTopic::LastMatch { uid } => match w.recent_matches.by_uid(uid) {
+            Some(m) => format!("what did you make of the {}-{} against {}?", m.hg, m.ag, club_short(w, if m.home == c.club { m.away } else { m.home })),
+            None => "what did you make of the last game?".into(),
+        },
+        QTopic::Transfer { story, player: p } => format!("{} report {} — is {} leaving?", outlet_of(w, story), headline(w, &w.media.stories[story]).to_lowercase(), player(w, p)),
+        QTopic::Trouble { story } => format!("there are reports that {} — what's going on?", headline(w, &w.media.stories[story]).to_lowercase()),
+        QTopic::Injury { player: p } => format!("how long will {} be out?", player(w, p)),
+        QTopic::Pressure => "after this run of results, are you worried about your job?".into(),
+        QTopic::Rival { club: o } => format!("how big is this one against {}?", club(w, o)),
+        QTopic::EarlierQuote { quote } => match w.pressroom.quotes.get(quote as usize) {
+            Some(r) => format!("a few weeks ago you said {} — do you stand by that?", quote_line(w, r.about, r.stance, u64::from(quote)).trim_end_matches('.').to_lowercase()),
+            None => "do you stand by what you said before?".into(),
+        },
+        QTopic::Selection { player: p } => format!("what's the latest on {}'s place in the side?", player(w, p)),
+    };
+    format!("{who} ({outlet}): {lead}{body}")
+}
+
+fn outlet_of(w: &World, s: pw_core::StoryId) -> String {
+    let st = &w.media.stories[s];
+    if st.outlet.is_some() { w.media.outlets[st.outlet].name.clone() } else { "Reports".into() }
 }

@@ -226,6 +226,18 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         Investment { person: x, gain } => {
             if gain >= 0 { format!("{}'s investments returned {}.", me(x), money(gain)) } else { format!("{} lost {} on investments.", me(x), money(-gain)) }
         }
+        BoardWarning { club: c, manager, warnings } => format!("The {} board privately warned {} ({} warning{}).", club(w, c), w.staff_name(manager), warnings, if warnings == 1 { "" } else { "s" }),
+        BoardQuery { club: c, manager, .. } => format!("The {} board asked {} to explain what they had heard.", club(w, c), me_lc(manager)),
+        LeakSuspected { by, suspect, .. } => format!("{} suspects {} of talking to the press.", me(by), me_lc(suspect)),
+        AgentExploring { agent, player: p } => format!("{} began quietly sounding out clubs about {}.", me(agent), pl(p)),
+        Incident { incident, .. } => crate::incidents::sentence(w, incident, viewer),
+        IncidentResponse { incident, by, response } => crate::incidents::response(w, incident, by, response, viewer),
+        CaptainMediated { captain, a, b } => format!("{} stepped in to settle things between {} and {}.", me(captain), me_lc(a), me_lc(b)),
+        InvestigationCleared { club: c } => format!("{} were cleared by the investigation.", club(w, c)),
+        JournalistMoved { person: x, from, to } => format!("{} left {} for {}.", me(x), w.media.outlets[from].name, w.media.outlets[to].name),
+        JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
+        JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
+        SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })
 }
@@ -294,6 +306,12 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::Reading { player: p } => format!("how {} performances are being read", who(p)),
         Fact::Ranking => "a published ranking".into(),
         Fact::Anniversary { year } => format!("the anniversary of {year}"),
+        Fact::Heard { info, from } => format!("{} heard it ({})", person(w, from), crate::grapevine::what(w, info)),
+        Fact::Pressure { pressure, level } => format!("{} ({})", pressure.label(), crate::incidents::strength(level)),
+        Fact::Disposition { person: x, reason, level } => format!("{}'s {} ({})", person(w, x), reason.label(), crate::incidents::strength(level)),
+        Fact::PoorRun { club: c, defeats, games } => format!("{} had lost {defeats} of their last {games}", club(w, c)),
+        Fact::Viral { reposts, .. } => format!("a supporter's post was shared {reposts} times"),
+        Fact::Newsworthy { importance, relevance, controversy } => format!("editors judged it newsworthy (importance {importance}, relevance {relevance}, controversy {controversy})"),
     }
 }
 

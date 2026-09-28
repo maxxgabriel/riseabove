@@ -6,17 +6,21 @@ pub mod board;
 pub mod commerce;
 pub mod consider;
 pub mod contracts;
+pub mod culture;
 pub mod deals;
 pub mod decisions;
 pub mod development;
 pub mod dressing;
 pub mod economy;
+pub mod facts;
 pub mod finance;
 pub mod generate;
 pub mod governance;
+pub mod grapevine;
 pub mod growth;
 pub mod health;
 pub mod honours;
+pub mod incidents;
 pub mod hungarian;
 pub mod intents;
 pub mod interpret;
@@ -30,11 +34,14 @@ pub mod medical;
 pub mod mind;
 pub mod morale;
 pub mod negotiation;
+pub mod newsroom;
 pub mod people;
 pub mod perception;
 pub mod planning;
 pub mod press;
+pub mod pressroom;
 pub mod renown;
+pub mod responses;
 pub mod reputation;
 pub mod save;
 pub mod schedule;
@@ -42,6 +49,7 @@ pub mod scouting;
 pub mod season;
 pub mod selection;
 pub mod social;
+pub mod socialnet;
 pub mod staffing;
 pub mod talk;
 pub mod youth;
@@ -89,6 +97,9 @@ impl Sim {
             managers::yearly(w);
             commerce::ensure(w);
             commerce::yearly(w);
+            culture::ensure(w);
+            culture::yearly(w);
+            newsroom::yearly(w);
         }
         season::daily(w);
         contracts::daily(w);
@@ -119,8 +130,11 @@ impl Sim {
             interpret::monthly(w);
             honours::monthly(w);
             renown::monthly(w);
+            grapevine::compact(w);
+            incidents::monthly(w);
             affairs::monthly(w);
             commerce::monthly(w);
+            socialnet::monthly(w);
             if today.month() == 6 {
                 youth::reviews(w);
             }
@@ -159,16 +173,30 @@ impl Sim {
         decisions::resolve_due(w);
         talk::daily(w);
 
+        // 7b. Incidents: postponements, travel, births, deferred decisions.
+        incidents::daily(w);
+
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
         matchday::play_today(w);
         // National teams: windows, qualifiers, tournaments.
         intl::daily(w);
 
+        // 8b. What people heard today, and whom they told; what got printed.
+        grapevine::daily(w);
+        pressroom::daily(w);
+        newsroom::daily(w);
+        socialnet::persons_post(w);
+        socialnet::daily(w);
+
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
             development::weekly(w);
             medical::weekly(w);
+            grapevine::feelings(w);
+            incidents::weekly(w);
+            newsroom::weekly(w);
+            socialnet::weekly(w);
             dressing::weekly(w);
             perception::weekly(w);
             social::weekly(w);
@@ -226,6 +254,9 @@ pub fn prepare(w: &mut World) {
     youth::ensure(w);
     intl::ensure(w);
     commerce::ensure(w);
+    culture::ensure(w);
+    newsroom::ensure_profiles(w);
+    socialnet::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

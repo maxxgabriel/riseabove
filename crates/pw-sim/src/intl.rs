@@ -227,12 +227,13 @@ fn new_coach(w: &mut World, n: NationId, target_rep: f32, rng: &mut Rng) -> Staf
         attrs.set(a, rng.normal_ms(level, 2.5).round().clamp(1.0, 20.0) as u8);
     }
     let nf = w.data.formations.len().max(1) as u32;
+    let (press, tempo, directness) = crate::culture::fashion(w, n, rng.range_i32(30, 70) as u8, rng.range_i32(35, 65) as u8, rng.range_i32(25, 75) as u8);
     let phil = Philosophy {
         formations: [rng.below(nf) as u8, rng.below(nf) as u8],
         mentality: rng.range_i32(-1, 1) as i8,
-        press: rng.range_i32(30, 70) as u8,
-        tempo: rng.range_i32(35, 65) as u8,
-        directness: rng.range_i32(25, 75) as u8,
+        press,
+        tempo,
+        directness,
         youth_trust: rng.range_i32(20, 80) as u8,
         archetype: [Archetype::Pragmatist, Archetype::Developer, Archetype::Rotator, Archetype::Loyalist][rng.index(4)],
     };

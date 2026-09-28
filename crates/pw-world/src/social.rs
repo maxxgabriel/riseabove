@@ -86,6 +86,18 @@ pub enum MemoryKind {
     Betrayal,
     /// Played together through a long stretch.
     SharedPitch,
+    /// Believed to have leaked something to the press (rightly or not).
+    Leaked,
+    /// A confrontation: a fight, a shouting match, a shove.
+    Fought,
+    /// Helped settle a conflict.
+    Mediated,
+    /// Was shielded by someone in authority.
+    Protected,
+    /// Was blamed (fairly or not) for something.
+    Blamed,
+    /// Was trusted with something private.
+    Confided,
 }
 
 impl MemoryKind {
@@ -118,6 +130,12 @@ impl MemoryKind {
             MemoryKind::LetDown => "let them down",
             MemoryKind::Betrayal => "crossed a line they won't forget",
             MemoryKind::SharedPitch => "shared the pitch",
+            MemoryKind::Leaked => "leaked to the press",
+            MemoryKind::Fought => "clashed with them",
+            MemoryKind::Mediated => "helped settle things",
+            MemoryKind::Protected => "protected them",
+            MemoryKind::Blamed => "blamed them",
+            MemoryKind::Confided => "confided in them",
         }
     }
 
@@ -151,17 +169,23 @@ impl MemoryKind {
             MemoryKind::LetDown => (-8, -12, -4),
             MemoryKind::Betrayal => (-30, -25, -10),
             MemoryKind::SharedPitch => (2, 1, 1),
+            MemoryKind::Leaked => (-10, -20, -6),
+            MemoryKind::Fought => (-20, -10, -6),
+            MemoryKind::Mediated => (8, 6, 8),
+            MemoryKind::Protected => (12, 8, 2),
+            MemoryKind::Blamed => (-14, -16, -4),
+            MemoryKind::Confided => (4, 5, 1),
         }
     }
 
     /// Days for a memory to lose half its weight (before personality).
     pub const fn half_life_days(self) -> u16 {
         match self {
-            MemoryKind::Celebrated | MemoryKind::SharedPitch | MemoryKind::Dropped => 60,
+            MemoryKind::Celebrated | MemoryKind::SharedPitch | MemoryKind::Dropped | MemoryKind::Confided => 60,
             MemoryKind::Refused | MemoryKind::HardBargain | MemoryKind::Rivalry | MemoryKind::HonestTalk => 120,
             MemoryKind::Argument | MemoryKind::Fined | MemoryKind::PoorAttitude | MemoryKind::ExtraWork | MemoryKind::Apologised => 180,
-            MemoryKind::PublicPraise | MemoryKind::PublicCriticism | MemoryKind::RefusedLoan | MemoryKind::Backed | MemoryKind::Supported => 270,
-            MemoryKind::PromiseKept | MemoryKind::TransferRequest | MemoryKind::LetDown | MemoryKind::Insulted | MemoryKind::GaveChance => 365,
+            MemoryKind::PublicPraise | MemoryKind::PublicCriticism | MemoryKind::RefusedLoan | MemoryKind::Backed | MemoryKind::Supported | MemoryKind::Fought | MemoryKind::Mediated => 270,
+            MemoryKind::PromiseKept | MemoryKind::TransferRequest | MemoryKind::LetDown | MemoryKind::Insulted | MemoryKind::GaveChance | MemoryKind::Leaked | MemoryKind::Protected | MemoryKind::Blamed => 365,
             MemoryKind::PromiseBroken | MemoryKind::Settled | MemoryKind::DefendedMe => 540,
             MemoryKind::Mentored | MemoryKind::Betrayal => 1460,
         }

@@ -87,7 +87,11 @@ pub fn philosophy_of(w: &World, team: TeamId) -> Philosophy {
 fn pool(w: &World, team: TeamId, comp: CompId) -> Vec<PlayerId> {
     let t = &w.teams[team];
     let ok = |p: &PlayerId| {
-        w.players.hot[*p].available() && w.players.hot[*p].team == team && !w.intl.duty.contains(p) && pw_world::rules::match_eligible(w, *p, comp, t.club)
+        w.players.hot[*p].available()
+            && w.players.hot[*p].team == team
+            && !w.intl.duty.contains(p)
+            && !w.incidents.is_away(*p, w.date)
+            && pw_world::rules::match_eligible(w, *p, comp, t.club)
     };
     let mut v: Vec<PlayerId> = t.squad.iter().copied().filter(ok).collect();
     if v.len() < 16 {

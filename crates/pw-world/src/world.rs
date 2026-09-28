@@ -126,6 +126,20 @@ pub struct World {
     pub affairs: crate::affairs::AffairsBook,
     /// Brands, club sponsorships and personal endorsements.
     pub commerce: crate::commerce::Commerce,
+    /// Club identities, national trends and rivalries.
+    pub culture: crate::culture::Culture,
+    /// Information items: who knows what, how they learned it, who told whom.
+    pub grapevine: crate::info::Grapevine,
+    /// Incidents, unresolved tension, leave, deferred decisions.
+    pub incidents: crate::incident::Incidents,
+    /// Communication due later (follow-ups, analysis, denials).
+    pub agenda: crate::agenda::Agenda,
+    /// Facts of the last four weeks of senior matches.
+    pub recent_matches: crate::matchfacts::RecentMatches,
+    /// Press conferences and every quote on the record.
+    pub pressroom: crate::pressroom::Pressroom,
+    /// Social media: accounts, opinions, posts, supporter groups, chants, memes.
+    pub net: crate::socialnet::SocialNet,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -180,6 +194,13 @@ impl World {
             renown: Default::default(),
             affairs: Default::default(),
             commerce: Default::default(),
+            culture: Default::default(),
+            grapevine: Default::default(),
+            incidents: Default::default(),
+            agenda: Default::default(),
+            recent_matches: Default::default(),
+            pressroom: Default::default(),
+            net: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             followed: Vec::new(),
@@ -209,6 +230,22 @@ impl World {
 
     /// Start a new playthrough: future randomness diverges from any other
     /// playthrough of the same world, while this one stays reproducible (S22).
+    /// A random stream for one subsystem, keyed by stable ids and (where the
+    /// draw belongs to a time window) a period key from `rng::period`. See
+    /// the RNG architecture in `pw_core::rng`.
+    pub fn rng(&self, subsystem: u64, keys: &[u64]) -> pw_core::Rng {
+        let mut k: smallvec::SmallVec<[u64; 8]> = smallvec::SmallVec::new();
+        k.push(self.seed);
+        k.push(subsystem);
+        k.extend_from_slice(keys);
+        pw_core::Rng::keyed(&k)
+    }
+
+    /// One uniform draw in `[0, 1)` for a subsystem and keys.
+    pub fn roll(&self, subsystem: u64, keys: &[u64]) -> f32 {
+        self.rng(subsystem, keys).f32()
+    }
+
     pub fn begin_playthrough(&mut self, salt: u64) {
         self.playthrough = pw_core::rng::hash_key(&[self.playthrough, salt]);
         self.seed = pw_core::rng::hash_key(&[self.seed, pw_core::rng::stream::PLAYTHROUGH, self.playthrough]);

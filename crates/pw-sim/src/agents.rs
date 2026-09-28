@@ -267,6 +267,23 @@ fn pitch(w: &mut World, a: AgentId, p: PlayerId, needy: &[ClubId], rng: &mut Rng
     w.events.push_caused(today, Visibility::Club(club), EventKind::AgentPitch { player: p, agent: a, club }, causes);
 }
 
+/// An agent who hears a client is unsettled quietly sounds out clubs: a few
+/// pitches to clubs with a need, and word that the player might be available
+/// — which is itself information that can travel.
+pub fn explore(w: &mut World, a: AgentId, p: PlayerId, cause: EventId) {
+    let today = w.date;
+    let agent = w.agents.list[a].person;
+    let needy: Vec<ClubId> = w.clubs.ids().filter(|&c| !w.clubs[c].market.needs.is_empty()).collect();
+    let mut rng = w.rng(stream::AGENT, &[u64::from(a.0), u64::from(p.0), pw_core::rng::period::week(today), 0xe8]);
+    for _ in 0..3 {
+        pitch(w, a, p, &needy, &mut rng);
+    }
+    let who = w.players.cold[p].person;
+    let causes: Causes = if cause.is_some() { pw_world::causes![Cause::Event(cause)] } else { Causes::new() };
+    let ev = w.events.push_caused(today, Visibility::Between(agent, who), EventKind::AgentExploring { agent, player: p }, causes);
+    crate::grapevine::witness(w, pw_world::info::InfoKind::Exploring { player: p, agent }, ev, 45, &[agent, who], &[]);
+}
+
 /// Clients judge their agents; AI clients act on it (humans decide for themselves).
 fn client_mood(w: &mut World, a: AgentId, p: PlayerId, news: bool) {
     let today = w.date;
