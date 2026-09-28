@@ -74,6 +74,8 @@ pub struct World {
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
+    /// Teams whose matches are recorded at full detail on request (recording only, never outcomes).
+    pub followed: Vec<TeamId>,
 }
 
 impl World {
@@ -101,6 +103,7 @@ impl World {
             talks: IdVec::new(),
             reports: FxHashMap::default(),
             days_simulated: 0,
+            followed: Vec::new(),
         }
     }
 
@@ -172,6 +175,7 @@ impl World {
             .filter(|p| p.mind == MindKind::External && p.player.is_some())
             .map(|p| self.players.hot[p.player].team)
             .filter(|t| t.is_some())
+            .chain(self.followed.iter().copied())
             .collect()
     }
 

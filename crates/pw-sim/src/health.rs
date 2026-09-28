@@ -166,11 +166,14 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             }
 
             // Load and fitness.
-            let load = kind.load() * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
+            // The player's own training plan scales the day's work (default plan changes nothing).
+            let plan = c.plan;
+            let extra = if kind == DayKind::Training { f32::from(plan.extra) * 35.0 } else { 0.0 };
+            let load = (kind.load() * plan.intensity.load_mult() + extra) * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
             h.acute = pw_core::math::ewma(h.acute, load, 0.25);
             h.chronic = pw_core::math::ewma(h.chronic, load, 0.069);
             let capacity = 380.0 + nf * 12.0;
-            let debt = f32::from(h.fatigue) + (load - capacity).max(-150.0) / 60.0;
+            let debt = f32::from(h.fatigue) + (load - capacity).max(-150.0) / 60.0 - f32::from(plan.recovery) * 1.5;
             h.fatigue = debt.clamp(0.0, 100.0) as u8;
 
             let age_rec = if age > 30.0 { 1.0 - 0.025 * (age - 30.0) } else { 1.0 };

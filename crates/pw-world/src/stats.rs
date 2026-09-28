@@ -78,6 +78,10 @@ impl SeasonStats {
         e.add(line, pom);
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = &StatLine> {
+        self.lines.values()
+    }
+
     pub fn for_player(&self, p: PlayerId) -> impl Iterator<Item = &StatLine> {
         self.lines.values().filter(move |l| l.player == p)
     }

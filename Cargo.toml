@@ -9,6 +9,8 @@ members = [
     "crates/pw-import",
     "crates/pw-career",
     "crates/pw-cli",
+    "crates/pw-view",
+    "crates/pw-serve",
     "app/src-tauri",
     "vendor/ofm-engine",
 ]
@@ -26,6 +28,7 @@ pw-match = { path = "crates/pw-match" }
 pw-sim = { path = "crates/pw-sim" }
 pw-import = { path = "crates/pw-import" }
 pw-career = { path = "crates/pw-career" }
+pw-view = { path = "crates/pw-view" }
 ofm-engine = { path = "vendor/ofm-engine" }
 rand = "0.10"
 

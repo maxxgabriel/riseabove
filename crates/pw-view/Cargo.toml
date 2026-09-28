@@ -1,0 +1,18 @@
+[package]
+name = "pw-view"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+pw-core.workspace = true
+pw-data.workspace = true
+pw-world.workspace = true
+pw-match.workspace = true
+pw-sim.workspace = true
+pw-import.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rustc-hash.workspace = true
+smallvec.workspace = true
+thiserror.workspace = true
