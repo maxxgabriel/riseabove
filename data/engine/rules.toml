@@ -1,0 +1,146 @@
+# Football rules as data (02 §3). Every nation uses one profile; profiles can
+# be assigned per confederation and overridden per nation code. Deals, squad
+# registrations and team selection are checked against these, and a deal can
+# fail because of them.
+
+[[profile]]
+key = "default"
+bloc = ""
+squad_max = 25
+homegrown_min = 0
+homegrown_age_from = 15
+homegrown_age_to = 21
+homegrown_years = 3
+u21_exempt_age = 21
+foreign_squad_max = 0          # 0 = unlimited
+foreign_on_pitch_max = 0       # 0 = unlimited
+min_pro_age = 16
+max_contract_years = 5
+max_contract_years_minor = 3
+minor_age = 18
+minors_abroad_min_age = 18
+bloc_minors_min_age = 16
+work_permit = false
+work_permit_min_points = 15
+max_loans_in = 6
+max_loans_out = 0              # 0 = unlimited
+loans_domestic_only = false
+red_ban_straight = 3
+red_ban_second_yellow = 1
+cup_tied = true
+registrations_per_season = 3
+play_for_clubs_per_season = 2
+max_foreign_age_youth = 0      # 0 = no extra restriction
+
+[[profile]]
+key = "uefa_bloc"
+bloc = "EU"
+squad_max = 25
+homegrown_min = 8
+homegrown_age_from = 15
+homegrown_age_to = 21
+homegrown_years = 3
+u21_exempt_age = 21
+foreign_squad_max = 0
+foreign_on_pitch_max = 0
+min_pro_age = 16
+max_contract_years = 5
+max_contract_years_minor = 3
+minor_age = 18
+minors_abroad_min_age = 18
+bloc_minors_min_age = 16
+work_permit = false
+work_permit_min_points = 15
+max_loans_in = 6
+max_loans_out = 0
+loans_domestic_only = false
+red_ban_straight = 3
+red_ban_second_yellow = 1
+cup_tied = true
+registrations_per_season = 3
+play_for_clubs_per_season = 2
+max_foreign_age_youth = 0
+
+[[profile]]
+key = "points_permit"
+bloc = ""
+squad_max = 25
+homegrown_min = 8
+homegrown_age_from = 15
+homegrown_age_to = 21
+homegrown_years = 3
+u21_exempt_age = 21
+foreign_squad_max = 17
+foreign_on_pitch_max = 0
+min_pro_age = 17
+max_contract_years = 5
+max_contract_years_minor = 3
+minor_age = 18
+minors_abroad_min_age = 18
+bloc_minors_min_age = 18
+work_permit = true
+work_permit_min_points = 15
+max_loans_in = 6
+max_loans_out = 0
+loans_domestic_only = false
+red_ban_straight = 3
+red_ban_second_yellow = 1
+cup_tied = true
+registrations_per_season = 3
+play_for_clubs_per_season = 2
+max_foreign_age_youth = 0
+
+[[profile]]
+key = "foreigner_cap"
+bloc = ""
+squad_max = 28
+homegrown_min = 0
+homegrown_age_from = 15
+homegrown_age_to = 21
+homegrown_years = 3
+u21_exempt_age = 21
+foreign_squad_max = 6
+foreign_on_pitch_max = 4
+min_pro_age = 16
+max_contract_years = 5
+max_contract_years_minor = 3
+minor_age = 18
+minors_abroad_min_age = 18
+bloc_minors_min_age = 18
+work_permit = false
+work_permit_min_points = 15
+max_loans_in = 4
+max_loans_out = 0
+loans_domestic_only = true
+red_ban_straight = 3
+red_ban_second_yellow = 1
+cup_tied = true
+registrations_per_season = 3
+play_for_clubs_per_season = 2
+max_foreign_age_youth = 0
+
+[[assign]]
+confed = "UEFA"
+profile = "uefa_bloc"
+
+[[assign]]
+confed = "AFC"
+profile = "foreigner_cap"
+
+[[assign]]
+confed = "CONMEBOL"
+profile = "default"
+
+[[assign]]
+nation = "ENG"
+profile = "points_permit"
+
+[[assign]]
+nation = "SCO"
+profile = "points_permit"
+
+# Nations in a free-movement bloc (their players are not foreign to each other
+# for registration and work permits).
+[[bloc]]
+key = "EU"
+nations = ["AUT", "BEL", "BUL", "CRO", "CYP", "CZE", "DEN", "EST", "FIN", "FRA", "GER", "GRE", "HUN", "IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NED", "POL", "POR", "ROU", "SVK", "SVN", "ESP", "SWE", "NOR", "ISL", "SUI", "LIE"]

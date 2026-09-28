@@ -1,11 +1,13 @@
 //! Contract negotiations (08 §5): multi-round talks over full terms. The same
-//! state machine serves AI players (resolved within a day) and external minds
-//! (who answer through the UI, usually via their agent).
+//! state machine serves every player. AI players answer each round
+//! immediately; an external mind answers through a decision whose options are
+//! generated from the talks' state. The club side is always simulated.
 
-use pw_core::{ClubId, Date, Money, PlayerId};
+use pw_core::{AgentId, ClubId, Date, DecisionId, EventId, Money, PlayerId};
 use serde::{Deserialize, Serialize};
 
 use crate::contract::{Contract, ContractKind, Loan, SquadStatus};
+use crate::event::Causes;
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Terms {
@@ -26,6 +28,22 @@ pub struct Terms {
 }
 
 impl Terms {
+    pub fn from_contract(c: &Contract, years: u8) -> Self {
+        Self {
+            wage: c.wage,
+            years,
+            signing_fee: 0,
+            appearance_bonus: c.appearance_bonus,
+            goal_bonus: c.goal_bonus,
+            clean_sheet_bonus: 0,
+            release_clause: c.release_clause,
+            status: c.promised_status,
+            yearly_rise: c.yearly_rise,
+            relegation_cut: c.relegation_cut,
+            sell_on_to_player: 0,
+        }
+    }
+
     pub fn to_contract(&self, club: ClubId, kind: ContractKind, start: Date) -> Contract {
         Contract {
             club,
@@ -61,6 +79,21 @@ pub enum TalkKind {
     FirstPro,
     /// A loan's player-side agreement (wage share is the club's business).
     Loan,
+    /// Agreement now to join on a free when the current contract ends.
+    PreContract,
+}
+
+impl TalkKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            TalkKind::Renewal => "contract renewal",
+            TalkKind::Transfer => "personal terms",
+            TalkKind::FreeAgent => "contract as a free agent",
+            TalkKind::FirstPro => "first professional contract",
+            TalkKind::Loan => "loan terms",
+            TalkKind::PreContract => "pre-contract",
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -71,6 +104,29 @@ pub enum TalkState {
     ClubTurn,
     Agreed,
     Collapsed,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum TalkEnd {
+    Signed,
+    PlayerRejected,
+    ClubWalkedAway,
+    TimedOut,
+    Overtaken,
+    /// The deal broke a registration, labour or eligibility rule.
+    Blocked,
+}
+
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+pub enum TalkLine {
+    ClubOffer(Terms),
+    PlayerCounter(Terms),
+    ClubImproved(Terms),
+    ClubHeldFirm,
+    PlayerAccepted,
+    PlayerRejected,
+    ClubWalkedAway,
+    AgentPressed,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -86,13 +142,20 @@ pub struct Negotiation {
     pub ask: Option<Terms>,
     /// Club's private ceiling; never shown to the player.
     pub limit: Terms,
+    /// The agent negotiating for the player, if any.
+    pub agent: AgentId,
     pub round: u8,
     pub max_rounds: u8,
     pub opened: Date,
     pub deadline: Date,
     pub state: TalkState,
-    /// Human-readable log of the talks, newest last.
-    pub log: Vec<(Date, String)>,
+    pub end: Option<TalkEnd>,
+    /// Current decision for an external player, if any.
+    pub decision: DecisionId,
+    /// What happened, round by round (rendered into text by the client).
+    pub log: Vec<(Date, TalkLine)>,
+    pub causes: Causes,
+    pub event: EventId,
 }
 
 impl Negotiation {

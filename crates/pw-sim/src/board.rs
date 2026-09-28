@@ -48,10 +48,13 @@ pub fn weekly(w: &mut World) {
         let target = f32::from(c.board.target_position);
         let gap = (target - pos) / size; // + ahead of target
         let relegation = pos > size - f32::from(comp.relegate) - 0.5;
-        let b = &mut w.clubs[club].board;
         let delta = gap * 6.0 - if relegation { 2.0 } else { 0.0 } + 0.5;
-        let patience = 0.6 + f32::from(b.patience) / 100.0;
-        b.satisfaction = (f32::from(b.satisfaction) + delta / patience).clamp(0.0, 100.0) as u8;
+        let patience = 0.6 + f32::from(w.clubs[club].board.patience) / 100.0;
+        // Hot-headed or ambitious chairmen feel bad results more sharply.
+        let temper = crate::governance::owner_temper(w, club);
+        let felt = if delta < 0.0 { delta * temper } else { delta };
+        let b = &mut w.clubs[club].board;
+        b.satisfaction = (f32::from(b.satisfaction) + felt / patience).clamp(0.0, 100.0) as u8;
         if b.satisfaction < 15 {
             b.warnings += 1;
             b.satisfaction = 40;
@@ -66,7 +69,10 @@ pub fn weekly(w: &mut World) {
             w.staff[m].record.sackings += 1;
             w.clubs[club].staff.retain(|&s| s != m);
             w.clubs[club].manager = StaffId::NONE;
-            w.events.push(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club });
+            let warnings = w.clubs[club].board.warnings;
+            let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+            w.events.push_caused(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club }, causes);
+            crate::managers::on_departure(w, m, club, pw_world::careers::JobEnd::Sacked);
         }
         appoint(w, club);
     }
@@ -81,15 +87,20 @@ pub fn appoint(w: &mut World, club: ClubId) {
     let best = w
         .staff
         .iter_enumerated()
-        .filter(|(_, s)| s.role == StaffRole::Manager && !s.employed() && !s.retired)
+        .filter(|(id, s)| s.role == StaffRole::Manager && !s.employed() && !s.retired && !w.intl.managers.contains(id))
+        // Licensing: bigger clubs need higher coaching badges.
+        .filter(|(_, s)| crate::affairs::coaching_level(w, s.person) >= crate::affairs::required_level(w.clubs[club].reputation))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 1500)
         .map(|(id, s)| {
             let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0
                 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 };
             (id, fit)
         })
-        .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)))
-        .map(|(id, _)| id);
+        .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));
+    let best_fit = best.map_or(-9.0, |b| b.1);
+    let best = best.map(|b| b.0);
+    // A bigger club may prefer to lure a manager doing well elsewhere.
+    let best = crate::managers::try_poach(w, club, best_fit).or(best);
     let chosen = best.or_else(|| {
         let a = w.clubs[club].staff.iter().copied().find(|&s| w.staff[s].role == StaffRole::Assistant)?;
         w.staff[a].role = StaffRole::Manager;
@@ -110,6 +121,7 @@ pub fn appoint(w: &mut World, club: ClubId) {
     w.clubs[club].board.satisfaction = 60;
     w.clubs[club].board.warnings = 0;
     w.events.push(today, Visibility::Public, EventKind::ManagerAppointed { staff: m, club });
+    crate::managers::on_appointment(w, m, club);
 }
 
 /// A newly qualified manager when the market is empty (F7).

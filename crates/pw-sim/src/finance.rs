@@ -4,11 +4,10 @@ use pw_core::{ClubId, Money, NationId};
 use pw_world::{PlayerStatus, World};
 
 /// Season revenue from broadcast, commercial and sponsorship (gate is per match).
+/// Broadcast share, commercial income and base revenue, scaled by the
+/// economy the club lives in (see `economy::club_revenue`).
 pub fn season_revenue(w: &World, club: ClubId) -> Money {
-    let c = &w.clubs[club];
-    let rep = f64::from(c.reputation) / 10_000.0;
-    let econ = f64::from(w.nations[c.nation].economy);
-    (f64::from(w.data.tuning.finance.revenue_top) * rep.powf(2.2) * econ).max(150_000.0) as Money
+    crate::economy::club_revenue(w, club)
 }
 
 pub fn season_budgets(w: &mut World, n: NationId) {

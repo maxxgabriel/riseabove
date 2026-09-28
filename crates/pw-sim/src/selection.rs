@@ -3,7 +3,7 @@
 //! picks AI line-ups and powers the protagonist's selection forecast.
 
 use pw_core::rng::{Rng, hash_key, stream};
-use pw_core::{Attr, Date, Hidden, Mentality, PlayerId, Pos, PosGroup, Slot, Tactics, TeamId};
+use pw_core::{Attr, CompId, Date, Hidden, Mentality, PlayerId, Pos, PosGroup, Slot, Tactics, TeamId};
 use pw_match::{PlayerSheet, TeamSheet};
 use pw_world::knowledge::{Observer, perceive, sigma};
 use pw_world::player::{familiarity_factor, raw_ability};
@@ -84,9 +84,11 @@ pub fn philosophy_of(w: &World, team: TeamId) -> Philosophy {
 
 /// The pool a team can pick from today: its own available players, topped up
 /// from the club's other teams when short.
-fn pool(w: &World, team: TeamId) -> Vec<PlayerId> {
+fn pool(w: &World, team: TeamId, comp: CompId) -> Vec<PlayerId> {
     let t = &w.teams[team];
-    let ok = |p: &PlayerId| w.players.hot[*p].available() && w.players.hot[*p].team == team;
+    let ok = |p: &PlayerId| {
+        w.players.hot[*p].available() && w.players.hot[*p].team == team && !w.intl.duty.contains(p) && pw_world::rules::match_eligible(w, *p, comp, t.club)
+    };
     let mut v: Vec<PlayerId> = t.squad.iter().copied().filter(ok).collect();
     if v.len() < 16 {
         let club = &w.clubs[t.club];
@@ -95,7 +97,7 @@ fn pool(w: &World, team: TeamId) -> Vec<PlayerId> {
             .iter()
             .filter(|&&o| o != team)
             .flat_map(|&o| w.teams[o].squad.iter().copied())
-            .filter(|&p| w.players.hot[p].available())
+            .filter(|&p| w.players.hot[p].available() && w.age(p) >= 15 && pw_world::rules::match_eligible(w, p, comp, t.club))
             .collect();
         extra.sort_by(|&a, &b| w.players.cold[b].ca.cmp(&w.players.cold[a].ca).then(a.cmp(&b)));
         let need = 16 - v.len();
@@ -108,6 +110,19 @@ fn pool(w: &World, team: TeamId) -> Vec<PlayerId> {
             if !v.contains(&p) && w.players.hot[p].status == pw_world::PlayerStatus::Active {
                 v.push(p);
             }
+        }
+    }
+    // Foreigners-on-the-pitch rules (02 §3): the manager only considers as many
+    // foreigners as can take part (starters plus a few substitutes).
+    let nation = w.clubs[t.club].nation;
+    let prof = pw_world::rules::profile(w, nation);
+    if prof.foreign_on_pitch_max > 0 {
+        let mut foreign: Vec<PlayerId> = v.iter().copied().filter(|&p| pw_world::rules::is_foreign(w, p, nation)).collect();
+        let allowed = usize::from(prof.foreign_on_pitch_max) + 2;
+        if foreign.len() > allowed {
+            foreign.sort_by(|&a, &b| w.players.cold[b].ca.cmp(&w.players.cold[a].ca).then(a.cmp(&b)));
+            let drop: Vec<PlayerId> = foreign.split_off(allowed);
+            v.retain(|p| !drop.contains(p));
         }
     }
     v.sort();
@@ -124,12 +139,13 @@ struct Candidate {
 }
 
 /// Score candidates for a formation from the manager's perspective.
-fn candidates(w: &World, team: TeamId, slots: &[Slot; 11], phil: &Philosophy, date: Date, noise_key: u64) -> Vec<Candidate> {
+fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &Philosophy, date: Date, noise_key: u64) -> Vec<Candidate> {
     let club = w.teams[team].club;
     let (judging, _) = w.club_manager_judging(club);
     let t = &w.data.tuning.perception;
     let famous = t.famous_reputation;
-    pool(w, team)
+    let manager = crate::social::team_manager(w, team);
+    pool(w, team, comp)
         .into_iter()
         .map(|p| {
             let h = &w.players.hot[p];
@@ -155,9 +171,17 @@ fn candidates(w: &World, team: TeamId, slots: &[Slot; 11], phil: &Philosophy, da
                     fitness: (f32::from(h.condition) / 100.0 * (0.7 + 0.3 * f32::from(h.sharpness) / 100.0)).clamp(0.0, 1.0)
                         - if h.condition < 70 { 0.25 } else { 0.0 },
                     role: 0.0,
-                    trust: status_trust(c.status) + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
+                    // Status says what the club expects; the manager's own trust,
+                    // built from memories of training, promises and rows, moves it.
+                    trust: manager.map_or(status_trust(c.status), |m| {
+                        0.55 * status_trust(c.status) + 0.45 * crate::consider::trust(w, m, c.person)
+                            - 0.05 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::PoorAttitude)
+                            + 0.04 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::ExtraWork)
+                    }) + w.clubs[club].manager.get().map_or(0.0, |s| crate::managers::preference(w, s, p) * 0.06)
+                        + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
                     youth: if age <= 21.5 { f32::from(phil.youth_trust) / 100.0 * (1.0 - ((age - 17.0) / 5.0).clamp(0.0, 1.0)) } else { 0.0 },
-                    rotation: if rested <= 3 { 1.0 } else { 0.0 },
+                    // Players with a managed condition need longer between games.
+                    rotation: if rested <= 3 || (rested <= 5 && w.medical.needs_managing(p)) { 1.0 } else { 0.0 },
                 },
                 keeper: c.familiarity[Pos::GK.idx()] >= 12,
                 leadership: c.attrs.get(Attr::Leadership),
@@ -181,8 +205,13 @@ fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, wt: &Weights, 
         - wt.rotation * rotation
 }
 
-/// Pick the line-up for `team`'s next match.
+/// Pick the line-up for `team`'s next match (competition unknown: no cup-tying).
 pub fn select(w: &World, team: TeamId, date: Date, importance: f32, bench_size: u8, noise: u64) -> Option<Selection> {
+    select_in(w, team, CompId::NONE, date, importance, bench_size, noise)
+}
+
+/// Pick the line-up for a match in `comp`, honouring its eligibility rules.
+pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: f32, bench_size: u8, noise: u64) -> Option<Selection> {
     let phil = philosophy_of(w, team);
     let wt = weights(phil.archetype);
     let noise_key = hash_key(&[w.seed, stream::SELECTION, u64::from(team.0), date.0 as u64, noise]);
@@ -199,7 +228,7 @@ pub fn select(w: &World, team: TeamId, date: Date, importance: f32, bench_size: 
     let mut best: Option<(f32, u8, [Slot; 11], Vec<Candidate>, Vec<usize>)> = None;
     for &f in &formations {
         let slots = w.data.formations[usize::from(f)].slots;
-        let cands = candidates(w, team, &slots, &phil, date, noise_key);
+        let cands = candidates(w, team, comp, &slots, &phil, date, noise_key);
         if cands.len() < 11 {
             return None;
         }

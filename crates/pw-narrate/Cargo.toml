@@ -1,0 +1,10 @@
+[package]
+name = "pw-narrate"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+pw-core.workspace = true
+pw-data.workspace = true
+pw-world.workspace = true

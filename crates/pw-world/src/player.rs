@@ -11,6 +11,9 @@ pub enum PlayerStatus {
     Active,
     FreeAgent,
     Retired,
+    /// Playing outside professional registration: grassroots children, and
+    /// adults in amateur and semi-professional football.
+    Amateur,
 }
 
 /// Fields touched every simulated day. Kept small and `Copy` so daily passes
@@ -46,6 +49,8 @@ pub struct PlayerHot {
     pub training: u8,
     /// Minutes over roughly the last four weeks (decayed daily).
     pub minutes_4w: u16,
+    /// Minutes since the last weekly social pass (promises count these).
+    pub minutes_week: u16,
     pub last_match: Date,
 }
 
@@ -72,6 +77,7 @@ impl Default for PlayerHot {
             form: [0; 5],
             training: 65,
             minutes_4w: 0,
+            minutes_week: 0,
             last_match: Date(i32::MIN / 2),
         }
     }

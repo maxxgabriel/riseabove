@@ -165,19 +165,85 @@ finances) → yearly compaction.
 `report F`. Prints timing per 30 days, match/goal/home/draw stats, event counts (transfers, loans, renewals,
 retirements, injuries, sackings, bids), top-division tables and scorers.
 
-### 3.8 `crates/pw-career` — the protagonist layer — ⚠️ restarting at full depth
-- `lib.rs` exists (Game = world + career, save/load, advance modes: day / until something needs you / until date,
-  decision answering). It references modules not written yet, so **the crate does not compile yet**.
-- The earlier thin approach (inbox of canned messages + a retire button) was **scrapped** after your feedback.
-  The career layer is being rebuilt as systems (see §4).
+### 3.8 The systemic life layer — ⚠️ written 2026-09-28, never compiled
+Built to `docs/PRODUCT_NORTH_STAR.md` and `docs/SYSTEMIC_SIMULATION_RULES.md`. Everything below runs for **every
+person in the world**, whether or not anyone is inhabited; the only reads of `Person.mind` are decision routing
+(who answers) and recording level of detail.
 
-### 3.9 `app/` — Tauri + React client — ⬜ not started
+- **Causal events** (`pw-world/event.rs`): every event has an id, visibility and a `causes` list (earlier events or
+  typed facts such as "training below par for 3 weeks", "share of minutes 20% vs 60% expected", "club X has been
+  watching"). `why <event>` in the client renders them.
+- **Memories** (`pw-world/social.rs`): typed, dated, sourced episodes with salience that fades by kind and by the
+  person's grudge-holding; formative ones never fully fade. Relationship numbers are a summary moved by memories.
+- **Beliefs** (`pw-world/beliefs.rs`): what each person has been told, by whom, through which channel, how sure.
+- **Life** (`pw-world/life.rs`, `pw-sim/life.rs`): one model for everyone — home and languages, partner as a real
+  person (dating → living together → marriage, or separation — both sides decide), children, ageing parents,
+  money (tax, lifestyle, family support, debt), routine hours, stress, sleep, fulfilment, well-being with reasons.
+  Relocation: the partner decides for themselves whether to come.
+- **Considerations** (`pw-sim/consider.rs`): the shared factor library decisions draw on.
+- **Social dynamics** (`pw-sim/social.rs`): coaches notice training streaks (coach notes + memories), teammates bond
+  or become rivals, promises come due and are kept or broken, influential unhappy players spread unrest, managers
+  pick captains.
+- **Conversations** (`pw-sim/talk.rs`): one resolver for everyone. Managers summon players for real reasons; players
+  ask for minutes, feedback, contracts, loans, to leave, to follow up promises. Tones land differently on
+  different people; outcomes (promises, deferrals, refusals, fines, listings, fall-outs) come from both people's
+  state and history.
+- **Contract talks** (`pw-sim/negotiation.rs`): multi-round for every renewal, transfer, free-agent and first-pro
+  deal; club ceilings, agent skill, walk-aways, deadlines. Replaces the old accept/reject.
+- **AI minds** (`pw-sim/mind.rs`) and **intents** (`pw-sim/intents.rs`): AI people act on their own initiative
+  through the same intents a human uses (meetings, transfer requests, agents, training plans, routines,
+  retirement, staff jobs). Retirement is a choice for everyone; nobody's world ends.
+- **Agents** (`pw-sim/agents.rs`): agents are people with networks, honesty and greed; they pitch clients (clubs gain
+  real evidence), hear about interest through their ties, and pass on what they choose to.
+- **Press and fans** (`pw-sim/media.rs`): outlets and journalists with sources; rumours only from real tracking
+  leaked by a real person; news from public events and leaks; outlet credibility tracks whether rumours came true;
+  per-club fan standing with reasons; public image.
+- **Staff market** (`pw-sim/staffing.rs`): clubs hire backroom staff from the pool retired players (anyone) join.
+- **Narration** (`crates/pw-narrate`): text as a pure function of state; every line points to its source.
+- **Career layer** (`crates/pw-career`): no world facts — a session (who is inhabited, decision log, notes, goals),
+  `take_control`/`release`, intents, perceived views, feed, and creating a new person via the world's generator.
+- **Text client** (`pathway` binary): `pathway new synth small --warmup 365`, then `find`, `become <id>`, `next event`,
+  `decisions`, `answer`, `meet manager minutes calm`, `train`, `routine`, `why <event>` and more (`help`).
+
+### 3.9 Breadth pass — ⚠️ written 2026-09-28, never compiled
+Ten segmented commits (`2d4fc60` … `2df1756`, ≈ 11k lines). Full catalogue, consequence chains, assumptions and
+risks: **`docs/WORLD_SYSTEMS.md`**.
+- **Rules** (`rules.toml`, profiles per confederation/nation): work permits (points), homegrown and foreigner quotas,
+  loan limits, contract length caps, cup-tying, match eligibility; selection and signing honour them.
+- **Economy & governance**: nation economies (growth, inflation, broadcast deals, league strength), owners with
+  temperaments and transfer styles, board concerns, austerity, administration and points deductions, takeovers,
+  stadium/training/academy projects.
+- **Manager careers**: archetypes and media styles, job histories, entourages that follow, favourite players,
+  tactical changes, resignations, poaching, retirement.
+- **Scouting network**: assignments by brief (nation, competition, youth, player, need), scout biases and
+  familiarity, capacity, reports and verdicts, analysts and recommendations; clubs see the world through them.
+- **Squad planning & deals**: multi-season plans and needs, shortlists, enquiries, gazumping, medicals, add-ons,
+  sell-ons, buy-backs, payables, pre-contracts, trials, loan terms (options, obligations, recalls).
+- **Youth pipeline**: local grassroots clubs, academies with styles and reach, age-group sides, trials,
+  scholarships, releases, school and exams, amateur football for those who don't make it.
+- **National teams**: federations and managers, squads from imperfect views, windows, friendlies, qualifying,
+  continental finals and a world tournament, caps and allegiance, club-vs-country friction.
+- **Medical, growth, dressing rooms, performance**: injury cases with diagnosis uncertainty, treatment choices,
+  setbacks, rushed returns, fragility and chronic conditions; mentoring, character drift, stagnation, learned
+  traits; dressing-room hierarchy, groups, integration and influence; per-appearance records read differently by
+  managers, fans, media, analysts and scouts.
+- **Renown, press, honours**: local/continental/fame/followers; interviews and press conferences with real
+  consequences, match reports, features, wonderkid lists, season reviews, retrospectives; playmaker/golden
+  glove/team and manager of the season, player of the month, world and continental awards by votes, records,
+  milestones, club legends, hall of fame.
+- **Affairs & commerce**: coaching badges and courses (licence gates for jobs), homes and cost of living, personal
+  staff, giving and foundations, investments; post-playing careers embodied in real systems (pundits and
+  journalists at real outlets with real sources, agents as agencies, coaches/scouts/analysts/directors in the
+  staff pool, ambassadors, business); brands, club sponsorship, endorsements with image rights, clashes and
+  morality clauses.
+
+### 3.10 `app/` — desktop client — ⬜ not started (the terminal client comes first)
 
 ---
 
 ## 4. What's next (in order)
 
-### Step 1 — World-level social depth (in progress) — `pw-sim/src/social.rs`, `talk.rs`, `negotiation.rs`
+### Step 1 — World-level social depth — ⚠️ written (§3.8); needs compiling and balancing
 1. Weekly relationship dynamics for every squad: manager↔player trust from training ratings, match ratings,
    professionalism and incidents; teammate affinity from shared time and compatibility; rivalries for the same
    position; cliques; dressing-room influence (reputation, leadership, tenure) that spreads unrest when an influential
@@ -195,7 +261,7 @@ retirements, injuries, sackings, bids), top-division tables and scorers.
 5. Hook into existing systems: selection uses real manager trust (not just squad status); development and workload use
    each player's training plan; AI coaches set plans monthly (weakest key attributes, intensity by professionalism).
 
-### Step 2 — The protagonist layer, at FM depth — `pw-career`
+### Step 2 — Living as one person, at FM depth — partly written (§3.8: control of anyone, views, feed, conversations, talks, life, agents, press, staff careers); the rest below
 1. Creation: identity, family background and eligibility, body, position, **talent tier sampled from the world's own
    youth distribution for that nation** (PA stays hidden like everyone's), personality archetype within normal ranges,
    start stage (academy / scholar / late starter / take over an existing youth player), club choice.
@@ -224,10 +290,9 @@ retirements, injuries, sackings, bids), top-division tables and scorers.
 12. Milestones, records and career goals you pin — tracked from real stats; no scripted chapters.
 
 ### Step 3 — World gaps
-- **National teams:** squads picked by national coaches from perception, international windows, qualifiers,
-  tournaments, youth national teams, eligibility and one-time switches. (Not implemented yet — big item.)
-- Registration quotas (homegrown, foreigners), work permits, discipline carry-over across competitions,
-  sustainability rules, club takeovers/bankruptcy, stadium/facility investment.
+- National teams, registration quotas/work permits, takeovers/administration and facility projects are now written
+  (§3.9, unverified). Still missing: youth international tournaments, discipline carry-over across competitions,
+  sustainability (spending) rules.
 - Injury rate calibration (target 1.2–1.8 time-loss injuries per player-season), goals 2.35 → 2.6–2.9 on real data.
 
 ### Step 4 — Client (Tauri 2 + React/TypeScript) — professional, dense, keyboard-first
@@ -250,24 +315,29 @@ save size/time, 20-season autonomy benchmark, soak tests.
 Last verified points:
 - `pw-core`, `pw-data`: tests passed.
 - `pw-match`: tests passed; calibration run as recorded above.
-- `pw-world`, `pw-sim`, `pw-import`, `pw-cli`: compiled with zero warnings; one 400-day synthetic run.
+- `pw-world`, `pw-sim`, `pw-import`, `pw-cli`: compiled with zero warnings; one 400-day synthetic run (before §3.8).
 
-Changed since verification (must be checked, in this order):
-1. `pw-core` (`TalkId`), `pw-world` (`social.rs`, `negotiation.rs`, `TrainingPlan`, world fields), `pw-sim/src/save.rs`
-   (generic save/load), `pw-sim` + `pw-import` constructors (`plan` field), `pw-world/src/rules.rs` (squad-size fix),
-   `pw-sim/src/board.rs` (sacking tuning), `pw-cli` (report tweaks, typed load).
-2. `pw-career` will not compile until Step 2 modules exist — exclude it from builds until then
-   (`cargo check -p pw-cli` builds everything except the career crate and the app).
+**Everything in §3.8 and §3.9 was written without compiling** (your instruction: write code now, build later). Expect a
+round of compile fixes. Suggested order when you ask:
+```
+cargo check -p pw-world
+cargo check -p pw-sim
+cargo check -p pw-narrate -p pw-career
+cargo check -p pw-cli
+cargo test -p pw-core -p pw-data -p pw-match -p pw-sim
+cargo run --release -p pw-cli --bin pathway-sim -- synth small --days 400   # world health with the new systems
+cargo run --release -p pw-cli --bin pathway -- new synth small --warmup 180  # play
+```
+Then: balance passes on meeting frequency, promise outcomes, rumour volume, relationship formation, agent
+coverage and life events using headless runs (checklist §3 in `docs/ANTI_LINEAR_DESIGN_CHECKLIST.md`).
 
-Commands (when you want them run):
-```
-cargo check -p pw-cli                          # everything except pw-career and the app
-cargo test -p pw-core -p pw-data -p pw-match   # unit tests
-cargo test -p pw-match --release --test backend -- --ignored --nocapture   # match calibration report
-cargo run --release -p pw-cli --bin pathway-sim -- synth small --days 400  # one season, synthetic
-cargo run --release -p pw-cli --bin pathway-sim -- synth huge --days 30    # 300k-player performance check
-cargo run --release -p pw-cli --bin pathway-sim -- import <your-folder> --days 365 --save world.pws
-```
+Known gaps, next in line (see `docs/WORLD_SYSTEMS.md` §5–§6 for risks and shallow areas):
+- Client commands for the new intents and decisions (courses, homes, helpers, giving, careers, press, allegiance,
+  treatment, endorsements) — the world supports them; `pathway` doesn't expose them yet.
+- Humans cannot yet inhabit a *role* such as national manager, board or owner (the person can be inhabited; the
+  role's choices are AI).
+- Event-log compaction, per-nation eligibility and fame indices for 300k-player scale.
+- Automated checks from the checklist (mind-read allowlist, swap test, takeover-changes-nothing test).
 
 ---
 
@@ -292,8 +362,8 @@ Tips:
 - Start small if you like (one nation, two tiers) to test, then grow.
 
 ### 6.2 Decisions still open
-- **Post-career** (you chose "decide later"): when the time comes — coach/manager/pundit as a personal career,
-  or full FM-style club management.
+- **Post-career**: world-side paths now exist (coach, pundit, journalist, agent, analyst, scout, director,
+  ambassador, business). Open: whether a human in a manager's job gets FM-style club-management screens.
 - **Which nations/leagues are active** at launch (affects performance; everything scales, but 300k players with youth
   sides is the upper target).
 - **Distribution intent:** personal only (GPL engine is fine) or public someday (native engine must be finished first).

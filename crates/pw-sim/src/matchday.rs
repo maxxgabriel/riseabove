@@ -47,8 +47,8 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
     let fx = w.fixtures.get(f);
     let comp = &w.comps[fx.comp];
     let imp = importance(w, fx.comp, fx.decisive);
-    let home = selection::select(w, fx.home, w.date, imp, comp.rules.bench, 0);
-    let away = selection::select(w, fx.away, w.date, imp, comp.rules.bench, 0);
+    let home = selection::select_in(w, fx.home, fx.comp, w.date, imp, comp.rules.bench, 0);
+    let away = selection::select_in(w, fx.away, fx.comp, w.date, imp, comp.rules.bench, 0);
     let (home, away) = match (home, away) {
         (Some(h), Some(a)) => (h, a),
         (None, _) => return Outcome::Walkover { fixture: f, home_forfeits: true },
@@ -175,6 +175,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
             h.condition = line.condition_end;
             h.sharpness = (f32::from(h.sharpness) + f32::from(line.minutes) / 90.0 * 14.0).min(100.0) as u8;
             h.minutes_4w = h.minutes_4w.saturating_add(u16::from(line.minutes));
+            h.minutes_week = h.minutes_week.saturating_add(u16::from(line.minutes));
             h.push_rating(line.rating);
             h.last_match = today;
             let load = f32::from(line.minutes) * 9.0;
@@ -190,7 +191,8 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
             }
         }
         if let Some(&(_, straight)) = red_players.iter().find(|(x, _)| *x == p) {
-            let matches = if straight { 3 } else { 1 };
+            let prof = pw_world::rules::profile(w, w.clubs[club].nation);
+            let matches = if straight { prof.red_ban_straight } else { prof.red_ban_second_yellow };
             w.players.hot[p].ban = w.players.hot[p].ban.saturating_add(matches);
             w.events.push(today, Visibility::Public, EventKind::Suspended { player: p, matches });
         }
@@ -244,6 +246,8 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
         *mood = (i32::from(*mood) + result_sign[side] * 3).clamp(0, 100) as u8;
     }
     gate_receipts(w, clubs[0], comp_kind, senior[0]);
+    let imp = importance(w, fx.comp, fx.decisive);
+    crate::interpret::record(w, &fx, home, away, &r, imp);
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);

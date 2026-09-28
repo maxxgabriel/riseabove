@@ -1,18 +1,24 @@
-//! Relationships, memories and promises between people (07 §11, 09 §3–4).
+//! Relationships, memories and promises between people (07 §11, 09 §3–4, S12).
+//!
+//! The source of truth is the *memory*: a typed, dated, sourced episode ("broke
+//! a promise to me", "argued in front of the squad", "put in extra work all
+//! winter"). The `Rel` numbers are a cached summary that memories move; any
+//! behaviour that needs to know *why* reads the memories themselves.
 //!
 //! Relationships are directed and sparse: only pairs that have actually
-//! interacted are stored. Every person in the world uses the same store, so a
-//! manager's trust in an AI midfielder and in the protagonist evolve by the
-//! same rules (P1).
+//! interacted are stored. Every person in the world uses the same store and
+//! the same rules, so a manager's trust in an AI midfielder and in the person
+//! a human inhabits evolve identically (P1).
 
-use pw_core::{ClubId, Date, PersonId, Pos};
+use pw_core::math::exp;
+use pw_core::{ClubId, Date, EventId, PersonId, Pos};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
 use crate::FxHashMap;
 use crate::contract::SquadStatus;
 
-/// How `from` feels about `to`.
+/// How `from` feels about `to` — a summary of their shared memories.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Rel {
     /// Liking, -100..=100.
@@ -63,6 +69,23 @@ pub enum MemoryKind {
     Settled,
     Insulted,
     Supported,
+    /// Trained poorly over a stretch the observer noticed.
+    PoorAttitude,
+    /// Stood up for them in a meeting or to the press.
+    DefendedMe,
+    /// Talked calmly and honestly in a difficult conversation.
+    HonestTalk,
+    /// Asked for something and was refused.
+    Refused,
+    /// Was given a chance (a debut, a start, a new role).
+    GaveChance,
+    /// Negotiated hard or badly on their behalf / against them.
+    HardBargain,
+    LetDown,
+    /// Joined a club this person (or fanbase) resents.
+    Betrayal,
+    /// Played together through a long stretch.
+    SharedPitch,
 }
 
 impl MemoryKind {
@@ -86,7 +109,72 @@ impl MemoryKind {
             MemoryKind::Settled => "helped settle in",
             MemoryKind::Insulted => "was insulted",
             MemoryKind::Supported => "offered support",
+            MemoryKind::PoorAttitude => "showed a poor attitude in training",
+            MemoryKind::DefendedMe => "stood up for them",
+            MemoryKind::HonestTalk => "had an honest conversation",
+            MemoryKind::Refused => "turned down a request",
+            MemoryKind::GaveChance => "gave them a chance",
+            MemoryKind::HardBargain => "drove a hard bargain",
+            MemoryKind::LetDown => "let them down",
+            MemoryKind::Betrayal => "crossed a line they won't forget",
+            MemoryKind::SharedPitch => "shared the pitch",
         }
+    }
+
+    /// Immediate effect on the rememberer's view: (affinity, trust, respect).
+    pub const fn effect(self) -> (i8, i8, i8) {
+        match self {
+            MemoryKind::PromiseKept => (6, 14, 6),
+            MemoryKind::PromiseBroken => (-12, -24, -8),
+            MemoryKind::Argument => (-14, -6, -4),
+            MemoryKind::PublicPraise => (10, 4, 6),
+            MemoryKind::PublicCriticism => (-16, -8, -6),
+            MemoryKind::Celebrated => (5, 1, 1),
+            MemoryKind::Mentored => (12, 8, 10),
+            MemoryKind::Dropped => (-5, -3, 0),
+            MemoryKind::Backed => (8, 8, 4),
+            MemoryKind::Fined => (-8, -4, 0),
+            MemoryKind::TransferRequest => (-10, -14, -4),
+            MemoryKind::RefusedLoan => (-4, -6, 0),
+            MemoryKind::ExtraWork => (3, 6, 8),
+            MemoryKind::Apologised => (6, 4, 2),
+            MemoryKind::Rivalry => (-3, 0, 2),
+            MemoryKind::Settled => (10, 5, 2),
+            MemoryKind::Insulted => (-18, -6, -6),
+            MemoryKind::Supported => (10, 6, 3),
+            MemoryKind::PoorAttitude => (-4, -8, -8),
+            MemoryKind::DefendedMe => (14, 10, 6),
+            MemoryKind::HonestTalk => (4, 6, 4),
+            MemoryKind::Refused => (-5, -3, 0),
+            MemoryKind::GaveChance => (10, 6, 4),
+            MemoryKind::HardBargain => (-4, -2, 3),
+            MemoryKind::LetDown => (-8, -12, -4),
+            MemoryKind::Betrayal => (-30, -25, -10),
+            MemoryKind::SharedPitch => (2, 1, 1),
+        }
+    }
+
+    /// Days for a memory to lose half its weight (before personality).
+    pub const fn half_life_days(self) -> u16 {
+        match self {
+            MemoryKind::Celebrated | MemoryKind::SharedPitch | MemoryKind::Dropped => 60,
+            MemoryKind::Refused | MemoryKind::HardBargain | MemoryKind::Rivalry | MemoryKind::HonestTalk => 120,
+            MemoryKind::Argument | MemoryKind::Fined | MemoryKind::PoorAttitude | MemoryKind::ExtraWork | MemoryKind::Apologised => 180,
+            MemoryKind::PublicPraise | MemoryKind::PublicCriticism | MemoryKind::RefusedLoan | MemoryKind::Backed | MemoryKind::Supported => 270,
+            MemoryKind::PromiseKept | MemoryKind::TransferRequest | MemoryKind::LetDown | MemoryKind::Insulted | MemoryKind::GaveChance => 365,
+            MemoryKind::PromiseBroken | MemoryKind::Settled | MemoryKind::DefendedMe => 540,
+            MemoryKind::Mentored | MemoryKind::Betrayal => 1460,
+        }
+    }
+
+    /// Formative memories never fade below a floor.
+    pub const fn formative(self) -> bool {
+        matches!(self, MemoryKind::Mentored | MemoryKind::Betrayal | MemoryKind::DefendedMe | MemoryKind::PromiseBroken)
+    }
+
+    pub const fn negative(self) -> bool {
+        let (a, t, _) = self.effect();
+        a + t < 0
     }
 }
 
@@ -96,6 +184,23 @@ pub struct Memory {
     pub about: PersonId,
     pub kind: MemoryKind,
     pub date: Date,
+    /// Initial strength, 0–100.
+    pub salience: u8,
+    /// Happened in front of others (squad, press, fans).
+    pub public: bool,
+    /// The event that created it.
+    pub cause: EventId,
+}
+
+impl Memory {
+    /// Current weight, 0–100: salience decaying by kind; `grudge` (0.5–2.0)
+    /// is the rememberer's disposition to hold on to things.
+    pub fn weight(&self, today: Date, grudge: f32) -> f32 {
+        let age = self.date.days_until(today).max(0) as f32;
+        let hl = f32::from(self.kind.half_life_days()) * grudge.clamp(0.4, 2.5);
+        let w = f32::from(self.salience) * exp(-0.693 * age / hl.max(1.0));
+        if self.kind.formative() { w.max(f32::from(self.salience) * 0.25) } else { w }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
@@ -109,6 +214,8 @@ pub enum PromiseKind {
     Position(Pos),
     Loan,
     Captaincy,
+    /// Improve something specific in training before being reconsidered.
+    ImproveTraining,
 }
 
 impl PromiseKind {
@@ -121,6 +228,7 @@ impl PromiseKind {
             PromiseKind::Position(p) => format!("a chance to play as {}", p.code()),
             PromiseKind::Loan => "a loan move for game time".into(),
             PromiseKind::Captaincy => "the captaincy".into(),
+            PromiseKind::ImproveTraining => "a clear improvement in training".into(),
         }
     }
 }
@@ -135,6 +243,7 @@ pub enum PromiseState {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Promise {
+    pub id: u32,
     pub from: PersonId,
     pub to: PersonId,
     pub club: ClubId,
@@ -145,13 +254,17 @@ pub struct Promise {
     /// Minutes available to the player's team since `made` (for minutes promises).
     pub team_minutes: u32,
     pub player_minutes: u32,
+    /// The conversation or event in which it was made.
+    pub cause: EventId,
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Social {
     rel: FxHashMap<(PersonId, PersonId), Rel>,
-    pub memories: Vec<Memory>,
+    /// Memories held by each person (sparse).
+    held: FxHashMap<PersonId, SmallVec<[Memory; 4]>>,
     pub promises: Vec<Promise>,
+    next_promise: u32,
 }
 
 impl Social {
@@ -160,12 +273,19 @@ impl Social {
         self.rel.get(&(from, to)).copied()
     }
 
+    /// Everyone who has a relationship toward `to` (a full scan: use rarely,
+    /// e.g. when someone starts a new career and needs contacts).
+    pub fn toward(&self, to: PersonId) -> impl Iterator<Item = (PersonId, Rel)> + '_ {
+        self.rel.iter().filter(move |((_, b), _)| *b == to).map(|((a, _), r)| (*a, *r))
+    }
+
     /// Existing relationship or a first impression from `compat` (-30..=30).
     pub fn get_or(&self, from: PersonId, to: PersonId, today: Date, compat: i8) -> Rel {
         self.get(from, to).unwrap_or_else(|| Rel::neutral(today, compat))
     }
 
-    /// Shift how `from` sees `to`.
+    /// Shift how `from` sees `to` without a memory (slow, ambient drift such as
+    /// training together every day).
     pub fn adjust(&mut self, from: PersonId, to: PersonId, today: Date, compat: i8, affinity: i32, trust: i32, respect: i32) {
         let r = self.rel.entry((from, to)).or_insert_with(|| Rel::neutral(today, compat));
         r.affinity = (i32::from(r.affinity) + affinity).clamp(-100, 100) as i8;
@@ -174,26 +294,99 @@ impl Social {
         r.last = today;
     }
 
-    pub fn remember(&mut self, from: PersonId, about: PersonId, kind: MemoryKind, date: Date) {
-        self.memories.push(Memory { from, about, kind, date });
+    /// Record an episode: `from` remembers `kind` about `about`. `intensity`
+    /// (0.2–2.0) scales both the immediate effect and the salience — being
+    /// criticised by a hero stings more than by a stranger.
+    #[allow(clippy::too_many_arguments)]
+    pub fn remember(&mut self, from: PersonId, about: PersonId, kind: MemoryKind, date: Date, cause: EventId, public: bool, intensity: f32, compat: i8) {
+        if from == about || from.is_none() || about.is_none() {
+            return;
+        }
+        let k = intensity.clamp(0.2, 2.0) * if public { 1.25 } else { 1.0 };
+        let (a, t, r) = kind.effect();
+        let scale = |v: i8| (f32::from(v) * k).round() as i32;
+        self.adjust(from, about, date, compat, scale(a), scale(t), scale(r));
+        let salience = (60.0 * k).clamp(10.0, 100.0) as u8;
+        let list = self.held.entry(from).or_default();
+        list.push(Memory { from, about, kind, date, salience, public, cause });
+        // Bound memory per person: forget the weakest non-formative episode.
+        if list.len() > 48 {
+            if let Some(i) = list.iter().enumerate().filter(|(_, m)| !m.kind.formative()).min_by_key(|(_, m)| (m.salience, m.date)).map(|(i, _)| i) {
+                list.remove(i);
+            }
+        }
     }
 
+    /// Everything `from` remembers about `about`, oldest first.
+    pub fn recall(&self, from: PersonId, about: PersonId) -> impl Iterator<Item = &Memory> {
+        self.held.get(&from).into_iter().flatten().filter(move |m| m.about == about)
+    }
+
+    /// Everything a person remembers, about anyone.
+    pub fn memories_of(&self, from: PersonId) -> impl Iterator<Item = &Memory> {
+        self.held.get(&from).into_iter().flatten()
+    }
+
+    /// Memories either side holds about the other.
     pub fn memories_between(&self, a: PersonId, b: PersonId) -> impl Iterator<Item = &Memory> {
-        self.memories.iter().filter(move |m| (m.from == a && m.about == b) || (m.from == b && m.about == a))
+        self.recall(a, b).chain(self.recall(b, a))
+    }
+
+    /// Weighted strength of one kind of memory `from` holds about `about`.
+    pub fn weight_of(&self, from: PersonId, about: PersonId, kind: MemoryKind, today: Date, grudge: f32) -> f32 {
+        self.recall(from, about).filter(|m| m.kind == kind).map(|m| m.weight(today, grudge)).sum()
+    }
+
+    /// Net weight of negative memories minus positive ones (a grievance score).
+    pub fn grievance(&self, from: PersonId, about: PersonId, today: Date, grudge: f32) -> f32 {
+        self.recall(from, about).map(|m| if m.kind.negative() { m.weight(today, grudge) } else { -0.6 * m.weight(today, grudge) }).sum()
+    }
+
+    /// The strongest memory `from` holds about `about` right now.
+    pub fn defining_memory(&self, from: PersonId, about: PersonId, today: Date, grudge: f32) -> Option<&Memory> {
+        self.recall(from, about).max_by(|a, b| a.weight(today, grudge).total_cmp(&b.weight(today, grudge)))
     }
 
     pub fn relations_of(&self, from: PersonId) -> impl Iterator<Item = (PersonId, Rel)> + '_ {
         self.rel.iter().filter(move |((f, _), _)| *f == from).map(|((_, t), r)| (*t, *r))
     }
 
+    pub fn make_promise(&mut self, from: PersonId, to: PersonId, club: ClubId, kind: PromiseKind, made: Date, due: Date, cause: EventId) -> u32 {
+        let id = self.next_promise;
+        self.next_promise += 1;
+        self.promises.push(Promise { id, from, to, club, kind, made, due, state: PromiseState::Open, team_minutes: 0, player_minutes: 0, cause });
+        id
+    }
+
+    pub fn promise(&self, id: u32) -> Option<&Promise> {
+        self.promises.iter().find(|p| p.id == id)
+    }
+
+    pub fn promise_mut(&mut self, id: u32) -> Option<&mut Promise> {
+        self.promises.iter_mut().find(|p| p.id == id)
+    }
+
     pub fn open_promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
         self.promises.iter().filter(move |p| p.to == to && p.state == PromiseState::Open)
     }
 
-    /// Forget relationships nobody has touched in years and old memories.
-    pub fn prune(&mut self, before: Date) {
-        self.rel.retain(|_, r| r.last >= before || r.affinity.unsigned_abs() >= 40);
-        self.memories.retain(|m| m.date >= before);
+    pub fn open_promises_between(&self, from: PersonId, to: PersonId) -> impl Iterator<Item = &Promise> {
+        self.promises.iter().filter(move |p| p.from == from && p.to == to && p.state == PromiseState::Open)
+    }
+
+    /// How many promises `from` has broken to anyone within `days` — a reputation
+    /// for keeping one's word that others can hear about.
+    pub fn broken_by(&self, from: PersonId, today: Date, days: i32) -> usize {
+        self.promises.iter().filter(|p| p.from == from && p.state == PromiseState::Broken && p.due.days_until(today) <= days).count()
+    }
+
+    /// Forget stale relationships and faded memories; settled promises go after a while.
+    pub fn prune(&mut self, today: Date, before: Date) {
+        self.rel.retain(|_, r| r.last >= before || r.affinity.unsigned_abs() >= 40 || r.trust <= 20 || r.trust >= 80);
+        for list in self.held.values_mut() {
+            list.retain(|m| m.kind.formative() || m.weight(today, 1.0) >= 3.0);
+        }
+        self.held.retain(|_, l| !l.is_empty());
         self.promises.retain(|p| p.state == PromiseState::Open || p.due >= before);
     }
 
@@ -228,6 +421,15 @@ pub fn compatibility(a: &crate::Person, b: &crate::Person, today: Date) -> i8 {
     c -= (pa - pb).abs() / 3;
     let _ = today;
     c.clamp(-30, 30) as i8
+}
+
+/// How long a person holds on to things: low temperament and high loyalty
+/// remember longer; easy-going people let go.
+pub fn grudge_factor(p: &crate::Person) -> f32 {
+    use pw_core::Hidden;
+    let temp = p.hidden.f(Hidden::Temperament);
+    let loyal = p.hidden.f(Hidden::Loyalty);
+    (1.0 + (10.0 - temp) * 0.05 + (loyal - 10.0) * 0.03).clamp(0.5, 2.0)
 }
 
 pub type Interactions = SmallVec<[(PersonId, PersonId); 8]>;

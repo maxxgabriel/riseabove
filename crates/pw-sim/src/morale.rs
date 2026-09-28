@@ -1,60 +1,98 @@
-//! Weekly morale drift (03 §8) and the AI players' statistical life model
-//! (10 §13), which feeds the same bounded well-being channel the
-//! protagonist's detailed life sim writes to.
+//! Weekly morale (03 §8) as a sum of named reasons: minutes against what the
+//! player's status promised, how things stand with the manager, promises in
+//! play, wages against teammates, results, the fans, teammates, the contract,
+//! interest from elsewhere, and life at home (from the life model). The list
+//! is kept on the person so "why am I unhappy?" always has an answer.
+//!
+//! Well-being is not computed here any more: the life model (`life.rs`) does
+//! it monthly for every person with one set of rules.
 
 use pw_core::Hidden;
-use pw_core::rng::{Rng, stream};
-use pw_world::{MindKind, PlayerStatus, World};
-use rayon::prelude::*;
+use pw_world::life::{Mood, MoodFactor};
+use pw_world::{PlayerStatus, PromiseState, World};
+
+use crate::consider;
 
 pub fn weekly(w: &mut World) {
-    let cold: &[pw_world::PlayerCold] = &w.players.cold;
-    w.players.hot.par_iter_mut().enumerate().for_each(|(i, h)| {
-        if h.status != PlayerStatus::Active {
-            return;
-        }
-        let c = &cold[i];
-        let expected = c.status.expected_minutes() * 360.0;
-        let pt = (f32::from(h.minutes_4w) / expected.max(40.0)).min(1.3);
-        let target = 55.0 + (pt - 0.8) * 25.0 + (f32::from(h.wellbeing) - 60.0) * 0.2;
+    let ids: Vec<pw_core::PlayerId> = w.players.ids().filter(|&p| w.players.hot[p].status == PlayerStatus::Active).collect();
+    let updates: Vec<(pw_core::PlayerId, f32, Mood)> = ids.iter().map(|&p| (p, compose(w, p))).map(|(p, (t, m))| (p, t, m)).collect();
+    for (p, target, mood) in updates {
+        let who = w.players.cold[p].person;
+        let h = &mut w.players.hot[p];
         h.morale = pw_core::math::ewma(f32::from(h.morale), target, 0.25).clamp(5.0, 100.0) as u8;
         h.confidence = pw_core::math::ewma(f32::from(h.confidence), 60.0, 0.1).clamp(5.0, 100.0) as u8;
-    });
+        w.lives[who].morale_why = mood;
+    }
 }
 
-/// Monthly well-being for AI-minded players, from personality, age and
-/// circumstance. External minds get theirs from the career layer.
-pub fn monthly_life(w: &mut World) {
-    let seed = w.seed;
-    let month = u64::from(w.date.month()) + w.date.year() as u64 * 12;
-    let today = w.date;
-    let cold: &[pw_world::PlayerCold] = &w.players.cold;
-    let people = &w.people;
-    let clubs = &w.clubs;
-    w.players.hot.par_iter_mut().enumerate().for_each(|(i, h)| {
-        if h.status == PlayerStatus::Retired {
-            return;
+fn compose(w: &World, p: pw_core::PlayerId) -> (f32, Mood) {
+    let who = w.players.cold[p].person;
+    let person = &w.people[who];
+    let ambition = person.hidden.f(Hidden::Ambition) / 20.0;
+    let loyalty = person.hidden.f(Hidden::Loyalty) / 20.0;
+    let mut mood = Mood::new();
+    let mut push = |f: MoodFactor, v: f32| {
+        let v = v.round().clamp(-30.0, 30.0) as i8;
+        if v != 0 {
+            mood.push((f, v));
         }
-        let c = &cold[i];
-        let person = &people[c.person];
-        if person.mind == MindKind::External {
-            return;
+    };
+
+    let (share, expected) = consider::minutes_share(w, p);
+    let team_mins = consider::team_minutes_4w(w, w.players.hot[p].team);
+    if team_mins >= 180 {
+        push(MoodFactor::PlayingTime, ((share - expected) * 30.0).clamp(-20.0, 8.0) * (0.7 + ambition * 0.6));
+    }
+    if let Some(m) = w.manager_of_player(p) {
+        let trust = consider::trust(w, who, m);
+        let aff = consider::affinity(w, who, m);
+        push(MoodFactor::Manager, (trust - 0.5) * 16.0 + aff * 8.0 - consider::grievance(w, who, m) * 4.0);
+    }
+    let open = w.social.open_promises_to(who).count() as f32;
+    let broken = w.social.promises.iter().filter(|pr| pr.to == who && pr.state == PromiseState::Broken && pr.due.days_until(w.date) < 180).count() as f32;
+    push(MoodFactor::Promises, open * 2.0 - broken * 7.0);
+    let wage = f32::from(consider::wage_vs_peers(w, p));
+    if wage < 80.0 {
+        push(MoodFactor::Wage, -(80.0 - wage) / 6.0 * (0.5 + ambition));
+    }
+    let club = w.playing_club(p);
+    if club.is_some() {
+        push(MoodFactor::TeamResults, (f32::from(w.clubs[club].fan_mood) - 50.0) / 8.0);
+        if let Some(f) = w.media.fan(club, who) {
+            push(MoodFactor::Fans, f32::from(f.score) / 80.0 * (1.2 - person.hidden.f(Hidden::Pressure) / 40.0));
         }
-        let mut rng = Rng::keyed(&[seed, stream::LIFE, i as u64, month]);
-        let abroad = h.club.is_some() && clubs[h.club].nation != person.nation;
-        let adapt = person.hidden.f(Hidden::Adaptability);
-        let settled = c.joined.days_until(today) > 180;
-        let mut wb = 62.0 + (person.hidden.f(Hidden::Professionalism) - 10.0) * 0.8 + (person.hidden.f(Hidden::Pressure) - 10.0) * 0.5;
-        if abroad {
-            wb -= (12.0 - adapt).max(0.0) * if settled { 0.6 } else { 1.4 };
+    }
+    let team = w.players.hot[p].team;
+    if team.is_some() {
+        let mates: Vec<f32> = w.teams[team].squad.iter().filter(|&&x| x != p).map(|&x| consider::affinity(w, who, w.players.cold[x].person)).filter(|a| a.abs() > 0.05).collect();
+        if !mates.is_empty() {
+            let avg = mates.iter().sum::<f32>() / mates.len() as f32;
+            push(MoodFactor::Teammates, avg * 15.0);
         }
-        if h.injury_days > 60 {
-            wb -= 8.0;
-        }
-        if h.status == PlayerStatus::FreeAgent {
-            wb -= 10.0;
-        }
-        wb += rng.normal() * 6.0;
-        h.wellbeing = pw_core::math::ewma(f32::from(h.wellbeing), wb, 0.5).clamp(10.0, 100.0) as u8;
-    });
+    }
+    // The dressing room: settling in, and the mood of one's group.
+    let (settling, group) = crate::dressing::mood_inputs(w, p);
+    if let Some(s) = settling {
+        push(MoodFactor::Settling, s);
+    }
+    if let Some(g) = group {
+        push(MoodFactor::Manager, g);
+    }
+    let left = consider::contract_days_left(w, p);
+    if (0..240).contains(&left) && !crate::negotiation::in_talks(w, p) {
+        push(MoodFactor::Contract, -4.0 * (1.0 - loyalty * 0.5));
+    }
+    let interest = f32::from(consider::heard_interest(w, who).min(3));
+    if interest > 0.0 {
+        // Flattering for the ambitious; unsettling for the loyal.
+        push(MoodFactor::Interest, interest * (ambition * 3.0 - loyalty * 1.5));
+    }
+    if w.market.has_requested(p) {
+        push(MoodFactor::Role, -4.0);
+    }
+    let wb = f32::from(w.players.hot[p].wellbeing);
+    push(MoodFactor::Family, (wb - 60.0) * 0.15);
+
+    let total: f32 = mood.iter().map(|&(_, v)| f32::from(v)).sum();
+    ((58.0 + total).clamp(5.0, 100.0), mood)
 }

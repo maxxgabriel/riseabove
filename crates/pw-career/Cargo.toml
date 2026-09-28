@@ -10,5 +10,6 @@ pw-data.workspace = true
 pw-world.workspace = true
 pw-match.workspace = true
 pw-sim.workspace = true
+pw-narrate.workspace = true
 serde.workspace = true
 thiserror.workspace = true

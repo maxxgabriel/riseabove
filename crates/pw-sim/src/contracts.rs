@@ -1,7 +1,6 @@
 //! Contracts (08 §5): expiry, loan ends, renewals, release.
 
 use pw_core::PlayerId;
-use pw_world::decision::DecisionKind;
 use pw_world::event::{EventKind, Visibility};
 use pw_world::{Contract, PlayerStatus, SquadStatus, World};
 
@@ -30,6 +29,14 @@ pub fn daily(w: &mut World) {
     for p in expired {
         if w.players.cold[p].loan.is_some() {
             market::end_loan(w, p);
+            // The loan club may have made it permanent on a new contract.
+            if w.players.cold[p].contract.end >= today {
+                continue;
+            }
+        }
+        // A pre-contract signed months ago takes effect now.
+        if crate::deals::honour_pre_contract(w, p) {
+            continue;
         }
         release(w, p);
     }
@@ -84,15 +91,20 @@ pub fn weekly(w: &mut World) {
             continue;
         }
         let age = w.age(p);
-        let wanted = match c.status {
-            SquadStatus::NotNeeded | SquadStatus::Backup => false,
-            SquadStatus::Fringe => age <= 21 && c.pa >= c.ca + 15,
-            _ => age < 33 || c.ca >= 130,
+        let wanted = if c.contract.kind == pw_world::ContractKind::Youth {
+            // Scholars earn a first professional deal only if the club believes in them.
+            crate::youth::worth_pro_contract(w, p)
+        } else {
+            match c.status {
+                SquadStatus::NotNeeded | SquadStatus::Backup => false,
+                SquadStatus::Fringe => age <= 21 && c.pa >= c.ca + 15,
+                _ => age < 33 || c.ca >= 130,
+            }
         };
         if !wanted || w.market.on_cooldown(h.club, p, today) {
             continue;
         }
-        if w.decisions.has_open(p, |k| matches!(k, DecisionKind::ContractOffer { renewal: true, .. })) {
+        if crate::negotiation::in_talks(w, p) {
             continue;
         }
         // Stagger: each player is looked at once a month.
@@ -101,13 +113,8 @@ pub fn weekly(w: &mut World) {
         }
         offers.push((p, h.club));
     }
-    for (p, club) in offers {
-        let mut contract = market::new_contract(w, p, club, 1.0);
-        let current = w.players.cold[p].contract.current_wage(today);
-        contract.wage = contract.wage.max(current);
-        contract.start = today;
-        if decisions::propose(w, p, Proposal::Renewal { contract }) == Some(false) {
-            w.market.cooldown.insert((club, p), today.add_days(120));
-        }
+    for (p, _club) in offers {
+        // Talks open; a breakdown puts the club on cooldown inside the talks system.
+        decisions::propose(w, p, Proposal::Renewal);
     }
 }

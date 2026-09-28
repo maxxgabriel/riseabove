@@ -28,7 +28,9 @@ pub fn weekly(w: &mut World) {
         let step = |cur: u16, tgt: f32, a: f32| -> u16 { (f32::from(cur) + a * (tgt - f32::from(cur))).clamp(0.0, 10_000.0) as u16 };
         c.rep.current = step(c.rep.current, target, 0.03);
         c.rep.home = step(c.rep.home, target * 1.1, 0.03).max(c.rep.current);
-        c.rep.world = step(c.rep.world, target * stage.sqrt(), 0.02);
+        // Caps carry a name across borders in a way club football rarely does.
+        let intl = 1.0 + 0.6 * (f32::from(c.caps.min(60)) / 60.0);
+        c.rep.world = step(c.rep.world, (target * stage.sqrt() * intl).min(10_000.0), 0.02);
     });
 }
 

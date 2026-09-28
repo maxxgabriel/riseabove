@@ -71,8 +71,6 @@ pub fn weekly(w: &mut World) {
         let cap = if age <= 18.0 { dev.weekly_cap_youth } else { dev.weekly_cap };
         let before = c.attrs;
         let ca_before = c.ca;
-        let plan = c.plan;
-        let plan_mult = plan.intensity.growth_mult() * (1.0 + 0.04 * f32::from(plan.extra));
 
         for a in Attr::ALL {
             if a.is_goalkeeping() != keeper && (a.is_goalkeeping() || a == Attr::Eccentricity) {
@@ -82,13 +80,23 @@ pub fn weekly(w: &mut World) {
             let age_f = curves.factor(g, age);
             let train_f = 0.4 + 0.6 * coach[g as usize] * facility;
             let emph = 0.5 + 0.5 * row[a.idx()] / max_w;
-            let grow = dev.growth * room * age_f.max(0.0) * (train_f + match_f) * wellness * prof * emph * injured * plan_mult * plan.focus.weight(a);
+            let plan = c.plan;
+            let own = plan.intensity.growth_mult() * plan.focus.weight(a) * (1.0 + 0.04 * f32::from(plan.extra));
+            let grow = dev.growth * room * age_f.max(0.0) * (train_f * own + match_f) * wellness * prof * emph * injured;
             let physical = matches!(g, CurveGroup::Speed | CurveGroup::Power);
             let decline = age_f.min(0.0) * dev.decline * if physical { (1.3 - nf / 20.0 * 0.6) * (1.0 + wear / 200.0) } else { 1.0 };
             let noise = rng.normal() * dev.noise * if age_f > 0.0 { 1.0 } else { 0.5 };
             let delta = (grow + decline + noise).clamp(-cap, cap);
             if delta.abs() > 1e-4 {
                 c.attrs.add(a, delta);
+            }
+        }
+        // Learning a position: familiarity grows with focused work and versatility.
+        if let pw_world::Focus::Position(pos) = c.plan.focus {
+            let versatility = person.hidden.f(Hidden::Versatility);
+            let f = &mut c.familiarity[pos.idx()];
+            if *f < 18 && rng.chance(0.15 + versatility / 40.0) {
+                *f += 1;
             }
         }
         c.refresh_ca(weights);

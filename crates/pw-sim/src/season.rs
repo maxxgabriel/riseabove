@@ -223,6 +223,7 @@ fn archive_stats(w: &mut World, c: CompId, year: i32) {
             .filter(|l| l.apps >= (min_apps / 2).max(1) && w.people[w.players.cold[l.player].person].dob.age_on(date) <= 21)
             .max_by(|a, b| a.avg_rating().total_cmp(&b.avg_rating()));
         award(AwardKind::YoungPlayerOfSeason, young, young.map_or(0.0, |l| l.avg_rating()));
+        crate::honours::season_awards(w, c, year, &lines, games);
     }
     w.history.archive_lines(lines);
 }
@@ -314,6 +315,7 @@ fn crown(w: &mut World, c: CompId, winner: TeamId) {
     }
     let prize = w.comps[c].prize_pool / 3;
     w.clubs[club].finance.balance += prize;
+    crate::economy::record_continental(w, c);
     archive_stats(w, c, year);
 }
 
