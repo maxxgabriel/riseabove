@@ -10,7 +10,13 @@ use crate::fmt::{club, club_short, money, person, player};
 use crate::pick;
 
 fn subject(w: &World, s: &Story) -> String {
-    if s.player.is_some() { player(w, s.player) } else if s.person.is_some() { person(w, s.person) } else { club(w, s.club) }
+    if s.player.is_some() {
+        player(w, s.player)
+    } else if s.person.is_some() {
+        person(w, s.person)
+    } else {
+        club(w, s.club)
+    }
 }
 
 fn tabloid(w: &World, s: &Story) -> bool {
@@ -34,14 +40,23 @@ pub fn headline(w: &World, s: &Story) -> String {
                 _ => pick(key, &["set to bid for", "closing in on", "poised to swoop for"]),
             };
             let fee = if s.fee > 0 && s.claim >= 55 { format!(" in {} deal", money(s.fee)) } else { String::new() };
-            let base = format!("{} {verb} {who}{fee}", club(w, s.other_club), );
+            // An agent sounding out the market has no named club behind it.
+            let base = if s.other_club.is_some() {
+                format!("{} {verb} {who}{fee}", club(w, s.other_club))
+            } else {
+                format!("{who}'s agent {}", pick(key, &["sounds out clubs", "tests the market", "takes soundings abroad"]))
+            };
             if loud { format!("{}!", base.to_uppercase()) } else { base }
         }
         StoryKind::TransferNews => format!("{who} completes move to {}", club(w, s.club)),
         StoryKind::ManagerPressure => format!("{}: {}", club(w, s.club), pick(key, &["board patience wearing thin", "pressure mounts on the manager", "crisis talks expected"])),
         StoryKind::ManagerChange => format!("{}: {}", club(w, s.club), pick(key, &["change in the dugout", "new era begins", "manager news"])),
         StoryKind::Unhappy => {
-            if loud { format!("{who} WANTS OUT") } else { format!("{who} {}", pick(key, &["unsettled at", "frustrated at", "considering their future at"])) + &format!(" {}", club_short(w, s.club)) }
+            if loud {
+                format!("{who} WANTS OUT")
+            } else {
+                format!("{who} {}", pick(key, &["unsettled at", "frustrated at", "considering their future at"])) + &format!(" {}", club_short(w, s.club))
+            }
         }
         StoryKind::Discipline => format!("{who} {}", pick(key, &["disciplined by club", "in hot water", "fined after internal row"])),
         StoryKind::Injury => format!("Blow for {}: {who} {}", club_short(w, s.club), pick(key, &["faces spell out", "sidelined for weeks", "out injured"])),
@@ -55,8 +70,17 @@ pub fn headline(w: &World, s: &Story) -> String {
                 let speaker = person(w, q.speaker);
                 let target = if q.about.is_some() { person(w, q.about) } else { String::new() };
                 match q.stance {
+                    Stance::Praise if target.is_empty() => format!("{speaker} {}", pick(key, &["full of praise", "delighted", "all smiles"])),
                     Stance::Praise => format!("{speaker} hails {target}"),
-                    Stance::Criticise => if loud { format!("{speaker} SLAMS {}", target.to_uppercase()) } else { format!("{speaker} criticises {target}") },
+                    Stance::Criticise if target.is_empty() => format!("{speaker} {}", pick(key, &["does not hold back", "unhappy", "in critical mood"])),
+                    Stance::Criticise => {
+                        if loud {
+                            format!("{speaker} SLAMS {}", target.to_uppercase())
+                        } else {
+                            format!("{speaker} criticises {target}")
+                        }
+                    }
+                    Stance::Support if target.is_empty() => format!("{speaker} stands by the squad"),
                     Stance::Support => format!("{speaker} backs {target}"),
                     Stance::Deny => format!("{speaker} denies the reports"),
                     Stance::Complain => format!("{speaker} speaks out over role"),
@@ -78,10 +102,14 @@ pub fn headline(w: &World, s: &Story) -> String {
             Some(StoryLink::Reading(l)) => reading_headline(&who, *l, key),
             _ => format!("The rise of {who}"),
         },
-        StoryKind::WonderkidList => format!("{}: the {} young players to watch", pick(key, &["Ranked", "Revealed", "The list"]), match w.media.links.get(&s.id) {
-            Some(StoryLink::List(v)) => v.len(),
-            _ => 10,
-        }),
+        StoryKind::WonderkidList => format!(
+            "{}: the {} young players to watch",
+            pick(key, &["Ranked", "Revealed", "The list"]),
+            match w.media.links.get(&s.id) {
+                Some(StoryLink::List(v)) => v.len(),
+                _ => 10,
+            }
+        ),
         StoryKind::SeasonReview => format!("Season review: {} on top", club(w, s.club)),
         StoryKind::Retrospective => match w.media.links.get(&s.id) {
             Some(StoryLink::Honour(i)) => {

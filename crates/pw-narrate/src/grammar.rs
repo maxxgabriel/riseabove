@@ -98,7 +98,7 @@ pub fn term(v: &Voice, t: Term, key: u64) -> &'static str {
 /// A score in this voice ("2-0", "two-nil").
 pub fn score(v: &Voice, a: u8, b: u8, key: u64) -> String {
     let words = ["nil", "one", "two", "three", "four", "five"];
-    let spoken = matches!(v.register, Register::Casual | Register::Terrace) && a <= 5 && b <= 5 && key % 3 == 0;
+    let spoken = matches!(v.register, Register::Casual | Register::Terrace) && a <= 5 && b <= 5 && key.is_multiple_of(3);
     if spoken {
         let n = |x: u8| if x == 0 { term(v, Term::Nil, key).to_string() } else { words[usize::from(x)].to_string() };
         format!("{}-{}", n(a), n(b))

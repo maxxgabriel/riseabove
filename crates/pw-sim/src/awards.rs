@@ -140,7 +140,15 @@ fn journalists(w: &World, nation: Option<NationId>, n: usize) -> Vec<Voter> {
         .values()
         .filter(|j| j.outlet.is_some())
         .filter(|j| nation.is_none_or(|x| w.media.outlets[j.outlet].nation == x))
-        .map(|j| Voter { person: j.person, kind: VoterKind::Journalist, weights: lens(VoterKind::Journalist), nation: w.media.outlets[j.outlet].nation, club: ClubId::NONE, not_own_nation: false, not_own_club: false })
+        .map(|j| Voter {
+            person: j.person,
+            kind: VoterKind::Journalist,
+            weights: lens(VoterKind::Journalist),
+            nation: w.media.outlets[j.outlet].nation,
+            club: ClubId::NONE,
+            not_own_nation: false,
+            not_own_club: false,
+        })
         .collect();
     v.sort_by_key(|x| x.person);
     v.truncate(n);
@@ -166,7 +174,13 @@ pub fn world_player(w: &mut World, young: bool, pool: &[(PlayerId, f32, f32, f32
             parts[wi(Why::Fame)] = fame;
             parts[wi(Why::Goals)] = s;
             parts[wi(Why::International)] = intl;
-            Candidate { person: person_of(w, p), parts, nation: w.intl.locked_to(p).unwrap_or(w.people[person_of(w, p)].nation), club, seen_in: if club.is_some() { w.clubs[club].nation } else { NationId::NONE } }
+            Candidate {
+                person: person_of(w, p),
+                parts,
+                nation: w.intl.locked_to(p).unwrap_or(w.people[person_of(w, p)].nation),
+                club,
+                seen_in: if club.is_some() { w.clubs[club].nation } else { NationId::NONE },
+            }
         })
         .collect();
     let mut voters: Vec<Voter> = Vec::new();
@@ -174,11 +188,27 @@ pub fn world_player(w: &mut World, young: bool, pool: &[(PlayerId, f32, f32, f32
     sides.sort_by_key(|s| s.nation);
     for s in sides {
         if let Some(m) = s.manager.get() {
-            voters.push(Voter { person: w.staff[m].person, kind: VoterKind::NationalManager, weights: lens(VoterKind::NationalManager), nation: s.nation, club: ClubId::NONE, not_own_nation: true, not_own_club: false });
+            voters.push(Voter {
+                person: w.staff[m].person,
+                kind: VoterKind::NationalManager,
+                weights: lens(VoterKind::NationalManager),
+                nation: s.nation,
+                club: ClubId::NONE,
+                not_own_nation: true,
+                not_own_club: false,
+            });
         }
         if s.captain.is_some() {
             let cap = s.captain;
-            voters.push(Voter { person: person_of(w, cap), kind: VoterKind::Player, weights: lens(VoterKind::Player), nation: s.nation, club: w.players.hot[cap].club, not_own_nation: true, not_own_club: false });
+            voters.push(Voter {
+                person: person_of(w, cap),
+                kind: VoterKind::Player,
+                weights: lens(VoterKind::Player),
+                nation: s.nation,
+                club: w.players.hot[cap].club,
+                not_own_nation: true,
+                not_own_club: false,
+            });
         }
     }
     voters.extend(journalists(w, None, 200));
@@ -321,7 +351,10 @@ pub fn inductions(w: &mut World) {
             .players
             .ids()
             .filter(|&p| retired_a_year(w, p))
-            .filter(|&p| w.intl.locked_to(p) == Some(n) && w.intl.caps_for(p, n, pw_world::intl::Level::Senior) >= 20 || w.honours.clubs.iter().any(|(c, r)| w.clubs[*c].nation == n && r.legends.contains(&person_of(w, p))))
+            .filter(|&p| {
+                w.intl.locked_to(p) == Some(n) && w.intl.caps_for(p, n, pw_world::intl::Level::Senior) >= 20
+                    || w.honours.clubs.iter().any(|(c, r)| w.clubs[*c].nation == n && r.legends.contains(&person_of(w, p)))
+            })
             .collect();
         let cands: Vec<Candidate> = pool.iter().map(|&p| career_candidate(w, p, Some(n))).collect();
         let mut voters = journalists(w, Some(n), 25);
@@ -344,7 +377,15 @@ pub fn inductions(w: &mut World) {
             .journalists
             .values()
             .filter(|j| j.beat.contains(&c))
-            .map(|j| Voter { person: j.person, kind: VoterKind::Journalist, weights: lens(VoterKind::Committee), nation: w.clubs[c].nation, club: ClubId::NONE, not_own_nation: false, not_own_club: false })
+            .map(|j| Voter {
+                person: j.person,
+                kind: VoterKind::Journalist,
+                weights: lens(VoterKind::Committee),
+                nation: w.clubs[c].nation,
+                club: ClubId::NONE,
+                not_own_nation: false,
+                not_own_club: false,
+            })
             .collect();
         voters.sort_by_key(|v| v.person);
         voters.extend(committee(w, h));
@@ -372,14 +413,28 @@ fn committee(w: &World, hall: u32) -> Vec<Voter> {
     w.acclaim.halls[hall as usize]
         .members
         .iter()
-        .map(|m| Voter { person: m.person, kind: VoterKind::Committee, weights: lens(VoterKind::Committee), nation: w.people[m.person].nation, club: ClubId::NONE, not_own_nation: false, not_own_club: false })
+        .map(|m| Voter {
+            person: m.person,
+            kind: VoterKind::Committee,
+            weights: lens(VoterKind::Committee),
+            nation: w.people[m.person].nation,
+            club: ClubId::NONE,
+            not_own_nation: false,
+            not_own_club: false,
+        })
         .collect()
 }
 
 fn career_candidate(w: &World, p: PlayerId, nation: Option<NationId>) -> Candidate {
     let c = &w.players.cold[p];
     let who = c.person;
-    let trophies = w.honours.tallies.iter().filter(|((_, x), _)| *x == p).map(|(&(club, _), t)| w.history.honours.iter().filter(|h| h.club == club && h.season >= t.first.year() && h.season <= t.last.year()).count()).sum::<usize>() as f32;
+    let trophies = w
+        .honours
+        .tallies
+        .iter()
+        .filter(|((_, x), _)| *x == p)
+        .map(|(&(club, _), t)| w.history.honours.iter().filter(|h| h.club == club && h.season >= t.first.year() && h.season <= t.last.year()).count())
+        .sum::<usize>() as f32;
     let caps = nation.map_or(c.caps, |n| w.intl.caps_for(p, n, pw_world::intl::Level::Senior));
     let mut parts = [0.0; WHYS];
     parts[wi(Why::Trophies)] = (trophies / 8.0).min(2.0);
@@ -422,13 +477,8 @@ fn induct(w: &mut World, hall: u32, voters: &[Voter], mut cands: Vec<Candidate>)
     let today = w.date;
     let year = today.year();
     let n = voters.len() as f32;
-    let elected: Vec<(PersonId, u8)> = w.acclaim.votes[id as usize]
-        .result
-        .iter()
-        .map(|&(p, pts)| (p, (pts as f32 / n * 100.0).round().min(100.0) as u8))
-        .filter(|&(_, share)| share >= threshold)
-        .take(usize::from(class))
-        .collect();
+    let elected: Vec<(PersonId, u8)> =
+        w.acclaim.votes[id as usize].result.iter().map(|&(p, pts)| (p, (pts as f32 / n * 100.0).round().min(100.0) as u8)).filter(|&(_, share)| share >= threshold).take(usize::from(class)).collect();
     for (person, share) in elected {
         let score = w.people[person].player.get().map_or(0, |p| crate::honours::career_score(w, p));
         w.acclaim.halls[hall as usize].members.push(Member { person, year, vote: id, share, score });
@@ -473,18 +523,18 @@ pub fn scan(w: &mut World) {
     let new: Vec<pw_world::history::Honour> = w.history.honours[w.acclaim.honours_seen.min(w.history.honours.len())..].to_vec();
     w.acclaim.honours_seen = w.history.honours.len();
     for h in &new {
-        let (comp_kind, comp_tier, comp_team_kind, nation) = {
-            let comp = &w.comps[h.comp];
-            (comp.kind, comp.tier, comp.team_kind, comp.nation)
+        let (team_kind, nation, kind, tier) = {
+            let c = &w.comps[h.comp];
+            (c.team_kind, c.nation, c.kind, c.tier)
         };
-        if comp_team_kind != TeamKind::First || h.club.is_none() {
+        if team_kind != TeamKind::First || h.club.is_none() {
             continue;
         }
-        if comp_kind == CompKind::League && comp_tier == 1 {
+        if kind == CompKind::League && tier == 1 {
             let before = w.history.honours.iter().filter(|x| x.club == h.club && x.comp == h.comp && x.season < h.season).count() + w.backfill.titles(h.club, h.comp);
             let known_past = w.history.honours.iter().any(|x| x.comp == h.comp && x.season < h.season) || w.backfill.seasons_of(h.comp).next().is_some();
             if before == 0 && known_past {
-                chronicle(w, Feat::FirstTitle { club: h.club, comp: h.comp, season: h.season }, 1, u32::from(h.club.0));
+                chronicle(w, Feat::FirstTitle { club: h.club, comp: h.comp, season: h.season }, 1, h.club.0);
             }
         }
         // A double: this honour completes league + cup for the season.
@@ -497,13 +547,13 @@ pub fn scan(w: &mut World) {
             .collect();
         let league = won.iter().any(|&(k, t)| k == CompKind::League && t == 1);
         let cup = won.iter().any(|&(k, _)| k == CompKind::Cup);
-        let this_completes = match comp_kind {
-            CompKind::League => comp_tier == 1 && cup,
+        let this_completes = match kind {
+            CompKind::League => tier == 1 && cup,
             CompKind::Cup => league && won.iter().filter(|&&(k, _)| k == CompKind::Cup).count() == 1,
             _ => false,
         };
         if this_completes {
-            chronicle(w, Feat::Double { club: h.club, season: h.season }, 2, u32::from(nation.0));
+            chronicle(w, Feat::Double { club: h.club, season: h.season }, 2, nation.0);
         }
     }
     // Unbeaten league seasons.
@@ -517,7 +567,7 @@ pub fn scan(w: &mut World) {
         let nation = c.nation;
         if let Some(r) = t.rows.first().filter(|r| r.lost == 0 && r.played >= 20) {
             let club = w.teams[r.team].club;
-            chronicle(w, Feat::Unbeaten { club, comp: t.comp, season: t.season }, 3, u32::from(nation.0));
+            chronicle(w, Feat::Unbeaten { club, comp: t.comp, season: t.season }, 3, nation.0);
         }
     }
     // International tournaments.
@@ -534,7 +584,7 @@ pub fn scan(w: &mut World) {
         }
         let before = w.intl.tournaments.iter().filter(|t| t.winner == winner && t.year < year).count();
         if before == 0 {
-            chronicle(w, Feat::FirstTournament { nation: winner, tournament: id }, 4, u32::from(winner.0));
+            chronicle(w, Feat::FirstTournament { nation: winner, tournament: id }, 4, winner.0);
         }
         w.acclaim.tournaments_seen = i + 1;
     }
@@ -548,9 +598,14 @@ pub fn scan(w: &mut World) {
             chronicle(w, Feat::WorldPlayerAgain { person: who, times, year: a.season }, 5, u32::from(times));
         }
         let nation = w.intl.locked_to(a.player).unwrap_or(w.people[who].nation);
-        let from_nation = w.history.awards.iter().filter(|x| x.kind == AwardKind::WorldPlayer { rank: 1 } && x.season < a.season).any(|x| w.intl.locked_to(x.player).unwrap_or(w.people[person_of(w, x.player)].nation) == nation);
+        let from_nation = w
+            .history
+            .awards
+            .iter()
+            .filter(|x| x.kind == AwardKind::WorldPlayer { rank: 1 } && x.season < a.season)
+            .any(|x| w.intl.locked_to(x.player).unwrap_or(w.people[person_of(w, x.player)].nation) == nation);
         if !from_nation {
-            chronicle(w, Feat::FirstWorldPlayerFrom { nation, person: who, year: a.season }, 6, u32::from(nation.0));
+            chronicle(w, Feat::FirstWorldPlayerFrom { nation, person: who, year: a.season }, 6, nation.0);
         }
     }
     // Firsts to a career milestone.

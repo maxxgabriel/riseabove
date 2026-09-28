@@ -70,7 +70,13 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
             .collect();
         let foot = {
             let (l, r) = (cold.left_foot, cold.right_foot);
-            if l >= 15 && r >= 15 { "Either foot" } else if l > r { "Left foot" } else { "Right foot" }
+            if l >= 15 && r >= 15 {
+                "Either foot"
+            } else if l > r {
+                "Left foot"
+            } else {
+                "Right foot"
+            }
         };
         let (avail_label, avail_tone, avail_detail) = if h.status == PlayerStatus::Retired {
             ("Retired".to_string(), Tone::Muted, String::new())
@@ -97,9 +103,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         } else {
             Value::Null
         };
-        let loan = cold.loan.as_ref().map(|l| {
-            json!({"parent": Named::new(Ref::club(l.parent), c.club_name(l.parent)), "club": Named::new(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0})
-        });
+        let loan = cold.loan.as_ref().map(|l| json!({"parent": Named::new(Ref::club(l.parent), c.club_name(l.parent)), "club": Named::new(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0}));
         let visible_state = c.sees_condition(p);
         player_json = json!({
             "player_id": p.0,
@@ -140,7 +144,14 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
             roles.push(json!({"label": format!("{} · without a club", st.role.label()), "org": Value::Null}));
         }
         if person.player.is_none() {
-            status = if st.employed() { "Employed" } else if st.retired { "Retired" } else { "Unemployed" }.into();
+            status = if st.employed() {
+                "Employed"
+            } else if st.retired {
+                "Retired"
+            } else {
+                "Unemployed"
+            }
+            .into();
         }
         let ph = &st.philosophy;
         let formation = |i: u8| w.data.formations.get(usize::from(i)).map(|f| f.name.clone());
@@ -213,15 +224,8 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
             None => ("Nobody at your club has watched this player enough to assess them.".to_string(), false),
         }
     };
-    let hidden = if c.sees_internal_state() {
-        json!(Hidden::ALL.iter().map(|h| json!({"label": h.label(), "v": person.hidden.get(*h)})).collect::<Vec<_>>())
-    } else {
-        Value::Null
-    };
-    let positions: Vec<Value> = Pos::ALL
-        .iter()
-        .map(|ps| json!({"code": ps.code(), "fam": cold.familiarity[ps.idx()], "level": familiarity_label(cold.familiarity[ps.idx()])}))
-        .collect();
+    let hidden = if c.sees_internal_state() { json!(Hidden::ALL.iter().map(|h| json!({"label": h.label(), "v": person.hidden.get(*h)})).collect::<Vec<_>>()) } else { Value::Null };
+    let positions: Vec<Value> = Pos::ALL.iter().map(|ps| json!({"code": ps.code(), "fam": cold.familiarity[ps.idx()], "level": familiarity_label(cold.familiarity[ps.idx()])})).collect();
     Ok(json!({
         "available": true, "source": source, "known": known, "groups": groups, "positions": positions,
         "hidden": hidden,

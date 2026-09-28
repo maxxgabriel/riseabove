@@ -129,10 +129,10 @@ fn collapse(w: &mut World, i: usize, why: DealEnd) {
     }
     log(w, i, DealLine::Ended(why));
     w.market.cooldown.insert((d.buyer, d.player), today.add_days(if why == DealEnd::NotForSale { 150 } else { 60 }));
-    if let Some(g) = d.need {
-        if let Some(s) = w.deals.shortlists.get_mut(&(d.buyer, g)) {
-            s.failures = s.failures.saturating_add(1);
-        }
+    if let Some(g) = d.need
+        && let Some(s) = w.deals.shortlists.get_mut(&(d.buyer, g))
+    {
+        s.failures = s.failures.saturating_add(1);
     }
     let vis = if matches!(why, DealEnd::NotForSale | DealEnd::SellerRefused) { Visibility::Club(d.buyer) } else { Visibility::Public };
     w.events.push_caused(today, vis, EventKind::DealCollapsed { player: d.player, buyer: d.buyer, seller: d.seller, reason: why }, pw_world::causes![Cause::Event(d.event)]);
@@ -244,7 +244,12 @@ fn seller_turn(w: &mut World, i: usize) {
     let d = w.deals.deals[i].clone();
     let today = w.date;
     // Gazumping: a better offer for the same player wins.
-    let better = w.deals.deals.iter().enumerate().any(|(j, o)| j != i && o.player == d.player && o.is_open() && matches!(o.state, DealState::Bid | DealState::Counter) && o.terms.value() > d.terms.value() * 1.05);
+    let better = w
+        .deals
+        .deals
+        .iter()
+        .enumerate()
+        .any(|(j, o)| j != i && o.player == d.player && o.is_open() && matches!(o.state, DealState::Bid | DealState::Counter) && o.terms.value() > d.terms.value() * 1.05);
     if better {
         collapse(w, i, DealEnd::Hijacked);
         return;
@@ -397,12 +402,12 @@ pub fn on_completed(w: &mut World, p: PlayerId, buyer: ClubId) {
     }
     // A big signing is promised football.
     let status = w.players.cold[p].contract.promised_status;
-    if let (Some(s), Some(mgr)) = (status, w.manager_of_player(p)) {
-        if s <= SquadStatus::Regular {
-            let who = w.players.cold[p].person;
-            let id = w.social.make_promise(mgr, who, buyer, PromiseKind::Minutes { share: s.expected_minutes() }, today, today.add_days(120), d.event);
-            w.events.push(today, Visibility::Between(mgr, who), EventKind::PromiseMade { promise: id, from: mgr, to: who });
-        }
+    if let (Some(s), Some(mgr)) = (status, w.manager_of_player(p))
+        && s <= SquadStatus::Regular
+    {
+        let who = w.players.cold[p].person;
+        let id = w.social.make_promise(mgr, who, buyer, PromiseKind::Minutes { share: s.expected_minutes() }, today, today.add_days(120), d.event);
+        w.events.push(today, Visibility::Between(mgr, who), EventKind::PromiseMade { promise: id, from: mgr, to: who });
     }
 }
 
@@ -489,16 +494,8 @@ pub fn loan_terms(w: &World, parent: ClubId, dest: ClubId, p: PlayerId) -> (Loan
     let (obligation, obligation_apps) = if parent_in_debt && surplus { (value, 20) } else { (0, 0) };
     let end = w.nations[w.clubs[dest].nation].season.end;
     let loan = Loan { parent, club: dest, start: today, end, wage_share, fee, buy_option: option, recall: !surplus };
-    let terms = LoanTerms {
-        fee,
-        wage_share,
-        option,
-        obligation,
-        obligation_apps,
-        recall: !surplus,
-        minutes_clause: if age <= 21 && !surplus { 40 } else { 0 },
-        apps_at_start: w.players.cold[p].senior_apps,
-    };
+    let terms =
+        LoanTerms { fee, wage_share, option, obligation, obligation_apps, recall: !surplus, minutes_clause: if age <= 21 && !surplus { 40 } else { 0 }, apps_at_start: w.players.cold[p].senior_apps };
     (loan, terms)
 }
 
@@ -541,11 +538,12 @@ pub fn recalls(w: &mut World) {
         let group = w.players.cold[p].best_pos.group();
         let first = w.clubs[loan.parent].first_team();
         let fit = w.teams[first].squad.iter().filter(|&&x| w.players.cold[x].best_pos.group() == group && w.players.hot[x].available()).count();
-        let crisis = fit < match group {
-            PosGroup::Gk => 1,
-            PosGroup::Att => 2,
-            _ => 4,
-        };
+        let crisis = fit
+            < match group {
+                PosGroup::Gk => 1,
+                PosGroup::Att => 2,
+                _ => 4,
+            };
         let (share, _) = consider::minutes_share(w, p);
         let benched = t.minutes_clause > 0 && share * 100.0 < f32::from(t.minutes_clause) && loan.start.days_until(today) > 60;
         if crisis || benched {
@@ -565,7 +563,7 @@ pub fn pre_contracts(w: &mut World) {
     let mut clubs = clubs;
     clubs.sort();
     for club in clubs {
-        if (club.0 + (today.0 / 7) as u32) % 3 != 0 {
+        if !(club.0 + (today.0 / 7) as u32).is_multiple_of(3) {
             continue;
         }
         let groups: Vec<PosGroup> = w.deals.plans[&club].needs.iter().map(|n| n.group).collect();
@@ -634,7 +632,7 @@ pub fn trials(w: &mut World) {
         w.knowledge.observe(t.club, t.player, 180, today);
     }
     // New invitations: clubs uncertain about an unattached player they've heard of.
-    let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| !w.clubs[c].market.needs.is_empty() && (c.0 + (today.0 / 7) as u32) % 4 == 0).collect();
+    let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| !w.clubs[c].market.needs.is_empty() && (c.0 + (today.0 / 7) as u32).is_multiple_of(4)).collect();
     for club in clubs {
         let needs = w.clubs[club].market.needs.clone();
         let cands: Vec<PlayerId> = w

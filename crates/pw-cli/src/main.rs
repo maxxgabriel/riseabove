@@ -60,15 +60,7 @@ fn main() {
             let t = Instant::now();
             let (w, rep) = pw_import::load_dir_seeded(&dir, DataPack::builtin(), a.seed).unwrap_or_else(|e| die(&e.to_string()));
             println!("world seed: {}", pw_core::rng::seed_label(w.seed));
-            println!(
-                "imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}",
-                rep.nations,
-                rep.competitions,
-                rep.clubs,
-                rep.players,
-                rep.staff,
-                t.elapsed()
-            );
+            println!("imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}", rep.nations, rep.competitions, rep.clubs, rep.players, rep.staff, t.elapsed());
             for wmsg in rep.warnings.iter().take(20) {
                 println!("  warning: {wmsg}");
             }
@@ -109,11 +101,13 @@ fn simulate(sim: &mut Sim, days: u32) {
         }
     }
     let el = t.elapsed();
-    println!(
-        "simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches",
-        el.as_secs_f64() * 1000.0 / f64::from(days.max(1)),
-        worst as f64 / 1000.0
-    );
+    println!("simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches", el.as_secs_f64() * 1000.0 / f64::from(days.max(1)), worst as f64 / 1000.0);
+    if pw_sim::profile::enabled() {
+        println!("time by system (PW_PROFILE):");
+        for (name, us, calls) in pw_sim::profile::take().into_iter().take(25) {
+            println!("  {name:<28} {:>10.1} ms  {calls:>6} calls", us as f64 / 1000.0);
+        }
+    }
 }
 
 fn report(w: &World) {
@@ -157,11 +151,11 @@ fn report(w: &World) {
     for (id, c) in w.comps.iter_enumerated().filter(|(_, c)| c.kind == CompKind::League && c.team_kind == TeamKind::First && c.tier == 1).take(3) {
         let mut rows = c.state.table.clone();
         let mut season = c.state.season;
-        if rows.iter().all(|r| r.played == 0) {
-            if let Some(t) = w.history.tables.iter().rev().find(|t| t.comp == id) {
-                rows = t.rows.clone();
-                season = t.season;
-            }
+        if rows.iter().all(|r| r.played == 0)
+            && let Some(t) = w.history.tables.iter().rev().find(|t| t.comp == id)
+        {
+            rows = t.rows.clone();
+            season = t.season;
         }
         sort_table(&mut rows);
         println!("\n{} {} — {}", c.name, season, w.nations.get(c.nation).map_or("", |n| n.name.as_str()));

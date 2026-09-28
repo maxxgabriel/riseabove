@@ -136,7 +136,13 @@ fn profile_for(w: &World, s: StaffId) -> ManagerProfile {
         pw_world::Archetype::Loyalist => 25.0,
         _ => 45.0,
     };
-    let veteran = if ph.archetype == pw_world::Archetype::Loyalist { 70.0 } else if ph.archetype == pw_world::Archetype::Developer { 30.0 } else { 50.0 };
+    let veteran = if ph.archetype == pw_world::Archetype::Loyalist {
+        70.0
+    } else if ph.archetype == pw_world::Archetype::Developer {
+        30.0
+    } else {
+        50.0
+    };
     ManagerProfile {
         staff: s,
         likes,
@@ -150,11 +156,7 @@ fn profile_for(w: &World, s: StaffId) -> ManagerProfile {
         media_style,
         entourage: SmallVec::new(),
         reputation: st.reputation,
-        jobs: if st.club.is_some() {
-            vec![Job { club: st.club, from: st.joined, to: None, ended: None, record_at_start: st.record }]
-        } else {
-            Vec::new()
-        },
+        jobs: if st.club.is_some() { vec![Job { club: st.club, from: st.joined, to: None, ended: None, record_at_start: st.record }] } else { Vec::new() },
         systems: ph.formations.iter().copied().collect(),
         favourites: SmallVec::new(),
     }
@@ -308,21 +310,21 @@ pub fn monthly(w: &mut World) {
         let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(m.0), month]);
         let sat = w.clubs[club].board.satisfaction;
         // Tactical change under pressure, if he's the adaptable kind.
-        if sat < 40 && rng.chance(f32::from(prof.adaptability) / 250.0) {
-            if let Some(f) = best_formation(w, club) {
-                if !w.staff[m].philosophy.formations.contains(&f) {
-                    let ph = &mut w.staff[m].philosophy;
-                    ph.formations = [f, ph.formations[0]];
-                    if let Some(p) = w.careers.managers.get_mut(&m) {
-                        p.systems.push(f);
-                        if p.systems.len() > 4 {
-                            p.systems.remove(0);
-                        }
-                    }
-                    let causes: Causes = pw_world::causes![Cause::Fact(Fact::BoardPressure { club, warnings: w.clubs[club].board.warnings })];
-                    w.events.push_caused(today, Visibility::Public, EventKind::TacticalChange { club, staff: m, formation: f }, causes);
+        if sat < 40
+            && rng.chance(f32::from(prof.adaptability) / 250.0)
+            && let Some(f) = best_formation(w, club)
+            && !w.staff[m].philosophy.formations.contains(&f)
+        {
+            let ph = &mut w.staff[m].philosophy;
+            ph.formations = [f, ph.formations[0]];
+            if let Some(p) = w.careers.managers.get_mut(&m) {
+                p.systems.push(f);
+                if p.systems.len() > 4 {
+                    p.systems.remove(0);
                 }
             }
+            let causes: Causes = pw_world::causes![Cause::Fact(Fact::BoardPressure { club, warnings: w.clubs[club].board.warnings })];
+            w.events.push_caused(today, Visibility::Public, EventKind::TacticalChange { club, staff: m, formation: f }, causes);
         }
         // Resignation: proud managers walk when the owner turns on them.
         let chair = w.governance.get(&club).map(|g| g.chairman);
@@ -348,13 +350,7 @@ pub fn monthly(w: &mut World) {
     }
     // Yearly-ish retirement of old managers.
     if today.month() == 6 {
-        let old: Vec<StaffId> = w
-            .careers
-            .managers
-            .keys()
-            .copied()
-            .filter(|&s| !w.staff[s].retired && consider::age(w, w.staff[s].person) > 66.0)
-            .collect();
+        let old: Vec<StaffId> = w.careers.managers.keys().copied().filter(|&s| !w.staff[s].retired && consider::age(w, w.staff[s].person) > 66.0).collect();
         for s in old {
             let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(s.0), today.year() as u64, 0x77]);
             if rng.chance(0.3) {

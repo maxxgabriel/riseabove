@@ -61,7 +61,9 @@ pub enum MinorKind {
     SchoolCup,
     UniversityLeague,
     /// Adult amateur pyramid, tier 1 at the top.
-    AmateurLeague { tier: u8 },
+    AmateurLeague {
+        tier: u8,
+    },
     /// Grassroots clubs' knockout for the oldest age group.
     GrassrootsCup,
 }

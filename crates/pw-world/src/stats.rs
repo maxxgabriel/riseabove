@@ -68,13 +68,7 @@ pub struct SeasonStats {
 
 impl SeasonStats {
     pub fn record(&mut self, comp: CompId, club: ClubId, season: i32, line: &PlayerLine, pom: bool) {
-        let e = self.lines.entry((line.player, comp, club)).or_insert_with(|| StatLine {
-            player: line.player,
-            club,
-            comp,
-            season,
-            ..Default::default()
-        });
+        let e = self.lines.entry((line.player, comp, club)).or_insert_with(|| StatLine { player: line.player, club, comp, season, ..Default::default() });
         e.add(line, pom);
     }
 

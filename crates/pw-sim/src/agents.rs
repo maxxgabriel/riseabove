@@ -300,10 +300,8 @@ fn client_mood(w: &mut World, a: AgentId, p: PlayerId, news: bool) {
     w.social.adjust(who, agent_person, today, compat, delta.signum(), delta.signum(), 0);
     if w.people[who].mind == MindKind::Ai && (sat < 20 || (expired && sat < 50)) {
         drop_agent(w, p);
-    } else if expired {
-        if let Some(r) = w.agents.of_player.get_mut(&p) {
-            r.until = today.add_months(24);
-        }
+    } else if expired && let Some(r) = w.agents.of_player.get_mut(&p) {
+        r.until = today.add_months(24);
     }
 }
 

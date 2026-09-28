@@ -78,7 +78,14 @@ fn deterministic_and_complete() {
 fn stronger_side_wins_more() {
     let pack = DataPack::builtin();
     let t = &pack.tuning.matches;
-    let wins = |h: f32, a: f32| (0..300).filter(|&s| { let r = simulate(&input(s, h, a, &pack, t, false)); r.home_goals > r.away_goals }).count();
+    let wins = |h: f32, a: f32| {
+        (0..300)
+            .filter(|&s| {
+                let r = simulate(&input(s, h, a, &pack, t, false));
+                r.home_goals > r.away_goals
+            })
+            .count()
+    };
     let (even, strong) = (wins(12.0, 12.0), wins(15.0, 10.0));
     assert!(strong > even + 45, "even {even} strong {strong}");
 }
@@ -113,9 +120,6 @@ fn calibration_report() {
         }
     }
     let a: Vec<f64> = acc.iter().map(|v| v / n as f64).collect();
-    println!(
-        "goals {:.2} shots {:.1} sot {:.1} fouls {:.1} yel {:.2} red {:.2} corners {:.1} rating {:.2} subs {:.1} xg {:.2}",
-        a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]
-    );
+    println!("goals {:.2} shots {:.1} sot {:.1} fouls {:.1} yel {:.2} red {:.2} corners {:.1} rating {:.2} subs {:.1} xg {:.2}", a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]);
     println!("home {:.3} draw {:.3}  {:.3} ms/match", hw as f64 / n as f64, dr as f64 / n as f64, t0.elapsed().as_secs_f64() * 1000.0 / n as f64);
 }

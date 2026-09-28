@@ -66,11 +66,7 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         TransferListed { player: p, club: c } => format!("{} placed {} on the transfer list.", club(w, c), player(w, p)),
         Award { player: p, comp, award, season } => {
             let a = award.label();
-            if comp.is_some() {
-                format!("{} won {a} in the {} ({season}).", pl(p), w.comps[comp].name)
-            } else {
-                format!("{} won {a} ({season}).", pl(p))
-            }
+            if comp.is_some() { format!("{} won {a} in the {} ({season}).", pl(p), w.comps[comp].name) } else { format!("{} won {a} ({season}).", pl(p)) }
         }
         CallUp { player: p } => format!("{} received an international call-up.", pl(p)),
         Meeting { meeting, from, with } => {
@@ -123,7 +119,9 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         BroadcastDeal { nation: n, pool } => format!("{}'s top flight signed a {} broadcast deal.", nation(w, n), money(pool)),
         ManagerResigned { staff, club: c } => format!("{} resigned as manager of {}.", w.staff_name(staff), club(w, c)),
         ManagerPoached { staff, from, to, compensation } => format!("{} left {} to take charge of {} ({} compensation).", w.staff_name(staff), club(w, from), club(w, to), money(compensation)),
-        TacticalChange { club: c, staff, formation } => format!("{} switched {} to a {}.", w.staff_name(staff), club(w, c), w.data.formations.get(usize::from(formation)).map_or("new system", |f| f.name.as_str())),
+        TacticalChange { club: c, staff, formation } => {
+            format!("{} switched {} to a {}.", w.staff_name(staff), club(w, c), w.data.formations.get(usize::from(formation)).map_or("new system", |f| f.name.as_str()))
+        }
         StaffFollowed { staff, manager, club: c } => format!("{} followed {} to {}.", w.staff_name(staff), w.staff_name(manager), club(w, c)),
         StaffLeft { staff, club: c } => format!("{} left the {} backroom staff.", w.staff_name(staff), club(w, c)),
         DealCollapsed { player: p, buyer, seller, reason } => format!("{}'s move from {} to {} collapsed: {}.", pl(p), club(w, seller), club(w, buyer), reason.label()),
@@ -140,7 +138,9 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JoinedLocalClub { player: p, local } => format!("{} signed up with {}.", pl(p), w.youth.local[local].name),
         AcademyTrialStarted { player: p, club: c } => format!("{} began a trial with the {} academy.", pl(p), club(w, c)),
         ExamsSat { person: x, passed } => format!("{} {} school exams.", me(x), if passed { "passed" } else { "struggled in" }),
-        NationalSquad { player: p, nation: n, level } => format!("{} {} named in the {} {} squad.", pl(p), if w.players.cold[p].person == viewer { "were" } else { "was" }, nation(w, n), level.label()),
+        NationalSquad { player: p, nation: n, level } => {
+            format!("{} {} named in the {} {} squad.", pl(p), if w.players.cold[p].person == viewer { "were" } else { "was" }, nation(w, n), level.label())
+        }
         InternationalDebut { player: p, nation: n, level } => format!("{} made a {} debut for {}.", pl(p), level.label(), nation(w, n)),
         InternationalResult { index } => {
             let m = &w.intl.matches[index as usize];
@@ -172,7 +172,11 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         LeaderEmerged { player: p, club: c } => format!("{} has become one of the voices of the {} dressing room.", pl(p), club(w, c)),
         TookUnderWing { mentor, mentee } => format!("{} has taken {} under their wing.", me(mentor), me_lc(mentee)),
         CharacterChanged { person: x, up } => {
-            if up { format!("People around {} have noticed a new maturity.", me(x)) } else { format!("People around {} worry about their attitude lately.", me(x)) }
+            if up {
+                format!("People around {} have noticed a new maturity.", me(x))
+            } else {
+                format!("People around {} worry about their attitude lately.", me(x))
+            }
         }
         Stagnated { player: p } => format!("Without football, {}'s development has stalled.", pl(p)),
         Milestone { player: p, kind, count, club: c } => match kind {
@@ -203,7 +207,11 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         MovedHome { person: x, bought } => format!("{} {} a new home.", me(x), if bought { "bought" } else { "moved into" }),
         HiredHelper { person: x, helper } => format!("{} took on a {}.", me(x), helper.label()),
         GaveBack { person: x, foundation } => {
-            if foundation { format!("{} launched a charitable foundation.", me(x)) } else { format!("{} committed time to community work.", me(x)) }
+            if foundation {
+                format!("{} launched a charitable foundation.", me(x))
+            } else {
+                format!("{} committed time to community work.", me(x))
+            }
         }
         Endorsed { person: x, brand, fee_year } => {
             let b = &w.commerce.brands[brand as usize];
@@ -221,11 +229,17 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             format!("{}'s deal with {} {how}.", me(x), b.name)
         }
         SponsorClash { person: x, brand, club: c } => format!("{}'s deal with {} clashes with {}'s own partners.", me(x), w.commerce.brands[brand as usize].name, club(w, c)),
-        ClubSponsor { club: c, brand, slot, fee_year } => format!("{} agreed a {} sponsorship with {} worth {} a year.", club(w, c), slot.label(), w.commerce.brands[brand as usize].name, money(fee_year)),
+        ClubSponsor { club: c, brand, slot, fee_year } => {
+            format!("{} agreed a {} sponsorship with {} worth {} a year.", club(w, c), slot.label(), w.commerce.brands[brand as usize].name, money(fee_year))
+        }
         NewCareer { person: x, path } => format!("{} began a career in {}.", me(x), path.label()),
         CareerEnded { person: x, path } => format!("{} stepped away from {}.", me(x), path.label()),
         Investment { person: x, gain } => {
-            if gain >= 0 { format!("{}'s investments returned {}.", me(x), money(gain)) } else { format!("{} lost {} on investments.", me(x), money(-gain)) }
+            if gain >= 0 {
+                format!("{}'s investments returned {}.", me(x), money(gain))
+            } else {
+                format!("{} lost {} on investments.", me(x), money(-gain))
+            }
         }
         BoardWarning { club: c, manager, warnings } => format!("The {} board privately warned {} ({} warning{}).", club(w, c), w.staff_name(manager), warnings, if warnings == 1 { "" } else { "s" }),
         BoardQuery { club: c, manager, .. } => format!("The {} board asked {} to explain what they had heard.", club(w, c), me_lc(manager)),

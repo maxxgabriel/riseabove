@@ -406,16 +406,7 @@ pub fn load_dir_seeded(dir: &Path, pack: DataPack, seed: Option<u64>) -> Result<
         } else {
             Contract::default()
         };
-        let loan = loan_from.map(|parent| Loan {
-            parent,
-            club,
-            start,
-            end: parse_date(t.s(r, "loan_end")).unwrap_or(start.add_months(11)),
-            wage_share: 70,
-            fee: 0,
-            buy_option: 0,
-            recall: true,
-        });
+        let loan = loan_from.map(|parent| Loan { parent, club, start, end: parse_date(t.s(r, "loan_end")).unwrap_or(start.add_months(11)), wage_share: 70, fee: 0, buy_option: 0, recall: true });
         let height = t.num(r, "height").unwrap_or_else(|| pw_sim::generate::height_for(naturals[0], &mut rng));
         let mut cold = PlayerCold {
             person,
@@ -435,11 +426,7 @@ pub fn load_dir_seeded(dir: &Path, pack: DataPack, seed: Option<u64>) -> Result<
             contract,
             loan,
             value: t.num(r, "value").unwrap_or(0),
-            rep: Reputation {
-                current: t.num(r, "reputation_current").unwrap_or(0),
-                home: t.num(r, "reputation_home").unwrap_or(0),
-                world: t.num(r, "reputation_world").unwrap_or(0),
-            },
+            rep: Reputation { current: t.num(r, "reputation_current").unwrap_or(0), home: t.num(r, "reputation_home").unwrap_or(0), world: t.num(r, "reputation_world").unwrap_or(0) },
             status: squad_status(t.s(r, "squad_status")).unwrap_or(SquadStatus::Squad),
             shirt: t.num(r, "shirt").unwrap_or(0),
             caps: t.num(r, "caps").unwrap_or(0),
@@ -566,4 +553,3 @@ fn club_team(w: &mut World, club: ClubId, kind: TeamKind) -> TeamId {
     w.clubs[club].teams.push(t);
     t
 }
-

@@ -31,7 +31,6 @@ fn role_from(s: &str) -> Option<StaffRole> {
 impl Source for StaffTable {
     type Prep = ();
 
-
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let mut v = vec![
             Col::new("name", "Name", Fmt::Text, 190, &[G, CON]),
@@ -68,9 +67,7 @@ impl Source for StaffTable {
             .filter(|(_, s)| club.is_none_or(|cl| s.club == cl))
             .filter(|(_, s)| role.is_none_or(|r| s.role == r))
             .filter(|(_, s)| !unemployed || s.club.is_none())
-            .filter(|(_, s)| {
-                q.as_ref().is_none_or(|q| c.person_name(s.person).to_lowercase().contains(q.as_str()))
-            })
+            .filter(|(_, s)| q.as_ref().is_none_or(|q| c.person_name(s.person).to_lowercase().contains(q.as_str())))
             .map(|(id, _)| id.0)
             .collect()
     }
@@ -117,7 +114,11 @@ impl StaffTable {
             }
             "rep" => num(f64::from(s.reputation)),
             "games" => {
-                if s.record.games == 0 { (Cell::empty(), Key::None) } else { num(f64::from(s.record.games)) }
+                if s.record.games == 0 {
+                    (Cell::empty(), Key::None)
+                } else {
+                    num(f64::from(s.record.games))
+                }
             }
             "win" => {
                 if s.record.games == 0 {

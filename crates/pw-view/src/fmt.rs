@@ -6,4 +6,3 @@ pub fn date(d: Date) -> String {
     let (y, m, day) = d.ymd();
     format!("{y}-{m:02}-{day:02}")
 }
-

@@ -68,7 +68,7 @@ pub fn ensure(w: &mut World) {
         let leagues = w.nations[n].leagues.clone();
         for (t, &comp) in leagues.iter().enumerate().take(3) {
             let tier = t as u8 + 1;
-            let clubs = w.comps[comp].state.table.len().max(8);
+            let clubs = w.clubs.iter().filter(|c| c.league == comp).count().max(8);
             let want = clubs / 2 + 3;
             let have = w.officials.by_nation.get(&n).map_or(0, |v| v.iter().filter(|&&r| w.officials.referees[r as usize].tier == tier && w.officials.referees[r as usize].active).count());
             for k in have..want {
@@ -87,7 +87,11 @@ pub fn referee_for(w: &World, fx: &Fixture) -> Option<u32> {
     let (hn, an) = (w.clubs[w.teams[fx.home].club].nation, w.clubs[w.teams[fx.away].club].nation);
     let pool: Vec<u32> = if comp.nation.is_some() {
         let tier = comp.tier.clamp(1, 3);
-        let v: Vec<u32> = w.officials.by_nation.get(&comp.nation).map_or_else(Vec::new, |v| v.iter().copied().filter(|&r| w.officials.referees[r as usize].active && w.officials.referees[r as usize].tier == tier).collect());
+        let v: Vec<u32> = w
+            .officials
+            .by_nation
+            .get(&comp.nation)
+            .map_or_else(Vec::new, |v| v.iter().copied().filter(|&r| w.officials.referees[r as usize].active && w.officials.referees[r as usize].tier == tier).collect());
         if v.is_empty() { w.officials.by_nation.get(&comp.nation).map_or_else(Vec::new, |v| v.iter().copied().filter(|&r| w.officials.referees[r as usize].active).collect()) } else { v }
     } else {
         w.officials.referees.iter().filter(|r| r.active && r.tier == 1 && r.nation != hn && r.nation != an).map(|r| r.id).collect()

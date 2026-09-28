@@ -6,8 +6,8 @@ mod events;
 mod fixtures;
 mod players;
 mod society;
-mod stats;
 mod staff;
+mod stats;
 mod systems;
 
 use serde_json::Value;

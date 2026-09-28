@@ -28,7 +28,7 @@ pub fn value_of(w: &World, p: PlayerId) -> Money {
     let youth = interp(&[(21.0, 1.0), (27.0, 0.0)], age);
     let potential = 1.0 + (f32::from(c.pa) - ca).max(0.0) / 100.0 * youth * 1.5;
     let age_mult = interp(&[(16.0, 0.55), (19.0, 1.0), (24.0, 1.1), (28.0, 1.0), (31.0, 0.7), (33.0, 0.45), (36.0, 0.2)], age);
-    let years = (h.club.is_some()).then(|| c.contract.days_left(w.date) as f32 / 365.0).unwrap_or(0.0);
+    let years = if h.club.is_some() { c.contract.days_left(w.date) as f32 / 365.0 } else { 0.0 };
     let contract = if h.status == PlayerStatus::FreeAgent { 0.3 } else { 0.35 + 0.65 * (years / 3.0).min(1.0) };
     let rep = 0.85 + 0.3 * f32::from(c.rep.world) / 10_000.0;
     // Current internationals carry a premium buyers pay for.
@@ -89,10 +89,13 @@ pub fn new_contract(w: &World, p: PlayerId, club: ClubId, premium: f32) -> Contr
 // ------------------------------------------------------------- monthly
 
 pub fn monthly(w: &mut World) {
-    let values: Vec<Money> = (0..w.players.len()).into_par_iter().map(|i| {
-        let p = PlayerId(i as u32);
-        if w.players.hot[p].status == PlayerStatus::Retired { 0 } else { value_of(w, p) }
-    }).collect();
+    let values: Vec<Money> = (0..w.players.len())
+        .into_par_iter()
+        .map(|i| {
+            let p = PlayerId(i as u32);
+            if w.players.hot[p].status == PlayerStatus::Retired { 0 } else { value_of(w, p) }
+        })
+        .collect();
     for (c, v) in w.players.cold.iter_mut().zip(values) {
         c.value = v;
     }
@@ -115,11 +118,10 @@ fn assign_statuses(w: &mut World, club: ClubId) {
             let (ca, _, _, _) = club_view(w, club, p);
             let who = w.players.cold[p].person;
             let taste = w.clubs[club].manager.get().map_or(0.0, |s| crate::managers::preference(w, s, p) * 6.0);
-            let opinion = taste + manager.map_or(0.0, |m| {
-                (consider::trust(w, m, who) - 0.5) * 12.0
-                    + w.social.get(m, who).map_or(0.0, |r| (f32::from(r.respect) - 50.0) * 0.15)
-                    - consider::memory(w, m, who, MemoryKind::PoorAttitude) * 4.0
-            });
+            let opinion = taste
+                + manager.map_or(0.0, |m| {
+                    (consider::trust(w, m, who) - 0.5) * 12.0 + w.social.get(m, who).map_or(0.0, |r| (f32::from(r.respect) - 50.0) * 0.15) - consider::memory(w, m, who, MemoryKind::PoorAttitude) * 4.0
+                });
             (p, ca + opinion)
         })
         .collect();
@@ -177,13 +179,8 @@ fn plan_squad(w: &mut World, club: ClubId) {
         (PosGroup::Mid, if big { 8 } else { 7 }, 4, Pos::MC),
         (PosGroup::Att, if big { 5 } else { 4 }, 2, Pos::ST),
     ] {
-        let mut cas: Vec<(u8, Pos)> = w.teams[team]
-            .squad
-            .iter()
-            .map(|&p| &w.players.cold[p])
-            .filter(|c| c.best_pos.group() == group && c.status != SquadStatus::NotNeeded)
-            .map(|c| (c.ca, c.best_pos))
-            .collect();
+        let mut cas: Vec<(u8, Pos)> =
+            w.teams[team].squad.iter().map(|&p| &w.players.cold[p]).filter(|c| c.best_pos.group() == group && c.status != SquadStatus::NotNeeded).map(|c| (c.ca, c.best_pos)).collect();
         cas.sort_by(|a, b| b.0.cmp(&a.0));
         let weakest = cas.get(starters.saturating_sub(1)).map(|x| x.0).unwrap_or(0);
         let pos = cas.get(starters.saturating_sub(1)).map_or(rep_pos, |x| x.1);
@@ -216,7 +213,7 @@ pub fn daily(w: &mut World) {
     let max = w.data.tuning.market.max_transfers_per_club_window;
     let day = today.0 as u32;
     for club in w.clubs.ids() {
-        if (club.0 + day) % interval != 0 {
+        if !(club.0 + day).is_multiple_of(interval) {
             continue;
         }
         let nation = w.clubs[club].nation;
@@ -505,7 +502,7 @@ pub fn free_agent_sweep(w: &mut World) {
         return;
     }
     for club in w.clubs.ids() {
-        if w.clubs[club].market.needs.is_empty() || (club.0 + today.0 as u32) % 7 != 0 {
+        if w.clubs[club].market.needs.is_empty() || !(club.0 + today.0 as u32).is_multiple_of(7) {
             continue;
         }
         let need = w.clubs[club].market.needs[0];

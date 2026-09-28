@@ -62,16 +62,11 @@ pub fn weekly(w: &mut World) {
                 room.integration.remove(&p);
                 w.events.push(today, Visibility::Club(club), EventKind::PlayerSettled { player: p, club });
                 // Someone helped; they are remembered for it.
-                if let Some(helper) = players
-                    .iter()
-                    .copied()
-                    .filter(|&x| x != p)
-                    .max_by(|&a, &b| {
-                        let fa = consider::affinity(w, me, w.players.cold[a].person);
-                        let fb = consider::affinity(w, me, w.players.cold[b].person);
-                        fa.total_cmp(&fb).then(b.cmp(&a))
-                    })
-                {
+                if let Some(helper) = players.iter().copied().filter(|&x| x != p).max_by(|&a, &b| {
+                    let fa = consider::affinity(w, me, w.players.cold[a].person);
+                    let fb = consider::affinity(w, me, w.players.cold[b].person);
+                    fa.total_cmp(&fb).then(b.cmp(&a))
+                }) {
                     let hp = w.players.cold[helper].person;
                     let compat = consider::compat(w, me, hp);
                     w.social.remember(me, hp, MemoryKind::Settled, today, pw_core::EventId::NONE, false, 0.7, compat);
@@ -178,9 +173,7 @@ fn rebuild(w: &mut World, club: ClubId) {
 
     // Collective measures.
     let total_infl: f32 = infl.values().map(|&v| f32::from(v)).sum::<f32>().max(1.0);
-    let backing = manager.map_or(50.0, |m| {
-        players.iter().map(|&p| consider::trust(w, w.players.cold[p].person, m) * f32::from(infl[&p])).sum::<f32>() / total_infl * 100.0
-    });
+    let backing = manager.map_or(50.0, |m| players.iter().map(|&p| consider::trust(w, w.players.cold[p].person, m) * f32::from(infl[&p])).sum::<f32>() / total_infl * 100.0);
     let spread = if groups.len() >= 2 {
         let lo = groups.iter().map(|g| g.stance).min().unwrap_or(50);
         let hi = groups.iter().map(|g| g.stance).max().unwrap_or(50);
@@ -197,10 +190,7 @@ fn rebuild(w: &mut World, club: ClubId) {
         b.satisfaction = b.satisfaction.saturating_sub(3);
     }
 
-    w.rooms.clubs.insert(
-        club,
-        Room { club, groups, standing, influence: infl, integration, harmony: harmony as u8, backing: backing.clamp(0.0, 100.0) as u8, updated: today },
-    );
+    w.rooms.clubs.insert(club, Room { club, groups, standing, influence: infl, integration, harmony: harmony as u8, backing: backing.clamp(0.0, 100.0) as u8, updated: today });
 }
 
 /// Group the squad around what binds people: a shared foreign language, the

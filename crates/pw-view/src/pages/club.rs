@@ -1,7 +1,7 @@
 use pw_core::{ClubId, CompId, NationId};
+use pw_world::club::Ownership;
 use pw_world::comp::Stage;
 use pw_world::culture::Side;
-use pw_world::club::Ownership;
 use pw_world::{CompKind, StaffRole, TeamKind};
 use serde_json::{Value, json};
 
@@ -49,11 +49,28 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let s = &w.staff[club.manager];
         json!({"person": named(Ref::person(s.person), c.person_name(s.person)), "since": s.joined.0, "record": {"games": s.record.games, "wins": s.record.wins, "draws": s.record.draws, "losses": s.record.losses}})
     });
-    let relation = if c.same_club(id) { "Your club" } else if c.observer() { "Observing" } else { "Not your club" };
-    let staff_counts: Vec<Value> = [StaffRole::Manager, StaffRole::Assistant, StaffRole::Coach, StaffRole::GkCoach, StaffRole::FitnessCoach, StaffRole::Scout, StaffRole::Physio, StaffRole::SportsScientist, StaffRole::HeadOfYouth, StaffRole::DirectorOfFootball]
-        .iter()
-        .map(|r| json!({"role": r.label(), "count": club.staff.iter().filter(|&&s| w.staff[s].role == *r).count()}))
-        .collect();
+    let relation = if c.same_club(id) {
+        "Your club"
+    } else if c.observer() {
+        "Observing"
+    } else {
+        "Not your club"
+    };
+    let staff_counts: Vec<Value> = [
+        StaffRole::Manager,
+        StaffRole::Assistant,
+        StaffRole::Coach,
+        StaffRole::GkCoach,
+        StaffRole::FitnessCoach,
+        StaffRole::Scout,
+        StaffRole::Physio,
+        StaffRole::SportsScientist,
+        StaffRole::HeadOfYouth,
+        StaffRole::DirectorOfFootball,
+    ]
+    .iter()
+    .map(|r| json!({"role": r.label(), "count": club.staff.iter().filter(|&&s| w.staff[s].role == *r).count()}))
+    .collect();
     let internals = c.sees_club_internals(id);
     let followed = club.teams.iter().any(|t| w.followed.contains(t));
     Ok(json!({

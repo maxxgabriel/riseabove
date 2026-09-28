@@ -187,8 +187,20 @@ pub fn after_result(w: &mut World, fx: &Fixture, hg: u8, ag: u8, pens: Option<(u
     let Some(r) = w.culture.rivalries.get_mut(h, a) else { return };
     let a_is_home = r.a == h;
     match hg.cmp(&ag) {
-        std::cmp::Ordering::Greater => if a_is_home { r.h2h.0 += 1 } else { r.h2h.2 += 1 },
-        std::cmp::Ordering::Less => if a_is_home { r.h2h.2 += 1 } else { r.h2h.0 += 1 },
+        std::cmp::Ordering::Greater => {
+            if a_is_home {
+                r.h2h.0 += 1
+            } else {
+                r.h2h.2 += 1
+            }
+        }
+        std::cmp::Ordering::Less => {
+            if a_is_home {
+                r.h2h.2 += 1
+            } else {
+                r.h2h.0 += 1
+            }
+        }
         std::cmp::Ordering::Equal => r.h2h.1 += 1,
     }
     r.last_meeting = today;
@@ -197,20 +209,18 @@ pub fn after_result(w: &mut World, fx: &Fixture, hg: u8, ag: u8, pens: Option<(u
         bump += 3;
     }
     // Revenge taken (or not).
-    if let (Some(due), Some(win)) = (r.revenge_due, winner) {
-        if due == win {
-            r.revenge_due = None;
-            bump += 2;
-        }
+    if let (Some(due), Some(win)) = (r.revenge_due, winner)
+        && due == win
+    {
+        r.revenge_due = None;
+        bump += 2;
     }
-    if knockout {
-        if let Some(win) = winner {
-            r.revenge_due = Some(if win == h { a } else { h });
-            if !r.kinds.contains(&RivalryKind::CupRevenge) {
-                r.kinds.push(RivalryKind::CupRevenge);
-            }
-            bump += 3;
+    if knockout && let Some(win) = winner {
+        r.revenge_due = Some(if win == h { a } else { h });
+        if !r.kinds.contains(&RivalryKind::CupRevenge) {
+            r.kinds.push(RivalryKind::CupRevenge);
         }
+        bump += 3;
     }
     r.intensity = r.intensity.saturating_add(bump).min(100);
     let memorable = margin >= 3 || r.intensity >= 60 || knockout;
@@ -266,11 +276,13 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         return;
     }
     let tier = w.comps[comp].tier;
+    let clubs_of: pw_world::FxHashMap<TeamId, ClubId> = rows.iter().map(|r| (r.team, w.teams[r.team].club)).collect();
+    let club = |t: TeamId| clubs_of[&t];
     // Title (tier 1) or promotion (lower tiers) decided by a few points.
     let (first, second) = (rows[0], rows[1]);
     if first.points - second.points <= 3 {
         let kind = if tier == 1 { RivalryKind::TitleRace } else { RivalryKind::Promotion };
-        let (a, b) = (Side::Club(w.teams[first.team].club), Side::Club(w.teams[second.team].club));
+        let (a, b) = (Side::Club(club(first.team)), Side::Club(club(second.team)));
         let r = w.culture.rivalries.ensure(a, b, kind, 30, today);
         r.intensity = r.intensity.saturating_add(8).min(100);
         remember(w, a, b, Moment { date: today, kind: MomentKind::TitleDecided { winner: a }, event: EventId::NONE });
@@ -282,7 +294,7 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         let safe = rows[n - relegate - 1];
         let down = rows[n - relegate];
         if safe.points - down.points <= 2 {
-            let (a, b) = (Side::Club(w.teams[safe.team].club), Side::Club(w.teams[down.team].club));
+            let (a, b) = (Side::Club(club(safe.team)), Side::Club(club(down.team)));
             let r = w.culture.rivalries.ensure(a, b, RivalryKind::Relegation, 25, today);
             r.intensity = r.intensity.saturating_add(6).min(100);
         }
@@ -391,10 +403,11 @@ pub fn meaning(w: &World, fx: &Fixture) -> MatchMeaning {
                 m.returns.push((w.players.cold[p].person, other));
             }
         }
-        if let Some(mgr) = w.clubs[clubs[i]].manager.get() {
-            if w.careers.managers.get(&mgr).is_some_and(|pr| pr.jobs.iter().any(|j| j.club == other)) && m.returns.len() < 3 {
-                m.returns.push((w.staff[mgr].person, other));
-            }
+        if let Some(mgr) = w.clubs[clubs[i]].manager.get()
+            && w.careers.managers.get(&mgr).is_some_and(|pr| pr.jobs.iter().any(|j| j.club == other))
+            && m.returns.len() < 3
+        {
+            m.returns.push((w.staff[mgr].person, other));
         }
     }
     let s = f32::from(m.rivalry) * 0.6

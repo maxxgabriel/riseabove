@@ -21,8 +21,7 @@ pub fn overview(c: &Ctx) -> ApiResult<Value> {
     let today = w.date;
 
     // Top leagues by standing, with the leader.
-    let mut leagues: Vec<(CompId, &pw_world::Competition)> =
-        w.comps.iter_enumerated().filter(|(_, x)| x.kind == CompKind::League && x.tier == 1 && x.team_kind == TeamKind::First).collect();
+    let mut leagues: Vec<(CompId, &pw_world::Competition)> = w.comps.iter_enumerated().filter(|(_, x)| x.kind == CompKind::League && x.tier == 1 && x.team_kind == TeamKind::First).collect();
     leagues.sort_by_key(|(_, x)| std::cmp::Reverse(x.reputation));
     let league_rows: Vec<Value> = leagues
         .iter()
@@ -40,12 +39,7 @@ pub fn overview(c: &Ctx) -> ApiResult<Value> {
 
     // Upcoming fixtures in the most reputable competitions.
     let upcoming: Vec<Value> = {
-        let mut v: Vec<_> = w
-            .fixtures
-            .between(today, today.add_days(6))
-            .map(|id| w.fixtures.get(id))
-            .filter(|f| f.score.is_none() && w.comps[f.comp].team_kind == TeamKind::First)
-            .collect();
+        let mut v: Vec<_> = w.fixtures.between(today, today.add_days(6)).map(|id| w.fixtures.get(id)).filter(|f| f.score.is_none() && w.comps[f.comp].team_kind == TeamKind::First).collect();
         v.sort_by_key(|f| (std::cmp::Reverse(w.comps[f.comp].reputation), f.date, f.uid));
         v.iter()
             .take(12)
@@ -63,7 +57,10 @@ pub fn overview(c: &Ctx) -> ApiResult<Value> {
         let interesting = matches!(
             e.kind,
             E::Transfer { fee, .. } if fee > 0
-        ) || matches!(e.kind, E::LoanMove { .. } | E::ManagerSacked { .. } | E::ManagerAppointed { .. } | E::Champion { .. } | E::Promoted { .. } | E::Relegated { .. } | E::Retired { .. } | E::Award { .. });
+        ) || matches!(
+            e.kind,
+            E::LoanMove { .. } | E::ManagerSacked { .. } | E::ManagerAppointed { .. } | E::Champion { .. } | E::Promoted { .. } | E::Relegated { .. } | E::Retired { .. } | E::Award { .. }
+        );
         if !interesting {
             continue;
         }
@@ -73,11 +70,7 @@ pub fn overview(c: &Ctx) -> ApiResult<Value> {
         }
     }
 
-    let followed: Vec<Value> = w
-        .followed
-        .iter()
-        .map(|&t| named(c.team_ref(t), c.team_name(t)))
-        .collect();
+    let followed: Vec<Value> = w.followed.iter().map(|&t| named(c.team_ref(t), c.team_name(t))).collect();
     let active = w.players.hot.iter().filter(|h| h.status == PlayerStatus::Active).count();
 
     Ok(json!({
@@ -199,11 +192,7 @@ pub fn capabilities() -> Value {
 pub fn diagnostics(c: &Ctx) -> ApiResult<Value> {
     let w = c.w;
     let t = &c.s.timings;
-    let (avg, worst) = if t.is_empty() {
-        (0.0, 0.0)
-    } else {
-        (t.iter().map(|x| f64::from(x.1)).sum::<f64>() / t.len() as f64 / 1000.0, t.iter().map(|x| f64::from(x.1)).fold(0.0, f64::max) / 1000.0)
-    };
+    let (avg, worst) = if t.is_empty() { (0.0, 0.0) } else { (t.iter().map(|x| f64::from(x.1)).sum::<f64>() / t.len() as f64 / 1000.0, t.iter().map(|x| f64::from(x.1)).fold(0.0, f64::max) / 1000.0) };
     Ok(json!({
         "version": env!("CARGO_PKG_VERSION"),
         "world": {
@@ -218,4 +207,3 @@ pub fn diagnostics(c: &Ctx) -> ApiResult<Value> {
         "capabilities": capabilities(),
     }))
 }
-

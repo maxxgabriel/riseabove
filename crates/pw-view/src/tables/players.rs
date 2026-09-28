@@ -73,10 +73,7 @@ pub fn avail_cell(c: &Ctx, p: PlayerId) -> (Cell, Key) {
         PlayerStatus::Active => {
             if h.injury != 0 {
                 let name = health::injury_name(c.w, h.injury);
-                (
-                    Cell::text(format!("Injured · {} d", h.injury_days)).tone(Tone::Neg).with_sub(name.to_string()).with_num(f64::from(h.injury_days)),
-                    Key::Num(100.0 + f64::from(h.injury_days)),
-                )
+                (Cell::text(format!("Injured · {} d", h.injury_days)).tone(Tone::Neg).with_sub(name.to_string()).with_num(f64::from(h.injury_days)), Key::Num(100.0 + f64::from(h.injury_days)))
             } else if h.ban > 0 {
                 (Cell::text(format!("Suspended · {}", h.ban)).tone(Tone::Warn).with_num(f64::from(h.ban)), Key::Num(50.0 + f64::from(h.ban)))
             } else {
@@ -99,7 +96,6 @@ fn pos_text(c: &Ctx, p: PlayerId) -> String {
 
 impl Source for Players {
     type Prep = Prep;
-
 
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let obs = c.observer();
@@ -213,17 +209,18 @@ impl Source for Players {
                     continue;
                 }
             }
-            if let Some(k) = kind {
-                if h.team.is_none() || !kind_matches(w.teams[h.team].kind, k) {
-                    continue;
-                }
+            if let Some(k) = kind
+                && (h.team.is_none() || !kind_matches(w.teams[h.team].kind, k))
+            {
+                continue;
             }
             let cold = &w.players.cold[p];
             let person = &w.people[cold.person];
-            if let Some(n) = nation {
-                if person.nation.0 != n && person.nation2.0 != n {
-                    continue;
-                }
+            if let Some(n) = nation
+                && person.nation.0 != n
+                && person.nation2.0 != n
+            {
+                continue;
             }
             if let Some(g) = group {
                 let want = match g {
@@ -236,10 +233,10 @@ impl Source for Players {
                     continue;
                 }
             }
-            if let Some(ps) = pos {
-                if cold.familiarity[ps.idx()] < 15 {
-                    continue;
-                }
+            if let Some(ps) = pos
+                && cold.familiarity[ps.idx()] < 15
+            {
+                continue;
             }
             if amin.is_some() || amax.is_some() {
                 let age = person.age(w.date) as i32;
@@ -253,25 +250,25 @@ impl Source for Players {
             if loaned == Some(true) && cold.loan.is_none() {
                 continue;
             }
-            if let Some(ent) = &entrants {
-                if h.team.is_none() || !ent.contains(&h.team) {
-                    continue;
-                }
+            if let Some(ent) = &entrants
+                && (h.team.is_none() || !ent.contains(&h.team))
+            {
+                continue;
             }
-            if let Some(days) = expiring {
-                if h.club.is_none() || cold.contract.days_left(w.date) > days {
-                    continue;
-                }
+            if let Some(days) = expiring
+                && (h.club.is_none() || cold.contract.days_left(w.date) > days)
+            {
+                continue;
             }
-            if let Some(m) = min_ca {
-                if i32::from(cold.ca) < m {
-                    continue;
-                }
+            if let Some(m) = min_ca
+                && i32::from(cold.ca) < m
+            {
+                continue;
             }
-            if let Some(q) = &q {
-                if !person.display_name(&w.names).to_lowercase().contains(q.as_str()) {
-                    continue;
-                }
+            if let Some(q) = &q
+                && !person.display_name(&w.names).to_lowercase().contains(q.as_str())
+            {
+                continue;
             }
             out.push(p.0);
         }
@@ -300,8 +297,7 @@ impl Source for Players {
 }
 
 fn kind_matches(k: TeamKind, s: &str) -> bool {
-    matches!((k, s), (TeamKind::First, "first") | (TeamKind::Reserve, "reserve") | (TeamKind::U21, "u21") | (TeamKind::U19, "u19") | (TeamKind::U18, "u18"))
-        || (s == "youth" && k.is_youth())
+    matches!((k, s), (TeamKind::First, "first") | (TeamKind::Reserve, "reserve") | (TeamKind::U21, "u21") | (TeamKind::U19, "u19") | (TeamKind::U18, "u18")) || (s == "youth" && k.is_youth())
 }
 
 impl Players {
@@ -336,10 +332,10 @@ impl Players {
                 } else {
                     let n = c.club_short(h.club);
                     let mut cell = Cell::link(Ref::club(h.club), n.clone());
-                    if let Some(l) = &cold.loan {
-                        if l.club == h.club {
-                            cell = cell.with_sub(format!("Loan from {}", c.club_short(l.parent)));
-                        }
+                    if let Some(l) = &cold.loan
+                        && l.club == h.club
+                    {
+                        cell = cell.with_sub(format!("Loan from {}", c.club_short(l.parent)));
                     }
                     (cell, Key::text(n))
                 }
@@ -365,12 +361,22 @@ impl Players {
             "avail" => avail_cell(c, p),
             "foot" => {
                 let (l, r) = (cold.left_foot, cold.right_foot);
-                let t = if l >= 15 && r >= 15 { "Both" } else if l > r { "Left" } else { "Right" };
+                let t = if l >= 15 && r >= 15 {
+                    "Both"
+                } else if l > r {
+                    "Left"
+                } else {
+                    "Right"
+                };
                 (Cell::text(t), Key::text(t))
             }
             "height" => num(f64::from(cold.height)),
             "shirt" => {
-                if cold.shirt == 0 { (Cell::empty(), Key::None) } else { num(f64::from(cold.shirt)) }
+                if cold.shirt == 0 {
+                    (Cell::empty(), Key::None)
+                } else {
+                    num(f64::from(cold.shirt))
+                }
             }
             "apps" | "starts" | "mins" | "goals" | "assists" | "xg" | "rating" | "cards" => {
                 let a = prep.agg(c, p);
@@ -392,7 +398,11 @@ impl Players {
                 }
             }
             "joined" => {
-                if h.club.is_none() { (Cell::empty(), Key::None) } else { num(f64::from(cold.joined.0)) }
+                if h.club.is_none() {
+                    (Cell::empty(), Key::None)
+                } else {
+                    num(f64::from(cold.joined.0))
+                }
             }
             // ---- observer-only columns (the column list omits them for other viewers) ----
             "ca" => num(f64::from(cold.ca)),
@@ -402,7 +412,11 @@ impl Players {
                 (Cell::text(l), Key::Num(cold.status as u8 as f64))
             }
             "wage" => {
-                if h.club.is_none() { (Cell::empty(), Key::None) } else { num(cold.contract.current_wage(w.date) as f64) }
+                if h.club.is_none() {
+                    (Cell::empty(), Key::None)
+                } else {
+                    num(cold.contract.current_wage(w.date) as f64)
+                }
             }
             "contract_end" => {
                 if h.club.is_none() {
@@ -421,7 +435,11 @@ impl Players {
             "sharpness" => num(f64::from(h.sharpness)),
             "morale" => num(f64::from(h.morale)),
             "clause" => {
-                if cold.contract.release_clause > 0 { num(cold.contract.release_clause as f64) } else { (Cell::empty(), Key::None) }
+                if cold.contract.release_clause > 0 {
+                    num(cold.contract.release_clause as f64)
+                } else {
+                    (Cell::empty(), Key::None)
+                }
             }
             _ => (Cell::empty(), Key::None),
         }

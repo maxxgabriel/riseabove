@@ -269,7 +269,8 @@ pub fn season_start(w: &mut World) {
         let unis: Vec<Entrant> = w.minor.institutions.iter().filter(|i| i.nation == n && i.kind == InstKind::University && i.members.len() >= 11).map(|i| Entrant::Inst(i.id)).collect();
         new_comp(w, MinorKind::UniversityLeague, n, String::new(), unis);
         // The amateur pyramid: standing orders the tiers.
-        let mut am: Vec<(u16, LocalClubId)> = w.youth.local.iter_enumerated().filter(|(_, l)| l.nation == n && l.level == LocalLevel::Amateur && l.members.len() >= 11).map(|(id, l)| (u16::MAX - l.standing, id)).collect();
+        let mut am: Vec<(u16, LocalClubId)> =
+            w.youth.local.iter_enumerated().filter(|(_, l)| l.nation == n && l.level == LocalLevel::Amateur && l.members.len() >= 11).map(|(id, l)| (u16::MAX - l.standing, id)).collect();
         am.sort();
         for (t, chunk) in am.chunks(12).enumerate() {
             new_comp(w, MinorKind::AmateurLeague { tier: t as u8 + 1 }, n, String::new(), chunk.iter().map(|c| Entrant::Local(c.1)).collect());
@@ -285,12 +286,8 @@ fn squad(w: &World, e: Entrant, kind: MinorKind) -> SmallVec<[PlayerId; 16]> {
         Entrant::Inst(i) => &w.minor.institutions[i as usize].members,
         Entrant::Local(l) => &w.youth.local[l].members,
     };
-    let mut v: SmallVec<[(u8, PlayerId); 32]> = members
-        .iter()
-        .copied()
-        .filter(|&p| w.players.hot[p].injury_days == 0 && (kind != MinorKind::GrassrootsCup || w.age(p) >= 13))
-        .map(|p| (w.players.cold[p].ca, p))
-        .collect();
+    let mut v: SmallVec<[(u8, PlayerId); 32]> =
+        members.iter().copied().filter(|&p| w.players.hot[p].injury_days == 0 && (kind != MinorKind::GrassrootsCup || w.age(p) >= 13)).map(|p| (w.players.cold[p].ca, p)).collect();
     v.sort_by(|a, b| b.cmp(a));
     v.into_iter().take(14).map(|x| x.1).collect()
 }
@@ -455,7 +452,11 @@ fn cup_round(w: &mut World, comp: u32, week: u64) {
             std::cmp::Ordering::Less => b,
             // Penalties: a coin with a little weight for the better coached.
             std::cmp::Ordering::Equal => {
-                if rng.chance(0.5 + (coaching(w, a) - coaching(w, b)) / 100.0) { a } else { b }
+                if rng.chance(0.5 + (coaching(w, a) - coaching(w, b)) / 100.0) {
+                    a
+                } else {
+                    b
+                }
             }
         };
         next.push(through);
@@ -504,7 +505,8 @@ pub fn season_end(w: &mut World) {
         let (Some(&winner), runner_up) = (order.first(), order.get(1).copied()) else { continue };
         let played: Vec<(PlayerId, MinorLine)> = lines.iter().filter(|((_, id), _)| *id == c.id).map(|((p, _), l)| (*p, *l)).collect();
         let top = played.iter().max_by(|a, b| a.1.goals.cmp(&b.1.goals).then(b.0.cmp(&a.0))).map_or((PlayerId::NONE, 0), |x| (x.0, x.1.goals));
-        let best = played.iter().filter(|x| x.1.apps >= 3).max_by(|a, b| (a.1.rating / u32::from(a.1.apps)).cmp(&(b.1.rating / u32::from(b.1.apps))).then(b.0.cmp(&a.0))).map_or(PlayerId::NONE, |x| x.0);
+        let best =
+            played.iter().filter(|x| x.1.apps >= 3).max_by(|a, b| (a.1.rating / u32::from(a.1.apps)).cmp(&(b.1.rating / u32::from(b.1.apps))).then(b.0.cmp(&a.0))).map_or(PlayerId::NONE, |x| x.0);
         let season = MinorSeason {
             kind: c.kind,
             nation: c.nation,

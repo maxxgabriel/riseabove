@@ -183,15 +183,15 @@ pub fn seed_label(seed: u64) -> String {
 /// any other word (hashed, so `--seed banana` works and is repeatable).
 pub fn parse_seed(s: &str) -> u64 {
     let t = s.trim();
-    if let Some(h) = t.strip_prefix("0x") {
-        if let Ok(v) = u64::from_str_radix(h, 16) {
-            return v;
-        }
+    if let Some(h) = t.strip_prefix("0x")
+        && let Ok(v) = u64::from_str_radix(h, 16)
+    {
+        return v;
     }
-    if t.len() == 16 {
-        if let Ok(v) = u64::from_str_radix(t, 16) {
-            return v;
-        }
+    if t.len() == 16
+        && let Ok(v) = u64::from_str_radix(t, 16)
+    {
+        return v;
     }
     if let Ok(v) = t.parse::<u64>() {
         return v;

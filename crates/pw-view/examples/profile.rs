@@ -34,7 +34,7 @@ fn main() {
             ($name:expr, $call:expr) => {{
                 let t = Instant::now();
                 for _ in 0..5 {
-                    $call;
+                    let _ = $call;
                 }
                 println!("{:>28}: {:7.1} ms", $name, t.elapsed().as_secs_f64() * 200.0);
             }};
@@ -145,7 +145,13 @@ fn main() {
         for _ in 0..365 {
             let d = sim.world.date;
             let s = sim.step();
-            let bucket = if d.day() == 1 { &mut first } else if d.weekday() == pw_core::Weekday::Mon { &mut mon } else { &mut ord };
+            let bucket = if d.day() == 1 {
+                &mut first
+            } else if d.weekday() == pw_core::Weekday::Mon {
+                &mut mon
+            } else {
+                &mut ord
+            };
             bucket.0 += s.micros;
             bucket.1 += 1;
             if s.micros > worst.0 {

@@ -14,7 +14,6 @@ const FIN: &str = "finance";
 impl Source for Clubs {
     type Prep = ();
 
-
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let mut v = vec![
             Col::new("name", "Club", Fmt::Text, 190, &[G, FIN]),
@@ -128,7 +127,11 @@ impl Clubs {
                 num(n as f64)
             }
             "founded" => {
-                if club.founded == 0 { (Cell::empty(), Key::None) } else { num(f64::from(club.founded)) }
+                if club.founded == 0 {
+                    (Cell::empty(), Key::None)
+                } else {
+                    num(f64::from(club.founded))
+                }
             }
             "balance" => num(club.finance.balance as f64),
             "transfer_budget" => num(club.finance.transfer_budget as f64),
@@ -143,7 +146,6 @@ pub struct Nations;
 
 impl Source for Nations {
     type Prep = ();
-
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -165,11 +167,7 @@ impl Source for Nations {
 
     fn ids(&self, c: &Ctx, _p: &(), f: &Value) -> Vec<u32> {
         let q = f_str(f, "q").map(str::to_lowercase);
-        c.w.nations
-            .iter_enumerated()
-            .filter(|(_, n)| q.as_ref().is_none_or(|q| n.name.to_lowercase().contains(q.as_str())))
-            .map(|(id, _)| id.0)
-            .collect()
+        c.w.nations.iter_enumerated().filter(|(_, n)| q.as_ref().is_none_or(|q| n.name.to_lowercase().contains(q.as_str()))).map(|(id, _)| id.0).collect()
     }
 
     fn key(&self, c: &Ctx, p: &(), id: u32, col: &str) -> Key {

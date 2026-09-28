@@ -23,9 +23,9 @@
 use pw_core::rng::{period, stream};
 use pw_core::{ClubId, FixtureId, Hidden, NationId, PersonId, PlayerId, StaffId, TeamId};
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
-use pw_world::incident::{def, Exposure, Incident, IncidentDef, IncidentKind, Location, Pressure, Scope};
+use pw_world::incident::{Exposure, Incident, IncidentDef, IncidentKind, Location, Pressure, def};
 use pw_world::info::InfoKind;
-use pw_world::{FanReason, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, TeamKind, World};
+use pw_world::{FanReason, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, World};
 use smallvec::SmallVec;
 
 use crate::consider;
@@ -111,14 +111,22 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
         }
         Pressure::Temper => (1.0 - hid(c.a, Hidden::Temperament)).max(if c.b.is_some() { 1.0 - hid(c.b, Hidden::Temperament) } else { 0.0 }),
         Pressure::LowMorale => {
-            if c.pa.is_some() { ((50.0 - f32::from(w.players.hot[c.pa].morale)) / 50.0).max(0.0) } else { 0.0 }
+            if c.pa.is_some() {
+                ((50.0 - f32::from(w.players.hot[c.pa].morale)) / 50.0).max(0.0)
+            } else {
+                0.0
+            }
         }
         Pressure::PublicCriticism => {
             let recent = w.media.stories.iter().rev().take(400).any(|s| s.person == c.a && s.tone <= -40 && s.date.days_until(w.date) <= 21);
             if recent { 1.0 } else { 0.0 }
         }
         Pressure::TrainingLoad => {
-            if c.pa.is_some() { f32::from(w.players.hot[c.pa].fatigue) / 100.0 } else { 0.0 }
+            if c.pa.is_some() {
+                f32::from(w.players.hot[c.pa].fatigue) / 100.0
+            } else {
+                0.0
+            }
         }
         Pressure::RoomTension => w.rooms.clubs.get(&c.club).map_or(0.2, |r| 1.0 - f32::from(r.harmony) / 100.0),
         Pressure::Unresolved => {
@@ -156,11 +164,19 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
         }
         Pressure::OwnerMeddling => w.governance.get(&c.club).map_or(0.0, |g| f32::from(g.owner.meddling) / 100.0),
         Pressure::PoorResults => {
-            if c.club.is_none() { 0.0 } else { ((60.0 - f32::from(w.clubs[c.club].board.satisfaction)) / 60.0).max(0.0) }
+            if c.club.is_none() {
+                0.0
+            } else {
+                ((60.0 - f32::from(w.clubs[c.club].board.satisfaction)) / 60.0).max(0.0)
+            }
         }
         Pressure::Fame => f32::from(w.renown.of(c.a).fame) / 10_000.0,
         Pressure::ManagerPressure => {
-            if c.club.is_none() { 0.0 } else { f32::from(w.clubs[c.club].board.warnings) / 3.0 }
+            if c.club.is_none() {
+                0.0
+            } else {
+                f32::from(w.clubs[c.club].board.warnings) / 3.0
+            }
         }
         Pressure::StaffDiscontent => {
             let m = club_manager(w, c.club);
@@ -181,18 +197,34 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
             let adult = w.affairs.of(c.a).is_some_and(|a| a.studying.is_some());
             let school = w.youth.school.contains_key(&c.a) && consider::age(w, c.a) >= 15.0;
             let exam_season = matches!(w.date.month(), 5 | 6 | 12 | 1);
-            if (adult || school) && exam_season { 1.0 } else if adult || school { 0.2 } else { 0.0 }
+            if (adult || school) && exam_season {
+                1.0
+            } else if adult || school {
+                0.2
+            } else {
+                0.0
+            }
         }
         Pressure::WeakEconomy => {
             let g = w.economy.nations.get(&c.nation).map_or(0.02, |e| e.growth);
             ((0.01 - g) * 25.0).clamp(0.0, 1.0)
         }
         Pressure::OldFacilities => {
-            if c.club.is_none() { 0.0 } else { (1.0 - f32::from(w.clubs[c.club].facilities.training) / 20.0).clamp(0.0, 1.0) }
+            if c.club.is_none() {
+                0.0
+            } else {
+                (1.0 - f32::from(w.clubs[c.club].facilities.training) / 20.0).clamp(0.0, 1.0)
+            }
         }
         Pressure::Congestion => {
             let t = if c.pa.is_some() { w.players.hot[c.pa].team } else { TeamId::NONE };
-            let team = if t.is_some() { t } else if c.club.is_some() { w.clubs[c.club].first_team() } else { TeamId::NONE };
+            let team = if t.is_some() {
+                t
+            } else if c.club.is_some() {
+                w.clubs[c.club].first_team()
+            } else {
+                TeamId::NONE
+            };
             if team.is_none() {
                 0.0
             } else {
@@ -204,7 +236,11 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
         Pressure::RecentMove => w.lives.get(c.a).map_or(0.0, |l| if l.home_since.days_until(w.date) < 90 { 1.0 } else { 0.0 }),
         Pressure::Wealth => w.lives.get(c.a).map_or(0.0, |l| ((l.finances.savings as f32).max(1.0).log10() - 4.0).clamp(0.0, 3.0) / 3.0),
         Pressure::FanAnger => {
-            if c.club.is_none() { 0.0 } else { ((45.0 - f32::from(w.clubs[c.club].fan_mood)) / 45.0).max(0.0) }
+            if c.club.is_none() {
+                0.0
+            } else {
+                ((45.0 - f32::from(w.clubs[c.club].fan_mood)) / 45.0).max(0.0)
+            }
         }
     };
     v.clamp(0.0, 1.0)
@@ -262,7 +298,8 @@ fn witnesses(w: &World, loc: Location, c: &Ctx, key: u64) -> SmallVec<[PersonId;
                     }
                 }
                 if loc == Location::TrainingGround {
-                    let coaches: Vec<PersonId> = w.clubs[c.club].staff.iter().filter(|&&s| matches!(w.staff[s].role, StaffRole::Assistant | StaffRole::Coach | StaffRole::FitnessCoach)).map(|&s| w.staff[s].person).collect();
+                    let coaches: Vec<PersonId> =
+                        w.clubs[c.club].staff.iter().filter(|&&s| matches!(w.staff[s].role, StaffRole::Assistant | StaffRole::Coach | StaffRole::FitnessCoach)).map(|&s| w.staff[s].person).collect();
                     if let Some(&x) = coaches.first() {
                         v.push(x);
                     }
@@ -270,10 +307,10 @@ fn witnesses(w: &World, loc: Location, c: &Ctx, key: u64) -> SmallVec<[PersonId;
             }
         }
         Location::Home => {
-            if let Some(pt) = w.lives.get(c.a).and_then(|l| l.household.partner) {
-                if pt.person != c.b {
-                    v.push(pt.person);
-                }
+            if let Some(pt) = w.lives.get(c.a).and_then(|l| l.household.partner)
+                && pt.person != c.b
+            {
+                v.push(pt.person);
             }
         }
         Location::Office => {
@@ -349,10 +386,10 @@ pub fn trigger(w: &mut World, d: &IncidentDef, c: Ctx, top: SmallVec<[(Pressure,
         led_to: None,
         follows,
     });
-    if let Some(f) = follows {
-        if let Some(prev) = w.incidents.list.get_mut(f as usize) {
-            prev.led_to = Some(id);
-        }
+    if let Some(f) = follows
+        && let Some(prev) = w.incidents.list.get_mut(f as usize)
+    {
+        prev.led_to = Some(id);
     }
     // Information: private and club matters travel from those who know.
     if d.exposure != Exposure::Public {
@@ -461,12 +498,12 @@ pub fn weekly(w: &mut World) {
                     best = Some((j, f));
                 }
             }
-            if let Some((j, f)) = best {
-                if f > 0.25 {
-                    let pair = if i < j { (i, j) } else { (j, i) };
-                    if !pairs.contains(&pair) {
-                        pairs.push(pair);
-                    }
+            if let Some((j, f)) = best
+                && f > 0.25
+            {
+                let pair = if i < j { (i, j) } else { (j, i) };
+                if !pairs.contains(&pair) {
+                    pairs.push(pair);
                 }
             }
         }
@@ -475,10 +512,10 @@ pub fn weekly(w: &mut World) {
             let (x, y) = if consider::hid(w, people[i], Hidden::Temperament) <= consider::hid(w, people[j], Hidden::Temperament) { (i, j) } else { (j, i) };
             let c = Ctx { a: people[x], b: people[y], pa: squad[x], pb: squad[y], club, nation, ..Ctx::default() };
             let prev = last_between(w, people[x], people[y]);
-            if let Some(id) = consider_incident(w, IncidentKind::TrainingConfrontation, c, &[u64::from(squad[x].0), u64::from(squad[y].0), week]) {
-                if prev.is_some() {
-                    w.incidents.list[id as usize].follows = prev;
-                }
+            if let Some(id) = consider_incident(w, IncidentKind::TrainingConfrontation, c, &[u64::from(squad[x].0), u64::from(squad[y].0), week])
+                && prev.is_some()
+            {
+                w.incidents.list[id as usize].follows = prev;
             }
         }
         for (k, &p) in squad.iter().enumerate() {
@@ -787,10 +824,10 @@ fn consequences(w: &mut World, id: u32) {
                 l.finances.savings -= loss;
                 l.stress = l.stress.saturating_add((10.0 + sev * 15.0) as u8).min(100);
             }
-            if let Some(pt) = w.lives.get(a).and_then(|l| l.household.partner).map(|p| p.person) {
-                if let Some(l) = w.lives.get_mut(pt) {
-                    l.stress = l.stress.saturating_add(10).min(100);
-                }
+            if let Some(pt) = w.lives.get(a).and_then(|l| l.household.partner).map(|p| p.person)
+                && let Some(l) = w.lives.get_mut(pt)
+            {
+                l.stress = l.stress.saturating_add(10).min(100);
             }
         }
         IncidentKind::ExamClash | IncidentKind::ChildcareClash => crate::responses::personal_request(w, id),
@@ -832,7 +869,8 @@ fn consequences(w: &mut World, id: u32) {
             if let Some(brand) = brand {
                 // Every club and person the brand paid loses the deal.
                 w.commerce.club_deals.retain(|d| d.brand != brand);
-                let people: Vec<u32> = (0..w.commerce.endorsements.len() as u32).filter(|&i| w.commerce.endorsements[i as usize].brand == brand && w.commerce.endorsements[i as usize].ended.is_none()).collect();
+                let people: Vec<u32> =
+                    (0..w.commerce.endorsements.len() as u32).filter(|&i| w.commerce.endorsements[i as usize].brand == brand && w.commerce.endorsements[i as usize].ended.is_none()).collect();
                 for i in people {
                     let e = &mut w.commerce.endorsements[i as usize];
                     e.ended = Some((today, pw_world::commerce::DealEnd::Faded));
@@ -894,10 +932,10 @@ fn investigations(w: &mut World) {
             let league = w.clubs[club].league;
             let team = w.clubs[club].first_team();
             let points: i16 = 6;
-            if league.is_some() {
-                if let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team) {
-                    r.points -= points;
-                }
+            if league.is_some()
+                && let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team)
+            {
+                r.points -= points;
             }
             w.events.push_caused(today, Visibility::Public, EventKind::PointsDeducted { club, points: points as u8 }, causes);
         } else {
@@ -964,4 +1002,3 @@ pub fn unavailable(w: &World, p: PlayerId) -> bool {
 pub fn involves(w: &World, id: u32, who: PersonId) -> bool {
     w.incidents.get(id).is_some_and(|i| i.parties.contains(&who) || i.witnesses.contains(&who))
 }
-

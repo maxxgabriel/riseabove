@@ -49,7 +49,12 @@ impl InfoKind {
     /// The club whose confidentiality this breaks, if any.
     pub fn club(&self) -> ClubId {
         match *self {
-            InfoKind::Interest { club, .. } | InfoKind::Bid { club, .. } | InfoKind::JobInDanger { club, .. } | InfoKind::Discipline { club, .. } | InfoKind::ContractTalks { club, .. } | InfoKind::DressingRoom { club, .. } => club,
+            InfoKind::Interest { club, .. }
+            | InfoKind::Bid { club, .. }
+            | InfoKind::JobInDanger { club, .. }
+            | InfoKind::Discipline { club, .. }
+            | InfoKind::ContractTalks { club, .. }
+            | InfoKind::DressingRoom { club, .. } => club,
             _ => ClubId::NONE,
         }
     }
@@ -94,7 +99,11 @@ impl Fidelity {
             Fidelity::Garbled => Fidelity::Garbled,
             _ if roll < 0.05 * (1.5 - honest) => Fidelity::Garbled,
             _ if roll < 0.18 * (1.5 - honest) => {
-                if self == Fidelity::Accurate { Fidelity::Partial } else { Fidelity::Exaggerated }
+                if self == Fidelity::Accurate {
+                    Fidelity::Partial
+                } else {
+                    Fidelity::Exaggerated
+                }
             }
             _ if roll < 0.28 * (1.5 - honest) => Fidelity::Exaggerated,
             _ => self,

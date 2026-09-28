@@ -16,8 +16,8 @@ use pw_core::{ClubId, CompId, Date, LocalClubId, NationId, PersonId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
-use crate::minor::{Entrant, Level};
 use crate::FxHashMap;
+use crate::minor::{Entrant, Level};
 
 /// Where a record applies.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord)]

@@ -11,9 +11,17 @@ use crate::health;
 use crate::selection::{self, Selection};
 
 enum Outcome {
-    Played { fixture: FixtureId, home: Selection, away: Selection, result: Box<MatchResult> },
+    Played {
+        fixture: FixtureId,
+        home: Box<Selection>,
+        away: Box<Selection>,
+        result: Box<MatchResult>,
+    },
     /// A side could not field eleven: awarded 3–0 (D2/D11 simplification).
-    Walkover { fixture: FixtureId, home_forfeits: bool },
+    Walkover {
+        fixture: FixtureId,
+        home_forfeits: bool,
+    },
 }
 
 pub fn importance(w: &World, comp: CompId, decisive: bool) -> f32 {
@@ -21,7 +29,13 @@ pub fn importance(w: &World, comp: CompId, decisive: bool) -> f32 {
     let base: f32 = match c.kind {
         CompKind::Continental => 0.8,
         CompKind::Cup | CompKind::SuperCup => 0.6,
-        CompKind::League => if c.team_kind == TeamKind::First { 0.5 } else { 0.25 },
+        CompKind::League => {
+            if c.team_kind == TeamKind::First {
+                0.5
+            } else {
+                0.25
+            }
+        }
     };
     (base + if decisive { 0.15 } else { 0.0 }).min(1.0)
 }
@@ -78,7 +92,7 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         tuning: &w.data.tuning.matches,
     };
     let result = Box::new(simulate(&input));
-    Outcome::Played { fixture: f, home, away, result }
+    Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result }
 }
 
 fn record_table(w: &mut World, comp: CompId, home: TeamId, away: TeamId, hg: u8, ag: u8) {
@@ -124,7 +138,7 @@ fn record_tie(w: &mut World, f: FixtureId, hg: u8, ag: u8, pens: Option<(u8, u8)
     } else if away_rule && t.away_a != t.away_b {
         if t.away_a > t.away_b { t.a } else { t.b }
     } else {
-        by_pens(fx.home, fx.away).unwrap_or(if hash_key(&[seed, fx.uid]) % 2 == 0 { t.a } else { t.b })
+        by_pens(fx.home, fx.away).unwrap_or(if hash_key(&[seed, fx.uid]).is_multiple_of(2) { t.a } else { t.b })
     };
 }
 
@@ -155,12 +169,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
     let result_sign = [i32::from(hg).cmp(&i32::from(ag)) as i32, i32::from(ag).cmp(&i32::from(hg)) as i32];
     let mut rng = Rng::keyed(&[w.seed, stream::HEALTH, fx.uid]);
 
-    let red_players: Vec<(PlayerId, bool)> = r
-        .events
-        .iter()
-        .filter(|e| matches!(e.kind, Ev::Red | Ev::SecondYellow))
-        .map(|e| (e.player, e.kind == Ev::Red))
-        .collect();
+    let red_players: Vec<(PlayerId, bool)> = r.events.iter().filter(|e| matches!(e.kind, Ev::Red | Ev::SecondYellow)).map(|e| (e.player, e.kind == Ev::Red)).collect();
 
     for line in &r.lines {
         let p = line.player;

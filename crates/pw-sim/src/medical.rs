@@ -69,22 +69,8 @@ pub fn on_injury(w: &mut World, p: PlayerId, injury: u16, days: u16) -> u16 {
     let estimate = (f32::from(truth) * (1.0 + sigma * noise)).round().clamp(1.0, 700.0) as u16;
     let certainty = (100.0 - sigma * 200.0).clamp(10.0, 95.0) as u8;
     let on_duty = w.intl.duty.contains(&p);
-    let case = Case {
-        player: p,
-        injury,
-        region: slot,
-        club,
-        date: today,
-        estimate,
-        certainty,
-        treatment: Treatment::Conservative,
-        rushed: false,
-        setbacks: 0,
-        recurrence,
-        on_duty,
-        actual: 0,
-        closed: None,
-    };
+    let case =
+        Case { player: p, injury, region: slot, club, date: today, estimate, certainty, treatment: Treatment::Conservative, rushed: false, setbacks: 0, recurrence, on_duty, actual: 0, closed: None };
     w.medical.open.insert(p, case);
     let vis = if club.is_some() { Visibility::Club(club) } else { Visibility::Public };
     w.events.push(today, vis, EventKind::Diagnosed { player: p, injury, estimate, treatment: Treatment::Conservative });
@@ -111,17 +97,7 @@ fn offer_treatment(w: &mut World, p: PlayerId, truth: u16) {
     }
     let kind = DecisionKind::Treatment { surgery_days, rehab_days };
     let options = kind.simple_options();
-    w.decisions.push(Decision {
-        person: who,
-        player: p,
-        kind,
-        options,
-        created: today,
-        deadline: today.add_days(3),
-        default: if prefers_surgery { 0 } else { 1 },
-        answer: None,
-        resolved: false,
-    });
+    w.decisions.push(Decision { person: who, player: p, kind, options, created: today, deadline: today.add_days(3), default: if prefers_surgery { 0 } else { 1 }, answer: None, resolved: false });
 }
 
 fn ai_prefers_surgery(w: &World, p: PlayerId) -> bool {
@@ -204,15 +180,11 @@ pub fn weekly(w: &mut World) {
         if !case.rushed && f32::from(remaining) <= f32::from(total) * 0.3 && remaining >= 4 && club.is_some() {
             let status = w.players.cold[p].status;
             let needed = matches!(status, SquadStatus::Star | SquadStatus::Important);
-            let pressure = w.clubs[club].board.satisfaction < 40
-                || w.clubs[club].manager.get().is_some_and(|m| w.staff[m].philosophy.archetype == pw_world::Archetype::Pragmatist);
+            let pressure = w.clubs[club].board.satisfaction < 40 || w.clubs[club].manager.get().is_some_and(|m| w.staff[m].philosophy.archetype == pw_world::Archetype::Pragmatist);
             let who = w.players.cold[p].person;
             let willing = match w.medical.willing_to_rush.get(&p) {
                 Some(&b) => b,
-                None => {
-                    w.people[who].mind == MindKind::Ai
-                        && consider::hid(w, who, Hidden::Ambition) + consider::hid(w, who, Hidden::Pressure) > 26.0
-                }
+                None => w.people[who].mind == MindKind::Ai && consider::hid(w, who, Hidden::Ambition) + consider::hid(w, who, Hidden::Pressure) > 26.0,
             };
             let careful = q / 20.0;
             let roll = (hash_key(&[w.seed, u64::from(p.0), today.0 as u64, 0x7a5]) % 1000) as f32 / 1000.0;
@@ -240,9 +212,7 @@ fn close(w: &mut World, p: PlayerId) {
     case.closed = Some(today);
     // What the injury leaves behind.
     if case.region != u8::MAX {
-        let gain = f32::from(case.actual) / 120.0 * if case.treatment == Treatment::Surgery { 0.5 } else { 1.0 }
-            + if case.rushed { 0.5 } else { 0.0 }
-            + if case.recurrence { 0.2 } else { 0.0 };
+        let gain = f32::from(case.actual) / 120.0 * if case.treatment == Treatment::Surgery { 0.5 } else { 1.0 } + if case.rushed { 0.5 } else { 0.0 } + if case.recurrence { 0.2 } else { 0.0 };
         if gain > 0.02 {
             let v = w.medical.fragile.entry(p).or_default();
             if let Some(f) = v.iter_mut().find(|f| f.region == case.region) {

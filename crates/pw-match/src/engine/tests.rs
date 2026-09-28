@@ -6,7 +6,13 @@ use super::*;
 fn sheet(id: u32, pos: Pos, level: f32) -> PlayerSheet {
     let mut attrs = Attrs::splat(100);
     for a in Attr::ALL {
-        let v = if a.is_goalkeeping() { if pos == Pos::GK { level } else { 3.0 } } else if pos == Pos::GK { level * 0.6 } else { level };
+        let v = if a.is_goalkeeping() {
+            if pos == Pos::GK { level } else { 3.0 }
+        } else if pos == Pos::GK {
+            level * 0.6
+        } else {
+            level
+        };
         attrs.set(a, v);
     }
     let mut familiarity = [1u8; N_POS];
@@ -148,7 +154,22 @@ fn calibration_report() {
     let a: Vec<f64> = acc.iter().map(|v| v / n as f64).collect();
     println!(
         "goals {:.2} shots {:.1} sot {:.1} xg {:.2} passes {:.0} pass% {:.1} fouls {:.1} yel {:.2} red {:.2} corners {:.1} offs {:.1} chains {:.0} rating {:.2} inj {:.2} subs {:.1} len {:.0}m",
-        a[0], a[1], a[2], a[3], a[4], a[5] / a[4] * 100.0, a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15]
+        a[0],
+        a[1],
+        a[2],
+        a[3],
+        a[4],
+        a[5] / a[4] * 100.0,
+        a[6],
+        a[7],
+        a[8],
+        a[9],
+        a[10],
+        a[11],
+        a[12],
+        a[13],
+        a[14],
+        a[15]
     );
     println!("home {:.3} draw {:.3}  {:.2} ms/match (Full LOD)", hw as f64 / n as f64, dr as f64 / n as f64, el.as_secs_f64() * 1000.0 / n as f64);
 }

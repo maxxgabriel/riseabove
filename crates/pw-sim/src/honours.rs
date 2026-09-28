@@ -185,7 +185,7 @@ pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fe
 pub fn season_awards(w: &mut World, c: CompId, year: i32, lines: &[StatLine], games: u16) {
     let date = w.date;
     let min_apps = (f32::from(games) * 0.6) as u16;
-    let mut give = |w: &mut World, kind: AwardKind, l: &StatLine, value: f32| {
+    let give = |w: &mut World, kind: AwardKind, l: &StatLine, value: f32| {
         w.history.awards.push(AwardRecord { comp: c, season: year, kind, player: l.player, club: l.club, value });
         w.events.push(date, Visibility::Public, EventKind::Award { player: l.player, comp: c, award: kind, season: year });
         award_effects(w, l.player, 1.0);
@@ -195,7 +195,7 @@ pub fn season_awards(w: &mut World, c: CompId, year: i32, lines: &[StatLine], ga
     }
     let keepers: Vec<&StatLine> = lines.iter().filter(|l| l.apps >= min_apps.max(1) && w.players.cold[l.player].best_pos.group() == PosGroup::Gk).collect();
     if let Some(l) = keepers.iter().max_by(|a, b| (a.clean_sheets, (a.avg_rating() * 100.0) as i32).cmp(&(b.clean_sheets, (b.avg_rating() * 100.0) as i32))) {
-        give(w, AwardKind::GoldenGlove, *l, f32::from(l.clean_sheets));
+        give(w, AwardKind::GoldenGlove, l, f32::from(l.clean_sheets));
     }
     // Team of the season: 1 keeper, 4 defenders, 3 midfielders, 3 forwards.
     let mut team: Vec<&StatLine> = Vec::new();
@@ -295,8 +295,7 @@ fn player_of_month(w: &mut World) {
 /// long enough); the hall of fame weighs whole careers after retirement.
 fn legends_and_hall(w: &mut World) {
     let today = w.date;
-    let candidates: Vec<((ClubId, PlayerId), pw_world::honours::Tally)> =
-        w.honours.tallies.iter().filter(|(_, t)| t.apps >= 150 || t.goals >= 60).map(|(&k, &t)| (k, t)).collect();
+    let candidates: Vec<((ClubId, PlayerId), pw_world::honours::Tally)> = w.honours.tallies.iter().filter(|(_, t)| t.apps >= 150 || t.goals >= 60).map(|(&k, &t)| (k, t)).collect();
     for ((club, p), t) in candidates {
         let who = w.players.cold[p].person;
         if w.honours.is_legend(club, who) {
@@ -317,9 +316,13 @@ fn legends_and_hall(w: &mut World) {
 
 /// A whole career in one number: trophies, awards, caps, appearances, peak.
 pub fn career_score(w: &World, p: PlayerId) -> u32 {
-    let trophies = w.honours.tallies.iter().filter(|((_, x), _)| *x == p).map(|(&(c, _), t)| {
-        w.history.honours.iter().filter(|h| h.club == c && h.season >= t.first.year() && h.season <= t.last.year()).count() as u32
-    }).sum::<u32>();
+    let trophies = w
+        .honours
+        .tallies
+        .iter()
+        .filter(|((_, x), _)| *x == p)
+        .map(|(&(c, _), t)| w.history.honours.iter().filter(|h| h.club == c && h.season >= t.first.year() && h.season <= t.last.year()).count() as u32)
+        .sum::<u32>();
     let awards: u32 = w
         .history
         .awards
@@ -334,9 +337,13 @@ pub fn career_score(w: &World, p: PlayerId) -> u32 {
             AwardKind::PlayerOfMonth => 5,
         })
         .sum();
-    let intl_wins = w.intl.tournaments.iter().filter(|t| t.winner.is_some()).filter(|t| {
-        w.intl.caps.get(&p).is_some_and(|v| v.iter().any(|c| c.nation == t.winner && c.level == Level::Senior && c.last.year() >= t.year))
-    }).count() as u32;
+    let intl_wins = w
+        .intl
+        .tournaments
+        .iter()
+        .filter(|t| t.winner.is_some())
+        .filter(|t| w.intl.caps.get(&p).is_some_and(|v| v.iter().any(|c| c.nation == t.winner && c.level == Level::Senior && c.last.year() >= t.year)))
+        .count() as u32;
     let c = &w.players.cold[p];
     let peak = u32::from(w.renown.of(c.person).peak_world.max(c.rep.world)) / 20;
     trophies * 60 + awards + intl_wins * 250 + u32::from(c.caps) * 3 + u32::from(c.senior_apps) / 2 + peak

@@ -30,7 +30,13 @@ pub struct NewPerson {
 pub fn create_person(w: &mut World, np: NewPerson) -> (PersonId, PlayerId) {
     let today = w.date;
     let mut rng = Rng::keyed(&[w.seed, stream::WORLDGEN, 0xc4ea7e, np.salt]);
-    let nation = if np.nation.is_some() { np.nation } else if np.club.is_some() { w.clubs[np.club].nation } else { NationId(0) };
+    let nation = if np.nation.is_some() {
+        np.nation
+    } else if np.club.is_some() {
+        w.clubs[np.club].nation
+    } else {
+        NationId(0)
+    };
     let (fac, rep) = if np.club.is_some() {
         let c = &w.clubs[np.club];
         (f32::from(c.facilities.youth), f32::from(c.reputation))
@@ -57,14 +63,7 @@ pub fn create_person(w: &mut World, np: NewPerson) -> (PersonId, PlayerId) {
         let team = kinds.iter().find_map(|&k| w.club_team(np.club, k)).unwrap_or_else(|| w.clubs[np.club].first_team());
         let kind = if age < 17.0 { ContractKind::Youth } else { ContractKind::Professional };
         let years = if age < 18.0 { 2 } else { 3 };
-        let contract = Contract {
-            club: np.club,
-            kind,
-            wage: (60.0 + rep / 30.0 * if age < 18.0 { 1.0 } else { 3.0 }) as i64,
-            start: today,
-            end: today.add_months(12 * years),
-            ..Default::default()
-        };
+        let contract = Contract { club: np.club, kind, wage: (60.0 + rep / 30.0 * if age < 18.0 { 1.0 } else { 3.0 }) as i64, start: today, end: today.add_months(12 * years), ..Default::default() };
         (team, contract)
     } else {
         (pw_core::TeamId::NONE, Contract::default())

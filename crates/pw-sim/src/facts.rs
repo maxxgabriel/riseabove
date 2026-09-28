@@ -41,7 +41,11 @@ pub fn record(w: &mut World, fx: &Fixture, fixture: pw_core::FixtureId, r: &Matc
         let before_level = h == a;
         // An own goal counts for the other side; `side` is the scorer's side.
         let for_home = (g.side == 0) != g.own_goal;
-        if for_home { h += 1 } else { a += 1 }
+        if for_home {
+            h += 1
+        } else {
+            a += 1
+        }
         if let Some(ws) = winner_side {
             let winner_behind = if ws == 0 { h < a } else { a < h };
             if winner_behind {

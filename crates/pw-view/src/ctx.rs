@@ -19,7 +19,11 @@ pub struct Ctx<'a> {
 pub enum AttrView {
     Exact(u8),
     /// Assessed range with a central estimate.
-    Range { lo: u8, hi: u8, mid: f32 },
+    Range {
+        lo: u8,
+        hi: u8,
+        mid: f32,
+    },
     Unknown,
 }
 
@@ -151,7 +155,7 @@ impl<'a> Ctx<'a> {
             (self.w.knowledge.seen(club, p), self.w.club_manager_judging(club).0, Observer::Club(club))
         } else {
             // Without a club, only a person's own self-knowledge is available.
-            let seen = self.is_me(p).then(|| pw_world::knowledge::Seen { minutes: 3000, last: self.w.date });
+            let seen = self.is_me(p).then_some(pw_world::knowledge::Seen { minutes: 3000, last: self.w.date });
             (seen, 8.0, Observer::Person(me.map_or(0, |m| m.0)))
         };
         let Some(seen) = seen else { return AttrView::Unknown };

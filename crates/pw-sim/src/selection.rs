@@ -87,11 +87,7 @@ pub fn philosophy_of(w: &World, team: TeamId) -> Philosophy {
 fn pool(w: &World, team: TeamId, comp: CompId) -> Vec<PlayerId> {
     let t = &w.teams[team];
     let ok = |p: &PlayerId| {
-        w.players.hot[*p].available()
-            && w.players.hot[*p].team == team
-            && !w.intl.duty.contains(p)
-            && !w.incidents.is_away(*p, w.date)
-            && pw_world::rules::match_eligible(w, *p, comp, t.club)
+        w.players.hot[*p].available() && w.players.hot[*p].team == team && !w.intl.duty.contains(p) && !w.incidents.is_away(*p, w.date) && pw_world::rules::match_eligible(w, *p, comp, t.club)
     };
     let mut v: Vec<PlayerId> = t.squad.iter().copied().filter(ok).collect();
     if v.len() < 16 {
@@ -172,14 +168,12 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
                 f: Factors {
                     ability: 0.0,
                     form: ((form - 5.5) / 3.0).clamp(0.0, 1.0),
-                    fitness: (f32::from(h.condition) / 100.0 * (0.7 + 0.3 * f32::from(h.sharpness) / 100.0)).clamp(0.0, 1.0)
-                        - if h.condition < 70 { 0.25 } else { 0.0 },
+                    fitness: (f32::from(h.condition) / 100.0 * (0.7 + 0.3 * f32::from(h.sharpness) / 100.0)).clamp(0.0, 1.0) - if h.condition < 70 { 0.25 } else { 0.0 },
                     role: 0.0,
                     // Status says what the club expects; the manager's own trust,
                     // built from memories of training, promises and rows, moves it.
                     trust: manager.map_or(status_trust(c.status), |m| {
-                        0.55 * status_trust(c.status) + 0.45 * crate::consider::trust(w, m, c.person)
-                            - 0.05 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::PoorAttitude)
+                        0.55 * status_trust(c.status) + 0.45 * crate::consider::trust(w, m, c.person) - 0.05 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::PoorAttitude)
                             + 0.04 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::ExtraWork)
                     }) + w.clubs[club].manager.get().map_or(0.0, |s| crate::managers::preference(w, s, p) * 0.06)
                         + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
@@ -205,8 +199,7 @@ fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, wt: &Weights, 
     let ability = c.ability[i] / max_ability.max(1.0);
     let role = attrs.weighted(s.role.key_attrs()) / 20.0;
     let rotation = c.f.rotation * (1.0 - importance);
-    wt.ability * ability + wt.form * c.f.form + wt.fitness * c.f.fitness + wt.role * role + wt.trust * c.f.trust + wt.youth * c.f.youth
-        - wt.rotation * rotation
+    wt.ability * ability + wt.form * c.f.form + wt.fitness * c.f.fitness + wt.role * role + wt.trust * c.f.trust + wt.youth * c.f.youth - wt.rotation * rotation
 }
 
 /// Pick the line-up for `team`'s next match (competition unknown: no cup-tying).
@@ -215,6 +208,9 @@ pub fn select(w: &World, team: TeamId, date: Date, importance: f32, bench_size: 
 }
 
 /// Pick the line-up for a match in `comp`, honouring its eligibility rules.
+/// The best starting XI found so far while trying formations.
+type BestXi = (f32, u8, [Slot; 11], Vec<Candidate>, Vec<usize>);
+
 pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: f32, bench_size: u8, noise: u64) -> Option<Selection> {
     let phil = philosophy_of(w, team);
     let wt = weights(phil.archetype);
@@ -229,7 +225,8 @@ pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: 
         formations.push(0);
     }
 
-    let mut best: Option<(f32, u8, [Slot; 11], Vec<Candidate>, Vec<usize>)> = None;
+    // (score, formation, slots, candidates, chosen candidate per slot)
+    let mut best: Option<BestXi> = None;
     for &f in &formations {
         let slots = w.data.formations[usize::from(f)].slots;
         let cands = candidates(w, team, comp, &slots, &phil, date, noise_key);
@@ -256,10 +253,7 @@ pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: 
         .iter()
         .filter(|c| !xi.contains(&c.id))
         .map(|c| {
-            let best_slot = (0..11)
-                .map(|r| slot_score(c, r, slots[r], max_ability, &wt, importance, &w.players.cold[c.id].attrs))
-                .filter(|s| s.is_finite())
-                .fold(-9.0f32, f32::max);
+            let best_slot = (0..11).map(|r| slot_score(c, r, slots[r], max_ability, &wt, importance, &w.players.cold[c.id].attrs)).filter(|s| s.is_finite()).fold(-9.0f32, f32::max);
             (best_slot, c)
         })
         .collect();
@@ -278,21 +272,9 @@ pub fn select_in(w: &World, team: TeamId, comp: CompId, date: Date, importance: 
     }
 
     let team_captain = w.teams[team].captain;
-    let captain = if xi.contains(&team_captain) {
-        team_captain
-    } else {
-        cands.iter().filter(|c| xi.contains(&c.id)).max_by(|a, b| a.leadership.total_cmp(&b.leadership)).map_or(xi[0], |c| c.id)
-    };
+    let captain = if xi.contains(&team_captain) { team_captain } else { cands.iter().filter(|c| xi.contains(&c.id)).max_by(|a, b| a.leadership.total_cmp(&b.leadership)).map_or(xi[0], |c| c.id) };
 
-    let tactics = Tactics {
-        formation,
-        mentality: Mentality::from_level(i32::from(phil.mentality)),
-        tempo: phil.tempo,
-        width: 50,
-        directness: phil.directness,
-        line: 50,
-        press: phil.press,
-    };
+    let tactics = Tactics { formation, mentality: Mentality::from_level(i32::from(phil.mentality)), tempo: phil.tempo, width: 50, directness: phil.directness, line: 50, press: phil.press };
     Some(Selection { team, formation, slots, xi, bench, captain, tactics })
 }
 

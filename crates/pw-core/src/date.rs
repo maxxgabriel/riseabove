@@ -63,8 +63,7 @@ impl Date {
 
     #[inline]
     pub fn weekday(self) -> Weekday {
-        const DAYS: [Weekday; 7] =
-            [Weekday::Mon, Weekday::Tue, Weekday::Wed, Weekday::Thu, Weekday::Fri, Weekday::Sat, Weekday::Sun];
+        const DAYS: [Weekday; 7] = [Weekday::Mon, Weekday::Tue, Weekday::Wed, Weekday::Thu, Weekday::Fri, Weekday::Sat, Weekday::Sun];
         DAYS[(self.0 + 3).rem_euclid(7) as usize]
     }
 

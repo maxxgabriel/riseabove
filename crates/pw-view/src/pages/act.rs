@@ -68,17 +68,8 @@ const COURSES: [Course; 10] = [
     Course::MediaTraining,
 ];
 
-const PATHS: [CareerPath; 9] = [
-    CareerPath::Coach,
-    CareerPath::Pundit,
-    CareerPath::Journalist,
-    CareerPath::Agent,
-    CareerPath::Analyst,
-    CareerPath::Scout,
-    CareerPath::Director,
-    CareerPath::Ambassador,
-    CareerPath::Business,
-];
+const PATHS: [CareerPath; 9] =
+    [CareerPath::Coach, CareerPath::Pundit, CareerPath::Journalist, CareerPath::Agent, CareerPath::Analyst, CareerPath::Scout, CareerPath::Director, CareerPath::Ambassador, CareerPath::Business];
 
 fn key_of<T: Copy + PartialEq>(list: &[(T, &'static str, &'static str)], v: T) -> &'static str {
     list.iter().find(|x| x.0 == v).map_or("", |x| x.1)
@@ -158,7 +149,9 @@ pub fn intent_text(c: &Ctx, i: &Intent) -> String {
         Intent::PlayThroughPain(true) => "Tell the medical staff you will play through pain".into(),
         Intent::PlayThroughPain(false) => "Tell the medical staff you will not play through pain".into(),
         Intent::Mentor(p) => format!("Offer to mentor {}", c.person_name(p)),
-        Intent::SpeakToPress { about, stance } => format!("Speak to the press about {} ({})", if Some(about) == c.me() { "yourself".to_string() } else { c.person_name(about) }, key_of(&STANCES, stance)),
+        Intent::SpeakToPress { about, stance } => {
+            format!("Speak to the press about {} ({})", if Some(about) == c.me() { "yourself".to_string() } else { c.person_name(about) }, key_of(&STANCES, stance))
+        }
         Intent::Enrol(course) => format!("Enrol on the {}", course.label()),
         Intent::MoveHome { buy, .. } => (if buy { "Buy a home" } else { "Rent a home" }).into(),
         Intent::HireHelper(h, _) => format!("Hire a {}", h.label()),
@@ -329,10 +322,7 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
             let v = text_arg(args, "course")?;
             Intent::Enrol(COURSES.iter().copied().find(|c| course_key(*c) == v).ok_or_else(|| ApiError::Bad("Unknown course.".into()))?)
         }
-        "move_home" => Intent::MoveHome {
-            buy: args.get("buy").and_then(Value::as_bool).unwrap_or(false),
-            quality: args.get("quality").and_then(Value::as_u64).map_or(3, |q| q.clamp(1, 5) as u8),
-        },
+        "move_home" => Intent::MoveHome { buy: args.get("buy").and_then(Value::as_bool).unwrap_or(false), quality: args.get("quality").and_then(Value::as_u64).map_or(3, |q| q.clamp(1, 5) as u8) },
         "helper" => {
             let v = text_arg(args, "helper")?;
             let h = Helper::ALL.iter().copied().find(|h| helper_key(*h) == v).ok_or_else(|| ApiError::Bad("Unknown kind of help.".into()))?;
@@ -342,10 +332,9 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
             let v = text_arg(args, "helper")?;
             Intent::DismissHelper(Helper::ALL.iter().copied().find(|h| helper_key(*h) == v).ok_or_else(|| ApiError::Bad("Unknown kind of help.".into()))?)
         }
-        "giving" => Intent::SetGiving {
-            pct: args.get("pct").and_then(Value::as_u64).map_or(0, |v| v.min(60) as u8),
-            community: args.get("community").and_then(Value::as_u64).map_or(0, |v| v.min(40) as u8),
-        },
+        "giving" => {
+            Intent::SetGiving { pct: args.get("pct").and_then(Value::as_u64).map_or(0, |v| v.min(60) as u8), community: args.get("community").and_then(Value::as_u64).map_or(0, |v| v.min(40) as u8) }
+        }
         "foundation" => Intent::StartFoundation,
         "invest" => Intent::Invest {
             amount: args.get("amount").and_then(Value::as_i64).filter(|a| *a > 0).ok_or_else(|| ApiError::Bad("Choose an amount to invest.".into()))?,
@@ -423,11 +412,7 @@ pub fn options(c: &Ctx) -> ApiResult<Value> {
         .take(60)
         .map(|(id, a, base)| json!({"id": id.0, "person": named(Ref::person(a.person), c.person_name(a.person)), "base": base, "reputation": a.reputation, "clients": a.clients.len()}))
         .collect();
-    let nations: Vec<Value> = if p.is_some() {
-        pw_sim::intl::eligible_nations(w, p).iter().map(|&n| json!({"id": n.0, "name": c.nation_name(n)})).collect()
-    } else {
-        vec![]
-    };
+    let nations: Vec<Value> = if p.is_some() { pw_sim::intl::eligible_nations(w, p).iter().map(|&n| json!({"id": n.0, "name": c.nation_name(n)})).collect() } else { vec![] };
     let courses: Vec<Value> = COURSES
         .iter()
         .map(|&co| {

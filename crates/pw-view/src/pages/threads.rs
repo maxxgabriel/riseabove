@@ -5,11 +5,11 @@
 //! from their own mind, or not at all.
 
 use pw_core::PersonId;
+use pw_world::World;
 use pw_world::decision::DecisionKind;
 use pw_world::event::EventKind as E;
 use pw_world::inbox::{Message, MsgSource, Reply, Thread, ThreadKey};
 use pw_world::socialnet::Concept;
-use pw_world::World;
 use serde_json::{Value, json};
 
 use super::inbox::{meeting_json, options_json, state_of};
@@ -294,6 +294,6 @@ pub fn reply(s: &mut Session, args: &Value) -> ApiResult<Value> {
         return Err(ApiError::State("That reply could not be sent.".into()));
     }
     s.revision += 1;
-    let applies = if matches!(opts[idx], Reply::KeepQuiet | Reply::Ignore) { "now" } else if matches!(opts[idx], Reply::Answer(_)) { "now" } else { "next day" };
+    let applies = if matches!(opts[idx], Reply::KeepQuiet | Reply::Ignore | Reply::Answer(_)) { "now" } else { "next day" };
     Ok(json!({"ok": true, "text": label, "applies": applies}))
 }

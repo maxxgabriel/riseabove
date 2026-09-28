@@ -49,9 +49,7 @@ pub fn self_view(c: &Ctx) -> ApiResult<Value> {
     for b in w.beliefs.about(me, me) {
         let src = channel_text(c, &b.channel);
         let text = match b.kind {
-            BeliefKind::Assessment { ca_lo, ca_hi, ceiling } => {
-                Some(format!("{src} rates your level at {}-{} and sees a ceiling of {} out of 5.", ca_lo / 10, ca_hi / 10, ceiling))
-            }
+            BeliefKind::Assessment { ca_lo, ca_hi, ceiling } => Some(format!("{src} rates your level at {}-{} and sees a ceiling of {} out of 5.", ca_lo / 10, ca_hi / 10, ceiling)),
             BeliefKind::ManagerRating { manager, stars } => Some(format!("{} gives you {} out of 5.", c.person_name(manager), stars)),
             BeliefKind::SelectionOutlook { start_pct } => Some(format!("{src} put your chance of starting the next match at about {start_pct}%.")),
             _ => None,
@@ -214,9 +212,7 @@ pub fn promises(c: &Ctx) -> ApiResult<Value> {
             let mine = pr.from == me;
             let other = if mine { pr.to } else { pr.from };
             let progress = match pr.kind {
-                pw_world::PromiseKind::Minutes { share } if pr.team_minutes > 0 => {
-                    Some(json!({"actual": pr.player_minutes as f32 / pr.team_minutes as f32, "promised": share}))
-                }
+                pw_world::PromiseKind::Minutes { share } if pr.team_minutes > 0 => Some(json!({"actual": pr.player_minutes as f32 / pr.team_minutes as f32, "promised": share})),
                 _ => None,
             };
             json!({
@@ -385,11 +381,7 @@ pub fn journal(c: &Ctx) -> ApiResult<Value> {
         })
         .collect();
     let notes: Vec<Value> = sess.notes.iter().enumerate().rev().map(|(i, (d, t))| json!({"i": i, "date": d.0, "text": t})).collect();
-    let history: Vec<Value> = sess
-        .history
-        .iter()
-        .map(|(p, from, to)| json!({"who": named(Ref::person(*p), c.person_name(*p)), "from": from.0, "to": to.map(|d| d.0)}))
-        .collect();
+    let history: Vec<Value> = sess.history.iter().map(|(p, from, to)| json!({"who": named(Ref::person(*p), c.person_name(*p)), "from": from.0, "to": to.map(|d| d.0)})).collect();
     Ok(json!({"goals": goal_rows, "notes": notes, "history": history}))
 }
 

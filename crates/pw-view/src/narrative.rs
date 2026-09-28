@@ -41,17 +41,64 @@ impl Group {
 pub fn group_of(k: &E) -> Group {
     use E::*;
     match k {
-        Transfer { .. } | LoanMove { .. } | LoanReturn { .. } | ContractSigned { .. } | Released { .. } | Interest { .. } | BidRejected { .. } | BidAccepted { .. } | TransferListed { .. } => Group::Transfers,
+        Transfer { .. } | LoanMove { .. } | LoanReturn { .. } | ContractSigned { .. } | Released { .. } | Interest { .. } | BidRejected { .. } | BidAccepted { .. } | TransferListed { .. } => {
+            Group::Transfers
+        }
         Retired { .. } | Debut { .. } | FirstGoal { .. } | Award { .. } | CallUp { .. } => Group::Career,
         Injured { .. } | Recovered { .. } | Suspended { .. } => Group::Health,
         ManagerSacked { .. } | ManagerAppointed { .. } | YouthIntake { .. } => Group::Club,
         Champion { .. } | Promoted { .. } | Relegated { .. } | ManagerOfSeason { .. } => Group::Competition,
-        TransferRequested { .. } | TransferRequestWithdrawn { .. } | TalksOpened { .. } | TalksCollapsed { .. } | AgentHired { .. } | AgentLeft { .. } | AgentPitch { .. } | DealCollapsed { .. } | PreContractSigned { .. } | TrialStarted { .. } | TrialEnded { .. } | LoanRecalled { .. } | OptionExercised { .. } | AddOnPaid { .. } | SellOnPaid { .. } => Group::Transfers,
+        TransferRequested { .. }
+        | TransferRequestWithdrawn { .. }
+        | TalksOpened { .. }
+        | TalksCollapsed { .. }
+        | AgentHired { .. }
+        | AgentLeft { .. }
+        | AgentPitch { .. }
+        | DealCollapsed { .. }
+        | PreContractSigned { .. }
+        | TrialStarted { .. }
+        | TrialEnded { .. }
+        | LoanRecalled { .. }
+        | OptionExercised { .. }
+        | AddOnPaid { .. }
+        | SellOnPaid { .. } => Group::Transfers,
         Diagnosed { .. } | InjurySetback { .. } | RushedBack { .. } | ChronicCondition { .. } => Group::Health,
-        Life { .. } | ExamsSat { .. } | EnrolledCourse { .. } | Qualified { .. } | MovedHome { .. } | HiredHelper { .. } | GaveBack { .. } | Investment { .. } | NewCareer { .. } | CareerEnded { .. } | JoinedStaff { .. } | CameOutOfRetirement { .. } => Group::Life,
+        Life { .. }
+        | ExamsSat { .. }
+        | EnrolledCourse { .. }
+        | Qualified { .. }
+        | MovedHome { .. }
+        | HiredHelper { .. }
+        | GaveBack { .. }
+        | Investment { .. }
+        | NewCareer { .. }
+        | CareerEnded { .. }
+        | JoinedStaff { .. }
+        | CameOutOfRetirement { .. } => Group::Life,
         Published { .. } | Endorsed { .. } | EndorsementEnded { .. } | SponsorClash { .. } | ClubSponsor { .. } => Group::Media,
-        Takeover { .. } | Administration { .. } | PointsDeducted { .. } | Austerity { .. } | OwnerInvestment { .. } | ProjectStarted { .. } | ProjectCompleted { .. } | BroadcastDeal { .. } | ManagerResigned { .. } | ManagerPoached { .. } | TacticalChange { .. } | StaffFollowed { .. } | StaffLeft { .. } => Group::Board,
-        NationalSquad { .. } | InternationalDebut { .. } | InternationalResult { .. } | TournamentWon { .. } | ChoseNation { .. } | RetiredFromInternational { .. } | NationalManagerAppointed { .. } | NationalManagerLeft { .. } | WithdrewFromSquad { .. } => Group::International,
+        Takeover { .. }
+        | Administration { .. }
+        | PointsDeducted { .. }
+        | Austerity { .. }
+        | OwnerInvestment { .. }
+        | ProjectStarted { .. }
+        | ProjectCompleted { .. }
+        | BroadcastDeal { .. }
+        | ManagerResigned { .. }
+        | ManagerPoached { .. }
+        | TacticalChange { .. }
+        | StaffFollowed { .. }
+        | StaffLeft { .. } => Group::Board,
+        NationalSquad { .. }
+        | InternationalDebut { .. }
+        | InternationalResult { .. }
+        | TournamentWon { .. }
+        | ChoseNation { .. }
+        | RetiredFromInternational { .. }
+        | NationalManagerAppointed { .. }
+        | NationalManagerLeft { .. }
+        | WithdrewFromSquad { .. } => Group::International,
         Incident { .. } | IncidentResponse { .. } | CaptainMediated { .. } | InvestigationCleared { .. } | LeakSuspected { .. } => Group::Incidents,
         JournalistMoved { .. } | JournalistLeft { .. } | JournalistHired { .. } | SupporterAction { .. } => Group::Media,
         BoardWarning { .. } | BoardQuery { .. } => Group::Board,
@@ -59,7 +106,17 @@ pub fn group_of(k: &E) -> Group {
         Record { .. } | Voted { .. } | HallInduction { .. } => Group::Career,
         MinorTitle { .. } | Chronicle { .. } | RefereeControversy { .. } | AppealDecided { .. } | Charged { .. } | SchoolFounded { .. } | RuleChanged { .. } => Group::Competition,
         AgentExploring { .. } => Group::Transfers,
-        Milestone { .. } | RecordBroken { .. } | BecameLegend { .. } | InductedHallOfFame { .. } | AcademyJoined { .. } | AcademyReleased { .. } | ScholarshipOffered { .. } | JoinedLocalClub { .. } | AcademyTrialStarted { .. } | Stagnated { .. } | CharacterChanged { .. } => Group::Career,
+        Milestone { .. }
+        | RecordBroken { .. }
+        | BecameLegend { .. }
+        | InductedHallOfFame { .. }
+        | AcademyJoined { .. }
+        | AcademyReleased { .. }
+        | ScholarshipOffered { .. }
+        | JoinedLocalClub { .. }
+        | AcademyTrialStarted { .. }
+        | Stagnated { .. }
+        | CharacterChanged { .. } => Group::Career,
         _ => Group::Club,
     }
 }

@@ -102,7 +102,13 @@ fn club_limit(w: &World, club: ClubId, p: PlayerId, offer: &Terms) -> Terms {
     let ideal = market::ideal_ca(w.clubs[club].reputation);
     let want = ((ca - ideal) / 20.0 + (pa - ca).max(0.0) / 60.0 + consider::club_need_for(w, club, p) * 0.3).clamp(-0.5, 1.0);
     let stretch = (1.12 + 0.35 * want).clamp(1.02, 1.6);
-    let status = if want > 0.5 { Some(SquadStatus::Important) } else if want > 0.1 { Some(SquadStatus::Regular) } else { None };
+    let status = if want > 0.5 {
+        Some(SquadStatus::Important)
+    } else if want > 0.1 {
+        Some(SquadStatus::Regular)
+    } else {
+        None
+    };
     // The board's wage structure caps what anyone earns, unless this is a signing
     // the club badly wants.
     let ceiling = if want > 0.6 { Money::MAX } else { crate::governance::wage_ceiling(w, club).max(offer.wage) };
@@ -182,7 +188,9 @@ fn options(w: &World, id: TalkId) -> SmallVec<[Choice; 5]> {
         v.push(Choice::Counter { wage: o.wage + o.wage / 10, years: o.years, status: o.status, release_clause: 0 });
         v.push(Choice::Counter { wage: o.wage + o.wage / 4, years: o.years, status: o.status, release_clause: 0 });
         let better = match o.status {
-            None | Some(SquadStatus::Squad) | Some(SquadStatus::ImpactSub) | Some(SquadStatus::Fringe) | Some(SquadStatus::Backup) | Some(SquadStatus::Youngster) | Some(SquadStatus::NotNeeded) => SquadStatus::Regular,
+            None | Some(SquadStatus::Squad) | Some(SquadStatus::ImpactSub) | Some(SquadStatus::Fringe) | Some(SquadStatus::Backup) | Some(SquadStatus::Youngster) | Some(SquadStatus::NotNeeded) => {
+                SquadStatus::Regular
+            }
             Some(SquadStatus::Regular) => SquadStatus::Important,
             Some(s) => s,
         };
@@ -203,6 +211,7 @@ fn player_turn(w: &mut World, id: TalkId) {
         let ai = ai_choice(w, id);
         let default = match ai {
             Choice::Accept => 0,
+            // Talks never produce incident or press choices; treat any as a walk-away.
             Choice::Reject | Choice::Decline | Choice::Respond(_) | Choice::Handle(_) | Choice::Say(_) => (opts.len() - 1) as u8,
             Choice::Counter { wage, .. } => opts
                 .iter()
@@ -281,11 +290,7 @@ fn club_turn(w: &mut World, id: TalkId) {
     }
     // Move toward the ask; better agents extract more, better club negotiators give less.
     let pull = (0.45 + (agent_n - club_skill) * 0.025 + rng.normal() * 0.05).clamp(0.15, 0.9);
-    let wage = if ask.wage <= limit.wage && rng.chance(0.35 + pull * 0.4) {
-        ask.wage
-    } else {
-        (offer.wage + ((ask.wage.min(limit.wage) - offer.wage) as f32 * pull) as Money).max(offer.wage)
-    };
+    let wage = if ask.wage <= limit.wage && rng.chance(0.35 + pull * 0.4) { ask.wage } else { (offer.wage + ((ask.wage.min(limit.wage) - offer.wage) as f32 * pull) as Money).max(offer.wage) };
     let status = if status_ok { ask.status } else { offer.status.or(limit.status) };
     let release_clause = if ask.release_clause > 0 && rng.chance(0.4) { ask.release_clause } else { offer.release_clause };
     let improved = Terms { wage, status, release_clause, signing_fee: offer.signing_fee.max(ask.signing_fee.min(limit.signing_fee)), ..offer };
@@ -319,18 +324,18 @@ fn complete(w: &mut World, id: TalkId) {
         TalkKind::Loan => Some(pw_world::rules::can_loan(w, t.club, t.seller, t.player, today)),
         _ => None,
     };
-    if let Some(o) = check {
-        if let Some(&reason) = o.reasons.first() {
-            w.talks[id].log.push((today, TalkLine::ClubWalkedAway));
-            let person = w.players.cold[t.player].person;
-            let causes: Causes = pw_world::causes![Cause::Event(t.event), Cause::Fact(pw_world::Fact::Rule { reason })];
-            w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
-            let x = &mut w.talks[id];
-            x.state = TalkState::Collapsed;
-            x.end = Some(TalkEnd::Blocked);
-            w.market.talking.remove(&t.player);
-            return;
-        }
+    if let Some(o) = check
+        && let Some(&reason) = o.reasons.first()
+    {
+        w.talks[id].log.push((today, TalkLine::ClubWalkedAway));
+        let person = w.players.cold[t.player].person;
+        let causes: Causes = pw_world::causes![Cause::Event(t.event), Cause::Fact(pw_world::Fact::Rule { reason })];
+        w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
+        let x = &mut w.talks[id];
+        x.state = TalkState::Collapsed;
+        x.end = Some(TalkEnd::Blocked);
+        w.market.talking.remove(&t.player);
+        return;
     }
     let kind = if w.age(t.player) < 17 { ContractKind::Youth } else { ContractKind::Professional };
     let contract = t.offer.to_contract(t.club, kind, today);
@@ -388,13 +393,13 @@ fn end(w: &mut World, id: TalkId, how: TalkEnd) {
     w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
     w.market.cooldown.insert((t.club, t.player), today.add_days(if t.kind == TalkKind::Renewal { 90 } else { 120 }));
     // A renewal that breaks down sours things with the club's decision-makers.
-    if t.kind == TalkKind::Renewal {
-        if let Some(n) = club_negotiator(w, t.club) {
-            let compat = consider::compat(w, person, n);
-            let kind = if how == TalkEnd::ClubWalkedAway { MemoryKind::LetDown } else { MemoryKind::HardBargain };
-            w.social.remember(person, n, kind, today, t.event, false, 0.8, compat);
-            w.social.remember(n, person, MemoryKind::HardBargain, today, t.event, false, 0.6, compat);
-        }
+    if t.kind == TalkKind::Renewal
+        && let Some(n) = club_negotiator(w, t.club)
+    {
+        let compat = consider::compat(w, person, n);
+        let kind = if how == TalkEnd::ClubWalkedAway { MemoryKind::LetDown } else { MemoryKind::HardBargain };
+        w.social.remember(person, n, kind, today, t.event, false, 0.8, compat);
+        w.social.remember(n, person, MemoryKind::HardBargain, today, t.event, false, 0.6, compat);
     }
 }
 

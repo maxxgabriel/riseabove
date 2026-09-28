@@ -7,7 +7,7 @@ use std::cmp::Ordering;
 use serde_json::Value;
 
 use crate::ctx::Ctx;
-use crate::model::{Cell, Col, Row, Ref, TableReq, TableResp, Tone};
+use crate::model::{Cell, Col, Ref, Row, TableReq, TableResp, Tone};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Key {
@@ -111,12 +111,7 @@ pub fn run<S: Source>(src: &S, c: &Ctx, req: &TableReq) -> TableResp {
     let end = (start + req.limit.clamp(1, 500)).min(ids.len());
     let rows = ids[start..end]
         .iter()
-        .map(|&id| Row {
-            id,
-            cells: chosen.iter().map(|col| src.cell(c, &prep, id, col.key)).collect(),
-            open: src.open(c, &prep, id),
-            tone: src.row_tone(c, &prep, id),
-        })
+        .map(|&id| Row { id, cells: chosen.iter().map(|col| src.cell(c, &prep, id, col.key)).collect(), open: src.open(c, &prep, id), tone: src.row_tone(c, &prep, id) })
         .collect();
 
     let mut presets: Vec<&'static str> = Vec::new();

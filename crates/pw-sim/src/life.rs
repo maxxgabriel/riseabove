@@ -139,7 +139,13 @@ pub fn lifestyle_for(p: &Person, weekly_wage: i64) -> Lifestyle {
         5_001..=40_000 => 2,
         _ => 3,
     };
-    let lean = if contro >= 14.0 && prof <= 10.0 { 1 } else if prof >= 16.0 { -1 } else { 0 };
+    let lean = if contro >= 14.0 && prof <= 10.0 {
+        1
+    } else if prof >= 16.0 {
+        -1
+    } else {
+        0
+    };
     Lifestyle::ALL[(base + lean).clamp(0, 3) as usize]
 }
 
@@ -199,12 +205,7 @@ fn create_partner(w: &mut World, who: PersonId, since: Date, status: PartnerStat
 /// well-being. Deterministic per (seed, person, month).
 pub fn monthly(w: &mut World) {
     let month = u64::from(w.date.month()) + w.date.year() as u64 * 12;
-    let people: Vec<PersonId> = w
-        .people
-        .iter_enumerated()
-        .filter(|(_, p)| p.player.is_some() || p.staff.is_some())
-        .map(|(id, _)| id)
-        .collect();
+    let people: Vec<PersonId> = w.people.iter_enumerated().filter(|(_, p)| p.player.is_some() || p.staff.is_some()).map(|(id, _)| id).collect();
     for who in people {
         if !w.lives[who].ready {
             init(w, who);
@@ -252,11 +253,7 @@ fn finances(w: &mut World, who: PersonId) {
     let floor = (floor as f32 * crate::affairs::cost_index(w, home) / 0.7) as i64;
     let spend = ((income as f32 * share) as i64).max(floor) + kids + extra_out;
     let parents = w.lives[who].household.parents;
-    let support = if parents.alive > 0 && parents.means <= 2 && income > 6_000 {
-        (income as f32 * 0.04 * f32::from(parents.closeness) / 60.0) as i64
-    } else {
-        0
-    };
+    let support = if parents.alive > 0 && parents.means <= 2 && income > 6_000 { (income as f32 * 0.04 * f32::from(parents.closeness) / 60.0) as i64 } else { 0 };
     let f = &mut w.lives[who].finances;
     f.income = income;
     f.spending = spend;
@@ -272,7 +269,7 @@ fn finances(w: &mut World, who: PersonId) {
         f.debt += -net - draw;
     }
     let trouble = f.debt > income.max(1_000) * 3;
-    if trouble && today.month() % 3 == 0 {
+    if trouble && today.month().is_multiple_of(3) {
         w.events.push_caused(today, Visibility::Person(who), EventKind::Life { person: who, kind: LifeEventKind::FinancialTrouble }, Causes::new());
     }
 }
@@ -330,9 +327,7 @@ fn relationship(w: &mut World, who: PersonId, rng: &mut Rng) {
     let compat = f32::from(pw_world::social::compatibility(&me, &partner, today)) / 30.0;
     let stress = f32::from(life.stress) / 100.0;
     let night = f32::from(life.routine.nightlife) / 10.0;
-    let target = 55.0 + hours * 2.2 + compat * 15.0 - stress * 25.0 - night * 10.0 - if apart { 22.0 } else { 0.0 }
-        + (me.hidden.f(Hidden::Loyalty) - 10.0) * 0.8
-        + rng.normal() * 6.0;
+    let target = 55.0 + hours * 2.2 + compat * 15.0 - stress * 25.0 - night * 10.0 - if apart { 22.0 } else { 0.0 } + (me.hidden.f(Hidden::Loyalty) - 10.0) * 0.8 + rng.normal() * 6.0;
     let bond = ewma(f32::from(pt.bond), target.clamp(0.0, 100.0), 0.18).clamp(0.0, 100.0) as u8;
     set_bond(w, who, pt.person, bond);
 
@@ -391,12 +386,12 @@ pub fn advance_relationship(w: &mut World, a: PersonId, b: PersonId, ask: pw_wor
     };
     let home = w.lives[a].home;
     for (x, other) in [(a, b), (b, a)] {
-        if let Some(p) = w.lives[x].household.partner.as_mut() {
-            if p.person == other {
-                p.status = status;
-                p.bond = p.bond.saturating_add(6).min(100);
-                p.lives = home;
-            }
+        if let Some(p) = w.lives[x].household.partner.as_mut()
+            && p.person == other
+        {
+            p.status = status;
+            p.bond = p.bond.saturating_add(6).min(100);
+            p.lives = home;
         }
         w.lives[x].fulfilment = w.lives[x].fulfilment.saturating_add(6).min(100);
     }
@@ -417,7 +412,13 @@ pub fn separate(w: &mut World, a: PersonId, b: PersonId, causes: Causes) {
         l.stress = l.stress.saturating_add(18).min(100);
         l.fulfilment = l.fulfilment.saturating_sub(8);
     }
-    let married = w.events.all().iter().rev().take(20_000).any(|e| matches!(e.kind, EventKind::Life { person, kind: LifeEventKind::Married { partner } } if (person == a && partner == b) || (person == b && partner == a)));
+    let married = w
+        .events
+        .all()
+        .iter()
+        .rev()
+        .take(20_000)
+        .any(|e| matches!(e.kind, EventKind::Life { person, kind: LifeEventKind::Married { partner } } if (person == a && partner == b) || (person == b && partner == a)));
     let vis = if married { Visibility::Public } else { Visibility::Person(a) };
     let ev = w.events.push_caused(today, vis, EventKind::Life { person: a, kind: LifeEventKind::Separated { partner: b } }, causes);
     let compat = consider::compat(w, a, b);
@@ -456,11 +457,11 @@ fn languages(w: &mut World, who: PersonId) {
     let hours = f32::from(w.lives[who].routine.language);
     let gain = 1.2 * (0.5 + adapt / 20.0) + hours * 0.9;
     w.lives[who].learn_language(home, gain);
-    if let Some(pt) = w.lives[who].household.partner {
-        if pt.lives == home {
-            let pa = w.people[pt.person].hidden.f(Hidden::Adaptability);
-            w.lives[pt.person].learn_language(home, 1.0 * (0.5 + pa / 20.0));
-        }
+    if let Some(pt) = w.lives[who].household.partner
+        && pt.lives == home
+    {
+        let pa = w.people[pt.person].hidden.f(Hidden::Adaptability);
+        w.lives[pt.person].learn_language(home, 1.0 * (0.5 + pa / 20.0));
     }
 }
 
@@ -491,7 +492,13 @@ fn wellbeing(w: &mut World, who: PersonId, rng: &mut Rng) {
     if playing {
         let grievance = consider::minutes_grievance(w, player);
         let left = consider::contract_days_left(w, player);
-        let insecure = if w.players.hot[player].status == PlayerStatus::FreeAgent { 1.0 } else if left < 180 && left >= 0 { 0.5 } else { 0.0 };
+        let insecure = if w.players.hot[player].status == PlayerStatus::FreeAgent {
+            1.0
+        } else if (0..180).contains(&left) {
+            0.5
+        } else {
+            0.0
+        };
         let injured = w.players.hot[player].injury_days > 30;
         stress += grievance * 15.0 + insecure * 18.0 + if injured { 12.0 } else { 0.0 };
         push(MoodFactor::PlayingTime, -grievance * 12.0);
@@ -524,9 +531,9 @@ fn wellbeing(w: &mut World, who: PersonId, rng: &mut Rng) {
     stress = (stress - relief + (20.0 - person.hidden.f(Hidden::Pressure)) * 0.4).clamp(0.0, 100.0);
     push(MoodFactor::Stress, -(stress - 30.0).max(0.0) * 0.3);
 
-    let sleep = (70.0 + (rest - 12.0) * 1.5 - f32::from(r.nightlife) * 3.0 - stress * 0.25
-        - if life.household.youngest_born.days_until(today) < 180 && life.household.children > 0 { 15.0 } else { 0.0 })
-    .clamp(10.0, 100.0);
+    let sleep =
+        (70.0 + (rest - 12.0) * 1.5 - f32::from(r.nightlife) * 3.0 - stress * 0.25 - if life.household.youngest_born.days_until(today) < 180 && life.household.children > 0 { 15.0 } else { 0.0 })
+            .clamp(10.0, 100.0);
 
     let total: f32 = mood.iter().map(|&(_, v)| f32::from(v)).sum();
     let target = (62.0 + total + (person.hidden.f(Hidden::Professionalism) - 10.0) * 0.5 + rng.normal() * 4.0).clamp(5.0, 100.0);

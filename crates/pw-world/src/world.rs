@@ -6,23 +6,23 @@ use serde::{Deserialize, Serialize};
 use crate::agent::Agents;
 use crate::beliefs::Beliefs;
 use crate::club::{Club, Team, TeamKind};
-use crate::intent::Intents;
-use crate::interaction::Meetings;
-use crate::life::Life;
-use crate::media::Media;
 use crate::comp::{Competition, Fixtures};
 use crate::contract::{Contract, Loan};
 use crate::decision::{Decisions, MindKind};
 use crate::event::EventLog;
 use crate::history::History;
+use crate::intent::Intents;
+use crate::interaction::Meetings;
 use crate::knowledge::Knowledge;
+use crate::life::Life;
+use crate::media::Media;
 use crate::names::Names;
 use crate::nation::Nation;
+use crate::negotiation::Negotiation;
 use crate::person::Person;
 use crate::player::{PlayerStatus, Players};
-use crate::staff::Staff;
-use crate::negotiation::Negotiation;
 use crate::social::Social;
+use crate::staff::Staff;
 use crate::stats::SeasonStats;
 use crate::{FxHashMap, FxHashSet};
 
@@ -159,6 +159,9 @@ pub struct World {
     pub days_simulated: u64,
     /// Teams whose matches are recorded at full detail on request (recording only, never outcomes).
     pub followed: Vec<TeamId>,
+    /// Whether the one-time preparation (`pw_sim::prepare`) has run. A saved
+    /// world is prepared; preparing it again would advance it.
+    pub prepared: bool,
     /// Mixed into the seed when a playthrough begins, so two playthroughs of
     /// the same starting world diverge while one save replays exactly (S22).
     pub playthrough: u64,
@@ -225,6 +228,7 @@ impl World {
             reports: FxHashMap::default(),
             days_simulated: 0,
             followed: Vec::new(),
+            prepared: false,
             playthrough: 0,
         }
     }
@@ -400,9 +404,6 @@ impl World {
     pub fn club_manager_judging(&self, club: ClubId) -> (f32, f32) {
         let c = &self.clubs[club];
         let best = |f: fn(&Staff) -> f32| c.staff.iter().map(|&s| f(&self.staff[s])).fold(6.0f32, f32::max);
-        (
-            best(|s| s.attrs.f(pw_core::StaffAttr::JudgingAbility)),
-            best(|s| s.attrs.f(pw_core::StaffAttr::JudgingPotential)),
-        )
+        (best(|s| s.attrs.f(pw_core::StaffAttr::JudgingAbility)), best(|s| s.attrs.f(pw_core::StaffAttr::JudgingPotential)))
     }
 }

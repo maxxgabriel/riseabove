@@ -441,7 +441,7 @@ fn decisions_open_and_can_be_answered() {
     for _ in 0..40 {
         advance(&api, 15);
         let inbox = api.call("me.messages", json!({})).unwrap();
-        for m in inbox["messages"].as_array().unwrap().iter().filter(|m| m["kind"] == "decision" && m["needs_action"] == true) {
+        if let Some(m) = inbox["messages"].as_array().unwrap().iter().find(|m| m["kind"] == "decision" && m["needs_action"] == true) {
             let id = m["id"].as_str().unwrap();
             let d = api.call("me.message", json!({"id": id})).unwrap();
             let options = d["options"].as_array().expect("a decision lists its options");
@@ -454,7 +454,6 @@ fn decisions_open_and_can_be_answered() {
             advance(&api, 1);
             assert_eq!(api.call("me.answer", json!({"id": id, "choice": 0})).unwrap_err().code(), "state");
             opened += 1;
-            break;
         }
         if opened >= 3 {
             break;
@@ -481,17 +480,17 @@ fn the_world_inbox_groups_conversations_and_replies_become_actions() {
             assert_eq!(msgs.len() as u64, t["count"].as_u64().unwrap());
             for m in msgs {
                 assert!(m["text"].as_str().is_some_and(|s| !s.is_empty()) || m["kind"] == "meeting", "{m}");
-                if replied == 0 {
-                    if let Some(r) = m["replies"].as_array().and_then(|r| r.first()) {
-                        let key = r["key"].as_str().unwrap();
-                        api.call("me.reply", json!({"message": m["id"], "key": key})).unwrap();
-                        // Once replied, it is recorded and cannot be answered twice.
-                        assert_eq!(api.call("me.reply", json!({"message": m["id"], "key": key})).unwrap_err().code(), "state");
-                        let again = api.call("me.thread", json!({"id": id})).unwrap();
-                        let mm = again["messages"].as_array().unwrap().iter().find(|x| x["id"] == m["id"]).unwrap();
-                        assert!(mm["replied"]["label"].is_string(), "{mm}");
-                        replied += 1;
-                    }
+                if replied == 0
+                    && let Some(r) = m["replies"].as_array().and_then(|r| r.first())
+                {
+                    let key = r["key"].as_str().unwrap();
+                    api.call("me.reply", json!({"message": m["id"], "key": key})).unwrap();
+                    // Once replied, it is recorded and cannot be answered twice.
+                    assert_eq!(api.call("me.reply", json!({"message": m["id"], "key": key})).unwrap_err().code(), "state");
+                    let again = api.call("me.thread", json!({"id": id})).unwrap();
+                    let mm = again["messages"].as_array().unwrap().iter().find(|x| x["id"] == m["id"]).unwrap();
+                    assert!(mm["replied"]["label"].is_string(), "{mm}");
+                    replied += 1;
                 }
             }
             if t["unread"].as_u64().unwrap() > 0 {

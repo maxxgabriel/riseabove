@@ -3,9 +3,9 @@
 //! simulation produced — never the other way round.
 
 use pw_core::PersonId;
+use pw_world::World;
 use pw_world::interaction::{Meeting, MeetingState, Outcome, Tone, Topic};
 use pw_world::negotiation::{Negotiation, TalkLine, Terms};
-use pw_world::World;
 
 use crate::fmt::{person, wage};
 use crate::pick;

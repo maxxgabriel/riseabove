@@ -62,7 +62,6 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
     let quote = w.pressroom.quotes.len() as u32;
     w.pressroom.quotes.push(pw_world::pressroom::QuoteRecord { id: quote, speaker, about, stance, topic: None, date: today, conference: u32::MAX, story: id });
     let ev = w.media.stories[id].event;
-    // An interview about nobody in particular (`PersonId::NONE`) has no one to be compatible with.
     let compat = if about.is_some() { consider::compat(w, about, speaker) } else { 0 };
     let fan_club = if about.is_some() { w.club_of_person(about) } else { club };
     match stance {
@@ -96,30 +95,30 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
         }
         Stance::Complain => {
             // A complaint about minutes or treatment is aimed at the manager.
-            if let Some(p) = w.people[speaker].player.get() {
-                if let Some(m) = w.manager_of_player(p) {
-                    let c = consider::compat(w, m, speaker);
-                    w.social.remember(m, speaker, MemoryKind::PublicCriticism, today, ev, true, 0.9, c);
-                }
+            if let Some(p) = w.people[speaker].player.get()
+                && let Some(m) = w.manager_of_player(p)
+            {
+                let c = consider::compat(w, m, speaker);
+                w.social.remember(m, speaker, MemoryKind::PublicCriticism, today, ev, true, 0.9, c);
             }
             w.media.move_fans(club, speaker, -20, FanReason::Interview, today);
         }
         Stance::Ambition => {
-            if let Some(p) = w.people[speaker].player.get() {
-                if let Some(m) = w.manager_of_player(p) {
-                    let c = consider::compat(w, m, speaker);
-                    w.social.remember(m, speaker, MemoryKind::LetDown, today, ev, true, 0.5, c);
-                }
+            if let Some(p) = w.people[speaker].player.get()
+                && let Some(m) = w.manager_of_player(p)
+            {
+                let c = consider::compat(w, m, speaker);
+                w.social.remember(m, speaker, MemoryKind::LetDown, today, ev, true, 0.5, c);
             }
             w.media.move_fans(club, speaker, -40, FanReason::Interview, today);
         }
         Stance::Loyalty => {
             w.media.move_fans(club, speaker, 60, FanReason::Loyalty, today);
-            if let Some(p) = w.people[speaker].player.get() {
-                if let Some(m) = w.manager_of_player(p) {
-                    let c = consider::compat(w, m, speaker);
-                    w.social.adjust(m, speaker, today, c, 2, 3, 0);
-                }
+            if let Some(p) = w.people[speaker].player.get()
+                && let Some(m) = w.manager_of_player(p)
+            {
+                let c = consider::compat(w, m, speaker);
+                w.social.adjust(m, speaker, today, c, 2, 3, 0);
             }
         }
         _ => {}
@@ -139,11 +138,7 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
 fn player_interviews(w: &mut World) {
     let today = w.date;
     let week = (today.0 / 7) as u64;
-    let ids: Vec<PlayerId> = w
-        .players
-        .ids()
-        .filter(|&p| w.players.hot[p].status == PlayerStatus::Active && w.players.cold[p].rep.current >= 3000 && big_enough(w, w.players.hot[p].club))
-        .collect();
+    let ids: Vec<PlayerId> = w.players.ids().filter(|&p| w.players.hot[p].status == PlayerStatus::Active && w.players.cold[p].rep.current >= 3000 && big_enough(w, w.players.hot[p].club)).collect();
     for p in ids {
         let who = w.players.cold[p].person;
         if w.people[who].mind != MindKind::Ai {
@@ -238,11 +233,11 @@ fn features(w: &mut World) {
         // Being written up moves the crowd a little; "frozen out" turns them on the manager.
         let by = i16::from(tone) / 3;
         w.media.move_fans(club, who, by, FanReason::Performances, w.date);
-        if label == Label::FrozenOut {
-            if let Some(m) = w.clubs.get(club).and_then(|c| c.manager.get()) {
-                let mp = w.staff[m].person;
-                w.media.move_fans(club, mp, -15, FanReason::Performances, w.date);
-            }
+        if label == Label::FrozenOut
+            && let Some(m) = w.clubs.get(club).and_then(|c| c.manager.get())
+        {
+            let mp = w.staff[m].person;
+            w.media.move_fans(club, mp, -15, FanReason::Performances, w.date);
         }
         if label == Label::Underrated {
             // Clubs read the analysis too.
@@ -260,7 +255,8 @@ fn features(w: &mut World) {
 
 fn news_from_honours(w: &mut World) {
     let today = w.date;
-    let events: Vec<(pw_core::EventId, EventKind)> = w.events.since(today.add_days(-7)).iter().filter(|e| e.date <= today && matches!(e.vis, Visibility::Public)).map(|e| (e.id, e.kind.clone())).collect();
+    let events: Vec<(pw_core::EventId, EventKind)> =
+        w.events.since(today.add_days(-7)).iter().filter(|e| e.date <= today && matches!(e.vis, Visibility::Public)).map(|e| (e.id, e.kind.clone())).collect();
     for (id, kind) in events {
         let (story, player, person, club, other, tone, link): (StoryKind, PlayerId, PersonId, ClubId, ClubId, i8, Option<StoryLink>) = match kind {
             EventKind::Award { player, award, .. } if !matches!(award, AwardKind::TeamOfSeason | AwardKind::PlayerOfMonth) => {
@@ -288,7 +284,13 @@ fn news_from_honours(w: &mut World) {
             EventKind::InductedHallOfFame { person } => (StoryKind::Retrospective, w.people[person].player, person, ClubId::NONE, ClubId::NONE, 70, None),
             _ => continue,
         };
-        let nation = if club.is_some() { w.clubs[club].nation } else if person.is_some() { w.people[person].nation } else { continue };
+        let nation = if club.is_some() {
+            w.clubs[club].nation
+        } else if person.is_some() {
+            w.people[person].nation
+        } else {
+            continue;
+        };
         let Some(j) = outlet_journalist(w, nation, club, u64::from(id.0) ^ 0x40) else { continue };
         let sid = publish(w, j, story, player, person, club, other, 0, 100, true, Cause::Event(id), PersonId::NONE, tone);
         if let Some(l) = link {

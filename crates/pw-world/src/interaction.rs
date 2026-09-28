@@ -8,7 +8,6 @@ use pw_core::{ClubId, Date, DecisionId, EventId, MeetingId, PersonId, PlayerId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
-use crate::FxHashMap;
 use crate::event::Causes;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -64,17 +63,8 @@ impl Topic {
     }
 
     /// Topics a player may raise with their manager.
-    pub const PLAYER_RAISES: [Topic; 9] = [
-        Topic::PlayingTime,
-        Topic::Feedback,
-        Topic::Position,
-        Topic::NewContract,
-        Topic::LoanRequest,
-        Topic::WantAway,
-        Topic::PromiseFollowUp,
-        Topic::TeammateIssue,
-        Topic::Apology,
-    ];
+    pub const PLAYER_RAISES: [Topic; 9] =
+        [Topic::PlayingTime, Topic::Feedback, Topic::Position, Topic::NewContract, Topic::LoanRequest, Topic::WantAway, Topic::PromiseFollowUp, Topic::TeammateIssue, Topic::Apology];
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -103,13 +93,17 @@ impl Tone {
 /// What a meeting led to. Several can happen at once.
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Outcome {
-    PromiseMade { promise: u32 },
+    PromiseMade {
+        promise: u32,
+    },
     Refused,
     /// "Show me in training first."
     Deferred,
     Praised,
     Warned,
-    Fined { weeks: u8 },
+    Fined {
+        weeks: u8,
+    },
     /// Left out of the next squad.
     Dropped,
     /// Transfer-listed at their request or as punishment.
@@ -164,42 +158,50 @@ pub struct Meeting {
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Meetings {
+    /// Every meeting ever held (append-only; add with `push`).
     pub list: pw_core::IdVec<MeetingId, Meeting>,
-    /// The meetings between each pair of people (lower id first), oldest first. "When did we last
-    /// speak?" is asked of many pairs every week and must not read the whole history.
-    by_pair: FxHashMap<(PersonId, PersonId), SmallVec<[MeetingId; 4]>>,
+    /// Meetings between each pair of people (the pair's smaller id first),
+    /// so looking up history costs the pair's meetings, not the world's.
+    by_pair: crate::FxHashMap<(PersonId, PersonId), SmallVec<[MeetingId; 4]>>,
+    /// Meetings that may still be pending (trimmed by `trim_open`).
+    open: Vec<MeetingId>,
+}
+
+fn pair(a: PersonId, b: PersonId) -> (PersonId, PersonId) {
+    if a <= b { (a, b) } else { (b, a) }
 }
 
 impl Meetings {
-    fn pair(a: PersonId, b: PersonId) -> (PersonId, PersonId) {
-        if a <= b { (a, b) } else { (b, a) }
-    }
-
-    /// Record a meeting. Always use this rather than pushing onto `list`.
     pub fn push(&mut self, m: Meeting) -> MeetingId {
-        let key = Self::pair(m.initiator, m.with);
+        let key = pair(m.initiator, m.with);
         let id = self.list.push(m);
         self.by_pair.entry(key).or_default().push(id);
+        self.open.push(id);
         id
     }
 
-    /// The meetings between two people, most recent first.
-    fn between(&self, a: PersonId, b: PersonId) -> impl Iterator<Item = &Meeting> {
-        self.by_pair.get(&Self::pair(a, b)).into_iter().flatten().rev().map(|&id| &self.list[id])
+    /// Forget meetings that are no longer pending from the open list.
+    pub fn trim_open(&mut self) {
+        let list = &self.list;
+        self.open.retain(|&id| list[id].state == MeetingState::Pending);
+    }
+
+    fn between(&self, a: PersonId, b: PersonId) -> impl DoubleEndedIterator<Item = &Meeting> {
+        self.by_pair.get(&pair(a, b)).into_iter().flat_map(|v| v.iter()).map(|&id| &self.list[id])
     }
 
     pub fn pending(&self) -> impl Iterator<Item = (MeetingId, &Meeting)> {
-        self.list.iter_enumerated().filter(|(_, m)| m.state == MeetingState::Pending)
+        self.open.iter().map(|&id| (id, &self.list[id])).filter(|(_, m)| m.state == MeetingState::Pending)
     }
 
     /// Most recent meeting between two people on a topic.
     pub fn last_between(&self, a: PersonId, b: PersonId, topic: Topic) -> Option<&Meeting> {
-        self.between(a, b).find(|m| m.topic == topic)
+        self.between(a, b).rev().find(|m| m.topic == topic)
     }
 
     /// Days since `a` last met `b` about anything, or `None`.
     pub fn days_since_any(&self, a: PersonId, b: PersonId, today: Date) -> Option<i32> {
-        self.between(a, b).next().map(|m| m.date.days_until(today))
+        self.between(a, b).next_back().map(|m| m.date.days_until(today))
     }
 
     pub fn involving(&self, p: PersonId) -> impl Iterator<Item = (MeetingId, &Meeting)> {

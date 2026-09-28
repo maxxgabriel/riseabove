@@ -50,16 +50,7 @@ pub fn ensure(w: &mut World) {
             let nouns = NOUNS.iter().find(|x| x.0 == sector).map_or(&["Group"][..], |x| x.1);
             let name = format!("{} {}", w.names.get(last), nouns[rng.index(nouns.len())]);
             let budget = (f32::from(size).powi(3) * 2_000.0 * (0.3 + econ)) as Money;
-            w.commerce.brands.push(Brand {
-                name,
-                nation: n,
-                sector,
-                size,
-                budget,
-                committed: 0,
-                sensitivity: rng.range_i32(4, 18) as u8,
-                youthful: rng.chance(0.4),
-            });
+            w.commerce.brands.push(Brand { name, nation: n, sector, size, budget, committed: 0, sensitivity: rng.range_i32(4, 18) as u8, youthful: rng.chance(0.4) });
         }
     }
 }
@@ -261,10 +252,10 @@ pub fn sign(w: &mut World, who: PersonId, brand: u32, fee_year: Money, years: u8
 
 /// Answer to a human's endorsement decision.
 pub fn answer(w: &mut World, who: PersonId, kind: &DecisionKind, choice: Choice) {
-    if let DecisionKind::Endorsement { brand, fee_year, years, days } = *kind {
-        if choice == Choice::Accept {
-            sign(w, who, brand, fee_year, years, days);
-        }
+    if let DecisionKind::Endorsement { brand, fee_year, years, days } = *kind
+        && choice == Choice::Accept
+    {
+        sign(w, who, brand, fee_year, years, days);
     }
 }
 
@@ -302,7 +293,7 @@ fn review(w: &mut World) {
             }
             let star = p.is_some() && w.players.cold[p].status == SquadStatus::Star;
             let key = hash_key(&[w.seed, u64::from(e.person.0), i as u64, today.year() as u64]);
-            if key % 3 == 0 {
+            if key.is_multiple_of(3) {
                 w.events.push(today, Visibility::Public, EventKind::SponsorClash { person: e.person, brand: e.brand, club });
             }
             // Stars are tolerated; others are told to drop the deal.

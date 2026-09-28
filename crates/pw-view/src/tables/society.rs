@@ -223,7 +223,13 @@ pub fn memes() -> Grid {
 }
 
 fn mood(v: i8) -> Cell {
-    let t = if v >= 25 { Tone::Pos } else if v <= -25 { Tone::Neg } else { Tone::Muted };
+    let t = if v >= 25 {
+        Tone::Pos
+    } else if v <= -25 {
+        Tone::Neg
+    } else {
+        Tone::Muted
+    };
     Cell::num(f64::from(v)).tone(t)
 }
 
@@ -346,7 +352,10 @@ impl Source for Posts {
         Self::ids_of(c)
             .filter(|p| club.is_none_or(|x| p.club == x || c.w.net.accounts[p.author as usize].club == x))
             .filter(|p| person.is_none_or(|x| p.about == x || c.w.net.accounts[p.author as usize].person == x))
-            .filter(|p| q.as_ref().is_none_or(|q| c.w.net.accounts[p.author as usize].handle.to_lowercase().contains(q.as_str()) || c.w.net.accounts[p.author as usize].display.to_lowercase().contains(q.as_str())))
+            .filter(|p| {
+                q.as_ref()
+                    .is_none_or(|q| c.w.net.accounts[p.author as usize].handle.to_lowercase().contains(q.as_str()) || c.w.net.accounts[p.author as usize].display.to_lowercase().contains(q.as_str()))
+            })
             .map(|p| p.id)
             .collect()
     }
@@ -434,7 +443,7 @@ impl Source for Incidents {
             .iter()
             .filter(|i| club.is_none_or(|x| i.club == x))
             .filter(|i| person.is_none_or(|p| i.parties.contains(&p)))
-            .filter(|i| open.is_none_or(|o| !i.resolved == o))
+            .filter(|i| open.is_none_or(|o| i.resolved != o))
             .filter(|i| Self::known(c, i))
             .map(|i| i.id)
             .collect()
@@ -463,7 +472,11 @@ impl Source for Incidents {
             "club" => club_cell(c, i.club),
             "place" => Cell::text(pw_narrate::incidents::place(i.location)),
             "status" => {
-                if i.resolved { Cell::text("Settled").tone(Tone::Muted) } else { Cell::text("Open").tone(Tone::Warn) }
+                if i.resolved {
+                    Cell::text("Settled").tone(Tone::Muted)
+                } else {
+                    Cell::text("Open").tone(Tone::Warn)
+                }
             }
             "severity" => Cell::num(f64::from(i.severity)),
             "witnesses" => Cell::num(i.witnesses.len() as f64),
@@ -801,12 +814,12 @@ pub fn votes() -> Grid {
                 .iter()
                 .map(|v| {
                     let winner = v.result.first().map(|x| x.0);
-                    let mut row = Row::new()
-                        .num("year", f64::from(v.year))
-                        .text("ballot", pw_narrate::history::ballot(w, v.ballot))
-                        .num("voters", f64::from(v.voters));
+                    let mut row = Row::new().num("year", f64::from(v.year)).text("ballot", pw_narrate::history::ballot(w, v.ballot)).num("voters", f64::from(v.voters));
                     row = match winner {
-                        Some(p) => row.cell("winner", person_cell(c, p), Key::text(c.person_name(p))).text("share", if v.casts.is_empty() { String::new() } else { format!("{} of {}", v.named_by(p), v.voters) }).open(Ref::person(p)),
+                        Some(p) => row
+                            .cell("winner", person_cell(c, p), Key::text(c.person_name(p)))
+                            .text("share", if v.casts.is_empty() { String::new() } else { format!("{} of {}", v.named_by(p), v.voters) })
+                            .open(Ref::person(p)),
                         None => row.text("winner", "").text("share", ""),
                     };
                     row
@@ -854,7 +867,9 @@ pub fn chronicle() -> Grid {
     Grid {
         cols: |_| vec![Col::new("date", "Date", Fmt::Date, 100, &[G]), Col::new("text", "In football's history", Fmt::Text, 720, &[G]).left().nosort()],
         sort: ("date", true),
-        build: |c, _| c.w.acclaim.chronicle.iter().map(|e| Row::new().cell("date", Cell::num(f64::from(e.date.0)), date_key(e.date, e.id)).text("text", pw_narrate::history::chronicle(c.w, e))).collect(),
+        build: |c, _| {
+            c.w.acclaim.chronicle.iter().map(|e| Row::new().cell("date", Cell::num(f64::from(e.date.0)), date_key(e.date, e.id)).text("text", pw_narrate::history::chronicle(c.w, e))).collect()
+        },
     }
 }
 

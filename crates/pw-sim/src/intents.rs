@@ -5,8 +5,8 @@
 
 use pw_core::{EventId, PersonId, PlayerId};
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
-use pw_world::interaction::Topic;
 use pw_world::intent::PendingIntent;
+use pw_world::interaction::Topic;
 use pw_world::{FanReason, Intent, MemoryKind, PlayerStatus, World};
 
 use crate::consider;
@@ -143,10 +143,10 @@ fn transfer_request(w: &mut World, who: PersonId, p: PlayerId) {
     }
     let club = w.players.hot[p].club;
     let mut causes = Causes::new();
-    if let Some(m) = w.manager_of_player(p) {
-        if consider::grievance(w, who, m) > 0.2 {
-            causes.push(Cause::Fact(Fact::LowTrust { from: who, about: m, trust: (consider::trust(w, who, m) * 100.0) as u8 }));
-        }
+    if let Some(m) = w.manager_of_player(p)
+        && consider::grievance(w, who, m) > 0.2
+    {
+        causes.push(Cause::Fact(Fact::LowTrust { from: who, about: m, trust: (consider::trust(w, who, m) * 100.0) as u8 }));
     }
     let (share, expected) = consider::minutes_share(w, p);
     if share + 0.1 < expected {

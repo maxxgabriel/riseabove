@@ -19,7 +19,6 @@ fn player_of(c: &Ctx, f: &Value) -> Option<PlayerId> {
 impl Source for PlayerSeasons {
     type Prep = Vec<StatLine>;
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
             Col::new("season", "Season", Fmt::Text, 80, &[G]).left(),
@@ -66,7 +65,13 @@ impl Source for PlayerSeasons {
             "goals" => Key::Num(f64::from(l.goals)),
             "assists" => Key::Num(f64::from(l.assists)),
             "xg" => Key::Num(f64::from(l.xg)),
-            "rating" => if l.apps > 0 { Key::Num(f64::from(l.avg_rating())) } else { Key::None },
+            "rating" => {
+                if l.apps > 0 {
+                    Key::Num(f64::from(l.avg_rating()))
+                } else {
+                    Key::None
+                }
+            }
             "cs" => Key::Num(f64::from(l.clean_sheets)),
             "yellows" => Key::Num(f64::from(l.yellows)),
             "reds" => Key::Num(f64::from(l.reds)),
@@ -94,7 +99,13 @@ impl Source for PlayerSeasons {
             "goals" => Cell::num(f64::from(l.goals)),
             "assists" => Cell::num(f64::from(l.assists)),
             "xg" => Cell::num(f64::from(l.xg)),
-            "rating" => if l.apps > 0 { Cell::num(f64::from(l.avg_rating())) } else { Cell::empty() },
+            "rating" => {
+                if l.apps > 0 {
+                    Cell::num(f64::from(l.avg_rating()))
+                } else {
+                    Cell::empty()
+                }
+            }
             "cs" => Cell::num(f64::from(l.clean_sheets)),
             "yellows" => Cell::num(f64::from(l.yellows)),
             "reds" => Cell::num(f64::from(l.reds)),
@@ -109,7 +120,6 @@ pub struct CompLeaders;
 
 impl Source for CompLeaders {
     type Prep = Vec<StatLine>;
-
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -157,7 +167,13 @@ impl Source for CompLeaders {
             "goals" => Key::Num(f64::from(l.goals) * 1000.0 + f64::from(l.assists)),
             "assists" => Key::Num(f64::from(l.assists) * 1000.0 + f64::from(l.goals)),
             "xg" => Key::Num(f64::from(l.xg)),
-            "rating" => if l.apps >= 3 { Key::Num(f64::from(l.avg_rating())) } else { Key::None },
+            "rating" => {
+                if l.apps >= 3 {
+                    Key::Num(f64::from(l.avg_rating()))
+                } else {
+                    Key::None
+                }
+            }
             "cs" => Key::Num(f64::from(l.clean_sheets)),
             "yellows" => Key::Num(f64::from(l.yellows)),
             "reds" => Key::Num(f64::from(l.reds)),
@@ -176,7 +192,13 @@ impl Source for CompLeaders {
             "goals" => Cell::num(f64::from(l.goals)),
             "assists" => Cell::num(f64::from(l.assists)),
             "xg" => Cell::num(f64::from(l.xg)),
-            "rating" => if l.apps >= 3 { Cell::num(f64::from(l.avg_rating())) } else { Cell::empty() },
+            "rating" => {
+                if l.apps >= 3 {
+                    Cell::num(f64::from(l.avg_rating()))
+                } else {
+                    Cell::empty()
+                }
+            }
             "cs" => Cell::num(f64::from(l.clean_sheets)),
             "yellows" => Cell::num(f64::from(l.yellows)),
             "reds" => Cell::num(f64::from(l.reds)),

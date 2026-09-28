@@ -127,7 +127,22 @@ pub fn build(pack: DataPack, seed: u64, scale: Scale) -> World {
         }
     }
     if scale.nations >= 4 {
-        builder::add_comp(&mut w, "Champions Cup", "CC", pw_core::NationId::NONE, Some(Confed::Uefa), CompKind::Continental, 1, TeamKind::First, 32, 0, 0, 9500, Format::Groups { groups: 8, size: 4, advance: 2, legs: 2, ko_legs: 2, final_legs: 1 }, 400_000_000);
+        builder::add_comp(
+            &mut w,
+            "Champions Cup",
+            "CC",
+            pw_core::NationId::NONE,
+            Some(Confed::Uefa),
+            CompKind::Continental,
+            1,
+            TeamKind::First,
+            32,
+            0,
+            0,
+            9500,
+            Format::Groups { groups: 8, size: 4, advance: 2, legs: 2, ko_legs: 2, final_legs: 1 },
+            400_000_000,
+        );
     }
     builder::finalize(&mut w);
     builder::ensure_staff(&mut w);

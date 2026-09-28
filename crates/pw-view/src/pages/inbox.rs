@@ -5,12 +5,12 @@
 
 use pw_core::{ClubId, DecisionId, EventId};
 use pw_narrate::choices;
+use pw_world::PartnerAsk;
 use pw_world::decision::{Choice, Decision, DecisionKind};
-use pw_world::incident::{Ask, Response};
 use pw_world::event::{Cause, EventKind as E};
+use pw_world::incident::{Ask, Response};
 use pw_world::interaction::{Meeting, MeetingState};
 use pw_world::negotiation::{Negotiation, TalkLine, TalkState, Terms};
-use pw_world::PartnerAsk;
 use serde_json::{Value, json};
 
 use super::me::{contract_rows, named, need_me};
@@ -243,10 +243,7 @@ fn chosen_label(c: &Ctx, d: &Decision, i: u8) -> String {
 // ---- terms and talks ---------------------------------------------------------------------------------
 
 pub fn terms_rows(t: &Terms) -> Value {
-    let mut rows = vec![
-        json!({"label": "Wage per week", "money": t.wage}),
-        json!({"label": "Length", "text": format!("{} year{}", t.years, if t.years == 1 { "" } else { "s" })}),
-    ];
+    let mut rows = vec![json!({"label": "Wage per week", "money": t.wage}), json!({"label": "Length", "text": format!("{} year{}", t.years, if t.years == 1 { "" } else { "s" })})];
     if t.signing_fee > 0 {
         rows.push(json!({"label": "Signing fee", "money": t.signing_fee}));
     }
@@ -345,7 +342,7 @@ fn event_folder(k: &E) -> &'static str {
 }
 
 pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let _ = need_me(c).map(|_| ()).or_else(|e| if c.me().is_some() { Ok(()) } else { Err(e) })?;
+    need_me(c).map(|_| ()).or_else(|e| if c.me().is_some() { Ok(()) } else { Err(e) })?;
     let me = c.me().expect("inhabiting");
     let w = c.w;
     let limit = args.get("limit").and_then(Value::as_u64).map_or(300, |n| n.clamp(20, 1000) as usize);

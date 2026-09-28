@@ -189,6 +189,7 @@ version = "0.3.0"
 dependencies = [
  "rand",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

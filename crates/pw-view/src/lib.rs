@@ -24,9 +24,9 @@ use pw_import::synthetic::{self, Scale};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-pub use model::{ApiError, ApiResult};
 use advance::{AdvanceReq, Job};
 use ctx::Ctx;
+pub use model::{ApiError, ApiResult};
 use session::Session;
 
 pub struct Shared {
@@ -77,15 +77,7 @@ impl Api {
     pub fn new(data_dir: impl Into<PathBuf>) -> Self {
         let dir = data_dir.into();
         let _ = std::fs::create_dir_all(dir.join("saves"));
-        Self {
-            sh: Arc::new(Shared {
-                session: Mutex::new(None),
-                job: Mutex::new(Job::default()),
-                task: Mutex::new(Task::default()),
-                stop: AtomicBool::new(false),
-                dir,
-            }),
-        }
+        Self { sh: Arc::new(Shared { session: Mutex::new(None), job: Mutex::new(Job::default()), task: Mutex::new(Task::default()), stop: AtomicBool::new(false), dir }) }
     }
 
     fn lock(&self) -> MutexGuard<'_, Option<Session>> {
@@ -109,11 +101,7 @@ impl Api {
     }
 
     fn not_while_advancing(&self) -> ApiResult<()> {
-        if self.job_running() {
-            Err(ApiError::State("The world is advancing. Stop it first.".into()))
-        } else {
-            Ok(())
-        }
+        if self.job_running() { Err(ApiError::State("The world is advancing. Stop it first.".into())) } else { Ok(()) }
     }
 
     /// Dispatch one call. Errors carry a code and a message fit to show to the person.
@@ -309,11 +297,8 @@ impl Api {
         let dir = args.get("dir").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing folder".into()))?;
         let files: Vec<Value> = match std::fs::read_dir(dir) {
             Ok(rd) => {
-                let mut v: Vec<Value> = rd
-                    .flatten()
-                    .filter(|e| e.path().is_file())
-                    .map(|e| json!({"name": e.file_name().to_string_lossy(), "size": e.metadata().map(|m| m.len()).unwrap_or(0)}))
-                    .collect();
+                let mut v: Vec<Value> =
+                    rd.flatten().filter(|e| e.path().is_file()).map(|e| json!({"name": e.file_name().to_string_lossy(), "size": e.metadata().map(|m| m.len()).unwrap_or(0)})).collect();
                 v.sort_by(|a, b| a["name"].as_str().cmp(&b["name"].as_str()));
                 v
             }

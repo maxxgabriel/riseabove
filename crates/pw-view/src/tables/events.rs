@@ -32,18 +32,18 @@ fn event_ids(c: &Ctx, f: &Value, only: impl Fn(&E) -> bool) -> Vec<u32> {
         if !only(&e.kind) || group.is_some_and(|g| narrative::group_of(&e.kind) != g) {
             continue;
         }
-        if let Some(cl) = club {
-            if !narrative::clubs_of(&e.kind).contains(&cl) {
-                continue;
-            }
+        if let Some(cl) = club
+            && !narrative::clubs_of(&e.kind).contains(&cl)
+        {
+            continue;
         }
         if comp.is_some_and(|x| narrative::comp_of(&e.kind) != Some(x)) {
             continue;
         }
-        if let Some(p) = player {
-            if e.kind.player() != Some(p) {
-                continue;
-            }
+        if let Some(p) = player
+            && e.kind.player() != Some(p)
+        {
+            continue;
         }
         if !narrative::visible(c, e) {
             continue;
@@ -58,13 +58,8 @@ pub struct Events;
 impl Source for Events {
     type Prep = ();
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
-        vec![
-            Col::new("date", "Date", Fmt::Date, 100, &[G]),
-            Col::new("kind", "Kind", Fmt::Text, 110, &[G]).left(),
-            Col::new("what", "What happened", Fmt::Text, 640, &[G]).left().nosort(),
-        ]
+        vec![Col::new("date", "Date", Fmt::Date, 100, &[G]), Col::new("kind", "Kind", Fmt::Text, 110, &[G]).left(), Col::new("what", "What happened", Fmt::Text, 640, &[G]).left().nosort()]
     }
 
     fn default_sort(&self) -> (&'static str, bool) {
@@ -106,7 +101,6 @@ pub struct Transfers;
 impl Source for Transfers {
     type Prep = ();
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
             Col::new("date", "Date", Fmt::Date, 100, &[G]),
@@ -126,14 +120,16 @@ impl Source for Transfers {
 
     fn ids(&self, c: &Ctx, _p: &(), f: &Value) -> Vec<u32> {
         let kind = f_str(f, "type").map(str::to_owned);
-        event_ids(c, f, move |k| match (&kind.as_deref(), k) {
-            (Some("transfer"), E::Transfer { fee, .. }) => *fee > 0 || true,
-            (Some("loan"), E::LoanMove { .. } | E::LoanReturn { .. }) => true,
-            (Some("free"), E::Transfer { fee: 0, .. }) => true,
-            (Some("release"), E::Released { .. }) => true,
-            (Some("renewal"), E::ContractSigned { renewal: true, .. }) => true,
-            (None | Some("all"), E::Transfer { .. } | E::LoanMove { .. } | E::LoanReturn { .. } | E::Released { .. } | E::ContractSigned { renewal: false, .. }) => true,
-            _ => false,
+        event_ids(c, f, move |k| {
+            matches!(
+                (kind.as_deref(), k),
+                (Some("transfer"), E::Transfer { .. })
+                    | (Some("loan"), E::LoanMove { .. } | E::LoanReturn { .. })
+                    | (Some("free"), E::Transfer { fee: 0, .. })
+                    | (Some("release"), E::Released { .. })
+                    | (Some("renewal"), E::ContractSigned { renewal: true, .. })
+                    | (None | Some("all"), E::Transfer { .. } | E::LoanMove { .. } | E::LoanReturn { .. } | E::Released { .. } | E::ContractSigned { renewal: false, .. })
+            )
         })
     }
 
@@ -208,7 +204,6 @@ pub struct Honours;
 impl Source for Honours {
     type Prep = ();
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
             Col::new("season", "Season", Fmt::Text, 80, &[G]).left(),
@@ -227,14 +222,7 @@ impl Source for Honours {
     fn ids(&self, c: &Ctx, _p: &(), f: &Value) -> Vec<u32> {
         let club = f_u32(f, "club").map(ClubId);
         let comp = f_u32(f, "comp").map(CompId);
-        c.w.history
-            .honours
-            .iter()
-            .enumerate()
-            .filter(|(_, h)| club.is_none_or(|x| h.club == x))
-            .filter(|(_, h)| comp.is_none_or(|x| h.comp == x))
-            .map(|(i, _)| i as u32)
-            .collect()
+        c.w.history.honours.iter().enumerate().filter(|(_, h)| club.is_none_or(|x| h.club == x)).filter(|(_, h)| comp.is_none_or(|x| h.comp == x)).map(|(i, _)| i as u32).collect()
     }
 
     fn key(&self, c: &Ctx, _p: &(), id: u32, col: &str) -> Key {
@@ -243,7 +231,13 @@ impl Source for Honours {
             "season" => Key::Num(f64::from(h.season) * 1000.0 + f64::from(id % 1000)),
             "comp" => Key::text(c.comp_short(h.comp)),
             "winner" => Key::text(c.team_short(h.team)),
-            "runner_up" => if h.runner_up.is_some() { Key::text(c.team_short(h.runner_up)) } else { Key::None },
+            "runner_up" => {
+                if h.runner_up.is_some() {
+                    Key::text(c.team_short(h.runner_up))
+                } else {
+                    Key::None
+                }
+            }
             _ => Key::None,
         }
     }
@@ -254,7 +248,13 @@ impl Source for Honours {
             "season" => Cell::text(c.season_label(h.comp, h.season)),
             "comp" => Cell::link(Ref::comp(h.comp), c.comp_name(h.comp)),
             "winner" => Cell::link(c.team_ref(h.team), c.team_name(h.team)),
-            "runner_up" => if h.runner_up.is_some() { Cell::link(c.team_ref(h.runner_up), c.team_name(h.runner_up)) } else { Cell::empty() },
+            "runner_up" => {
+                if h.runner_up.is_some() {
+                    Cell::link(c.team_ref(h.runner_up), c.team_name(h.runner_up))
+                } else {
+                    Cell::empty()
+                }
+            }
             _ => Cell::empty(),
         }
     }
@@ -264,7 +264,6 @@ pub struct Awards;
 
 impl Source for Awards {
     type Prep = ();
-
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -286,14 +285,7 @@ impl Source for Awards {
     fn ids(&self, c: &Ctx, _p: &(), f: &Value) -> Vec<u32> {
         let comp = f_u32(f, "comp").map(CompId);
         let player = person_filter(c, f);
-        c.w.history
-            .awards
-            .iter()
-            .enumerate()
-            .filter(|(_, a)| comp.is_none_or(|x| a.comp == x))
-            .filter(|(_, a)| player.is_none_or(|x| a.player == x))
-            .map(|(i, _)| i as u32)
-            .collect()
+        c.w.history.awards.iter().enumerate().filter(|(_, a)| comp.is_none_or(|x| a.comp == x)).filter(|(_, a)| player.is_none_or(|x| a.player == x)).map(|(i, _)| i as u32).collect()
     }
 
     fn key(&self, c: &Ctx, _p: &(), id: u32, col: &str) -> Key {
@@ -351,7 +343,6 @@ pub struct Spells;
 impl Source for Spells {
     type Prep = Vec<Spell>;
 
-
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let mut v = vec![
             Col::new("club", "Club", Fmt::Text, 200, &[G]).left(),
@@ -403,7 +394,13 @@ impl Source for Spells {
             "from" => Cell::num(f64::from(s.from.0)),
             "to" => s.to.map_or(Cell::text("Present").tone(Tone::Info), |d| Cell::num(f64::from(d.0))),
             "kind" => Cell::text(if s.loan { "Loan" } else { "Permanent" }),
-            "fee" => if s.fee > 0 { Cell::num(s.fee as f64) } else { Cell::empty() },
+            "fee" => {
+                if s.fee > 0 {
+                    Cell::num(s.fee as f64)
+                } else {
+                    Cell::empty()
+                }
+            }
             _ => Cell::empty(),
         }
     }

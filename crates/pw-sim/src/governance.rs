@@ -115,18 +115,7 @@ pub fn ensure(w: &mut World) {
         let academy_budget = revenue * Money::from(policy.youth_investment) / 1000;
         w.governance.insert(
             club,
-            Governance {
-                owner,
-                chairman,
-                policy,
-                projects: Vec::new(),
-                administration: None,
-                red_months: 0,
-                concerns: SmallVec::new(),
-                revenue_history: SmallVec::new(),
-                academy_budget,
-                injected: 0,
-            },
+            Governance { owner, chairman, policy, projects: Vec::new(), administration: None, red_months: 0, concerns: SmallVec::new(), revenue_history: SmallVec::new(), academy_budget, injected: 0 },
         );
     }
 }
@@ -238,11 +227,11 @@ fn administration(w: &mut World, club: ClubId) {
     // Points deduction in the current league season.
     let league = w.clubs[club].league;
     let team = w.clubs[club].first_team();
-    if league.is_some() {
-        if let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team) {
-            r.points -= 10;
-            w.events.push_caused(today, Visibility::Public, EventKind::PointsDeducted { club, points: 10 }, pw_world::causes![Cause::Event(ev)]);
-        }
+    if league.is_some()
+        && let Some(r) = w.comps[league].state.table.iter_mut().find(|r| r.team == team)
+    {
+        r.points -= 10;
+        w.events.push_caused(today, Visibility::Public, EventKind::PointsDeducted { club, points: 10 }, pw_world::causes![Cause::Event(ev)]);
     }
     // Everyone of value is for sale; wages are frozen.
     let squad = w.teams[team].squad.clone();
@@ -291,7 +280,8 @@ fn invest(w: &mut World, club: ClubId, revenue: Money, rng: &mut Rng) {
         Ownership::Private => 0.3,
         Ownership::InvestmentGroup => 0.15,
         Ownership::MemberOwned => 0.0,
-    } * f32::from(o.ambition) / 100.0
+    } * f32::from(o.ambition)
+        / 100.0
         * (1.0 - f32::from(o.frugality) / 150.0);
     if willing <= 0.05 || !rng.chance(willing) {
         return;

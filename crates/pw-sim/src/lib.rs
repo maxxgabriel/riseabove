@@ -1,5 +1,19 @@
 //! The living world: the daily pipeline (01 §4) and every system it runs.
 
+/// Time each system of the daily pipeline, when `PW_PROFILE` is set.
+macro_rules! prof {
+    ($name:expr, $e:expr) => {{
+        if crate::profile::enabled() {
+            let t = std::time::Instant::now();
+            let r = $e;
+            crate::profile::record($name, t.elapsed().as_micros());
+            r
+        } else {
+            $e
+        }
+    }};
+}
+
 pub mod affairs;
 pub mod agents;
 pub mod audit;
@@ -22,11 +36,11 @@ pub mod generate;
 pub mod governance;
 pub mod grapevine;
 pub mod growth;
-pub mod inbox;
 pub mod health;
 pub mod honours;
-pub mod incidents;
 pub mod hungarian;
+pub mod inbox;
+pub mod incidents;
 pub mod intents;
 pub mod interpret;
 pub mod intl;
@@ -36,12 +50,12 @@ pub mod market;
 pub mod matchday;
 pub mod media;
 pub mod medical;
-pub mod minor;
 pub mod mind;
+pub mod minor;
 pub mod morale;
 pub mod negotiation;
-pub mod officials;
 pub mod newsroom;
+pub mod officials;
 pub mod people;
 pub mod perception;
 pub mod planning;
@@ -49,8 +63,8 @@ pub mod press;
 pub mod pressroom;
 pub mod records;
 pub mod renown;
-pub mod responses;
 pub mod reputation;
+pub mod responses;
 pub mod save;
 pub mod schedule;
 pub mod scouting;
@@ -73,13 +87,53 @@ pub struct DayStats {
     pub micros: u128,
 }
 
+/// Where simulated time goes, system by system (enabled by the `PW_PROFILE`
+/// environment variable; off by default and free when off).
+pub mod profile {
+    use std::cell::RefCell;
+    use std::sync::OnceLock;
+
+    thread_local! {
+        static TIMES: RefCell<Vec<(&'static str, u128, u32)>> = const { RefCell::new(Vec::new()) };
+    }
+
+    pub fn enabled() -> bool {
+        static ON: OnceLock<bool> = OnceLock::new();
+        *ON.get_or_init(|| std::env::var_os("PW_PROFILE").is_some())
+    }
+
+    pub fn record(name: &'static str, micros: u128) {
+        TIMES.with(|t| {
+            let mut t = t.borrow_mut();
+            if let Some(x) = t.iter_mut().find(|x| x.0 == name) {
+                x.1 += micros;
+                x.2 += 1;
+            } else {
+                t.push((name, micros, 1));
+            }
+        });
+    }
+
+    /// (system, total microseconds, calls), slowest first; clears the tally.
+    pub fn take() -> Vec<(&'static str, u128, u32)> {
+        let mut v = TIMES.with(|t| std::mem::take(&mut *t.borrow_mut()));
+        v.sort_by(|a, b| b.1.cmp(&a.1));
+        v
+    }
+}
+
 pub struct Sim {
     pub world: World,
 }
 
 impl Sim {
+    /// Start simulating a world: a new world is prepared once; a loaded
+    /// (already prepared) world continues exactly where it stopped.
     pub fn new(mut world: World) -> Self {
-        prepare(&mut world);
+        if !world.prepared {
+            prepare(&mut world);
+            world.prepared = true;
+        }
         Self { world }
     }
 
@@ -93,147 +147,147 @@ impl Sim {
         let first_of_month = today.day() == 1;
 
         // New people (regens, partners, staff) get a life the day they appear.
-        life::sync(w);
+        prof!("life::sync", life::sync(w));
 
         // 1. Calendar: seasons, draws, contract expiries, loan ends, intakes.
         if today.month() == 12 && today.day() == 20 {
-            honours::yearly_votes(w);
+            prof!("honours::yearly_votes", honours::yearly_votes(w));
         }
         if today.month() == 7 && today.day() == 1 {
-            officials::season_review(w);
-            evolution::yearly(w);
-            economy::yearly(w);
-            governance::yearly(w);
-            managers::yearly(w);
-            commerce::ensure(w);
-            commerce::yearly(w);
-            culture::ensure(w);
-            culture::yearly(w);
-            newsroom::yearly(w);
+            prof!("officials::season_review", officials::season_review(w));
+            prof!("evolution::yearly", evolution::yearly(w));
+            prof!("economy::yearly", economy::yearly(w));
+            prof!("governance::yearly", governance::yearly(w));
+            prof!("managers::yearly", managers::yearly(w));
+            prof!("commerce::ensure", commerce::ensure(w));
+            prof!("commerce::yearly", commerce::yearly(w));
+            prof!("culture::ensure", culture::ensure(w));
+            prof!("culture::yearly", culture::yearly(w));
+            prof!("newsroom::yearly", newsroom::yearly(w));
         }
-        season::daily(w);
-        contracts::daily(w);
-        people::daily(w);
+        prof!("season::daily", season::daily(w));
+        prof!("contracts::daily", contracts::daily(w));
+        prof!("people::daily", people::daily(w));
 
         // 2. What people decided to do (AI minds last week, humans today).
-        intents::process(w);
+        prof!("intents::process", intents::process(w));
 
         // 3. Club management and the slow rhythms of life.
         if first_of_month {
-            market::monthly(w);
-            deals::shortlists(w);
-            deals::monthly(w);
-            perception::monthly(w);
-            life::monthly(w);
-            mind::monthly(w);
-            social::monthly(w);
-            staffing::monthly(w);
-            governance::monthly(w);
-            managers::monthly(w);
-            scouting::ensure(w);
-            scouting::assign(w);
-            youth::school(w);
-            intl::ensure(w);
-            medical::monthly(w);
-            growth::monthly(w);
-            dressing::monthly(w);
-            interpret::monthly(w);
-            honours::monthly(w);
-            renown::monthly(w);
-            grapevine::compact(w);
-            incidents::monthly(w);
-            affairs::monthly(w);
-            commerce::monthly(w);
-            socialnet::monthly(w);
-            awards::scan(w);
+            prof!("market::monthly", market::monthly(w));
+            prof!("deals::shortlists", deals::shortlists(w));
+            prof!("deals::monthly", deals::monthly(w));
+            prof!("perception::monthly", perception::monthly(w));
+            prof!("life::monthly", life::monthly(w));
+            prof!("mind::monthly", mind::monthly(w));
+            prof!("social::monthly", social::monthly(w));
+            prof!("staffing::monthly", staffing::monthly(w));
+            prof!("governance::monthly", governance::monthly(w));
+            prof!("managers::monthly", managers::monthly(w));
+            prof!("scouting::ensure", scouting::ensure(w));
+            prof!("scouting::assign", scouting::assign(w));
+            prof!("youth::school", youth::school(w));
+            prof!("intl::ensure", intl::ensure(w));
+            prof!("medical::monthly", medical::monthly(w));
+            prof!("growth::monthly", growth::monthly(w));
+            prof!("dressing::monthly", dressing::monthly(w));
+            prof!("interpret::monthly", interpret::monthly(w));
+            prof!("honours::monthly", honours::monthly(w));
+            prof!("renown::monthly", renown::monthly(w));
+            prof!("grapevine::compact", grapevine::compact(w));
+            prof!("incidents::monthly", incidents::monthly(w));
+            prof!("affairs::monthly", affairs::monthly(w));
+            prof!("commerce::monthly", commerce::monthly(w));
+            prof!("socialnet::monthly", socialnet::monthly(w));
+            prof!("awards::scan", awards::scan(w));
             if today.month() == 1 {
-                awards::inductions(w);
+                prof!("awards::inductions", awards::inductions(w));
             }
             if today.month() == 6 {
-                minor::season_end(w);
-                awards::minor_players(w);
-                youth::reviews(w);
+                prof!("minor::season_end", minor::season_end(w));
+                prof!("awards::minor_players", awards::minor_players(w));
+                prof!("youth::reviews", youth::reviews(w));
             }
             if today.month() == 9 {
-                youth::yearly(w);
+                prof!("youth::yearly", youth::yearly(w));
             }
             vacancies(w);
             w.beliefs.forget(today.add_days(-240));
         }
         if monday {
-            board::weekly(w);
+            prof!("board::weekly", board::weekly(w));
         }
 
         // 4–5. Training and health.
-        let days = health::team_days(w, today);
-        health::daily(w, &days);
+        let days = prof!("health::team_days", health::team_days(w, today));
+        prof!("health::daily", health::daily(w, &days));
 
         // 6. Market and contract talks.
-        market::daily(w);
+        prof!("market::daily", market::daily(w));
         if monday {
-            contracts::weekly(w);
-            market::weekly_loans(w);
+            prof!("contracts::weekly", contracts::weekly(w));
+            prof!("market::weekly_loans", market::weekly_loans(w));
         }
         if today.weekday() == Weekday::Thu {
-            market::free_agent_sweep(w);
+            prof!("market::free_agent_sweep", market::free_agent_sweep(w));
         }
-        deals::daily(w);
-        negotiation::daily(w);
+        prof!("deals::daily", deals::daily(w));
+        prof!("negotiation::daily", negotiation::daily(w));
         if monday {
-            deals::recalls(w);
-            deals::pre_contracts(w);
-            deals::trials(w);
+            prof!("deals::recalls", deals::recalls(w));
+            prof!("deals::pre_contracts", deals::pre_contracts(w));
+            prof!("deals::trials", deals::trials(w));
         }
 
         // 7. Decisions due today (answered or defaulted), then conversations.
-        decisions::resolve_due(w);
-        talk::daily(w);
+        prof!("decisions::resolve_due", decisions::resolve_due(w));
+        prof!("talk::daily", talk::daily(w));
 
         // 7b. Incidents: postponements, travel, births, deferred decisions.
-        incidents::daily(w);
+        prof!("incidents::daily", incidents::daily(w));
 
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
-        officials::pre_match(w);
-        matchday::play_today(w);
-        officials::daily(w);
+        prof!("officials::pre_match", officials::pre_match(w));
+        prof!("matchday::play_today", matchday::play_today(w));
+        prof!("officials::daily", officials::daily(w));
         // National teams: windows, qualifiers, tournaments.
-        intl::daily(w);
+        prof!("intl::daily", intl::daily(w));
 
         // 8b. What people heard today, and whom they told; what got printed.
-        grapevine::daily(w);
-        pressroom::daily(w);
-        newsroom::daily(w);
-        socialnet::persons_post(w);
-        socialnet::daily(w);
-        inbox::daily(w);
+        prof!("grapevine::daily", grapevine::daily(w));
+        prof!("pressroom::daily", pressroom::daily(w));
+        prof!("newsroom::daily", newsroom::daily(w));
+        prof!("socialnet::persons_post", socialnet::persons_post(w));
+        prof!("socialnet::daily", socialnet::daily(w));
+        prof!("inbox::daily", inbox::daily(w));
 
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
-            development::weekly(w);
-            medical::weekly(w);
-            grapevine::feelings(w);
-            incidents::weekly(w);
-            newsroom::weekly(w);
-            socialnet::weekly(w);
-            dressing::weekly(w);
-            perception::weekly(w);
-            social::weekly(w);
-            morale::weekly(w);
-            talk::manager_summons(w);
-            mind::weekly(w);
-            youth::weekly(w);
-            minor::weekly(w);
-            agents::weekly(w);
-            media::weekly(w);
-            reputation::weekly(w);
-            finance::weekly(w);
+            prof!("development::weekly", development::weekly(w));
+            prof!("medical::weekly", medical::weekly(w));
+            prof!("grapevine::feelings", grapevine::feelings(w));
+            prof!("incidents::weekly", incidents::weekly(w));
+            prof!("newsroom::weekly", newsroom::weekly(w));
+            prof!("socialnet::weekly", socialnet::weekly(w));
+            prof!("dressing::weekly", dressing::weekly(w));
+            prof!("perception::weekly", perception::weekly(w));
+            prof!("social::weekly", social::weekly(w));
+            prof!("morale::weekly", morale::weekly(w));
+            prof!("talk::manager_summons", talk::manager_summons(w));
+            prof!("mind::weekly", mind::weekly(w));
+            prof!("youth::weekly", youth::weekly(w));
+            prof!("minor::weekly", minor::weekly(w));
+            prof!("agents::weekly", agents::weekly(w));
+            prof!("media::weekly", media::weekly(w));
+            prof!("reputation::weekly", reputation::weekly(w));
+            prof!("finance::weekly", finance::weekly(w));
         }
 
         // 12. Archive.
         if first_of_month && today.month() == 8 {
             compact(w);
-            staffing::yearly_growth(w);
+            prof!("staffing::yearly_growth", staffing::yearly_growth(w));
         }
         w.date = today.add_days(1);
         w.days_simulated += 1;

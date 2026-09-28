@@ -31,13 +31,22 @@ use crate::FxHashMap;
 /// A voted award (what is being decided).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum Ballot {
-    WorldPlayer { young: bool },
+    WorldPlayer {
+        young: bool,
+    },
     /// Chosen by the players of a league.
-    PlayersPlayer { comp: CompId },
+    PlayersPlayer {
+        comp: CompId,
+    },
     /// Best university or school player in a nation, by its journalists.
-    MinorPlayer { nation: NationId, university: bool },
+    MinorPlayer {
+        nation: NationId,
+        university: bool,
+    },
     /// Induction into a hall of fame.
-    Hall { hall: u32 },
+    Hall {
+        hall: u32,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]

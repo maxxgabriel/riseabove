@@ -15,20 +15,35 @@ use crate::media::Stance;
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum QTopic {
     /// The last match (fixture uid).
-    LastMatch { uid: u64 },
+    LastMatch {
+        uid: u64,
+    },
     /// A published transfer story about a player.
-    Transfer { story: StoryId, player: PlayerId },
+    Transfer {
+        story: StoryId,
+        player: PlayerId,
+    },
     /// A published story about trouble (discipline, unrest, an incident).
-    Trouble { story: StoryId },
-    Injury { player: PlayerId },
+    Trouble {
+        story: StoryId,
+    },
+    Injury {
+        player: PlayerId,
+    },
     /// A run of poor results.
     Pressure,
     /// The next opponent (a rivalry).
-    Rival { club: ClubId },
+    Rival {
+        club: ClubId,
+    },
     /// Something the speaker said before (quote id).
-    EarlierQuote { quote: u32 },
+    EarlierQuote {
+        quote: u32,
+    },
     /// A player's form or selection.
-    Selection { player: PlayerId },
+    Selection {
+        player: PlayerId,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

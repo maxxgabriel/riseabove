@@ -43,9 +43,7 @@ fn content_type(p: &Path) -> &'static str {
 fn handle(api: &Api, statics: Option<&Path>, mut req: Request) {
     let url = req.url().split('?').next().unwrap_or("/").to_string();
     if req.method() == &Method::Options {
-        let r = Response::empty(204)
-            .with_header(cors())
-            .with_header(Header::from_bytes("Access-Control-Allow-Headers", "content-type").expect("static header"));
+        let r = Response::empty(204).with_header(cors()).with_header(Header::from_bytes("Access-Control-Allow-Headers", "content-type").expect("static header"));
         let _ = req.respond(r);
         return;
     }

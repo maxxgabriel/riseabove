@@ -11,17 +11,23 @@ use pw_world::EventKind as E;
 use pw_world::event::Visibility;
 use serde::{Deserialize, Serialize};
 
+use crate::Shared;
 use crate::model::{ApiError, ApiResult};
 use crate::session::Session;
-use crate::Shared;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "mode", rename_all = "snake_case")]
 pub enum AdvanceReq {
-    Days { n: u32 },
-    UntilDate { date: i32 },
+    Days {
+        n: u32,
+    },
+    UntilDate {
+        date: i32,
+    },
     /// Until something needs the inhabited person, or `max_days` pass.
-    UntilEvent { max_days: Option<u32> },
+    UntilEvent {
+        max_days: Option<u32>,
+    },
     /// Until the next match of the inhabited person's team has been played.
     UntilMatch,
 }
@@ -74,18 +80,10 @@ pub fn start(sh: &Arc<Shared>, req: AdvanceReq) -> ApiResult<()> {
                 }
                 (today.0, "Advancing to the chosen date".into(), Some(date), Some(n), n, false)
             }
-            AdvanceReq::UntilEvent { max_days } => {
-                (today.0, "Advancing until something needs you".into(), None, None, max_days.unwrap_or(400).min(3660), true)
-            }
+            AdvanceReq::UntilEvent { max_days } => (today.0, "Advancing until something needs you".into(), None, None, max_days.unwrap_or(400).min(3660), true),
             AdvanceReq::UntilMatch => (today.0, "Advancing to your next match".into(), None, None, 400, true),
         }
-        .pipe(|t| {
-            if t.5 && !inhabiting {
-                Err(ApiError::State("Only an inhabited person has events to wait for. Advance by days or to a date instead.".into()))
-            } else {
-                Ok(t)
-            }
-        })?
+        .pipe(|t| if t.5 && !inhabiting { Err(ApiError::State("Only an inhabited person has events to wait for. Advance by days or to a date instead.".into())) } else { Ok(t) })?
     };
     let _ = needs_persp;
 
@@ -100,10 +98,7 @@ pub fn start(sh: &Arc<Shared>, req: AdvanceReq) -> ApiResult<()> {
     sh.stop.store(false, Ordering::SeqCst);
 
     let sh2 = Arc::clone(sh);
-    std::thread::Builder::new()
-        .name("pw-advance".into())
-        .spawn(move || run(sh2, req, max_days))
-        .map_err(|e| ApiError::State(e.to_string()))?;
+    std::thread::Builder::new().name("pw-advance".into()).spawn(move || run(sh2, req, max_days)).map_err(|e| ApiError::State(e.to_string()))?;
     Ok(())
 }
 
@@ -129,38 +124,40 @@ fn run(sh: Arc<Shared>, req: AdvanceReq, max_days: u32) {
     let mut done = 0u32;
     let mut matches = 0u64;
     // Catch a panic from the simulation so the client sees an error, not a hang.
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| loop {
-        if sh.stop.load(Ordering::SeqCst) {
-            break StopInfo { kind: "user".into(), text: "Stopped at the end of the day.".into() };
-        }
-        let mut g = lock_session(&sh);
-        let Some(s) = g.as_mut() else {
-            break StopInfo { kind: "error".into(), text: "The world was closed.".into() };
-        };
-        let before = s.today();
-        let t0 = Instant::now();
-        let stats = s.game.step();
-        matches += stats.matches as u64;
-        s.timings.push((before.0, t0.elapsed().as_micros().min(u128::from(u32::MAX)) as u32));
-        if s.timings.len() > 400 {
-            s.timings.drain(..200);
-        }
-        s.revision += 1;
-        done += 1;
-        let now = s.today();
-        let stop = after_step(s, before, &req, done, max_days);
-        drop(g);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        loop {
+            if sh.stop.load(Ordering::SeqCst) {
+                break StopInfo { kind: "user".into(), text: "Stopped at the end of the day.".into() };
+            }
+            let mut g = lock_session(&sh);
+            let Some(s) = g.as_mut() else {
+                break StopInfo { kind: "error".into(), text: "The world was closed.".into() };
+            };
+            let before = s.today();
+            let t0 = Instant::now();
+            let stats = s.game.step();
+            matches += stats.matches as u64;
+            s.timings.push((before.0, t0.elapsed().as_micros().min(u128::from(u32::MAX)) as u32));
+            if s.timings.len() > 400 {
+                s.timings.drain(..200);
+            }
+            s.revision += 1;
+            done += 1;
+            let now = s.today();
+            let stop = after_step(s, before, &req, done, max_days);
+            drop(g);
 
-        {
-            let mut job = sh.job.lock().unwrap_or_else(|e| e.into_inner());
-            job.days_done = done;
-            job.matches = matches;
+            {
+                let mut job = sh.job.lock().unwrap_or_else(|e| e.into_inner());
+                job.days_done = done;
+                job.matches = matches;
+            }
+            if let Some(stop) = stop {
+                break stop;
+            }
+            let _ = now;
+            std::thread::sleep(Duration::from_micros(150));
         }
-        if let Some(stop) = stop {
-            break stop;
-        }
-        let _ = now;
-        std::thread::sleep(Duration::from_micros(150));
     }));
     match result {
         Ok(stop) => finish(&sh, stop),
@@ -178,15 +175,7 @@ fn after_step(s: &mut Session, played: Date, req: &AdvanceReq, done: u32, max_da
 
     let mut played_mine: Option<String> = None;
     if let Some(team) = my_team {
-        let mine: Vec<u64> = s
-            .w()
-            .fixtures
-            .on(played)
-            .iter()
-            .map(|&f| s.w().fixtures.get(f))
-            .filter(|f| f.involves(team) && f.score.is_some())
-            .map(|f| f.uid)
-            .collect();
+        let mine: Vec<u64> = s.w().fixtures.on(played).iter().map(|&f| s.w().fixtures.get(f)).filter(|f| f.involves(team) && f.score.is_some()).map(|f| f.uid).collect();
         for uid in mine {
             if s.meta.conceal_mine {
                 s.meta.concealed.insert(uid);
@@ -220,16 +209,18 @@ fn after_step(s: &mut Session, played: Date, req: &AdvanceReq, done: u32, max_da
         }
     }
 
-    if stop.is_none() && s.meta.stops.major {
-        if let Some(text) = major_event(s, played, my_player) {
-            stop = Some(StopInfo { kind: "major".into(), text });
-        }
+    if stop.is_none()
+        && s.meta.stops.major
+        && let Some(text) = major_event(s, played, my_player)
+    {
+        stop = Some(StopInfo { kind: "major".into(), text });
     }
 
-    if stop.is_none() && s.meta.stops.matches {
-        if let (Some(msg), Some(_)) = (&played_mine, my_team) {
-            stop = Some(StopInfo { kind: "match".into(), text: format!("{msg}. The result is waiting for you.") });
-        }
+    if stop.is_none()
+        && s.meta.stops.matches
+        && let (Some(msg), Some(_)) = (&played_mine, my_team)
+    {
+        stop = Some(StopInfo { kind: "match".into(), text: format!("{msg}. The result is waiting for you.") });
     }
 
     // Explicit targets.

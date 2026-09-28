@@ -75,7 +75,13 @@ fn detail(c: &Ctx, fx: &Fixture, r: &MatchResult) -> Value {
             let (zx, zy) = zone_xy(usize::from(e.zone).min(ZONES_X * ZONES_Y - 1));
             let (x, y) = ((zx as f32 + 0.5) / ZONES_X as f32, (zy as f32 + 0.5) / ZONES_Y as f32);
             let (x, y) = if e.side == 0 { (x, y) } else { (1.0 - x, 1.0 - y) };
-            let tier = if e.kind.is_key() { "key" } else if is_shot(e.kind) { "shot" } else { "minor" };
+            let tier = if e.kind.is_key() {
+                "key"
+            } else if is_shot(e.kind) {
+                "shot"
+            } else {
+                "minor"
+            };
             json!({
                 "t": e.t, "minute": e.minute(), "side": e.side, "kind": format!("{:?}", e.kind), "label": ev_label(e.kind),
                 "tier": tier, "player": pref(c, e.player), "other": pref(c, e.other), "x": x, "y": y, "xg": e.value,
@@ -180,9 +186,7 @@ pub fn get(c: &Ctx, args: &Value, watching: bool) -> ApiResult<Value> {
         .into_iter()
         .rev()
         .take(5)
-        .map(|(_, f)| {
-            json!({"uid": f.uid, "date": f.date.0, "comp": c.comp_short(f.comp), "home": c.team_short(f.home), "away": c.team_short(f.away), "score": f.score.as_ref().map(score_text)})
-        })
+        .map(|(_, f)| json!({"uid": f.uid, "date": f.date.0, "comp": c.comp_short(f.comp), "home": c.team_short(f.home), "away": c.team_short(f.away), "score": f.score.as_ref().map(score_text)}))
         .collect();
     let follow_hint = played && report.is_none() && !hide;
     Ok(json!({

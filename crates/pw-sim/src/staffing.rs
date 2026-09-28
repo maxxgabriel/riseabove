@@ -16,12 +16,38 @@ fn wanted(rep: u16, role: StaffRole) -> usize {
     let big = rep >= 5000;
     match role {
         StaffRole::Manager | StaffRole::Assistant | StaffRole::GkCoach | StaffRole::FitnessCoach | StaffRole::HeadOfYouth => 1,
-        StaffRole::Coach => if big { 4 } else { 2 },
-        StaffRole::Scout => if big { 4 } else { 1 },
-        StaffRole::Physio => if big { 2 } else { 1 },
+        StaffRole::Coach => {
+            if big {
+                4
+            } else {
+                2
+            }
+        }
+        StaffRole::Scout => {
+            if big {
+                4
+            } else {
+                1
+            }
+        }
+        StaffRole::Physio => {
+            if big {
+                2
+            } else {
+                1
+            }
+        }
         StaffRole::SportsScientist => usize::from(big),
         StaffRole::DirectorOfFootball => usize::from(rep >= 6500),
-        StaffRole::Analyst => if rep >= 7000 { 3 } else if rep >= 3500 { 1 } else { 0 },
+        StaffRole::Analyst => {
+            if rep >= 7000 {
+                3
+            } else if rep >= 3500 {
+                1
+            } else {
+                0
+            }
+        }
     }
 }
 

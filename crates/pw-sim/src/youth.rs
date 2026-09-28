@@ -138,11 +138,7 @@ fn new_cohort(w: &mut World, age: u32, year: i32) {
             let a = dob.age_years(today);
             let ca = (pa * gen_::ca_share_at(a) * rng.normal_ms(1.0, 0.1)).clamp(8.0, pa);
             let pos = gen_::random_position(&mut rng);
-            let p = spawn_player(
-                w,
-                NewPlayer { nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: TeamId::NONE, contract: Contract::default() },
-                &mut rng,
-            );
+            let p = spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: TeamId::NONE, contract: Contract::default() }, &mut rng);
             w.players.hot[p].status = PlayerStatus::Amateur;
             w.youth.join(p, l);
             let who = w.players.cold[p].person;
@@ -265,10 +261,36 @@ fn in_reach(w: &World, academy: &Academy, l: LocalClubId) -> f32 {
     let same_city = local.city == home.city || local.city == home.short_name;
     let same_nation = local.nation == home.nation;
     match academy.reach {
-        Reach::Local => if same_city { 0.6 } else { 0.0 },
-        Reach::Regional => if same_city { 0.7 } else if same_nation { 0.15 } else { 0.0 },
-        Reach::National => if same_nation { 0.35 } else { 0.0 },
-        Reach::International => if same_nation { 0.4 } else { 0.05 },
+        Reach::Local => {
+            if same_city {
+                0.6
+            } else {
+                0.0
+            }
+        }
+        Reach::Regional => {
+            if same_city {
+                0.7
+            } else if same_nation {
+                0.15
+            } else {
+                0.0
+            }
+        }
+        Reach::National => {
+            if same_nation {
+                0.35
+            } else {
+                0.0
+            }
+        }
+        Reach::International => {
+            if same_nation {
+                0.4
+            } else {
+                0.05
+            }
+        }
     }
 }
 
@@ -281,21 +303,26 @@ fn scout_local(w: &mut World) {
     for a in assignments {
         let Brief::Youth(_) = a.brief else {
             // Senior scouts of smaller clubs sometimes take in an amateur game.
-            if let Brief::Nation(n) = a.brief {
-                if w.clubs[a.club].reputation < 3500 {
-                    let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(a.scout.0), week, 0xa]);
-                    let amateur: Vec<LocalClubId> = w.youth.local.ids().filter(|&l| w.youth.local[l].level == LocalLevel::Amateur && w.youth.local[l].nation == n).collect();
-                    if !amateur.is_empty() && rng.chance(0.3) {
-                        let l = amateur[rng.index(amateur.len())];
-                        watch(w, a.scout, a.club, l);
-                    }
+            if let Brief::Nation(n) = a.brief
+                && w.clubs[a.club].reputation < 3500
+            {
+                let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(a.scout.0), week, 0xa]);
+                let amateur: Vec<LocalClubId> = w.youth.local.ids().filter(|&l| w.youth.local[l].level == LocalLevel::Amateur && w.youth.local[l].nation == n).collect();
+                if !amateur.is_empty() && rng.chance(0.3) {
+                    let l = amateur[rng.index(amateur.len())];
+                    watch(w, a.scout, a.club, l);
                 }
             }
             continue;
         };
         let Some(academy) = w.youth.academies.get(&a.club).cloned() else { continue };
         let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(a.scout.0), week]);
-        let weights: Vec<f32> = w.youth.local.ids().map(|l| if w.youth.local[l].level == LocalLevel::Grassroots { in_reach(w, &academy, l) * (0.5 + f32::from(w.youth.local[l].standing) / 1000.0) } else { 0.0 }).collect();
+        let weights: Vec<f32> = w
+            .youth
+            .local
+            .ids()
+            .map(|l| if w.youth.local[l].level == LocalLevel::Grassroots { in_reach(w, &academy, l) * (0.5 + f32::from(w.youth.local[l].standing) / 1000.0) } else { 0.0 })
+            .collect();
         if weights.iter().all(|&x| x <= 0.0) {
             continue;
         }
@@ -348,7 +375,7 @@ fn trials(w: &mut World) {
         v
     };
     for club in clubs {
-        if (club.0 + (today.0 / 7) as u32) % 2 != 0 {
+        if !(club.0 + (today.0 / 7) as u32).is_multiple_of(2) {
             continue;
         }
         let threshold = bar(w, club);
@@ -573,11 +600,7 @@ pub fn join_local_near(w: &mut World, p: PlayerId, who: PersonId) {
 /// football rather than nothing.
 fn drift_to_amateur(w: &mut World) {
     let today = w.date;
-    let free: Vec<PlayerId> = w
-        .players
-        .ids()
-        .filter(|&p| w.players.hot[p].status == PlayerStatus::FreeAgent && w.age(p) < 32 && consider::days_unattached(w, p) > 75)
-        .collect();
+    let free: Vec<PlayerId> = w.players.ids().filter(|&p| w.players.hot[p].status == PlayerStatus::FreeAgent && w.age(p) < 32 && consider::days_unattached(w, p) > 75).collect();
     for p in free {
         let who = w.players.cold[p].person;
         // A human decides for themselves; they can sign up through their own choices.
@@ -615,11 +638,13 @@ pub fn school(w: &mut World) {
         let target = 40.0 + hours * 4.0 + (prof - 10.0) * 1.5 + support * 10.0;
         s.grades = (f32::from(s.grades) * 0.85 + target.clamp(0.0, 100.0) * 0.15) as u8;
         // Academies notice when schoolwork is being neglected.
-        if club.is_some() && hours < f32::from(required) && today.month() % 3 == 0 {
-            if let Some(h) = head_of_youth(w, club) {
-                let compat = consider::compat(w, h, who);
-                w.social.remember(h, who, MemoryKind::PoorAttitude, today, pw_core::EventId::NONE, false, 0.5, compat);
-            }
+        if club.is_some()
+            && hours < f32::from(required)
+            && today.month().is_multiple_of(3)
+            && let Some(h) = head_of_youth(w, club)
+        {
+            let compat = consider::compat(w, h, who);
+            w.social.remember(h, who, MemoryKind::PoorAttitude, today, pw_core::EventId::NONE, false, 0.5, compat);
         }
         if (16.0..16.1).contains(&age) {
             let passed = w.youth.school[&who].grades >= 50;

@@ -185,7 +185,14 @@ impl MemoryKind {
             MemoryKind::Refused | MemoryKind::HardBargain | MemoryKind::Rivalry | MemoryKind::HonestTalk => 120,
             MemoryKind::Argument | MemoryKind::Fined | MemoryKind::PoorAttitude | MemoryKind::ExtraWork | MemoryKind::Apologised => 180,
             MemoryKind::PublicPraise | MemoryKind::PublicCriticism | MemoryKind::RefusedLoan | MemoryKind::Backed | MemoryKind::Supported | MemoryKind::Fought | MemoryKind::Mediated => 270,
-            MemoryKind::PromiseKept | MemoryKind::TransferRequest | MemoryKind::LetDown | MemoryKind::Insulted | MemoryKind::GaveChance | MemoryKind::Leaked | MemoryKind::Protected | MemoryKind::Blamed => 365,
+            MemoryKind::PromiseKept
+            | MemoryKind::TransferRequest
+            | MemoryKind::LetDown
+            | MemoryKind::Insulted
+            | MemoryKind::GaveChance
+            | MemoryKind::Leaked
+            | MemoryKind::Protected
+            | MemoryKind::Blamed => 365,
             MemoryKind::PromiseBroken | MemoryKind::Settled | MemoryKind::DefendedMe => 540,
             MemoryKind::Mentored | MemoryKind::Betrayal => 1460,
         }
@@ -230,7 +237,9 @@ impl Memory {
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum PromiseKind {
     /// At least this share of available league minutes over the promise window.
-    Minutes { share: f32 },
+    Minutes {
+        share: f32,
+    },
     Status(SquadStatus),
     NewContract,
     /// Will not stand in the way of a move (optionally to a bigger club).
@@ -339,10 +348,10 @@ impl Social {
         let list = self.held.entry(from).or_default();
         list.push(Memory { from, about, kind, date, salience, public, cause });
         // Bound memory per person: forget the weakest non-formative episode.
-        if list.len() > 48 {
-            if let Some(i) = list.iter().enumerate().filter(|(_, m)| !m.kind.formative()).min_by_key(|(_, m)| (m.salience, m.date)).map(|(i, _)| i) {
-                list.remove(i);
-            }
+        if list.len() > 48
+            && let Some(i) = list.iter().enumerate().filter(|(_, m)| !m.kind.formative()).min_by_key(|(_, m)| (m.salience, m.date)).map(|(i, _)| i)
+        {
+            list.remove(i);
         }
     }
 

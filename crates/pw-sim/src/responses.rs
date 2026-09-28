@@ -162,15 +162,18 @@ fn profile(w: &World, who: PersonId, id: u32) -> Profile {
     Profile { discipline: disc, empathy: mm, temper, authority, pressure, favouritism, culture, guarded, combative, evidence }
 }
 
+/// A response with its utility and the three reasons that weigh most.
+type Scored = (Response, f32, [(Reason, u8); 3]);
+
 /// Options this incident allows, each with a utility and its reasons.
-fn options(w: &World, who: PersonId, id: u32, pr: &Profile) -> SmallVec<[(Response, f32, [(Reason, u8); 3]); 10]> {
+fn options(w: &World, who: PersonId, id: u32, pr: &Profile) -> SmallVec<[Scored; 10]> {
     let inc = w.incidents.get(id).expect("incident");
     let sev = f32::from(inc.severity) / 100.0;
     let r = |a: (Reason, f32), b: (Reason, f32), c: (Reason, f32)| -> [(Reason, u8); 3] {
         let q = |x: f32| (x.clamp(0.0, 1.0) * 100.0) as u8;
         [(a.0, q(a.1)), (b.0, q(b.1)), (c.0, q(c.1))]
     };
-    let mut v: SmallVec<[(Response, f32, [(Reason, u8); 3]); 10]> = SmallVec::new();
+    let mut v: SmallVec<[Scored; 10]> = SmallVec::new();
     let s = w.people[who].staff;
     // How much the next match needs the people involved.
     let needed = inc
@@ -194,35 +197,84 @@ fn options(w: &World, who: PersonId, id: u32, pr: &Profile) -> SmallVec<[(Respon
         })
         .fold(0.0f32, f32::max);
     let noise = |k: u64| w.roll(stream::RESPONSE, &[u64::from(id), u64::from(who.0), k]) * 0.15;
-    if inc.kind.is_conduct() {
-        v.push((Response::Fine, 0.25 + pr.discipline * 0.6 + pr.culture * 0.3 + sev * 0.3 - rank * 0.3 + pr.evidence * 0.2 - 0.3 + noise(1), r((Reason::Discipline, pr.discipline), (Reason::ClubCulture, pr.culture), (Reason::Evidence, pr.evidence))));
-        v.push((Response::Drop, 0.1 + pr.discipline * 0.5 + pr.authority * 0.3 + sev * 0.3 - needed * 0.6 - rank * 0.2 + pr.evidence * 0.2 - 0.3 + noise(2), r((Reason::Discipline, pr.discipline), (Reason::Authority, pr.authority), (Reason::Results, 1.0 - needed))));
-        v.push((Response::DemandApology, 0.25 + pr.discipline * 0.3 + pr.empathy * 0.2 + sev * 0.2 - 0.2 + noise(3), r((Reason::Discipline, pr.discipline), (Reason::Empathy, pr.empathy), (Reason::Evidence, pr.evidence))));
-        v.push((Response::Mediate, 0.15 + pr.empathy * 0.7 + pr.authority * 0.2 - pr.temper * 0.2 - 0.2 + noise(4), r((Reason::Empathy, pr.empathy), (Reason::Authority, pr.authority), (Reason::Temper, 1.0 - pr.temper))));
+    // Only a club can fine (a player without one answers to nobody's rules).
+    if inc.kind.is_conduct() && inc.club.is_some() {
+        v.push((
+            Response::Fine,
+            0.25 + pr.discipline * 0.6 + pr.culture * 0.3 + sev * 0.3 - rank * 0.3 + pr.evidence * 0.2 - 0.3 + noise(1),
+            r((Reason::Discipline, pr.discipline), (Reason::ClubCulture, pr.culture), (Reason::Evidence, pr.evidence)),
+        ));
+        v.push((
+            Response::Drop,
+            0.1 + pr.discipline * 0.5 + pr.authority * 0.3 + sev * 0.3 - needed * 0.6 - rank * 0.2 + pr.evidence * 0.2 - 0.3 + noise(2),
+            r((Reason::Discipline, pr.discipline), (Reason::Authority, pr.authority), (Reason::Results, 1.0 - needed)),
+        ));
+        v.push((
+            Response::DemandApology,
+            0.25 + pr.discipline * 0.3 + pr.empathy * 0.2 + sev * 0.2 - 0.2 + noise(3),
+            r((Reason::Discipline, pr.discipline), (Reason::Empathy, pr.empathy), (Reason::Evidence, pr.evidence)),
+        ));
+        v.push((
+            Response::Mediate,
+            0.15 + pr.empathy * 0.7 + pr.authority * 0.2 - pr.temper * 0.2 - 0.2 + noise(4),
+            r((Reason::Empathy, pr.empathy), (Reason::Authority, pr.authority), (Reason::Temper, 1.0 - pr.temper)),
+        ));
         let captain_ok = inc.club.is_some() && {
             let cap = w.teams[w.clubs[inc.club].first_team()].captain;
             cap.is_some() && !inc.players.contains(&cap)
         };
         if captain_ok {
-            v.push((Response::InvolveCaptain, 0.15 + pr.empathy * 0.35 + (1.0 - pr.authority) * 0.4 - 0.2 + noise(5), r((Reason::Empathy, pr.empathy), (Reason::Authority, 1.0 - pr.authority), (Reason::Hierarchy, rank))));
+            v.push((
+                Response::InvolveCaptain,
+                0.15 + pr.empathy * 0.35 + (1.0 - pr.authority) * 0.4 - 0.2 + noise(5),
+                r((Reason::Empathy, pr.empathy), (Reason::Authority, 1.0 - pr.authority), (Reason::Hierarchy, rank)),
+            ));
         }
-        v.push((Response::KeepPrivate, 0.1 + pr.guarded * 0.4 + pr.empathy * 0.2 + sev * 0.2 - 0.2 + noise(6), r((Reason::MediaStyle, pr.guarded), (Reason::Empathy, pr.empathy), (Reason::Hierarchy, rank))));
-        v.push((Response::Ignore, 0.1 + pr.pressure * 0.5 + needed * 0.3 - pr.discipline * 0.4 - sev * 0.5 + noise(7), r((Reason::Results, needed), (Reason::BoardPressure, pr.pressure), (Reason::Avoidance, 1.0 - pr.authority))));
-        v.push((Response::Delay, (1.0 - pr.authority) * 0.5 * (1.0 - pr.temper) + (1.0 - pr.evidence) * 0.4 - 0.15 + noise(8), r((Reason::Avoidance, 1.0 - pr.authority), (Reason::Evidence, 1.0 - pr.evidence), (Reason::Temper, 1.0 - pr.temper))));
-        v.push((Response::Statement, pr.combative * 0.4 + pr.temper * 0.3 + sev * 0.2 - pr.empathy * 0.3 - 0.15 + noise(9), r((Reason::MediaStyle, pr.combative), (Reason::Temper, pr.temper), (Reason::Discipline, pr.discipline))));
+        v.push((
+            Response::KeepPrivate,
+            0.1 + pr.guarded * 0.4 + pr.empathy * 0.2 + sev * 0.2 - 0.2 + noise(6),
+            r((Reason::MediaStyle, pr.guarded), (Reason::Empathy, pr.empathy), (Reason::Hierarchy, rank)),
+        ));
+        v.push((
+            Response::Ignore,
+            0.1 + pr.pressure * 0.5 + needed * 0.3 - pr.discipline * 0.4 - sev * 0.5 + noise(7),
+            r((Reason::Results, needed), (Reason::BoardPressure, pr.pressure), (Reason::Avoidance, 1.0 - pr.authority)),
+        ));
+        v.push((
+            Response::Delay,
+            (1.0 - pr.authority) * 0.5 * (1.0 - pr.temper) + (1.0 - pr.evidence) * 0.4 - 0.15 + noise(8),
+            r((Reason::Avoidance, 1.0 - pr.authority), (Reason::Evidence, 1.0 - pr.evidence), (Reason::Temper, 1.0 - pr.temper)),
+        ));
+        v.push((
+            Response::Statement,
+            pr.combative * 0.4 + pr.temper * 0.3 + sev * 0.2 - pr.empathy * 0.3 - 0.15 + noise(9),
+            r((Reason::MediaStyle, pr.combative), (Reason::Temper, pr.temper), (Reason::Discipline, pr.discipline)),
+        ));
         // A favourite among the parties can be shielded.
         if inc.players.len() == 2 && s.is_some() {
             let (p0, p1) = (inc.players[0], inc.players[1]);
             let (f0, f1) = (crate::managers::preference(w, s, p0) + consider::trust(w, who, inc.parties[0]), crate::managers::preference(w, s, p1) + consider::trust(w, who, inc.parties[1]));
             let (fav, gap) = if f0 >= f1 { (inc.parties[0], f0 - f1) } else { (inc.parties[1], f1 - f0) };
             if gap > 0.2 {
-                v.push((Response::Protect(fav), pr.favouritism * gap * 1.5 + (1.0 - pr.evidence) * 0.2 - 0.1 + noise(10), r((Reason::Favouritism, pr.favouritism), (Reason::Evidence, 1.0 - pr.evidence), (Reason::Hierarchy, rank))));
+                v.push((
+                    Response::Protect(fav),
+                    pr.favouritism * gap * 1.5 + (1.0 - pr.evidence) * 0.2 - 0.1 + noise(10),
+                    r((Reason::Favouritism, pr.favouritism), (Reason::Evidence, 1.0 - pr.evidence), (Reason::Hierarchy, rank)),
+                ));
             }
         }
     } else if inc.kind.needs_leave() || matches!(inc.kind, IncidentKind::FamilyEmergency) {
         let trust = inc.parties.first().map_or(0.5, |&a| consider::trust(w, who, a));
-        v.push((Response::GrantLeave, 0.3 + pr.empathy * 0.6 + sev * 0.5 + trust * 0.3 - pr.pressure * 0.4 - needed * 0.3 + noise(11), r((Reason::Empathy, pr.empathy), (Reason::Hierarchy, trust), (Reason::Results, 1.0 - needed))));
-        v.push((Response::RefuseLeave, 0.2 + pr.pressure * 0.5 + needed * 0.5 + pr.discipline * 0.3 - pr.empathy * 0.4 - sev * 0.6 + noise(12), r((Reason::Results, needed), (Reason::BoardPressure, pr.pressure), (Reason::Discipline, pr.discipline))));
+        v.push((
+            Response::GrantLeave,
+            0.3 + pr.empathy * 0.6 + sev * 0.5 + trust * 0.3 - pr.pressure * 0.4 - needed * 0.3 + noise(11),
+            r((Reason::Empathy, pr.empathy), (Reason::Hierarchy, trust), (Reason::Results, 1.0 - needed)),
+        ));
+        v.push((
+            Response::RefuseLeave,
+            0.2 + pr.pressure * 0.5 + needed * 0.5 + pr.discipline * 0.3 - pr.empathy * 0.4 - sev * 0.6 + noise(12),
+            r((Reason::Results, needed), (Reason::BoardPressure, pr.pressure), (Reason::Discipline, pr.discipline)),
+        ));
     } else if matches!(inc.kind, IncidentKind::OwnershipControversy | IncidentKind::SupporterUnrest) {
         let (fan, meddle) = w.governance.get(&inc.club).map_or((0.5, 0.5), |g| (f32::from(g.owner.fan_sensitivity) / 100.0, f32::from(g.owner.meddling) / 100.0));
         v.push((Response::Apologise, 0.2 + fan * 0.7 - meddle * 0.2 + noise(13), r((Reason::ClubCulture, fan), (Reason::Empathy, pr.empathy), (Reason::Authority, 1.0 - pr.authority))));
@@ -260,7 +312,8 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
     let club = inc.club;
     let a = inc.parties.first().copied().unwrap_or(pw_core::PersonId::NONE);
     let b = inc.parties.get(1).copied().unwrap_or(pw_core::PersonId::NONE);
-    let culprits: SmallVec<[PlayerId; 2]> = if inc.kind == IncidentKind::TrainingConfrontation && sev > 0.7 { inc.players.clone().into_iter().collect() } else { inc.players.iter().take(1).copied().collect() };
+    let culprits: SmallVec<[PlayerId; 2]> =
+        if inc.kind == IncidentKind::TrainingConfrontation && sev > 0.7 { inc.players.clone().into_iter().collect() } else { inc.players.iter().take(1).copied().collect() };
     let vis = match response {
         Response::KeepPrivate => Visibility::Between(by, a),
         Response::Statement | Response::Apologise | Response::Defy => Visibility::Public,
@@ -278,7 +331,7 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
     }
     let compat = |w: &World, x: PersonId, y: PersonId| consider::compat(w, x, y);
     match response {
-        Response::Fine => {
+        Response::Fine if club.is_some() => {
             for &p in &culprits {
                 let wage = w.players.cold[p].contract.current_wage(today);
                 let amount = (wage as f32 * (0.5 + sev)) as i64;
@@ -292,6 +345,8 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
             }
             settle(w, &inc, 0.3);
         }
+        // No club, no fine: the incident is settled without one.
+        Response::Fine => settle(w, &inc, 0.1),
         Response::Drop => {
             for &p in culprits.iter().take(1) {
                 w.incidents.dropped.insert(p, today.add_days(7));
@@ -419,13 +474,14 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
                 // Some go anyway — and that is a new problem.
                 let family = w.lives.get(a).map_or(0.5, |l| f32::from(l.household.parents.closeness) / 100.0);
                 let prof = consider::hid(w, a, Hidden::Professionalism) / 20.0;
-                if w.people[a].mind == MindKind::Ai && sev * 0.6 + family * 0.4 > prof + 0.2 {
-                    if let Some(&p) = inc.players.first() {
-                        w.incidents.away.insert(p, today.add_days(3));
-                        let d = pw_world::incident::def(IncidentKind::LateArrival);
-                        let c = crate::incidents::Ctx { a, pa: p, club, nation: inc.nation, ..crate::incidents::Ctx::default() };
-                        crate::incidents::trigger(w, &d, c, SmallVec::new(), Some(id));
-                    }
+                if w.people[a].mind == MindKind::Ai
+                    && sev * 0.6 + family * 0.4 > prof + 0.2
+                    && let Some(&p) = inc.players.first()
+                {
+                    w.incidents.away.insert(p, today.add_days(3));
+                    let d = pw_world::incident::def(IncidentKind::LateArrival);
+                    let c = crate::incidents::Ctx { a, pa: p, club, nation: inc.nation, ..crate::incidents::Ctx::default() };
+                    crate::incidents::trigger(w, &d, c, SmallVec::new(), Some(id));
                 }
             }
             resolve(w, id);
@@ -571,7 +627,7 @@ pub fn deferred(w: &mut World) {
         let escalated = inc.led_to.is_some();
         let (mut choice, reasons, _) = decide(w, who, id);
         if choice == Response::Delay {
-            choice = if escalated { Response::Fine } else { Response::Ignore };
+            choice = if escalated && inc.club.is_some() { Response::Fine } else { Response::Ignore };
         }
         apply(w, id, who, choice, reasons);
     }

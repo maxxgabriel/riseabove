@@ -7,11 +7,11 @@
 //! the frame or the post's references; nothing is added that the world does
 //! not hold.
 
-use pw_world::socialnet::{AccountKind, Age, Chant, ChantKind, Concept, Frame, Post, SocialAccount};
 use pw_world::World;
+use pw_world::socialnet::{AccountKind, Age, Chant, ChantKind, Concept, Frame, Post, SocialAccount};
 
 use crate::fmt::{club_short, person, player};
-use crate::lexicon::{emoji, loud, word, AgeBand, Locale, Register, Slot, Voice};
+use crate::lexicon::{AgeBand, Locale, Register, Slot, Voice, emoji, loud, word};
 use crate::pick;
 
 /// The voice of an account: its kind, age band and persona, where it
@@ -46,7 +46,9 @@ pub fn voice(w: &World, a: &SocialAccount) -> Voice {
 /// What the frame is, in a few words (only facts the frame holds).
 fn frame_words(w: &World, v: &Voice, f: Frame, about_club: pw_core::ClubId) -> String {
     match f {
-        Frame::Result { uid } => w.recent_matches.by_uid(uid).map_or_else(String::new, |m| format!("{} {} {}", club_short(w, m.home), crate::grammar::score(v, m.hg, m.ag, uid), club_short(w, m.away))),
+        Frame::Result { uid } => {
+            w.recent_matches.by_uid(uid).map_or_else(String::new, |m| format!("{} {} {}", club_short(w, m.home), crate::grammar::score(v, m.hg, m.ag, uid), club_short(w, m.away)))
+        }
         Frame::LateWinner { player: p, .. } => format!("{}'s late winner", player(w, p)),
         Frame::HatTrick { player: p, .. } => format!("{}'s hat-trick", player(w, p)),
         Frame::RedCard { player: p, .. } => format!("{}'s red card", player(w, p)),
@@ -99,14 +101,15 @@ pub fn post(w: &World, p: &Post) -> String {
         let s = if p.about.is_some() { w.people[p.about].staff } else { pw_core::StaffId::NONE };
         s.get().filter(|&s| w.staff[s].role == pw_world::StaffRole::Manager).map(|s| w.staff[s].philosophy)
     };
-    let hedge = if v.hedging > 60 && matches!(p.claim, pw_world::media::ClaimType::Rumour | pw_world::media::ClaimType::Speculation) { format!("{} ", word(&v, Slot::Hedge, key)) } else { String::new() };
+    let hedge =
+        if v.hedging > 60 && matches!(p.claim, pw_world::media::ClaimType::Rumour | pw_world::media::ClaimType::Speculation) { format!("{} ", word(&v, Slot::Hedge, key)) } else { String::new() };
     let target = if subj.is_empty() { what.clone() } else { subj.clone() };
     let s = match p.concept {
         Concept::Praise => match style {
             Some(ph) if key % 2 == 0 => format!("{target} {}: {}", word(&v, Slot::PraiseAdj, key), crate::grammar::style(&v, ph.press, ph.tempo, ph.directness, key)),
             _ => format!("{} {} {}", target, pick(key, &["is", "was", "looked"]), word(&v, Slot::PraiseAdj, key)),
         },
-        Concept::ReluctantPraise => format!("{} — {}", word(&v, Slot::Concede, key), format!("{} {}", target, word(&v, Slot::PraiseAdj, key))),
+        Concept::ReluctantPraise => format!("{} — {} {}", word(&v, Slot::Concede, key), target, word(&v, Slot::PraiseAdj, key)),
         Concept::ConcedeWrong => format!("{}. {}", word(&v, Slot::Concede, key), target),
         Concept::DoubleDown => format!("{}. {}", target, word(&v, Slot::DoubleDown, key)),
         Concept::Criticise => match style.and_then(|ph| crate::grammar::style_complaint(&v, ph.press, ph.tempo, ph.directness, key)) {
@@ -133,7 +136,13 @@ pub fn post(w: &World, p: &Post) -> String {
         Concept::Disagree => pick(key, &["not having that", "completely wrong", "strongly disagree", "no chance"]).to_string(),
         Concept::Chant => w.net.chants.get(p.extra as usize).map_or_else(String::new, |c| chant(w, c)),
         Concept::Meme => w.net.memes.get(p.extra as usize).map_or_else(String::new, |m| meme(w, m)),
-        Concept::Statement => if target.is_empty() { what } else { target },
+        Concept::Statement => {
+            if target.is_empty() {
+                what
+            } else {
+                target
+            }
+        }
     };
     let positive = matches!(p.concept, Concept::Praise | Concept::Celebrate | Concept::ConcedeWrong | Concept::Defend | Concept::ReluctantPraise);
     let s = if matches!(p.concept, Concept::Celebrate | Concept::Mock) && v.register == Register::Terrace { loud(&Voice { register: Register::Tabloid, ..v }, &s) } else { s };

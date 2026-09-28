@@ -115,22 +115,17 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         v.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
         v.iter().take(5).map(|f| result_brief(c, f)).collect()
     };
-    let unrevealed: Vec<Value> = c
-        .concealed_fixtures()
-        .into_iter()
-        .filter(|f| f.involves(team))
-        .map(|f| fixture_brief(c, f))
-        .collect();
+    let unrevealed: Vec<Value> = c.concealed_fixtures().into_iter().filter(|f| f.involves(team)).map(|f| fixture_brief(c, f)).collect();
 
     // Commitments.
     let mut commitments: Vec<Value> = Vec::new();
     let mut match_listed = false;
-    if let Some(f) = my_fixtures(c, date, date).into_iter().next() {
-        if f.score.is_none() {
-            let text = format!("Match day: {} {}", if f.home == team { "home to" } else { "away at" }, c.team_short(f.opponent(team)));
-            commitments.push(json!({"kind": "match", "text": text, "ref": Ref::fixture(f.uid)}));
-            match_listed = true;
-        }
+    if let Some(f) = my_fixtures(c, date, date).into_iter().next()
+        && f.score.is_none()
+    {
+        let text = format!("Match day: {} {}", if f.home == team { "home to" } else { "away at" }, c.team_short(f.opponent(team)));
+        commitments.push(json!({"kind": "match", "text": text, "ref": Ref::fixture(f.uid)}));
+        match_listed = true;
     }
     if !(match_listed && day_key == "match") {
         commitments.push(json!({"kind": day_key, "text": day_label}));
@@ -165,12 +160,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
     let life = &w.lives[me];
     let mut mind: Vec<(pw_world::life::MoodFactor, i8)> = life.morale_why.iter().copied().collect();
     mind.sort_by_key(|(_, x)| std::cmp::Reverse(x.unsigned_abs()));
-    let mind: Vec<Value> = mind
-        .iter()
-        .take(4)
-        .filter(|(_, x)| x.unsigned_abs() >= 2)
-        .map(|(f, x)| json!({"text": format!("{} {}", pw_narrate::fmt::feeling(*x), f.label()), "value": x}))
-        .collect();
+    let mind: Vec<Value> = mind.iter().take(4).filter(|(_, x)| x.unsigned_abs() >= 2).map(|(f, x)| json!({"text": format!("{} {}", pw_narrate::fmt::feeling(*x), f.label()), "value": x})).collect();
 
     // Things the person has set in motion that the world has not yet acted on.
     let mut waiting_on: Vec<Value> = Vec::new();
@@ -178,7 +168,9 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         waiting_on.push(json!({"kind": "intent", "text": super::act::intent_text(c, &pi.intent), "since": pi.date.0}));
     }
     for (_, m) in w.meetings.pending().filter(|(_, m)| m.initiator == me) {
-        waiting_on.push(json!({"kind": "meeting", "text": format!("You asked {} to talk about {}", c.person_name(m.with), m.topic.label()), "since": m.requested.0, "date": m.date.0, "ref": Ref::person(m.with)}));
+        waiting_on.push(
+            json!({"kind": "meeting", "text": format!("You asked {} to talk about {}", c.person_name(m.with), m.topic.label()), "since": m.requested.0, "date": m.date.0, "ref": Ref::person(m.with)}),
+        );
     }
     let open_promises = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).count();
     let next_due = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).map(|pr| pr.due.0).min();
@@ -298,10 +290,15 @@ pub fn calendar(c: &Ctx, args: &Value) -> ApiResult<Value> {
 /// The training plan the person has asked for that the world has not applied yet.
 fn plan_pending(c: &Ctx) -> Value {
     let Some(me) = c.me() else { return Value::Null };
-    c.w.intents.queue.iter().rev().find_map(|pi| match pi.intent {
-        pw_world::Intent::SetTraining(plan) if pi.person == me => Some(plan_json(&plan)),
-        _ => None,
-    }).unwrap_or(Value::Null)
+    c.w.intents
+        .queue
+        .iter()
+        .rev()
+        .find_map(|pi| match pi.intent {
+            pw_world::Intent::SetTraining(plan) if pi.person == me => Some(plan_json(&plan)),
+            _ => None,
+        })
+        .unwrap_or(Value::Null)
 }
 
 fn plan_json(plan: &pw_world::TrainingPlan) -> Value {
@@ -331,10 +328,10 @@ pub fn football(c: &Ctx) -> ApiResult<Value> {
         fx.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
         for f in fx.iter().take(8) {
             let mut item = result_brief(c, f);
-            if let Some(line) = w.reports.get(&f.uid).and_then(|r| r.line(p)) {
-                if !c.is_concealed(f.uid) {
-                    item["played"] = json!({"started": line.started, "minutes": line.minutes, "rating": line.rating, "goals": line.goals, "assists": line.assists});
-                }
+            if let Some(line) = w.reports.get(&f.uid).and_then(|r| r.line(p))
+                && !c.is_concealed(f.uid)
+            {
+                item["played"] = json!({"started": line.started, "minutes": line.minutes, "rating": line.rating, "goals": line.goals, "assists": line.assists});
             }
             usage.push(item);
         }
@@ -421,12 +418,8 @@ pub fn contract(c: &Ctx) -> ApiResult<Value> {
     }
     let k = &cold.contract;
     let me = c.me().expect("me");
-    let offers: Vec<Value> = w
-        .decisions
-        .pending_for(me)
-        .filter(|(_, d)| d.answer.is_none())
-        .map(|(id, d)| json!({"id": format!("d{}", id.0), "title": d.kind.title(), "deadline": d.deadline.0}))
-        .collect();
+    let offers: Vec<Value> =
+        w.decisions.pending_for(me).filter(|(_, d)| d.answer.is_none()).map(|(id, d)| json!({"id": format!("d{}", id.0), "title": d.kind.title(), "deadline": d.deadline.0})).collect();
     let agent = w.agents.of_player.get(&p).map(|r| {
         let a = &w.agents.list[r.agent];
         json!({"who": named(Ref::person(a.person), c.person_name(a.person)), "fee_pct": r.fee_pct, "until": r.until.0, "satisfaction": pw_narrate::fmt::level(r.satisfaction)})

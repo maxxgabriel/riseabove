@@ -113,17 +113,7 @@ pub fn ensure(w: &mut World) {
                     let m = appoint(w, n, level);
                     w.intl.sides.insert(
                         key,
-                        NationalSide {
-                            nation: n,
-                            level,
-                            manager: m,
-                            squad: Vec::new(),
-                            captain: PlayerId::NONE,
-                            selected: Date(0),
-                            since: today,
-                            streak: FxHashMap::default(),
-                            record: (0, 0, 0),
-                        },
+                        NationalSide { nation: n, level, manager: m, squad: Vec::new(), captain: PlayerId::NONE, selected: Date(0), since: today, streak: FxHashMap::default(), record: (0, 0, 0) },
                     );
                 }
                 Some(m) if manager_gone(w, m) => {
@@ -362,9 +352,27 @@ fn call_up(w: &mut World, key: (NationId, Level), pool: &[PlayerId], size: usize
         let big = size > 23;
         match g {
             PosGroup::Gk => 3,
-            PosGroup::Def => if big { 9 } else { 8 },
-            PosGroup::Mid => if big { 9 } else { 8 },
-            PosGroup::Att => if big { 5 } else { 4 },
+            PosGroup::Def => {
+                if big {
+                    9
+                } else {
+                    8
+                }
+            }
+            PosGroup::Mid => {
+                if big {
+                    9
+                } else {
+                    8
+                }
+            }
+            PosGroup::Att => {
+                if big {
+                    5
+                } else {
+                    4
+                }
+            }
         }
     };
     let mut squad: Vec<PlayerId> = Vec::with_capacity(size);
@@ -491,17 +499,7 @@ fn ask_allegiance(w: &mut World, p: PlayerId, n: NationId, other: NationId) {
     w.intl.asking.insert(p, (n, other));
     let kind = DecisionKind::NationChoice { nation: n, other };
     let options = kind.simple_options();
-    w.decisions.push(Decision {
-        person: who,
-        player: p,
-        kind,
-        options,
-        created: today,
-        deadline: today.add_days(2),
-        default: if pick == n { 0 } else { 1 },
-        answer: None,
-        resolved: false,
-    });
+    w.decisions.push(Decision { person: who, player: p, kind, options, created: today, deadline: today.add_days(2), default: if pick == n { 0 } else { 1 }, answer: None, resolved: false });
 }
 
 /// How a player weighs two countries: stature, their chance of playing,
@@ -574,11 +572,11 @@ pub fn retire(w: &mut World, p: PlayerId) {
 fn withdraw(w: &mut World, p: PlayerId, n: NationId) {
     let mut was = false;
     for level in Level::ALL {
-        if let Some(s) = w.intl.sides.get_mut(&(n, level)) {
-            if s.squad.contains(&p) {
-                s.squad.retain(|&x| x != p);
-                was = true;
-            }
+        if let Some(s) = w.intl.sides.get_mut(&(n, level))
+            && s.squad.contains(&p)
+        {
+            s.squad.retain(|&x| x != p);
+            was = true;
         }
     }
     if was {
@@ -590,13 +588,7 @@ fn withdraw(w: &mut World, p: PlayerId, n: NationId) {
 /// Pair sides without a fixture this window for friendlies, mostly within
 /// their confederation and against opponents of similar standing.
 fn schedule_friendlies(w: &mut World, a: Date, b: Date) {
-    let busy: FxHashSet<(NationId, Level)> = w
-        .intl
-        .fixtures
-        .iter()
-        .filter(|f| f.date >= a && f.date <= b.add_days(40))
-        .flat_map(|f| [(f.home, f.level), (f.away, f.level)])
-        .collect();
+    let busy: FxHashSet<(NationId, Level)> = w.intl.fixtures.iter().filter(|f| f.date >= a && f.date <= b.add_days(40)).flat_map(|f| [(f.home, f.level), (f.away, f.level)]).collect();
     let long_window = matches!(a.month(), 3 | 6);
     for level in Level::ALL {
         let mut free: Vec<(f32, NationId)> = w
@@ -611,13 +603,19 @@ fn schedule_friendlies(w: &mut World, a: Date, b: Date) {
             })
             .collect();
         free.sort_by(|x, y| x.0.total_cmp(&y.0).then(x.1.cmp(&y.1)));
-        let dates: &[i32] = if level == Level::Senior && long_window { &[2, 6] } else if level == Level::Senior { &[3] } else { &[4] };
+        let dates: &[i32] = if level == Level::Senior && long_window {
+            &[2, 6]
+        } else if level == Level::Senior {
+            &[3]
+        } else {
+            &[4]
+        };
         for (k, &off) in dates.iter().enumerate() {
             // Second friendly: shift the pairing so opponents differ.
             let order: Vec<NationId> = if k == 0 { free.iter().map(|x| x.1).collect() } else { free.iter().skip(1).chain(free.iter().take(1)).map(|x| x.1).collect() };
             for pair in order.chunks(2) {
                 if let &[x, y] = pair {
-                    let flip = hash_key(&[w.seed, u64::from(x.0), u64::from(y.0), a.0 as u64]) % 2 == 0;
+                    let flip = hash_key(&[w.seed, u64::from(x.0), u64::from(y.0), a.0 as u64]).is_multiple_of(2);
                     let (home, away) = if flip { (x, y) } else { (y, x) };
                     w.intl.fixtures.push(IntlFixture { date: a.add_days(off), level, home, away, kind: MatchKind::Friendly, neutral: false });
                 }
@@ -714,23 +712,11 @@ fn pick(w: &World, n: NationId, level: Level, importance: f32) -> Option<Picked>
     };
     let assign = hungarian::maximise(11, avail.len(), score);
     let xi: [PlayerId; 11] = std::array::from_fn(|r| avail[assign[r]]);
-    let mut rest: Vec<(f32, PlayerId)> = avail
-        .iter()
-        .enumerate()
-        .filter(|(_, p)| !xi.contains(p))
-        .map(|(c, &p)| ((0..11).map(|r| score(r, c)).filter(|s| s.is_finite()).fold(-99.0, f32::max), p))
-        .collect();
+    let mut rest: Vec<(f32, PlayerId)> =
+        avail.iter().enumerate().filter(|(_, p)| !xi.contains(p)).map(|(c, &p)| ((0..11).map(|r| score(r, c)).filter(|s| s.is_finite()).fold(-99.0, f32::max), p)).collect();
     rest.sort_by(|x, y| y.0.total_cmp(&x.0).then(x.1.cmp(&y.1)));
     let bench: SmallVec<[PlayerId; 12]> = rest.into_iter().take(12).map(|x| x.1).collect();
-    let tactics = Tactics {
-        formation: f as u8,
-        mentality: Mentality::from_level(i32::from(phil.mentality)),
-        tempo: phil.tempo,
-        width: 50,
-        directness: phil.directness,
-        line: 50,
-        press: phil.press,
-    };
+    let tactics = Tactics { formation: f as u8, mentality: Mentality::from_level(i32::from(phil.mentality)), tempo: phil.tempo, width: 50, directness: phil.directness, line: 50, press: phil.press };
     let reactivity = match phil.archetype {
         Archetype::Rotator => 0.7,
         Archetype::Developer => 0.5,
@@ -1054,8 +1040,24 @@ fn plan_tournaments(w: &mut World) {
             continue;
         }
         let finals = match kind {
-            TournamentKind::World => if seniors.len() >= 64 { 32 } else if seniors.len() >= 24 { 16 } else { 8 },
-            TournamentKind::Continental(_) => if entrants.len() >= 32 { 16 } else if entrants.len() >= 12 { 8 } else { 4 },
+            TournamentKind::World => {
+                if seniors.len() >= 64 {
+                    32
+                } else if seniors.len() >= 24 {
+                    16
+                } else {
+                    8
+                }
+            }
+            TournamentKind::Continental(_) => {
+                if entrants.len() >= 32 {
+                    16
+                } else if entrants.len() >= 12 {
+                    8
+                } else {
+                    4
+                }
+            }
         };
         let slots = allocate(w, &entrants, finals, kind);
         let id = w.intl.tournaments.len() as u32;
@@ -1087,7 +1089,7 @@ fn plan_tournaments(w: &mut World) {
             let mut groups: Vec<Vec<(NationId, Standing)>> = vec![Vec::new(); n_groups];
             for (i, &n) in field.iter().enumerate() {
                 let row = i / n_groups;
-                let g = if row % 2 == 0 { i % n_groups } else { n_groups - 1 - i % n_groups };
+                let g = if row.is_multiple_of(2) { i % n_groups } else { n_groups - 1 - i % n_groups };
                 groups[g].push((n, Standing::default()));
             }
             for g in &groups {
@@ -1225,9 +1227,7 @@ fn advance_tournaments(w: &mut World) {
     for ti in 0..w.intl.tournaments.len() {
         let t = &w.intl.tournaments[ti];
         let id = t.id;
-        let pending = |w: &World| {
-            w.intl.fixtures.iter().any(|f| matches!(f.kind, MatchKind::Group { tournament } | MatchKind::Knockout { tournament, .. } if tournament == id))
-        };
+        let pending = |w: &World| w.intl.fixtures.iter().any(|f| matches!(f.kind, MatchKind::Group { tournament } | MatchKind::Knockout { tournament, .. } if tournament == id));
         match t.stage {
             Stage::Groups if !pending(w) && t.start <= today => {
                 let mut bracket: Vec<NationId> = Vec::new();
@@ -1237,11 +1237,7 @@ fn advance_tournaments(w: &mut World) {
                     .map(|g| {
                         let mut rows = g.clone();
                         rows.sort_by(|a, b| {
-                            b.1.points
-                                .cmp(&a.1.points)
-                                .then((i16::from(b.1.gf) - i16::from(b.1.ga)).cmp(&(i16::from(a.1.gf) - i16::from(a.1.ga))))
-                                .then(b.1.gf.cmp(&a.1.gf))
-                                .then(a.0.cmp(&b.0))
+                            b.1.points.cmp(&a.1.points).then((i16::from(b.1.gf) - i16::from(b.1.ga)).cmp(&(i16::from(a.1.gf) - i16::from(a.1.ga)))).then(b.1.gf.cmp(&a.1.gf)).then(a.0.cmp(&b.0))
                         });
                         rows.into_iter().map(|r| r.0).collect()
                     })

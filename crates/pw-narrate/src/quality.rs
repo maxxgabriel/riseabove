@@ -45,8 +45,14 @@ pub fn check(text: &str, sentence: bool, max_len: usize) -> Vec<Issue> {
     if t.contains("  ") {
         v.push(Issue::DoubledSpace);
     }
-    let words: Vec<String> = t.split_whitespace().map(|w| w.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase()).collect();
-    if words.windows(2).any(|p| !p[0].is_empty() && p[0] == p[1] && !matches!(p[0].as_str(), "ha" | "no" | "so" | "very")) {
+    let raw: Vec<&str> = t.split_whitespace().collect();
+    let words: Vec<String> = raw.iter().map(|w| w.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase()).collect();
+    // A repeat separated by punctuation ("goals, goals, goals") is rhetoric, not a slip.
+    let slip = (1..words.len()).any(|i| {
+        let (a, b) = (&words[i - 1], &words[i]);
+        !a.is_empty() && a == b && raw[i - 1].chars().last().is_some_and(|c| c.is_alphanumeric()) && !matches!(a.as_str(), "ha" | "no" | "so" | "very")
+    });
+    if slip {
         v.push(Issue::DoubledWord);
     }
     if sentence && t.chars().next().is_some_and(|c| c.is_lowercase()) {

@@ -156,7 +156,7 @@ pub fn grievance(w: &World, from: PersonId, about: PersonId) -> f32 {
 
 /// Open promises from `from` to `to` that are now overdue or failing.
 pub fn failing_promises(w: &World, from: PersonId, to: PersonId) -> usize {
-    w.social.open_promises_between(from, to).filter(|pr| pr.due <= w.date.add_days(21)).count()
+    w.social.promises.iter().filter(|pr| pr.from == from && pr.to == to && pr.state == PromiseState::Open && pr.due <= w.date.add_days(21)).count()
 }
 
 /// A manager's reputation for keeping their word, 0..1 (1 = never breaks).

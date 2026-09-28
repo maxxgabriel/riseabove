@@ -161,14 +161,6 @@ impl Session {
 
 impl Meta {
     fn fresh(name: String, date: Date) -> Self {
-        Self {
-            name,
-            concealed: BTreeSet::new(),
-            conceal_mine: true,
-            stops: StopPolicy::default(),
-            last_viewed: date.0,
-            created_days: 0,
-            warned: BTreeSet::new(),
-        }
+        Self { name, concealed: BTreeSet::new(), conceal_mine: true, stops: StopPolicy::default(), last_viewed: date.0, created_days: 0, warned: BTreeSet::new() }
     }
 }

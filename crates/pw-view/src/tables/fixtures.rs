@@ -46,7 +46,6 @@ pub fn round_text(c: &Ctx, f: &Fixture) -> String {
 impl Source for Fixtures {
     type Prep = ();
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
             Col::new("date", "Date", Fmt::Date, 100, &[G]),
@@ -78,20 +77,17 @@ impl Source for Fixtures {
         // A date window keeps this cheap on worlds with many fixtures.
         let lo = from.unwrap_or(Date(i32::MIN / 2));
         let hi = to.unwrap_or(Date(i32::MAX / 2));
-        let iter: Box<dyn Iterator<Item = FixtureId>> = if from.is_some() || to.is_some() {
-            Box::new(w.fixtures.between(lo, hi))
-        } else {
-            Box::new(w.fixtures.iter().map(|(id, _)| id))
-        };
+        let iter: Box<dyn Iterator<Item = FixtureId>> = if from.is_some() || to.is_some() { Box::new(w.fixtures.between(lo, hi)) } else { Box::new(w.fixtures.iter().map(|(id, _)| id)) };
         iter.filter(|&id| {
             let fx = w.fixtures.get(id);
             if comp.is_some_and(|x| fx.comp != x) {
                 return false;
             }
-            if let Some(cl) = club {
-                if w.teams[fx.home].club != cl && w.teams[fx.away].club != cl {
-                    return false;
-                }
+            if let Some(cl) = club
+                && w.teams[fx.home].club != cl
+                && w.teams[fx.away].club != cl
+            {
+                return false;
             }
             if team.is_some_and(|t| !fx.involves(t)) {
                 return false;
@@ -136,7 +132,11 @@ impl Source for Fixtures {
             "away" => team_cell(c, fx, fx.away),
             "score" => match fx.score {
                 None => {
-                    if fx.date < c.w.date { Cell::text("Not played").tone(Tone::Muted) } else { Cell::text("v").tone(Tone::Muted) }
+                    if fx.date < c.w.date {
+                        Cell::text("Not played").tone(Tone::Muted)
+                    } else {
+                        Cell::text("v").tone(Tone::Muted)
+                    }
                 }
                 Some(_) if c.is_concealed(fx.uid) => Cell::text("? – ?").tone(Tone::Muted).with_ref(Ref::fixture(fx.uid)).with_sub("Not revealed"),
                 Some(s) => {
@@ -170,10 +170,12 @@ fn team_cell(c: &Ctx, fx: &Fixture, t: TeamId) -> Cell {
     if c.my_team() == t {
         cell = cell.with_sub("Your team");
     }
-    if let Some(s) = fx.score {
-        if !c.is_concealed(fx.uid) && s.home_won() == Some(fx.home == t) && !(s.home == s.away && s.pens.is_none()) {
-            cell = cell.tone(Tone::Pos);
-        }
+    if let Some(s) = fx.score
+        && !c.is_concealed(fx.uid)
+        && s.home_won() == Some(fx.home == t)
+        && !(s.home == s.away && s.pens.is_none())
+    {
+        cell = cell.tone(Tone::Pos);
     }
     cell
 }

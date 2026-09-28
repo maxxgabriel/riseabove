@@ -215,8 +215,24 @@ pub fn work_permit_points(w: &World, p: PlayerId, fee: Money, wage: Money) -> u8
     let nation_rep = if nat.is_some() { f32::from(w.nations[nat].reputation) } else { 0.0 };
     let caps = f32::from(c.caps.min(40));
     let intl = (caps / 2.0).min(10.0) * (nation_rep / 8000.0).min(1.0) * 1.5;
-    let fee_p = if fee >= 20_000_000 { 6.0 } else if fee >= 8_000_000 { 4.0 } else if fee >= 2_000_000 { 2.0 } else { 0.0 };
-    let wage_p = if wage >= 60_000 { 6.0 } else if wage >= 25_000 { 4.0 } else if wage >= 8_000 { 2.0 } else { 0.0 };
+    let fee_p = if fee >= 20_000_000 {
+        6.0
+    } else if fee >= 8_000_000 {
+        4.0
+    } else if fee >= 2_000_000 {
+        2.0
+    } else {
+        0.0
+    };
+    let wage_p = if wage >= 60_000 {
+        6.0
+    } else if wage >= 25_000 {
+        4.0
+    } else if wage >= 8_000 {
+        2.0
+    } else {
+        0.0
+    };
     let club = w.players.hot[p].club;
     let league_p = if club.is_some() && w.clubs[club].league.is_some() {
         let comp = &w.comps[w.clubs[club].league];

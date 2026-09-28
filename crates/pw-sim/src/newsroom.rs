@@ -89,7 +89,7 @@ pub fn ensure_profiles(w: &mut World) {
         let mut rng = w.rng(stream::JOURNALISTS, &[u64::from(j.0), 0x9f]);
         let style = w.media.outlet_profiles.get(&outlet).map_or(Style::Broadsheet, |p| p.style);
         let age = consider::age(w, j);
-        let max_years = ((age - 22.0).max(0.0)).min(20.0) as i32;
+        let max_years = (age - 22.0).clamp(0.0, 20.0) as i32;
         let focus = match style {
             Style::Statistical => Focus::Data,
             Style::Tabloid => [Focus::Scandal, Focus::Transfers, Focus::HumanInterest][rng.index(3)],
@@ -183,10 +183,10 @@ fn add_tie(w: &mut World, j: PersonId, s: PersonId, strength: u8) {
     }
     let prof = w.media.journalist_profiles.get_mut(&j).expect("profile");
     prof.ties.push(SourceTie { person: s, since: today, strength, reliability: 50, hits: 0, misses: 0, last_used: today });
-    if let Some(jj) = w.media.journalists.get_mut(&j) {
-        if !jj.sources.contains(&s) {
-            jj.sources.push(s);
-        }
+    if let Some(jj) = w.media.journalists.get_mut(&j)
+        && !jj.sources.contains(&s)
+    {
+        jj.sources.push(s);
     }
 }
 
@@ -339,7 +339,6 @@ fn from_info(w: &World, info: u32) -> Option<Candidate> {
             c.tone = -35;
             c.subject = Some(ThreadSubject::Incident { incident });
         }
-        _ => return None,
     }
     Some(c)
 }
@@ -347,10 +346,6 @@ fn from_info(w: &World, info: u32) -> Option<Candidate> {
 // ---------------------------------------------------------------------------
 // The pipeline
 // ---------------------------------------------------------------------------
-
-fn freshness(date: Date, today: Date) -> f32 {
-    (1.0 - date.days_until(today) as f32 / 10.0).clamp(0.1, 1.0)
-}
 
 /// How newsworthy a candidate is for one outlet and journalist, 0–1.
 fn newsworthiness(w: &World, c: &Candidate, outlet: OutletId, j: PersonId, age_days: i32) -> (f32, [u8; 3]) {
@@ -384,10 +379,28 @@ fn newsworthiness(w: &World, c: &Candidate, outlet: OutletId, j: PersonId, age_d
     let private = c.kind == StoryKind::Personal;
     let style_mult = match style {
         Style::Tabloid => 1.0 + controversy * 0.5 + if private { 0.5 } else { 0.0 },
-        Style::Statistical => if private || c.kind == StoryKind::IncidentNews { 0.2 } else { 0.8 },
-        Style::Broadsheet => if private { 0.3 } else { 1.0 },
+        Style::Statistical => {
+            if private || c.kind == StoryKind::IncidentNews {
+                0.2
+            } else {
+                0.8
+            }
+        }
+        Style::Broadsheet => {
+            if private {
+                0.3
+            } else {
+                1.0
+            }
+        }
         Style::Local => 1.0 + if local >= 1.0 { 0.3 } else { -0.3 },
-        Style::Fan => if local >= 1.0 { 1.4 } else { 0.3 },
+        Style::Fan => {
+            if local >= 1.0 {
+                1.4
+            } else {
+                0.3
+            }
+        }
         Style::Broadcast => 1.0,
     };
     let timely = (1.0 - age_days as f32 / 14.0).clamp(0.15, 1.0);
@@ -418,7 +431,8 @@ fn verify(w: &mut World, j: PersonId, c: &Candidate) -> Verification {
     } else {
         40.0
     };
-    let ties: Vec<SourceTie> = w.media.journalist_profiles.get(&j).map(|p| p.ties.iter().copied().filter(|t| w.club_of_person(t.person) == c.club || t.person == c.person).collect()).unwrap_or_default();
+    let ties: Vec<SourceTie> =
+        w.media.journalist_profiles.get(&j).map(|p| p.ties.iter().copied().filter(|t| w.club_of_person(t.person) == c.club || t.person == c.person).collect()).unwrap_or_default();
     let mut ties = ties;
     ties.sort_by(|a, b| b.strength.cmp(&a.strength).then(a.person.cmp(&b.person)));
     let (mut asked, mut confirmed, mut denied) = (0u8, 0u8, 0u8);
@@ -433,12 +447,12 @@ fn verify(w: &mut World, j: PersonId, c: &Candidate) -> Verification {
         } else if roll > 0.75 + discretion * 0.1 - if c.person.is_some() { consider::affinity(w, t.person, c.person).max(0.0) * 0.3 } else { 0.0 } {
             denied += 1;
         }
-        if let Some(p) = w.media.journalist_profiles.get_mut(&j) {
-            if let Some(x) = p.ties.iter_mut().find(|x| x.person == t.person) {
-                x.last_used = today;
-                if knows {
-                    x.strength = x.strength.saturating_add(2).min(100);
-                }
+        if let Some(p) = w.media.journalist_profiles.get_mut(&j)
+            && let Some(x) = p.ties.iter_mut().find(|x| x.person == t.person)
+        {
+            x.last_used = today;
+            if knows {
+                x.strength = x.strength.saturating_add(2).min(100);
             }
         }
     }
@@ -528,7 +542,13 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
     // Tone: the story's own, louder in some outlets, bent by affinity.
     let mut tone = f32::from(c.tone) * (0.8 + sens * 0.5);
     if affinity.is_some() {
-        tone += if affinity == c.club { 20.0 } else if w.media.rivalry(affinity, c.club) >= 50 { -20.0 } else { 0.0 };
+        tone += if affinity == c.club {
+            20.0
+        } else if w.media.rivalry(affinity, c.club) >= 50 {
+            -20.0
+        } else {
+            0.0
+        };
     }
     let leaker = if c.info != u32::MAX { w.grapevine.chain(c.info, j).last().map_or(PersonId::NONE, |t| t.from) } else { PersonId::NONE };
     let source = if let Some(p) = w.net.post(c.post) {
@@ -545,7 +565,8 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
         ClaimType::Speculation => 30,
         _ => 50,
     };
-    let grounded = c.public || (c.info != u32::MAX && w.grapevine.get(c.info).true_now && w.grapevine.get(c.info).knower(j).is_some_and(|k| !matches!(k.fidelity, Fidelity::Garbled | Fidelity::Planted)));
+    let grounded =
+        c.public || (c.info != u32::MAX && w.grapevine.get(c.info).true_now && w.grapevine.get(c.info).knower(j).is_some_and(|k| !matches!(k.fidelity, Fidelity::Garbled | Fidelity::Planted)));
     let key = pw_core::rng::hash_key(&[u64::from(j.0), u64::from(c.info), c.fixture, today.0 as u64]);
     let id = publish_draft(
         w,
@@ -580,7 +601,9 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
     if thread != u32::MAX {
         w.agenda.schedule(today.add_days(3 + (key % 4) as i32), 540, Task::FollowUp { thread });
     }
-    if matches!(claim_type, ClaimType::Rumour | ClaimType::Speculation | ClaimType::Report) && matches!(c.kind, StoryKind::TransferRumour | StoryKind::Unhappy | StoryKind::Leak | StoryKind::Discipline) {
+    if matches!(claim_type, ClaimType::Rumour | ClaimType::Speculation | ClaimType::Report)
+        && matches!(c.kind, StoryKind::TransferRumour | StoryKind::Unhappy | StoryKind::Leak | StoryKind::Discipline)
+    {
         w.agenda.schedule(today.add_days(1 + (key % 3) as i32), 600 + (key % 300) as u16, Task::Denial { story: id });
     }
     Some(id)
@@ -685,7 +708,18 @@ fn covering(w: &World, nation: NationId, club: ClubId, n: usize) -> Vec<PersonId
         .journalists
         .values()
         .filter(|j| j.outlet.is_some() && w.media.outlets[j.outlet].nation == nation)
-        .map(|j| (if club.is_some() && j.beat.contains(&club) { 0 } else if w.media.outlets[j.outlet].leaning == club { 1 } else { 2 }, j.person))
+        .map(|j| {
+            (
+                if club.is_some() && j.beat.contains(&club) {
+                    0
+                } else if w.media.outlets[j.outlet].leaning == club {
+                    1
+                } else {
+                    2
+                },
+                j.person,
+            )
+        })
         .collect();
     v.sort();
     v.into_iter().take(n).map(|x| x.1).collect()
@@ -771,10 +805,11 @@ pub(crate) fn back_references(w: &World, player: PlayerId, current: u32) -> Smal
             ThreadSubject::Transfer { player: p, .. } | ThreadSubject::Contract { player: p, .. } | ThreadSubject::Injury { player: p } => p == player,
             _ => false,
         };
-        if about && t.closed.is_some_and(|d| d.days_until(w.date) < 400) {
-            if let Some(&last) = t.stories.last() {
-                v.push(last);
-            }
+        if about
+            && t.closed.is_some_and(|d| d.days_until(w.date) < 400)
+            && let Some(&last) = t.stories.last()
+        {
+            v.push(last);
         }
     }
     v
@@ -803,15 +838,15 @@ fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
                 p.misses = p.misses.saturating_add(1);
             }
             // …and learn how reliable the person who told them was.
-            if s.leaker.is_some() {
-                if let Some(t) = p.ties.iter_mut().find(|t| t.person == s.leaker) {
-                    if right {
-                        t.hits = t.hits.saturating_add(1);
-                        t.reliability = (t.reliability + 8).min(100);
-                    } else {
-                        t.misses = t.misses.saturating_add(1);
-                        t.reliability = t.reliability.saturating_sub(12);
-                    }
+            if s.leaker.is_some()
+                && let Some(t) = p.ties.iter_mut().find(|t| t.person == s.leaker)
+            {
+                if right {
+                    t.hits = t.hits.saturating_add(1);
+                    t.reliability = (t.reliability + 8).min(100);
+                } else {
+                    t.misses = t.misses.saturating_add(1);
+                    t.reliability = t.reliability.saturating_sub(12);
                 }
             }
         }
@@ -838,7 +873,12 @@ fn follow_up(w: &mut World, thread: u32) {
         ThreadSubject::Transfer { player, club } => {
             if w.players.hot[player].club == club {
                 close_thread(w, thread, ThreadState::Happened);
-            } else if w.events.since(t.opened).iter().any(|e| matches!(e.kind, EventKind::Transfer { player: p, .. } if p == player) || matches!(e.kind, EventKind::ContractSigned { player: p, renewal: true, .. } if p == player)) {
+            } else if w
+                .events
+                .since(t.opened)
+                .iter()
+                .any(|e| matches!(e.kind, EventKind::Transfer { player: p, .. } if p == player) || matches!(e.kind, EventKind::ContractSigned { player: p, renewal: true, .. } if p == player))
+            {
                 close_thread(w, thread, ThreadState::Collapsed);
             } else if t.stories.iter().any(|&s| w.media.stories[s].kind == StoryKind::Denial) && age > 20 {
                 close_thread(w, thread, ThreadState::Denied);
@@ -867,7 +907,7 @@ fn follow_up(w: &mut World, thread: u32) {
             }
         }
         ThreadSubject::Incident { incident } => {
-            let responded = w.incidents.get(incident).map_or(false, |i| i.responses.iter().any(|r| r.date > t.last));
+            let responded = w.incidents.get(incident).is_some_and(|i| i.responses.iter().any(|r| r.date > t.last));
             if responded {
                 // "The club responds": public only if the response was.
                 let inc = w.incidents.get(incident).cloned();
@@ -1093,7 +1133,11 @@ pub fn weekly(w: &mut World) {
                 .iter()
                 .copied()
                 .max_by(|&a, &b| {
-                    let s = |x: PersonId| consider::hid(w, x, Hidden::Controversy) + w.lives.get(x).map_or(0.0, |l| f32::from(l.routine.media)) * 2.0 + w.roll(stream::JOURNALISTS, &[u64::from(j.0), u64::from(x.0), period::week(today)]) * 8.0;
+                    let s = |x: PersonId| {
+                        consider::hid(w, x, Hidden::Controversy)
+                            + w.lives.get(x).map_or(0.0, |l| f32::from(l.routine.media)) * 2.0
+                            + w.roll(stream::JOURNALISTS, &[u64::from(j.0), u64::from(x.0), period::week(today)]) * 8.0
+                    };
                     s(a).total_cmp(&s(b)).then(b.cmp(&a))
                 })
                 .expect("pool");
@@ -1205,4 +1249,3 @@ fn hire(w: &mut World) {
 pub fn source_reliability(w: &World, j: PersonId, s: PersonId) -> Option<u8> {
     w.media.journalist_profiles.get(&j).and_then(|p| p.tie(s)).map(|t| t.reliability)
 }
-

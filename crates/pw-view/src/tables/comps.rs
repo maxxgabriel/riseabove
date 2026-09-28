@@ -34,7 +34,6 @@ const G: &str = "general";
 impl Source for Comps {
     type Prep = ();
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
             Col::new("name", "Competition", Fmt::Text, 220, &[G]),
@@ -106,7 +105,11 @@ impl Comps {
             }
             "kind" => (Cell::text(kind_text(comp.kind)), Key::text(kind_text(comp.kind))),
             "tier" => {
-                if comp.kind == CompKind::League { num(f64::from(comp.tier)) } else { (Cell::empty(), Key::None) }
+                if comp.kind == CompKind::League {
+                    num(f64::from(comp.tier))
+                } else {
+                    (Cell::empty(), Key::None)
+                }
             }
             "teams" => num(comp.state.entrants.len() as f64),
             "stage" => {
@@ -187,7 +190,6 @@ pub fn visible_table(c: &Ctx, comp: CompId) -> (Vec<TableRow>, usize) {
 impl Source for Standings {
     type Prep = StandingsPrep;
 
-
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
             Col::new("pos", "Pos", Fmt::Int, 44, &[ST]).nosort(),
@@ -223,13 +225,8 @@ impl Source for Standings {
         }
         let st = &c.w.comps[comp].state;
         let mut form: rustc_hash::FxHashMap<TeamId, Vec<char>> = rustc_hash::FxHashMap::default();
-        let mut played: Vec<_> = c
-            .w
-            .fixtures
-            .between(st.start.add_days(-1), c.w.date)
-            .map(|id| c.w.fixtures.get(id))
-            .filter(|f| f.comp == comp && f.score.is_some() && !c.is_concealed(f.uid))
-            .collect();
+        let mut played: Vec<_> =
+            c.w.fixtures.between(st.start.add_days(-1), c.w.date).map(|id| c.w.fixtures.get(id)).filter(|f| f.comp == comp && f.score.is_some() && !c.is_concealed(f.uid)).collect();
         played.sort_by_key(|f| (f.date, f.uid));
         for f in played {
             let s = f.score.expect("filtered");
@@ -351,10 +348,18 @@ impl Source for Standings {
 pub fn format_text(f: &Format) -> String {
     match *f {
         Format::League { rounds } => {
-            if rounds >= 2 { format!("League, each team plays every other team {rounds} times") } else { "League, single round".into() }
+            if rounds >= 2 {
+                format!("League, each team plays every other team {rounds} times")
+            } else {
+                "League, single round".into()
+            }
         }
         Format::Knockout { legs, final_legs } => {
-            format!("Knockout, {} per tie, {} in the final", if legs == 1 { "one leg".to_string() } else { format!("{legs} legs") }, if final_legs == 1 { "one leg".to_string() } else { format!("{final_legs} legs") })
+            format!(
+                "Knockout, {} per tie, {} in the final",
+                if legs == 1 { "one leg".to_string() } else { format!("{legs} legs") },
+                if final_legs == 1 { "one leg".to_string() } else { format!("{final_legs} legs") }
+            )
         }
         Format::Groups { groups, size, advance, .. } => {
             format!("{groups} groups of {size}, top {advance} advance to a knockout stage")

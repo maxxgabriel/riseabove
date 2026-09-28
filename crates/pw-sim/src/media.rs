@@ -89,7 +89,13 @@ pub fn ensure_media(w: &mut World) {
             for &b in &big[i + 1..] {
                 let same_city = !w.clubs[a].city.is_empty() && w.clubs[a].city == w.clubs[b].city;
                 let same_league = w.clubs[a].league == w.clubs[b].league;
-                let intensity = if same_city { 90 } else if same_league && i < 3 { 55 } else { 0 };
+                let intensity = if same_city {
+                    90
+                } else if same_league && i < 3 {
+                    55
+                } else {
+                    0
+                };
                 if intensity > 0 {
                     w.media.rivals.insert((a, b), intensity);
                     w.media.rivals.insert((b, a), intensity);
@@ -167,11 +173,23 @@ pub(crate) struct Draft {
 fn default_claim(kind: StoryKind, source: Cause, leaker: PersonId, claim: u8) -> ClaimType {
     match kind {
         StoryKind::Interview | StoryKind::Feature | StoryKind::Analysis | StoryKind::WonderkidList | StoryKind::Praise | StoryKind::Criticism => ClaimType::Opinion,
-        StoryKind::TransferRumour => if claim >= 70 { ClaimType::Report } else { ClaimType::Rumour },
+        StoryKind::TransferRumour => {
+            if claim >= 70 {
+                ClaimType::Report
+            } else {
+                ClaimType::Rumour
+            }
+        }
         StoryKind::Denial => ClaimType::Denial,
         StoryKind::Correction => ClaimType::Correction,
         StoryKind::ManagerPressure => ClaimType::Speculation,
-        _ if leaker.is_some() => if claim >= 70 { ClaimType::Report } else { ClaimType::Rumour },
+        _ if leaker.is_some() => {
+            if claim >= 70 {
+                ClaimType::Report
+            } else {
+                ClaimType::Rumour
+            }
+        }
         _ => match source {
             Cause::Event(_) => ClaimType::Fact,
             Cause::Fact(_) => ClaimType::Report,
@@ -197,7 +215,9 @@ pub(crate) fn publish(
 ) -> StoryId {
     let claim_type = default_claim(kind, source, leaker, claim);
     let thread = match kind {
-        StoryKind::TransferRumour | StoryKind::TransferNews if player.is_some() && other_club.is_some() => Some(ThreadSubject::Transfer { player, club: if kind == StoryKind::TransferRumour { other_club } else { club } }),
+        StoryKind::TransferRumour | StoryKind::TransferNews if player.is_some() && other_club.is_some() => {
+            Some(ThreadSubject::Transfer { player, club: if kind == StoryKind::TransferRumour { other_club } else { club } })
+        }
         StoryKind::Injury if player.is_some() => Some(ThreadSubject::Injury { player }),
         StoryKind::ManagerPressure | StoryKind::ManagerChange if club.is_some() => Some(ThreadSubject::ManagerPressure { club }),
         StoryKind::Contract if player.is_some() => Some(ThreadSubject::Contract { player, club }),
@@ -267,10 +287,10 @@ pub(crate) fn publish_draft(w: &mut World, d: Draft) -> StoryId {
         news: d.news,
         refs,
     });
-    if outlet.is_some() {
-        if let Some(p) = w.media.outlet_profiles.get_mut(&outlet) {
-            p.published_this_week = p.published_this_week.saturating_add(1);
-        }
+    if outlet.is_some()
+        && let Some(p) = w.media.outlet_profiles.get_mut(&outlet)
+    {
+        p.published_this_week = p.published_this_week.saturating_add(1);
     }
     let person = d.person;
     // The subject reads it (or hears about it) — at the outlet's credibility.
@@ -278,7 +298,10 @@ pub(crate) fn publish_draft(w: &mut World, d: Draft) -> StoryId {
         let cred = if outlet.is_some() { w.media.outlets[outlet].credibility } else { 40 };
         w.beliefs.learn(person, Belief { about: person, kind: BeliefKind::Rumour { story: id }, channel: Channel::Media(id), confidence: cred, date: today, origin: ev });
         if d.kind == StoryKind::TransferRumour && d.other_club.is_some() {
-            w.beliefs.learn(person, Belief { about: person, kind: BeliefKind::ClubInterested { club: d.other_club }, channel: Channel::Media(id), confidence: cred / 2 + d.claim / 4, date: today, origin: ev });
+            w.beliefs.learn(
+                person,
+                Belief { about: person, kind: BeliefKind::ClubInterested { club: d.other_club }, channel: Channel::Media(id), confidence: cred / 2 + d.claim / 4, date: today, origin: ev },
+            );
         }
         if d.tone <= -40 {
             let l = &mut w.lives[person];
@@ -361,11 +384,7 @@ fn rumours(w: &mut World) {
                     .collect()
             } else if let Some(a) = agent {
                 // An agent talks up interest in their own clients.
-                w.agents.list[a]
-                    .clients
-                    .iter()
-                    .filter_map(|&p| idx.get(&p).and_then(|l| l.iter().max_by_key(|x| x.1)).map(|&(c, m)| (p, c, m)))
-                    .collect()
+                w.agents.list[a].clients.iter().filter_map(|&p| idx.get(&p).and_then(|l| l.iter().max_by_key(|x| x.1)).map(|&(c, m)| (p, c, m))).collect()
             } else {
                 Vec::new()
             };
@@ -375,10 +394,7 @@ fn rumours(w: &mut World) {
             let mut known = known;
             known.sort();
             // The most newsworthy: famous players, big clubs.
-            let (p, interested, minutes) = *known
-                .iter()
-                .max_by_key(|(p, c, _)| u32::from(w.players.cold[*p].rep.current) + u32::from(w.clubs[*c].reputation) / 2)
-                .unwrap();
+            let (p, interested, minutes) = *known.iter().max_by_key(|(p, c, _)| u32::from(w.players.cold[*p].rep.current) + u32::from(w.clubs[*c].reputation) / 2).unwrap();
             if w.media.stories.iter().rev().take(500).any(|st| st.player == p && st.other_club == interested && st.date.days_until(today) < 45) {
                 continue;
             }
@@ -390,7 +406,11 @@ fn rumours(w: &mut World) {
             let value = w.players.cold[p].value as f32;
             let fee = (value * (1.0 + sens * 0.6) / 50_000.0).round() as Money * 50_000;
             // A claim of an imminent bid with no bid is ungrounded.
-            let bid_made = w.events.since(today.add_days(-30)).iter().any(|e| matches!(e.kind, EventKind::BidRejected { player, club, .. } | EventKind::BidAccepted { player, club, .. } if player == p && club == interested));
+            let bid_made = w
+                .events
+                .since(today.add_days(-30))
+                .iter()
+                .any(|e| matches!(e.kind, EventKind::BidRejected { player, club, .. } | EventKind::BidAccepted { player, club, .. } if player == p && club == interested));
             let grounded = claim < 70 || bid_made;
             let person = w.players.cold[p].person;
             let current = w.players.hot[p].club;
@@ -408,8 +428,7 @@ fn rumours(w: &mut World) {
 fn news_from_events(w: &mut World) {
     let today = w.date;
     let from = today.add_days(-7);
-    let events: Vec<(EventId, EventKind, Visibility, pw_world::Causes)> =
-        w.events.since(from).iter().filter(|e| e.date <= today).map(|e| (e.id, e.kind.clone(), e.vis, e.causes.clone())).collect();
+    let events: Vec<(EventId, EventKind, Visibility, pw_world::Causes)> = w.events.since(from).iter().filter(|e| e.date <= today).map(|e| (e.id, e.kind.clone(), e.vis, e.causes.clone())).collect();
     for (id, kind, vis, _causes) in events {
         let (story, player, club, other, tone): (StoryKind, PlayerId, ClubId, ClubId, i8) = match kind {
             EventKind::Transfer { player, from, to, fee } if big_enough(w, to) || big_enough(w, from) => {
@@ -444,7 +463,13 @@ fn news_from_events(w: &mut World) {
             }
             _ => continue,
         };
-        let nation = if club.is_some() { w.clubs[club].nation } else if player.is_some() { w.people[w.players.cold[player].person].nation } else { continue };
+        let nation = if club.is_some() {
+            w.clubs[club].nation
+        } else if player.is_some() {
+            w.people[w.players.cold[player].person].nation
+        } else {
+            continue;
+        };
         let Some(j) = outlet_journalist(w, nation, club, u64::from(id.0)) else { continue };
         let person = if player.is_some() { w.players.cold[player].person } else { PersonId::NONE };
         let fee = if let EventKind::Transfer { fee, .. } = kind { fee } else { 0 };
@@ -465,13 +490,43 @@ fn form_and_pressure(w: &mut World) {
     let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| big_enough(w, c)).collect();
     for club in clubs {
         let nation = w.clubs[club].nation;
-        let recent: Vec<i8> = w.recent_matches.of_club(club).rev().take(5).map(|m| if m.winner() == Some(club) { 1 } else if m.winner().is_none() { 0 } else { -1 }).collect();
+        let recent: Vec<i8> = w
+            .recent_matches
+            .of_club(club)
+            .rev()
+            .take(5)
+            .map(|m| {
+                if m.winner() == Some(club) {
+                    1
+                } else if m.winner().is_none() {
+                    0
+                } else {
+                    -1
+                }
+            })
+            .collect();
         let defeats = recent.iter().filter(|&&r| r < 0).count();
         let already = w.media.stories.iter().rev().take(300).any(|s| s.club == club && s.kind == StoryKind::ManagerPressure && s.date.days_until(today) < 14);
-        if defeats >= 4 && !already && w.clubs[club].manager.is_some() {
-            if let Some(j) = outlet_journalist(w, nation, club, hash_key(&[u64::from(club.0), week])) {
-                publish(w, j, StoryKind::ManagerPressure, PlayerId::NONE, PersonId::NONE, club, ClubId::NONE, 0, 55, true, Cause::Fact(Fact::PoorRun { club, defeats: defeats as u8, games: recent.len() as u8 }), PersonId::NONE, -30);
-            }
+        if defeats >= 4
+            && !already
+            && w.clubs[club].manager.is_some()
+            && let Some(j) = outlet_journalist(w, nation, club, hash_key(&[u64::from(club.0), week]))
+        {
+            publish(
+                w,
+                j,
+                StoryKind::ManagerPressure,
+                PlayerId::NONE,
+                PersonId::NONE,
+                club,
+                ClubId::NONE,
+                0,
+                55,
+                true,
+                Cause::Fact(Fact::PoorRun { club, defeats: defeats as u8, games: recent.len() as u8 }),
+                PersonId::NONE,
+                -30,
+            );
         }
         let first = w.clubs[club].first_team();
         let squad = w.teams[first].squad.clone();
@@ -483,15 +538,17 @@ fn form_and_pressure(w: &mut World) {
             let low = w.lives[who].form_low_weeks;
             let hot = w.players.hot[p].form_avg().unwrap_or(0.0);
             let key = hash_key(&[u64::from(p.0), week, 0x51]);
-            if low == 3 && key % 2 == 0 {
+            if low == 3 && key.is_multiple_of(2) {
                 if let Some(j) = outlet_journalist(w, nation, club, key) {
                     publish(w, j, StoryKind::Criticism, p, who, club, ClubId::NONE, 0, 60, true, Cause::Fact(Fact::FormSlump { player: p }), PersonId::NONE, -45);
                     w.media.move_fans(club, who, -30, FanReason::Performances, today);
                 }
-            } else if hot >= 7.6 && w.players.hot[p].form.iter().all(|&r| r >= 70) && key % 3 == 0 {
-                if let Some(j) = outlet_journalist(w, nation, club, key) {
-                    publish(w, j, StoryKind::Praise, p, who, club, ClubId::NONE, 0, 70, true, Cause::Fact(Fact::FormSurge { player: p }), PersonId::NONE, 45);
-                }
+            } else if hot >= 7.6
+                && w.players.hot[p].form.iter().all(|&r| r >= 70)
+                && key.is_multiple_of(3)
+                && let Some(j) = outlet_journalist(w, nation, club, key)
+            {
+                publish(w, j, StoryKind::Praise, p, who, club, ClubId::NONE, 0, 70, true, Cause::Fact(Fact::FormSurge { player: p }), PersonId::NONE, 45);
             }
         }
     }

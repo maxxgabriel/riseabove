@@ -34,8 +34,6 @@ fn kind_word(k: pw_world::media::StoryKind) -> String {
         if ch.is_uppercase() && i > 0 {
             out.push(' ');
             out.extend(ch.to_lowercase());
-        } else if i == 0 {
-            out.push(ch);
         } else {
             out.push(ch);
         }
@@ -99,7 +97,11 @@ impl Source for Stories {
             "headline" => Cell::text(pw_narrate::press::headline(c.w, s)),
             "kind" => Cell::text(kind_word(s.kind)),
             "grounded" => {
-                if s.grounded { Cell::text("Yes").tone(Tone::Pos) } else { Cell::text("No").tone(Tone::Warn) }
+                if s.grounded {
+                    Cell::text("Yes").tone(Tone::Pos)
+                } else {
+                    Cell::text("No").tone(Tone::Warn)
+                }
             }
             _ => Cell::empty(),
         }
@@ -503,9 +505,27 @@ impl Source for Tournaments {
             "year" => Key::Num(f64::from(t.year) * 100.0 + f64::from(id)),
             "name" => Key::text(t.kind.label()),
             "stage" => Key::text(stage_label(t.stage)),
-            "winner" => if t.winner.is_some() { Key::text(c.nation_name(t.winner)) } else { Key::None },
-            "runner_up" => if t.runner_up.is_some() { Key::text(c.nation_name(t.runner_up)) } else { Key::None },
-            "best" => if t.best_player.is_some() { Key::text(c.player_short(t.best_player)) } else { Key::None },
+            "winner" => {
+                if t.winner.is_some() {
+                    Key::text(c.nation_name(t.winner))
+                } else {
+                    Key::None
+                }
+            }
+            "runner_up" => {
+                if t.runner_up.is_some() {
+                    Key::text(c.nation_name(t.runner_up))
+                } else {
+                    Key::None
+                }
+            }
+            "best" => {
+                if t.best_player.is_some() {
+                    Key::text(c.player_short(t.best_player))
+                } else {
+                    Key::None
+                }
+            }
             _ => Key::None,
         }
     }
@@ -518,7 +538,13 @@ impl Source for Tournaments {
             "stage" => Cell::text(stage_label(t.stage)),
             "winner" => nation_cell(c, t.winner),
             "runner_up" => nation_cell(c, t.runner_up),
-            "best" => if t.best_player.is_some() { Cell::link(c.player_ref(t.best_player), c.player_name(t.best_player)) } else { Cell::empty() },
+            "best" => {
+                if t.best_player.is_some() {
+                    Cell::link(c.player_ref(t.best_player), c.player_name(t.best_player))
+                } else {
+                    Cell::empty()
+                }
+            }
             _ => Cell::empty(),
         }
     }
@@ -583,7 +609,13 @@ impl Source for Boards {
         let g = &c.w.governance[&ClubId(id)];
         match col {
             "club" => club_cell(c, ClubId(id)),
-            "owner" => if g.owner.person.is_some() { Cell::link(Ref::person(g.owner.person), c.person_name(g.owner.person)) } else { Cell::empty() },
+            "owner" => {
+                if g.owner.person.is_some() {
+                    Cell::link(Ref::person(g.owner.person), c.person_name(g.owner.person))
+                } else {
+                    Cell::empty()
+                }
+            }
             "kind" => Cell::text(ownership_label(g.owner.kind)),
             "wealth" => Cell::num(g.owner.wealth as f64),
             "ambition" => Cell::num(f64::from(g.owner.ambition)),

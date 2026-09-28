@@ -37,58 +37,141 @@ impl Visibility {
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Fact {
     /// Training ratings below the player's own norm for `weeks`.
-    TrainingSlump { player: PlayerId, weeks: u8 },
+    TrainingSlump {
+        player: PlayerId,
+        weeks: u8,
+    },
     /// Training ratings well above norm for `weeks`.
-    TrainingSurge { player: PlayerId, weeks: u8 },
+    TrainingSurge {
+        player: PlayerId,
+        weeks: u8,
+    },
     /// Recent match ratings well below the player's norm.
-    FormSlump { player: PlayerId },
-    FormSurge { player: PlayerId },
+    FormSlump {
+        player: PlayerId,
+    },
+    FormSurge {
+        player: PlayerId,
+    },
     /// Share of available minutes against what the player's status promises.
-    MinutesShortfall { player: PlayerId, share_pct: u8, expected_pct: u8 },
+    MinutesShortfall {
+        player: PlayerId,
+        share_pct: u8,
+        expected_pct: u8,
+    },
     /// A club has been watching a player (scouting, analysis, agent pitch).
-    Tracking { club: ClubId, player: PlayerId, minutes: u16 },
+    Tracking {
+        club: ClubId,
+        player: PlayerId,
+        minutes: u16,
+    },
     /// A club's squad plan has a hole in this player's position group.
-    SquadNeed { club: ClubId },
-    BoardPressure { club: ClubId, warnings: u8 },
-    Congestion { team: TeamId, matches: u8 },
+    SquadNeed {
+        club: ClubId,
+    },
+    BoardPressure {
+        club: ClubId,
+        warnings: u8,
+    },
+    Congestion {
+        team: TeamId,
+        matches: u8,
+    },
     /// A remembered episode between two people.
-    Memory { from: PersonId, about: PersonId, kind: MemoryKind },
-    PromiseDue { promise: u32 },
+    Memory {
+        from: PersonId,
+        about: PersonId,
+        kind: MemoryKind,
+    },
+    PromiseDue {
+        promise: u32,
+    },
     /// Weekly wage relative to squad peers of similar standing, percent.
-    WageGap { player: PlayerId, pct_of_peers: u16 },
+    WageGap {
+        player: PlayerId,
+        pct_of_peers: u16,
+    },
     /// Family and partner circumstances weighed in a decision.
-    Household { person: PersonId },
-    Injury { player: PlayerId, days: u16 },
+    Household {
+        person: PersonId,
+    },
+    Injury {
+        player: PlayerId,
+        days: u16,
+    },
     /// Living abroad without the language or roots yet.
-    Unsettled { person: PersonId, nation: NationId },
+    Unsettled {
+        person: PersonId,
+        nation: NationId,
+    },
     /// Low trust between two people.
-    LowTrust { from: PersonId, about: PersonId, trust: u8 },
-    ContractRunningDown { player: PlayerId, days: u16 },
-    PublicCriticism { story: StoryId },
+    LowTrust {
+        from: PersonId,
+        about: PersonId,
+        trust: u8,
+    },
+    ContractRunningDown {
+        player: PlayerId,
+        days: u16,
+    },
+    PublicCriticism {
+        story: StoryId,
+    },
     /// A football rule stood in the way.
-    Rule { reason: crate::rules::Reason },
+    Rule {
+        reason: crate::rules::Reason,
+    },
     /// Someone said it on the record.
-    Said { person: PersonId },
+    Said {
+        person: PersonId,
+    },
     /// A match was played (fixture uid).
-    Played { fixture: u64 },
+    Played {
+        fixture: u64,
+    },
     /// How the media/analysts currently read a player.
-    Reading { player: PlayerId },
+    Reading {
+        player: PlayerId,
+    },
     /// A published ranking.
     Ranking,
     /// An anniversary of a season.
-    Anniversary { year: i32 },
+    Anniversary {
+        year: i32,
+    },
     /// Someone heard something (an information item) from someone.
-    Heard { info: u32, from: PersonId },
+    Heard {
+        info: u32,
+        from: PersonId,
+    },
     /// A pressure that made an incident plausible, and how strongly.
-    Pressure { pressure: crate::incident::Pressure, level: u8 },
+    Pressure {
+        pressure: crate::incident::Pressure,
+        level: u8,
+    },
     /// A disposition that shaped someone's response.
-    Disposition { person: PersonId, reason: crate::incident::Reason, level: u8 },
+    Disposition {
+        person: PersonId,
+        reason: crate::incident::Reason,
+        level: u8,
+    },
     /// A run of results anyone can see.
-    PoorRun { club: ClubId, defeats: u8, games: u8 },
+    PoorRun {
+        club: ClubId,
+        defeats: u8,
+        games: u8,
+    },
     /// How newsworthy a story was judged, and why (0–100 each).
-    Newsworthy { importance: u8, relevance: u8, controversy: u8 },
+    Newsworthy {
+        importance: u8,
+        relevance: u8,
+        controversy: u8,
+    },
     /// A supporter post that spread (see `World::net`).
-    Viral { post: u32, reposts: u32 },
+    Viral {
+        post: u32,
+        reposts: u32,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
@@ -120,193 +203,631 @@ pub enum LifeEventKind {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum EventKind {
-    Transfer { player: PlayerId, from: ClubId, to: ClubId, fee: Money },
-    LoanMove { player: PlayerId, from: ClubId, to: ClubId, until: Date },
-    LoanReturn { player: PlayerId, to: ClubId },
-    ContractSigned { player: PlayerId, club: ClubId, wage: Money, until: Date, renewal: bool },
-    Released { player: PlayerId, club: ClubId },
-    Retired { person: PersonId },
-    Injured { player: PlayerId, injury: u16, days: u16 },
-    Recovered { player: PlayerId },
-    Suspended { player: PlayerId, matches: u8 },
-    ManagerSacked { staff: StaffId, club: ClubId },
-    ManagerAppointed { staff: StaffId, club: ClubId },
-    YouthIntake { club: ClubId, count: u8 },
-    Debut { player: PlayerId, team: TeamId, comp: CompId },
-    FirstGoal { player: PlayerId, team: TeamId, comp: CompId },
-    Champion { comp: CompId, team: TeamId, season: i32 },
-    Promoted { comp: CompId, team: TeamId },
-    Relegated { comp: CompId, team: TeamId },
-    Interest { player: PlayerId, club: ClubId },
-    BidRejected { player: PlayerId, club: ClubId, fee: Money },
-    BidAccepted { player: PlayerId, club: ClubId, fee: Money },
-    TransferListed { player: PlayerId, club: ClubId },
-    Award { player: PlayerId, comp: CompId, award: AwardKind, season: i32 },
-    CallUp { player: PlayerId },
+    Transfer {
+        player: PlayerId,
+        from: ClubId,
+        to: ClubId,
+        fee: Money,
+    },
+    LoanMove {
+        player: PlayerId,
+        from: ClubId,
+        to: ClubId,
+        until: Date,
+    },
+    LoanReturn {
+        player: PlayerId,
+        to: ClubId,
+    },
+    ContractSigned {
+        player: PlayerId,
+        club: ClubId,
+        wage: Money,
+        until: Date,
+        renewal: bool,
+    },
+    Released {
+        player: PlayerId,
+        club: ClubId,
+    },
+    Retired {
+        person: PersonId,
+    },
+    Injured {
+        player: PlayerId,
+        injury: u16,
+        days: u16,
+    },
+    Recovered {
+        player: PlayerId,
+    },
+    Suspended {
+        player: PlayerId,
+        matches: u8,
+    },
+    ManagerSacked {
+        staff: StaffId,
+        club: ClubId,
+    },
+    ManagerAppointed {
+        staff: StaffId,
+        club: ClubId,
+    },
+    YouthIntake {
+        club: ClubId,
+        count: u8,
+    },
+    Debut {
+        player: PlayerId,
+        team: TeamId,
+        comp: CompId,
+    },
+    FirstGoal {
+        player: PlayerId,
+        team: TeamId,
+        comp: CompId,
+    },
+    Champion {
+        comp: CompId,
+        team: TeamId,
+        season: i32,
+    },
+    Promoted {
+        comp: CompId,
+        team: TeamId,
+    },
+    Relegated {
+        comp: CompId,
+        team: TeamId,
+    },
+    Interest {
+        player: PlayerId,
+        club: ClubId,
+    },
+    BidRejected {
+        player: PlayerId,
+        club: ClubId,
+        fee: Money,
+    },
+    BidAccepted {
+        player: PlayerId,
+        club: ClubId,
+        fee: Money,
+    },
+    TransferListed {
+        player: PlayerId,
+        club: ClubId,
+    },
+    Award {
+        player: PlayerId,
+        comp: CompId,
+        award: AwardKind,
+        season: i32,
+    },
+    CallUp {
+        player: PlayerId,
+    },
 
     /// A conversation took place (details in `World::meetings`).
-    Meeting { meeting: MeetingId, from: PersonId, with: PersonId },
-    PromiseMade { promise: u32, from: PersonId, to: PersonId },
-    PromiseKept { promise: u32, from: PersonId, to: PersonId },
-    PromiseBroken { promise: u32, from: PersonId, to: PersonId },
-    TransferRequested { player: PlayerId, club: ClubId },
-    TransferRequestWithdrawn { player: PlayerId, club: ClubId },
-    Fined { player: PlayerId, club: ClubId, amount: Money },
+    Meeting {
+        meeting: MeetingId,
+        from: PersonId,
+        with: PersonId,
+    },
+    PromiseMade {
+        promise: u32,
+        from: PersonId,
+        to: PersonId,
+    },
+    PromiseKept {
+        promise: u32,
+        from: PersonId,
+        to: PersonId,
+    },
+    PromiseBroken {
+        promise: u32,
+        from: PersonId,
+        to: PersonId,
+    },
+    TransferRequested {
+        player: PlayerId,
+        club: ClubId,
+    },
+    TransferRequestWithdrawn {
+        player: PlayerId,
+        club: ClubId,
+    },
+    Fined {
+        player: PlayerId,
+        club: ClubId,
+        amount: Money,
+    },
     /// Dressing-room unrest spreading from an unhappy, influential player.
-    Unrest { club: ClubId, player: PlayerId },
+    Unrest {
+        club: ClubId,
+        player: PlayerId,
+    },
     /// Contract talks opened, moved, or ended (details in `World::talks`).
-    TalksOpened { talk: TalkId, player: PlayerId, club: ClubId },
-    TalksCollapsed { talk: TalkId, player: PlayerId, club: ClubId },
+    TalksOpened {
+        talk: TalkId,
+        player: PlayerId,
+        club: ClubId,
+    },
+    TalksCollapsed {
+        talk: TalkId,
+        player: PlayerId,
+        club: ClubId,
+    },
     /// A journalist published something (details in `World::stories`).
-    Published { story: StoryId },
-    AgentHired { player: PlayerId, agent: AgentId },
-    AgentLeft { player: PlayerId, agent: AgentId },
+    Published {
+        story: StoryId,
+    },
+    AgentHired {
+        player: PlayerId,
+        agent: AgentId,
+    },
+    AgentLeft {
+        player: PlayerId,
+        agent: AgentId,
+    },
     /// A club heard about a player through their agent.
-    AgentPitch { player: PlayerId, agent: AgentId, club: ClubId },
-    Life { person: PersonId, kind: LifeEventKind },
+    AgentPitch {
+        player: PlayerId,
+        agent: AgentId,
+        club: ClubId,
+    },
+    Life {
+        person: PersonId,
+        kind: LifeEventKind,
+    },
     /// A person took a football job after (or instead of) playing.
-    JoinedStaff { person: PersonId, staff: StaffId, club: ClubId },
-    CameOutOfRetirement { person: PersonId },
+    JoinedStaff {
+        person: PersonId,
+        staff: StaffId,
+        club: ClubId,
+    },
+    CameOutOfRetirement {
+        person: PersonId,
+    },
     /// A coach's note on a player's training (club-internal).
-    CoachNote { player: PlayerId, by: PersonId, note: CoachNote },
+    CoachNote {
+        player: PlayerId,
+        by: PersonId,
+        note: CoachNote,
+    },
     /// A manager changed a player's squad status.
-    StatusChanged { player: PlayerId, club: ClubId, from: crate::contract::SquadStatus, to: crate::contract::SquadStatus },
+    StatusChanged {
+        player: PlayerId,
+        club: ClubId,
+        from: crate::contract::SquadStatus,
+        to: crate::contract::SquadStatus,
+    },
     /// A manager named a new captain.
-    Captaincy { player: PlayerId, team: TeamId },
+    Captaincy {
+        player: PlayerId,
+        team: TeamId,
+    },
     /// A club changed hands.
-    Takeover { club: ClubId, owner: PersonId, previous: PersonId },
+    Takeover {
+        club: ClubId,
+        owner: PersonId,
+        previous: PersonId,
+    },
     /// A club entered administration.
-    Administration { club: ClubId },
-    PointsDeducted { club: ClubId, points: u8 },
+    Administration {
+        club: ClubId,
+    },
+    PointsDeducted {
+        club: ClubId,
+        points: u8,
+    },
     /// The board cut budgets and put earners up for sale.
-    Austerity { club: ClubId },
+    Austerity {
+        club: ClubId,
+    },
     /// The owner put money in.
-    OwnerInvestment { club: ClubId, amount: Money },
-    ProjectStarted { club: ClubId, kind: crate::governance::ProjectKind },
-    ProjectCompleted { club: ClubId, kind: crate::governance::ProjectKind },
+    OwnerInvestment {
+        club: ClubId,
+        amount: Money,
+    },
+    ProjectStarted {
+        club: ClubId,
+        kind: crate::governance::ProjectKind,
+    },
+    ProjectCompleted {
+        club: ClubId,
+        kind: crate::governance::ProjectKind,
+    },
     /// A nation's top flight signed a new broadcast deal.
-    BroadcastDeal { nation: NationId, pool: Money },
-    ManagerResigned { staff: StaffId, club: ClubId },
+    BroadcastDeal {
+        nation: NationId,
+        pool: Money,
+    },
+    ManagerResigned {
+        staff: StaffId,
+        club: ClubId,
+    },
     /// A club lured another club's manager away, paying compensation.
-    ManagerPoached { staff: StaffId, from: ClubId, to: ClubId, compensation: Money },
+    ManagerPoached {
+        staff: StaffId,
+        from: ClubId,
+        to: ClubId,
+        compensation: Money,
+    },
     /// A manager switched to a new system.
-    TacticalChange { club: ClubId, staff: StaffId, formation: u8 },
+    TacticalChange {
+        club: ClubId,
+        staff: StaffId,
+        formation: u8,
+    },
     /// A member of staff followed their manager to a new club.
-    StaffFollowed { staff: StaffId, manager: StaffId, club: ClubId },
-    StaffLeft { staff: StaffId, club: ClubId },
+    StaffFollowed {
+        staff: StaffId,
+        manager: StaffId,
+        club: ClubId,
+    },
+    StaffLeft {
+        staff: StaffId,
+        club: ClubId,
+    },
     /// A club-to-club deal fell through.
-    DealCollapsed { player: PlayerId, buyer: ClubId, seller: ClubId, reason: crate::deals::DealEnd },
-    PreContractSigned { player: PlayerId, club: ClubId },
-    TrialStarted { player: PlayerId, club: ClubId },
-    TrialEnded { player: PlayerId, club: ClubId, offered: bool },
-    LoanRecalled { player: PlayerId, club: ClubId },
-    OptionExercised { player: PlayerId, club: ClubId, fee: Money },
-    AddOnPaid { player: PlayerId, from: ClubId, to: ClubId, amount: Money },
-    SellOnPaid { player: PlayerId, to: ClubId, amount: Money },
+    DealCollapsed {
+        player: PlayerId,
+        buyer: ClubId,
+        seller: ClubId,
+        reason: crate::deals::DealEnd,
+    },
+    PreContractSigned {
+        player: PlayerId,
+        club: ClubId,
+    },
+    TrialStarted {
+        player: PlayerId,
+        club: ClubId,
+    },
+    TrialEnded {
+        player: PlayerId,
+        club: ClubId,
+        offered: bool,
+    },
+    LoanRecalled {
+        player: PlayerId,
+        club: ClubId,
+    },
+    OptionExercised {
+        player: PlayerId,
+        club: ClubId,
+        fee: Money,
+    },
+    AddOnPaid {
+        player: PlayerId,
+        from: ClubId,
+        to: ClubId,
+        amount: Money,
+    },
+    SellOnPaid {
+        player: PlayerId,
+        to: ClubId,
+        amount: Money,
+    },
     /// A child or teenager joined an academy after a trial.
-    AcademyJoined { player: PlayerId, club: ClubId },
+    AcademyJoined {
+        player: PlayerId,
+        club: ClubId,
+    },
     /// An academy let a young player go at its review.
-    AcademyReleased { player: PlayerId, club: ClubId },
-    ScholarshipOffered { player: PlayerId, club: ClubId },
+    AcademyReleased {
+        player: PlayerId,
+        club: ClubId,
+    },
+    ScholarshipOffered {
+        player: PlayerId,
+        club: ClubId,
+    },
     /// Signed up with a local grassroots or amateur side.
-    JoinedLocalClub { player: PlayerId, local: pw_core::LocalClubId },
-    AcademyTrialStarted { player: PlayerId, club: ClubId },
-    ExamsSat { person: PersonId, passed: bool },
+    JoinedLocalClub {
+        player: PlayerId,
+        local: pw_core::LocalClubId,
+    },
+    AcademyTrialStarted {
+        player: PlayerId,
+        club: ClubId,
+    },
+    ExamsSat {
+        person: PersonId,
+        passed: bool,
+    },
     /// A national side named its squad (the player was in it).
-    NationalSquad { player: PlayerId, nation: NationId, level: crate::intl::Level },
-    InternationalDebut { player: PlayerId, nation: NationId, level: crate::intl::Level },
+    NationalSquad {
+        player: PlayerId,
+        nation: NationId,
+        level: crate::intl::Level,
+    },
+    InternationalDebut {
+        player: PlayerId,
+        nation: NationId,
+        level: crate::intl::Level,
+    },
     /// Result of an international match (index into `World::intl::matches`).
-    InternationalResult { index: u32 },
-    TournamentWon { nation: NationId, tournament: u32 },
+    InternationalResult {
+        index: u32,
+    },
+    TournamentWon {
+        nation: NationId,
+        tournament: u32,
+    },
     /// A dual national committed to one country.
-    ChoseNation { player: PlayerId, nation: NationId },
-    RetiredFromInternational { player: PlayerId, nation: NationId },
+    ChoseNation {
+        player: PlayerId,
+        nation: NationId,
+    },
+    RetiredFromInternational {
+        player: PlayerId,
+        nation: NationId,
+    },
     /// A federation appointed a manager for one of its sides.
-    NationalManagerAppointed { staff: StaffId, nation: NationId, level: crate::intl::Level },
+    NationalManagerAppointed {
+        staff: StaffId,
+        nation: NationId,
+        level: crate::intl::Level,
+    },
     /// A national manager left (sacked after failure, poached, retired).
-    NationalManagerLeft { staff: StaffId, nation: NationId, level: crate::intl::Level, sacked: bool },
+    NationalManagerLeft {
+        staff: StaffId,
+        nation: NationId,
+        level: crate::intl::Level,
+        sacked: bool,
+    },
     /// A player was withdrawn from a national squad (injury, club pressure, refusal).
-    WithdrewFromSquad { player: PlayerId, nation: NationId },
+    WithdrewFromSquad {
+        player: PlayerId,
+        nation: NationId,
+    },
     /// The medical team's verdict on an injury.
-    Diagnosed { player: PlayerId, injury: u16, estimate: u16, treatment: crate::medical::Treatment },
-    InjurySetback { player: PlayerId, days: u16 },
-    RushedBack { player: PlayerId },
-    ChronicCondition { player: PlayerId },
+    Diagnosed {
+        player: PlayerId,
+        injury: u16,
+        estimate: u16,
+        treatment: crate::medical::Treatment,
+    },
+    InjurySetback {
+        player: PlayerId,
+        days: u16,
+    },
+    RushedBack {
+        player: PlayerId,
+    },
+    ChronicCondition {
+        player: PlayerId,
+    },
     /// A newcomer has become part of the dressing room.
-    PlayerSettled { player: PlayerId, club: ClubId },
+    PlayerSettled {
+        player: PlayerId,
+        club: ClubId,
+    },
     /// A leader's group has turned against the manager.
-    DressingRoomSplit { club: ClubId, leader: PlayerId },
-    LeaderEmerged { player: PlayerId, club: ClubId },
+    DressingRoomSplit {
+        club: ClubId,
+        leader: PlayerId,
+    },
+    LeaderEmerged {
+        player: PlayerId,
+        club: ClubId,
+    },
     /// An experienced player took a younger one under their wing.
-    TookUnderWing { mentor: PersonId, mentee: PersonId },
+    TookUnderWing {
+        mentor: PersonId,
+        mentee: PersonId,
+    },
     /// A player has visibly changed as a person/professional.
-    CharacterChanged { person: PersonId, up: bool },
+    CharacterChanged {
+        person: PersonId,
+        up: bool,
+    },
     /// Went too long without football; the ceiling came down.
-    Stagnated { player: PlayerId },
-    Milestone { player: PlayerId, kind: MilestoneKind, count: u16, club: ClubId },
-    RecordBroken { player: PlayerId, kind: RecordKind, club: ClubId, value: i64 },
+    Stagnated {
+        player: PlayerId,
+    },
+    Milestone {
+        player: PlayerId,
+        kind: MilestoneKind,
+        count: u16,
+        club: ClubId,
+    },
+    RecordBroken {
+        player: PlayerId,
+        kind: RecordKind,
+        club: ClubId,
+        value: i64,
+    },
     /// A club's supporters now count a player among their legends.
-    BecameLegend { person: PersonId, club: ClubId },
-    InductedHallOfFame { person: PersonId },
-    ManagerOfSeason { staff: StaffId, comp: CompId, season: i32 },
-    EnrolledCourse { person: PersonId, course: crate::affairs::Course },
-    Qualified { person: PersonId, course: crate::affairs::Course },
-    MovedHome { person: PersonId, bought: bool },
-    HiredHelper { person: PersonId, helper: crate::affairs::Helper },
+    BecameLegend {
+        person: PersonId,
+        club: ClubId,
+    },
+    InductedHallOfFame {
+        person: PersonId,
+    },
+    ManagerOfSeason {
+        staff: StaffId,
+        comp: CompId,
+        season: i32,
+    },
+    EnrolledCourse {
+        person: PersonId,
+        course: crate::affairs::Course,
+    },
+    Qualified {
+        person: PersonId,
+        course: crate::affairs::Course,
+    },
+    MovedHome {
+        person: PersonId,
+        bought: bool,
+    },
+    HiredHelper {
+        person: PersonId,
+        helper: crate::affairs::Helper,
+    },
     /// Started a foundation or a visible community commitment.
-    GaveBack { person: PersonId, foundation: bool },
-    Endorsed { person: PersonId, brand: u32, fee_year: Money },
-    EndorsementEnded { person: PersonId, brand: u32, why: crate::commerce::DealEnd },
+    GaveBack {
+        person: PersonId,
+        foundation: bool,
+    },
+    Endorsed {
+        person: PersonId,
+        brand: u32,
+        fee_year: Money,
+    },
+    EndorsementEnded {
+        person: PersonId,
+        brand: u32,
+        why: crate::commerce::DealEnd,
+    },
     /// A personal deal collides with a club partner in the same sector.
-    SponsorClash { person: PersonId, brand: u32, club: ClubId },
-    ClubSponsor { club: ClubId, brand: u32, slot: crate::commerce::ClubSlot, fee_year: Money },
+    SponsorClash {
+        person: PersonId,
+        brand: u32,
+        club: ClubId,
+    },
+    ClubSponsor {
+        club: ClubId,
+        brand: u32,
+        slot: crate::commerce::ClubSlot,
+        fee_year: Money,
+    },
     /// Began a working life after (or beside) playing.
-    NewCareer { person: PersonId, path: crate::affairs::CareerPath },
-    CareerEnded { person: PersonId, path: crate::affairs::CareerPath },
-    Investment { person: PersonId, gain: Money },
+    NewCareer {
+        person: PersonId,
+        path: crate::affairs::CareerPath,
+    },
+    CareerEnded {
+        person: PersonId,
+        path: crate::affairs::CareerPath,
+    },
+    Investment {
+        person: PersonId,
+        gain: Money,
+    },
     /// The board issued a private warning to its manager.
-    BoardWarning { club: ClubId, manager: StaffId, warnings: u8 },
+    BoardWarning {
+        club: ClubId,
+        manager: StaffId,
+        warnings: u8,
+    },
     /// The board asked the manager to explain something it heard.
-    BoardQuery { club: ClubId, manager: PersonId, info: u32 },
+    BoardQuery {
+        club: ClubId,
+        manager: PersonId,
+        info: u32,
+    },
     /// Someone believes a colleague leaked to the press.
-    LeakSuspected { by: PersonId, suspect: PersonId, info: u32 },
+    LeakSuspected {
+        by: PersonId,
+        suspect: PersonId,
+        info: u32,
+    },
     /// An agent began quietly sounding out clubs for a client.
-    AgentExploring { agent: PersonId, player: PlayerId },
+    AgentExploring {
+        agent: PersonId,
+        player: PlayerId,
+    },
     /// An incident (see `World::incidents`).
-    Incident { incident: u32, kind: crate::incident::IncidentKind },
+    Incident {
+        incident: u32,
+        kind: crate::incident::IncidentKind,
+    },
     /// Someone in authority responded to an incident.
-    IncidentResponse { incident: u32, by: PersonId, response: crate::incident::Response },
+    IncidentResponse {
+        incident: u32,
+        by: PersonId,
+        response: crate::incident::Response,
+    },
     /// A captain settled a feud on their own initiative.
-    CaptainMediated { captain: PersonId, a: PersonId, b: PersonId },
-    InvestigationCleared { club: ClubId },
-    JournalistMoved { person: PersonId, from: pw_core::OutletId, to: pw_core::OutletId },
-    JournalistLeft { person: PersonId, outlet: pw_core::OutletId },
-    JournalistHired { person: PersonId, outlet: pw_core::OutletId },
-    EnrolledUniversity { person: PersonId, institution: u32 },
+    CaptainMediated {
+        captain: PersonId,
+        a: PersonId,
+        b: PersonId,
+    },
+    InvestigationCleared {
+        club: ClubId,
+    },
+    JournalistMoved {
+        person: PersonId,
+        from: pw_core::OutletId,
+        to: pw_core::OutletId,
+    },
+    JournalistLeft {
+        person: PersonId,
+        outlet: pw_core::OutletId,
+    },
+    JournalistHired {
+        person: PersonId,
+        outlet: pw_core::OutletId,
+    },
+    EnrolledUniversity {
+        person: PersonId,
+        institution: u32,
+    },
     /// Left university (`early`: to turn professional).
-    Graduated { person: PersonId, institution: u32, early: bool },
+    Graduated {
+        person: PersonId,
+        institution: u32,
+        early: bool,
+    },
     /// A minor competition's season finished (`World::minor.history` index).
-    MinorTitle { history: u32 },
+    MinorTitle {
+        history: u32,
+    },
     /// A record fell (`World::records.broken` index).
-    Record { broken: u32, person: PersonId, club: ClubId },
+    Record {
+        broken: u32,
+        person: PersonId,
+        club: ClubId,
+    },
     /// A voted award was decided (`World::acclaim.votes` index).
-    Voted { vote: u32, person: PersonId },
+    Voted {
+        vote: u32,
+        person: PersonId,
+    },
     /// Someone entered a hall of fame (other than the world's, which has
     /// `InductedHallOfFame`).
-    HallInduction { hall: u32, person: PersonId },
+    HallInduction {
+        hall: u32,
+        person: PersonId,
+    },
     /// An entry in the world's chronicle of achievements.
-    Chronicle { entry: u32 },
+    Chronicle {
+        entry: u32,
+    },
     /// A big refereeing call that one side's supporters dispute.
-    RefereeControversy { controversy: u32 },
-    AppealDecided { appeal: u32, player: PlayerId },
+    RefereeControversy {
+        controversy: u32,
+    },
+    AppealDecided {
+        appeal: u32,
+        player: PlayerId,
+    },
     /// A club was charged by its federation (`World::officials.charges`).
-    Charged { charge: u32, club: ClubId },
+    Charged {
+        charge: u32,
+        club: ClubId,
+    },
     /// A tactical school was born around a manager.
-    SchoolFounded { school: u32, founder: PersonId },
+    SchoolFounded {
+        school: u32,
+        founder: PersonId,
+    },
     /// A federation changed a rule (`World::evolution.changes`).
-    RuleChanged { change: u32 },
+    RuleChanged {
+        change: u32,
+    },
     /// A supporter group acted together (see `World::net.groups`).
-    SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
+    SupporterAction {
+        club: ClubId,
+        group: u32,
+        action: crate::socialnet::GroupAction,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -329,7 +850,9 @@ pub enum AwardKind {
     /// Best goalkeeper of a league season.
     GoldenGlove,
     /// Voted best player in the world for the calendar year (by rank).
-    WorldPlayer { rank: u8 },
+    WorldPlayer {
+        rank: u8,
+    },
     WorldYoungPlayer,
     /// Best player at clubs of a confederation.
     ContinentalPlayer(crate::nation::Confed),
