@@ -296,13 +296,11 @@ pub struct Social {
     rel: FxHashMap<(PersonId, PersonId), Rel>,
     /// Memories held by each person (sparse).
     held: FxHashMap<PersonId, SmallVec<[Memory; 4]>>,
-    /// Every promise, in the order made (so ids ascend); settled ones are pruned after a few years.
     pub promises: Vec<Promise>,
     next_promise: u32,
-    /// Ids of the promises each person was given and each person made, settled or not, so a
-    /// question about one person does not read the whole history (which grows all game).
-    promised_to: FxHashMap<PersonId, SmallVec<[u32; 3]>>,
-    promised_by: FxHashMap<PersonId, SmallVec<[u32; 3]>>,
+    /// Positions in `promises` by promisee and by promiser (rebuilt on prune).
+    by_to: FxHashMap<PersonId, SmallVec<[u32; 2]>>,
+    by_from: FxHashMap<PersonId, SmallVec<[u32; 4]>>,
 }
 
 impl Social {
@@ -392,33 +390,30 @@ impl Social {
     pub fn make_promise(&mut self, from: PersonId, to: PersonId, club: ClubId, kind: PromiseKind, made: Date, due: Date, cause: EventId) -> u32 {
         let id = self.next_promise;
         self.next_promise += 1;
+        let at = self.promises.len() as u32;
         self.promises.push(Promise { id, from, to, club, kind, made, due, state: PromiseState::Open, team_minutes: 0, player_minutes: 0, cause });
-        self.promised_to.entry(to).or_default().push(id);
-        self.promised_by.entry(from).or_default().push(id);
+        self.by_to.entry(to).or_default().push(at);
+        self.by_from.entry(from).or_default().push(at);
         id
     }
 
-    /// Position of a promise in `promises`; ids only ever ascend, so this is a binary search.
-    pub fn promise_pos(&self, id: u32) -> Option<usize> {
-        self.promises.binary_search_by_key(&id, |p| p.id).ok()
-    }
-
     pub fn promise(&self, id: u32) -> Option<&Promise> {
-        self.promise_pos(id).map(|i| &self.promises[i])
+        // Ids rise in the order promises are made, and pruning keeps the order.
+        self.promises.binary_search_by_key(&id, |p| p.id).ok().map(|i| &self.promises[i])
     }
 
     pub fn promise_mut(&mut self, id: u32) -> Option<&mut Promise> {
-        self.promise_pos(id).map(|i| &mut self.promises[i])
+        self.promises.binary_search_by_key(&id, |p| p.id).ok().map(move |i| &mut self.promises[i])
     }
 
-    /// Every promise made to `to`, settled or not.
+    /// Promises made to `to` (any state).
     pub fn promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
-        self.promised_to.get(&to).into_iter().flatten().filter_map(|&id| self.promise(id))
+        self.by_to.get(&to).into_iter().flatten().map(|&i| &self.promises[i as usize])
     }
 
-    /// Every promise `from` made, settled or not.
+    /// Promises made by `from` (any state).
     pub fn promises_by(&self, from: PersonId) -> impl Iterator<Item = &Promise> {
-        self.promised_by.get(&from).into_iter().flatten().filter_map(|&id| self.promise(id))
+        self.by_from.get(&from).into_iter().flatten().map(|&i| &self.promises[i as usize])
     }
 
     pub fn open_promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
@@ -426,7 +421,6 @@ impl Social {
     }
 
     pub fn open_promises_between(&self, from: PersonId, to: PersonId) -> impl Iterator<Item = &Promise> {
-        // A manager has made hundreds of promises; a player was given only a few. Read the shorter list.
         self.promises_to(to).filter(move |p| p.from == from && p.state == PromiseState::Open)
     }
 
@@ -444,12 +438,11 @@ impl Social {
         }
         self.held.retain(|_, l| !l.is_empty());
         self.promises.retain(|p| p.state == PromiseState::Open || p.due >= before);
-        let alive: Vec<u32> = self.promises.iter().map(|p| p.id).collect();
-        for index in [&mut self.promised_to, &mut self.promised_by] {
-            for ids in index.values_mut() {
-                ids.retain(|id| alive.binary_search(id).is_ok());
-            }
-            index.retain(|_, ids| !ids.is_empty());
+        self.by_to.clear();
+        self.by_from.clear();
+        for (i, p) in self.promises.iter().enumerate() {
+            self.by_to.entry(p.to).or_default().push(i as u32);
+            self.by_from.entry(p.from).or_default().push(i as u32);
         }
     }
 
