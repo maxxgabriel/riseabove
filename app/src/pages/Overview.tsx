@@ -49,7 +49,7 @@ export function Overview() {
                                 <div className="hint num">{l.leader.points} points from {l.leader.played}</div>
                               </>
                             ) : (
-                              <span className="faint">Not started</span>
+                              <span className="faint">No matches played yet</span>
                             )}
                           </div>
                         </li>

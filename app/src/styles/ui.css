@@ -99,6 +99,7 @@ input[type="range"] { accent-color: var(--accent); }
 .meter-fill.tone-pos { background: var(--pos); }
 .meter-fill.tone-warn { background: var(--warn); }
 .meter-fill.tone-neg { background: var(--neg); }
+.meter-fill.tone-flat { background: var(--text-3); }
 .meter-label { color: var(--text-2); }
 
 /* ---- sections and key/values ---- */

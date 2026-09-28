@@ -9,6 +9,7 @@ import { act, notify, useApi, useStatus } from "../store";
 import type { Named } from "../types";
 import { Badge, Button, IconButton, KeyVal, Meter, Section, Tabs } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
+import { BoardTab, FansTab, RoomTab, type Systems } from "./ClubInside";
 
 interface ClubResp {
   id: number;
@@ -35,7 +36,7 @@ interface ClubResp {
   needs: null | { pos: string; min_ability: number; max_age: number; urgency: number }[];
 }
 
-type Tab = "overview" | "squad" | "staff" | "fixtures" | "finances" | "history";
+type Tab = "overview" | "squad" | "staff" | "fixtures" | "finances" | "board" | "fans" | "room" | "history";
 
 export function Club() {
   const route = useRoute();
@@ -58,12 +59,16 @@ function Swatch({ colors }: { colors: [string, string] }) {
 
 function ClubBody({ c, tab, reload }: { c: ClubResp; tab: Tab; reload: () => void }) {
   const bookmarked = useIsBookmarked("club", c.id);
+  const sys = useApi<Systems>("club.systems", { id: c.id });
   const tabs: { id: Tab; label: string; hidden?: boolean }[] = [
     { id: "overview", label: "Overview" },
     { id: "squad", label: "Squad" },
     { id: "staff", label: "Staff" },
     { id: "fixtures", label: "Fixtures" },
     { id: "finances", label: "Finances", hidden: !c.finance },
+    { id: "board", label: "Board" },
+    { id: "fans", label: "Fans" },
+    { id: "room", label: "Dressing room", hidden: !sys.data?.room },
     { id: "history", label: "History" },
   ];
   const toggleFollow = async () => {
@@ -102,6 +107,9 @@ function ClubBody({ c, tab, reload }: { c: ClubResp; tab: Tab; reload: () => voi
       {tab === "staff" && <TableView id="club-staff" table="staff" label="Staff" filters={{ club: c.id }} height={30} noun={["person", "people"]} noColumns />}
       {tab === "fixtures" && <ClubFixtures c={c} />}
       {tab === "finances" && c.finance && <Finances c={c} f={c.finance} />}
+      {tab === "board" && <Async q={sys}>{(s) => <BoardTab s={s} />}</Async>}
+      {tab === "fans" && <Async q={sys}>{(s) => <FansTab club={c.id} s={s} />}</Async>}
+      {tab === "room" && <Async q={sys}>{(s) => (s.room ? <RoomTab room={s.room} /> : <p className="muted">The dressing room is not open to you.</p>)}</Async>}
       {tab === "history" && <History c={c} />}
     </>
   );

@@ -388,7 +388,8 @@ fn incident_json(c: &Ctx, id: u32, paragraphs: &mut Vec<String>) -> Value {
     let w = c.w;
     let Some(i) = w.incidents.get(id) else { return Value::Null };
     let me = c.me().unwrap_or(pw_core::PersonId::NONE);
-    let heard = if i.info != u32::MAX { pw_narrate::grapevine::version(w, i.info, me) } else { None };
+    // Someone in the middle of it does not need to be told what they heard about themselves.
+    let heard = if i.info != u32::MAX && !i.parties.contains(&me) { pw_narrate::grapevine::version(w, i.info, me) } else { None };
     if let Some(h) = &heard {
         paragraphs.push(format!("What you know: {h}"));
     }

@@ -302,7 +302,8 @@ export function KeyVal({ rows, className = "" }: { rows: { k: string; v: ReactNo
 }
 
 /** A 0-100 value with the word the game uses for it. */
-export function Meter({ value, label, tone }: { value: number; label?: string; tone?: "pos" | "neg" | "warn" }) {
+/** A bar out of 100. Colour says good or bad unless the number is only an amount, which is "flat". */
+export function Meter({ value, label, tone }: { value: number; label?: string; tone?: "pos" | "neg" | "warn" | "flat" }) {
   const t = tone ?? (value >= 66 ? "pos" : value >= 40 ? "warn" : "neg");
   return (
     <span className="meter" title={`${Math.round(value)} / 100`}>

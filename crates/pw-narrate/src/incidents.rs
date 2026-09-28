@@ -37,12 +37,21 @@ pub fn summary(w: &World, id: u32, vague: bool, loud: bool) -> String {
     describe(w, id, vague, loud, PersonId::NONE)
 }
 
+/// The same, from `viewer`'s point of view: they are "you" when they are one of the people involved.
+pub fn summary_for(w: &World, id: u32, vague: bool, loud: bool, viewer: PersonId) -> String {
+    describe(w, id, vague, loud, viewer)
+}
+
 fn describe(w: &World, id: u32, vague: bool, loud: bool, viewer: PersonId) -> String {
     let Some(i) = w.incidents.get(id) else { return "something happened".into() };
     let name = |p: PersonId| if p == viewer && p.is_some() { "you".to_string() } else { person(w, p) };
     let a = i.parties.first().map_or("someone".to_string(), |&p| name(p));
     let b = i.parties.get(1).map_or("someone".to_string(), |&p| name(p));
     let c = club(w, i.club);
+    // "you" takes a different verb and possessive from a name.
+    let first_is_viewer = viewer.is_some() && i.parties.first() == Some(&viewer);
+    let (is, was, has) = if first_is_viewer { ("are", "were", "have") } else { ("is", "was", "has") };
+    let a_poss = if first_is_viewer { "your".to_string() } else { format!("{a}'s") };
     match i.kind {
         IncidentKind::TrainingConfrontation => {
             if vague {
@@ -62,21 +71,21 @@ fn describe(w: &World, id: u32, vague: bool, loud: bool, viewer: PersonId) -> St
         IncidentKind::PitchDamage => format!("that the {c} pitch was damaged"),
         IncidentKind::TravelDelay => format!("that {c} were badly delayed travelling to a match"),
         IncidentKind::Postponement => format!("that a {c} match was postponed"),
-        IncidentKind::VisaProblem => format!("that {a} is held up by a visa problem"),
+        IncidentKind::VisaProblem => format!("that {a} {is} held up by a visa problem"),
         IncidentKind::RegistrationError => format!("that {c} failed to register {a} properly"),
         IncidentKind::PaperworkProblem => format!("that paperwork problems are holding up {c}'s business"),
         IncidentKind::CoachResigned => format!("that {a} walked out on {c}"),
-        IncidentKind::StaffPoached => format!("that {a} was lured away from {c}"),
+        IncidentKind::StaffPoached => format!("that {a} {was} lured away from {c}"),
         IncidentKind::FamilyEmergency => {
-            if vague { format!("that {a} has something going on at home") } else { format!("that {a} has a family emergency") }
+            if vague { format!("that {a} {has} something going on at home") } else { format!("that {a} {has} a family emergency") }
         }
-        IncidentKind::RelationshipConflict => format!("that {a} is having trouble at home"),
+        IncidentKind::RelationshipConflict => format!("that {a} {is} having trouble at home"),
         IncidentKind::Pregnancy => format!("that {a} and {b} are expecting a child"),
-        IncidentKind::MovingProblem => format!("that {a}'s move has been a headache"),
-        IncidentKind::Burglary => format!("that {a}'s home was burgled"),
-        IncidentKind::ExamClash => format!("that {a}'s exams clash with football"),
-        IncidentKind::ChildcareClash => format!("that {a} is struggling with childcare"),
-        IncidentKind::UnexpectedBill => format!("that {a} was hit with an unexpected bill"),
+        IncidentKind::MovingProblem => format!("that {a_poss} move has been a headache"),
+        IncidentKind::Burglary => format!("that {a_poss} home was burgled"),
+        IncidentKind::ExamClash => format!("that {a_poss} exams clash with football"),
+        IncidentKind::ChildcareClash => format!("that {a} {is} struggling with childcare"),
+        IncidentKind::UnexpectedBill => format!("that {a} {was} hit with an unexpected bill"),
         IncidentKind::OwnershipControversy => format!("that {c}'s owners are embroiled in controversy"),
         IncidentKind::SponsorCollapse => format!("that a sponsor of {c} has collapsed"),
         IncidentKind::EconomicDownturn => format!("that the economy in {} has turned down", nation(w, i.nation)),

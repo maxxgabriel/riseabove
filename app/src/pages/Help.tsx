@@ -19,6 +19,8 @@ const TERMS: [string, string][] = [
   ["Estimates", "When you inhabit a player, other players' attributes appear as ranges based on how much your club has watched them. The true value lies inside the range."],
   ["Hidden results", "Your team's scores can be kept from you so you can watch or reveal them when you choose. Tables leave those results out until you do."],
   ["Following a club", "Full match details, such as lineups and events, are kept only for followed clubs and your own team. Others keep just the result."],
+  ["Replies", "Nothing you write is sent as words. A reply becomes something you do, and the world applies it on the next day. The other side answers only if their own mind does."],
+  ["Grapevine", "People pass things on, and not always accurately. As a player you hear each item as what you were told and how sure the teller was. Only someone watching the whole world can see whether it is true."],
   ["Condition", "Physical freshness today. It falls with hard work and recovers with rest."],
   ["Match sharpness", "How ready a player is for match pace. It builds with playing time and fades without it."],
   ["Squad status", "The role a club has promised or intends for a player: from key player down to surplus."],

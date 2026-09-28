@@ -280,3 +280,9 @@ textarea { height: auto; padding: 0.5rem 0.6rem; resize: vertical; width: 100%; 
 .hub-title { font-weight: 600; }
 .hub-about { color: var(--text-2); font-size: 0.92rem; line-height: 1.4; }
 .hub-count { color: var(--text-3); font-size: 0.86rem; font-variant-numeric: tabular-nums; min-height: 1.2em; }
+
+/* ---- club board, fans and dressing room --------------------------------------------------------- */
+.subhead { font-size: 0.86rem; font-weight: 600; color: var(--text-2); margin: 0.2rem 0 0.35rem; }
+hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width: 100%; }
+.hint.block { display: block; }
+.minitable td .meter { min-width: 4.5rem; }
