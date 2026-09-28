@@ -16,6 +16,25 @@ interface PressResp {
   image: "positive" | "neutral" | "negative";
 }
 
+type Story = PressResp["stories"][number];
+
+/** The same line run by several outlets on the same day is one story. */
+function grouped(stories: Story[]): { first: Story; outlets: string[] }[] {
+  const out: { first: Story; outlets: string[] }[] = [];
+  const at = new Map<string, number>();
+  for (const s of stories) {
+    const key = `${s.date}|${s.headline}`;
+    const i = at.get(key);
+    if (i == null) {
+      at.set(key, out.length);
+      out.push({ first: s, outlets: [s.outlet] });
+    } else if (!out[i].outlets.includes(s.outlet)) out[i].outlets.push(s.outlet);
+  }
+  return out;
+}
+
+const outletsText = (o: string[]) => (o.length <= 2 ? o.join(" and ") : `${o[0]}, ${o[1]} and ${o.length - 2} more`);
+
 export function PressFans() {
   usePageTitle("Press and fans");
   const q = useApi<PressResp>("me.press");
@@ -39,11 +58,11 @@ export function PressFans() {
                     <div className="muted pad">Nothing has been written about you or your club lately.</div>
                   ) : (
                     <ul className="rows">
-                      {d.stories.map((s) => (
+                      {grouped(d.stories).map(({ first: s, outlets }) => (
                         <li key={s.id}>
                           <div className="grow">
                             <button className="linkbtn story-link" onClick={() => setStory(s.id)}>{prose(s.headline)}</button>
-                            <div className="hint">{s.outlet} · <Dt d={s.date} year={false} /></div>
+                            <div className="hint">{outletsText(outlets)} · <Dt d={s.date} year={false} /></div>
                           </div>
                           {s.about_you && <Badge tone="you">About you</Badge>}
                         </li>

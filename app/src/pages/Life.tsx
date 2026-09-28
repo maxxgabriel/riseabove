@@ -119,10 +119,10 @@ function Overview({ s, l }: { s: SelfResp; l: LifeResp }) {
           </div>
         </Section>
         <Section title="What is affecting your mood" aside="On the pitch and around the club">
-          <div className="card list-card"><FactorList items={s.mood} /></div>
+          <div className="card"><FactorList items={s.mood} /></div>
         </Section>
         <Section title="What is affecting how you live" aside="Away from football">
-          <div className="card list-card"><FactorList items={s.wellbeing} /></div>
+          <div className="card"><FactorList items={s.wellbeing} /></div>
         </Section>
       </div>
       <aside className="stack">

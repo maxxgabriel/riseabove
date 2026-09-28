@@ -3,7 +3,9 @@
 //! State makes an incident plausible; a roll on the incidents stream decides
 //! whether it happens now. For every eligible subject the hazard is
 //!
-//!     p = base · exp(Σ wᵢ · fᵢ)
+//! ```text
+//! p = base · exp(Σ wᵢ · fᵢ)
+//! ```
 //!
 //! where each pressure fᵢ ∈ [0, 1] is read from the world (grievances,
 //! position rivalry, temperament, morale, public criticism, training load,

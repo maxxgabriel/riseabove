@@ -180,7 +180,7 @@ export function Today() {
                 </Section>
                 {t.mind.length > 0 && (
                   <Section title="On your mind" aside={<a href={href("/life")}>More</a>}>
-                    <div className="card list-card">
+                    <div className="card">
                       <ul className="rows compact">
                         {t.mind.slice(0, 4).map((m, i) => (
                           <li key={i}><span>{m.text}</span><span className={`num ${m.value > 0 ? "tone-pos" : "tone-neg"}`}>{m.value > 0 ? "+" : "−"}{Math.abs(m.value)}</span></li>

@@ -5,7 +5,7 @@ export const BASE = process.env.BASE ?? "http://127.0.0.1:8787";
 export const SHOTS = new URL("./shots/", import.meta.url).pathname;
 
 export async function launch(opts = {}) {
-  const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--no-sandbox"] });
+  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--no-sandbox"] });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: opts.scheme ?? "dark", deviceScaleFactor: 1 });
   const page = await ctx.newPage();
   const errors = [];
