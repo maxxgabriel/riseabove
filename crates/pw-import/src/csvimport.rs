@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use pw_core::rng::{Rng, hash_key, stream};
+use pw_core::rng::{Rng, stream};
 use pw_core::{Attr, Attrs, ClubId, CompId, Date, Hidden, NationId, PlayerId, StaffAttr, StaffAttrs, TeamId};
 use pw_data::DataPack;
 use pw_world::contract::{ContractKind, Loan};
@@ -139,14 +139,23 @@ struct WorldConfig {
     seed: Option<u64>,
 }
 
-/// Load a world from an import folder (see `data/IMPORT_FORMAT.md`).
+/// Load a world from an import folder (see `data/IMPORT_FORMAT.md`) with a
+/// fresh random world seed unless `world.toml` fixes one.
 pub fn load_dir(dir: &Path, pack: DataPack) -> Result<(World, ImportReport), ImportError> {
+    load_dir_seeded(dir, pack, None)
+}
+
+/// Load a world with an explicit seed (overrides `world.toml`). The real data
+/// is the same for every seed; everything generated around it — hidden
+/// attributes that were not supplied, regens, staff, press, supporters,
+/// personalities, incidents — differs from seed to seed.
+pub fn load_dir_seeded(dir: &Path, pack: DataPack, seed: Option<u64>) -> Result<(World, ImportReport), ImportError> {
     let cfg: WorldConfig = match std::fs::read_to_string(dir.join("world.toml")) {
         Ok(s) => toml::from_str(&s).map_err(|e| ImportError::Config(e.to_string()))?,
         Err(_) => WorldConfig::default(),
     };
     let start = cfg.start_date.as_deref().and_then(parse_date).unwrap_or(Date::from_ymd(2022, 7, 1));
-    let seed = cfg.seed.unwrap_or_else(|| hash_key(&[dir.to_string_lossy().bytes().fold(0u64, |h, b| h.wrapping_mul(31).wrapping_add(u64::from(b)))]));
+    let seed = seed.or(cfg.seed).unwrap_or_else(pw_core::rng::fresh_seed);
     let mut w = World::new(pack, seed, start);
     let mut rep = ImportReport::default();
 

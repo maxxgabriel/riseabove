@@ -206,6 +206,22 @@ impl World {
 
     /// Start a new playthrough: future randomness diverges from any other
     /// playthrough of the same world, while this one stays reproducible (S22).
+    /// A random stream for one subsystem, keyed by stable ids and (where the
+    /// draw belongs to a time window) a period key from `rng::period`. See
+    /// the RNG architecture in `pw_core::rng`.
+    pub fn rng(&self, subsystem: u64, keys: &[u64]) -> pw_core::Rng {
+        let mut k: smallvec::SmallVec<[u64; 8]> = smallvec::SmallVec::new();
+        k.push(self.seed);
+        k.push(subsystem);
+        k.extend_from_slice(keys);
+        pw_core::Rng::keyed(&k)
+    }
+
+    /// One uniform draw in `[0, 1)` for a subsystem and keys.
+    pub fn roll(&self, subsystem: u64, keys: &[u64]) -> f32 {
+        self.rng(subsystem, keys).f32()
+    }
+
     pub fn begin_playthrough(&mut self, salt: u64) {
         self.playthrough = pw_core::rng::hash_key(&[self.playthrough, salt]);
         self.seed = pw_core::rng::hash_key(&[self.seed, pw_core::rng::stream::PLAYTHROUGH, self.playthrough]);

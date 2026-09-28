@@ -1,7 +1,10 @@
 //! Headless runner: build or load a world, simulate, report, save.
 //!
 //! pathway-sim synth [tiny|small|huge] [--days N] [--seed S] [--save FILE]
-//! pathway-sim import DIR [--days N] [--save FILE]
+//! pathway-sim import DIR [--days N] [--seed S] [--save FILE]
+//!
+//! Without `--seed` every new world gets a fresh random seed (printed, so a
+//! world can be rebuilt exactly). Seeds may be hex, decimal or any word.
 //! pathway-sim run FILE --days N [--save FILE]
 //! pathway-sim report FILE
 
@@ -17,18 +20,18 @@ struct Args {
     cmd: String,
     positional: Option<String>,
     days: u32,
-    seed: u64,
+    seed: Option<u64>,
     save: Option<PathBuf>,
 }
 
 fn parse() -> Args {
     let mut it = std::env::args().skip(1);
     let cmd = it.next().unwrap_or_else(|| "help".into());
-    let mut a = Args { cmd, positional: None, days: 0, seed: 42, save: None };
+    let mut a = Args { cmd, positional: None, days: 0, seed: None, save: None };
     while let Some(x) = it.next() {
         match x.as_str() {
             "--days" => a.days = it.next().and_then(|v| v.parse().ok()).unwrap_or(0),
-            "--seed" => a.seed = it.next().and_then(|v| v.parse().ok()).unwrap_or(42),
+            "--seed" => a.seed = it.next().map(|v| pw_core::rng::parse_seed(&v)),
             "--save" => a.save = it.next().map(PathBuf::from),
             _ => a.positional = Some(x),
         }
@@ -46,14 +49,17 @@ fn main() {
                 _ => pw_import::synthetic::Scale::SMALL,
             };
             let t = Instant::now();
-            let w = pw_import::synthetic::build(DataPack::builtin(), a.seed, scale);
+            let seed = a.seed.unwrap_or_else(pw_core::rng::fresh_seed);
+            println!("world seed: {}", pw_core::rng::seed_label(seed));
+            let w = pw_import::synthetic::build(DataPack::builtin(), seed, scale);
             println!("built synthetic world: {} players, {} clubs in {:.2?}", w.players.len(), w.clubs.len(), t.elapsed());
             w
         }
         "import" => {
             let dir = PathBuf::from(a.positional.clone().unwrap_or_else(|| die("import needs a folder")));
             let t = Instant::now();
-            let (w, rep) = pw_import::load_dir(&dir, DataPack::builtin()).unwrap_or_else(|e| die(&e.to_string()));
+            let (w, rep) = pw_import::load_dir_seeded(&dir, DataPack::builtin(), a.seed).unwrap_or_else(|e| die(&e.to_string()));
+            println!("world seed: {}", pw_core::rng::seed_label(w.seed));
             println!(
                 "imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}",
                 rep.nations,
