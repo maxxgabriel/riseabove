@@ -8,6 +8,7 @@ use pw_core::{ClubId, Date, DecisionId, EventId, MeetingId, PersonId, PlayerId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
+use crate::FxHashMap;
 use crate::event::Causes;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -164,28 +165,41 @@ pub struct Meeting {
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Meetings {
     pub list: pw_core::IdVec<MeetingId, Meeting>,
+    /// The meetings between each pair of people (lower id first), oldest first. "When did we last
+    /// speak?" is asked of many pairs every week and must not read the whole history.
+    by_pair: FxHashMap<(PersonId, PersonId), SmallVec<[MeetingId; 4]>>,
 }
 
 impl Meetings {
+    fn pair(a: PersonId, b: PersonId) -> (PersonId, PersonId) {
+        if a <= b { (a, b) } else { (b, a) }
+    }
+
+    /// Record a meeting. Always use this rather than pushing onto `list`.
+    pub fn push(&mut self, m: Meeting) -> MeetingId {
+        let key = Self::pair(m.initiator, m.with);
+        let id = self.list.push(m);
+        self.by_pair.entry(key).or_default().push(id);
+        id
+    }
+
+    /// The meetings between two people, most recent first.
+    fn between(&self, a: PersonId, b: PersonId) -> impl Iterator<Item = &Meeting> {
+        self.by_pair.get(&Self::pair(a, b)).into_iter().flatten().rev().map(|&id| &self.list[id])
+    }
+
     pub fn pending(&self) -> impl Iterator<Item = (MeetingId, &Meeting)> {
         self.list.iter_enumerated().filter(|(_, m)| m.state == MeetingState::Pending)
     }
 
     /// Most recent meeting between two people on a topic.
     pub fn last_between(&self, a: PersonId, b: PersonId, topic: Topic) -> Option<&Meeting> {
-        self.list
-            .iter()
-            .rev()
-            .find(|m| m.topic == topic && ((m.initiator == a && m.with == b) || (m.initiator == b && m.with == a)))
+        self.between(a, b).find(|m| m.topic == topic)
     }
 
     /// Days since `a` last met `b` about anything, or `None`.
     pub fn days_since_any(&self, a: PersonId, b: PersonId, today: Date) -> Option<i32> {
-        self.list
-            .iter()
-            .rev()
-            .find(|m| (m.initiator == a && m.with == b) || (m.initiator == b && m.with == a))
-            .map(|m| m.date.days_until(today))
+        self.between(a, b).next().map(|m| m.date.days_until(today))
     }
 
     pub fn involving(&self, p: PersonId) -> impl Iterator<Item = (MeetingId, &Meeting)> {
@@ -193,6 +207,6 @@ impl Meetings {
     }
 
     pub fn has_pending(&self, a: PersonId, b: PersonId) -> bool {
-        self.list.iter().rev().take(4096).any(|m| m.state == MeetingState::Pending && ((m.initiator == a && m.with == b) || (m.initiator == b && m.with == a)))
+        self.between(a, b).any(|m| m.state == MeetingState::Pending)
     }
 }

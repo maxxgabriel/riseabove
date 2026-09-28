@@ -5,4 +5,5 @@ pub mod life;
 pub mod matchp;
 pub mod me;
 pub mod person;
+pub mod social;
 pub mod world;

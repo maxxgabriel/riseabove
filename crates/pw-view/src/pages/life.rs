@@ -305,8 +305,18 @@ pub fn press(c: &Ctx) -> ApiResult<Value> {
         })
         .collect();
     let image = w.media.image.get(&me).copied().unwrap_or(0);
+    let quotes: Vec<Value> = w
+        .pressroom
+        .quotes_by(me)
+        .rev()
+        .take(20)
+        .map(|q| {
+            let about = if q.about.is_some() && q.about != me { Some(named(Ref::person(q.about), c.person_name(q.about))) } else { None };
+            json!({"id": q.id, "date": q.date.0, "stance": pw_narrate::press::stance_label(q.stance), "about": about, "at_conference": q.topic.is_some()})
+        })
+        .collect();
     Ok(json!({
-        "stories": stories, "reactions": reactions, "fans": fans,
+        "stories": stories, "reactions": reactions, "fans": fans, "quotes": quotes,
         "image": if image > 100 { "positive" } else if image < -100 { "negative" } else { "neutral" },
     }))
 }

@@ -584,7 +584,7 @@ fn captains_step_in(w: &mut World) {
     if today.weekday() != pw_core::Weekday::Tue {
         return;
     }
-    let pairs: Vec<((PersonId, PersonId), u8)> = w.incidents.tension.iter().filter(|(_, &v)| v >= 50).map(|(&k, &v)| (k, v)).collect();
+    let pairs: Vec<((PersonId, PersonId), u8)> = w.incidents.tension.iter().filter(|&(_, &v)| v >= 50).map(|(&k, &v)| (k, v)).collect();
     for ((a, b), _) in pairs {
         let (pa, pb) = (w.people[a].player, w.people[b].player);
         if pa.is_none() || pb.is_none() || w.players.hot[pa].team != w.players.hot[pb].team || w.players.hot[pa].team.is_none() {

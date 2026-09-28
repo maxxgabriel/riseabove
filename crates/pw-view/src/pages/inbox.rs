@@ -6,6 +6,7 @@
 use pw_core::{ClubId, DecisionId, EventId};
 use pw_narrate::choices;
 use pw_world::decision::{Choice, Decision, DecisionKind};
+use pw_world::incident::{Ask, Response};
 use pw_world::event::{Cause, EventKind as E};
 use pw_world::interaction::{Meeting, MeetingState};
 use pw_world::negotiation::{Negotiation, TalkLine, TalkState, Terms};
@@ -32,6 +33,10 @@ pub fn kind_key(k: &DecisionKind) -> &'static str {
         DecisionKind::NationChoice { .. } => "nation",
         DecisionKind::Treatment { .. } => "treatment",
         DecisionKind::Endorsement { .. } => "endorsement",
+        DecisionKind::Incident { .. } => "incident",
+        DecisionKind::IncidentAsk { ask: Ask::RequestLeave, .. } => "incident_leave",
+        DecisionKind::IncidentAsk { ask: Ask::Apologise, .. } => "incident_apology",
+        DecisionKind::PressQuestion { .. } => "press_question",
     }
 }
 
@@ -52,7 +57,8 @@ fn folder_of(d: &Decision, state: &str) -> &'static str {
     match d.kind {
         DecisionKind::Meeting { .. } => "conversations",
         DecisionKind::Partner { .. } => "life",
-        DecisionKind::Treatment { .. } | DecisionKind::NationChoice { .. } => "work",
+        DecisionKind::Treatment { .. } | DecisionKind::NationChoice { .. } | DecisionKind::Incident { .. } | DecisionKind::IncidentAsk { .. } => "work",
+        DecisionKind::PressQuestion { .. } => "press",
         _ => "contracts",
     }
 }
@@ -77,6 +83,14 @@ pub fn decision_from(c: &Ctx, d: &Decision) -> Value {
         DecisionKind::NationChoice { nation, .. } => named(Ref::nation(*nation), c.nation_name(*nation)),
         DecisionKind::Endorsement { brand, .. } => Value::String(w.commerce.brands[*brand as usize].name.clone()),
         DecisionKind::Treatment { .. } => Value::Null,
+        DecisionKind::Incident { incident } | DecisionKind::IncidentAsk { incident, .. } => match w.incidents.get(*incident) {
+            Some(i) if i.club.is_some() => named(Ref::club(i.club), c.club_name(i.club)),
+            _ => Value::Null,
+        },
+        DecisionKind::PressQuestion { conference, question } => {
+            let q = w.pressroom.conferences.get(*conference as usize).and_then(|cf| cf.questions.get(usize::from(*question)));
+            q.map_or(Value::Null, |q| named(Ref::person(q.journalist), c.person_name(q.journalist)))
+        }
     }
 }
 
@@ -85,6 +99,7 @@ fn from_club(d: &Decision, c: &Ctx) -> ClubId {
         DecisionKind::TransferTalks { club, .. } | DecisionKind::ContractOffer { club, .. } | DecisionKind::FreeAgentOffer { club, .. } | DecisionKind::Trial { club, .. } => *club,
         DecisionKind::LoanOffer { loan } => loan.club,
         DecisionKind::Negotiation { talk } => c.w.talks[*talk].club,
+        DecisionKind::Incident { incident } | DecisionKind::IncidentAsk { incident, .. } => c.w.incidents.get(*incident).map_or(ClubId::NONE, |i| i.club),
         _ => ClubId::NONE,
     }
 }
@@ -116,6 +131,12 @@ fn option_label(c: &Ctx, d: &Decision, ch: &Choice) -> String {
         (K::Treatment { .. }, Choice::Reject) => "Rehabilitate without surgery".into(),
         (K::Endorsement { .. }, Choice::Accept) => "Sign the deal".into(),
         (K::Endorsement { .. }, Choice::Reject) => "Turn it down".into(),
+        (K::IncidentAsk { ask: Ask::RequestLeave, .. }, Choice::Accept) => "Ask for time away".into(),
+        (K::IncidentAsk { ask: Ask::RequestLeave, .. }, Choice::Reject) => "Carry on as normal".into(),
+        (K::IncidentAsk { ask: Ask::Apologise, .. }, Choice::Accept) => "Apologise".into(),
+        (K::IncidentAsk { ask: Ask::Apologise, .. }, Choice::Reject) => "Refuse to apologise".into(),
+        (K::Incident { .. }, Choice::Handle(r)) => response_label(c, *r),
+        (K::PressQuestion { .. }, Choice::Say(st)) => pw_narrate::press::stance_label(*st).into(),
         (K::Meeting { meeting }, Choice::Respond(t)) => {
             let topic = w.meetings.list[*meeting].topic;
             let _ = topic;
@@ -125,8 +146,53 @@ fn option_label(c: &Ctx, d: &Decision, ch: &Choice) -> String {
     }
 }
 
+/// What you would be doing, in the imperative.
+fn response_label(c: &Ctx, r: Response) -> String {
+    match r {
+        Response::Fine => "Fine those involved".into(),
+        Response::Drop => "Drop the player".into(),
+        Response::DemandApology => "Demand an apology".into(),
+        Response::Mediate => "Sit them down together".into(),
+        Response::InvolveCaptain => "Ask the captain to sort it out".into(),
+        Response::KeepPrivate => "Keep it in the club".into(),
+        Response::Ignore => "Let it go".into(),
+        Response::Protect(p) => format!("Take {}'s side", c.person_name(p)),
+        Response::Delay => "Put off deciding".into(),
+        Response::Statement => "Say something publicly".into(),
+        Response::GrantLeave => "Grant time away".into(),
+        Response::RefuseLeave => "Refuse time away".into(),
+        Response::Apologise => "Apologise to supporters".into(),
+        Response::Defy => "Dismiss the criticism".into(),
+        Response::Inquiry => "Open an inquiry".into(),
+    }
+}
+
+/// What the world does when this response is chosen. Each line restates the rule in
+/// `pw-sim/src/responses.rs`; none is a promise of how it turns out.
+fn response_effect(r: Response) -> &'static str {
+    match r {
+        Response::Fine => "The player is fined a share of a week's wage, more if it was serious, and remembers who fined them.",
+        Response::Drop => "The player is left out for a week and their morale falls. They remember it.",
+        Response::DemandApology => "The instigator is asked to apologise. If they do, tension eases and it is settled; if not, you and the other party remember it.",
+        Response::Mediate => "It works about half the time, more if you are good with people and the row was small. Both of them remember you tried.",
+        Response::InvolveCaptain => "The captain is asked to sort it out. It usually eases the row, and you lean on the captain a little more.",
+        Response::KeepPrivate => "Those who know are told to keep it in the club. Nothing else changes.",
+        Response::Ignore => "Nothing is done. If it was serious, those who saw it think less of you, and the other party remembers.",
+        Response::Protect(_) => "You back one side. They remember it, the other remembers being blamed, and the other's friends in the squad notice.",
+        Response::Delay => "You do not decide now. It comes back to you in a week.",
+        Response::Statement => "You say something on the record. If the row was between people, you criticise the one who started it.",
+        Response::GrantLeave => "They are away for a few days to two weeks, depending on how serious it is. They remember your support and it eases their stress.",
+        Response::RefuseLeave => "They stay. They remember it and are more stressed. Some go anyway, which becomes a new problem.",
+        Response::Apologise => "Supporters' mood improves a little and the press notes it.",
+        Response::Defy => "Supporters' anger hardens and the press notes it.",
+        Response::Inquiry => "An inquiry is opened and settles the matter, but the board's patience with you thins a little.",
+    }
+}
+
 fn option_kind(ch: &Choice) -> &'static str {
     match ch {
+        Choice::Handle(_) => "handle",
+        Choice::Say(_) => "say",
         Choice::Accept => "accept",
         Choice::Reject => "reject",
         Choice::Decline => "decline",
@@ -149,6 +215,7 @@ fn options_json(c: &Ctx, d: &Decision) -> Vec<Value> {
                     v["counter"] = json!({"wage": wage, "years": years, "status": status.map(|s| s.label()), "release_clause": release_clause});
                 }
                 Choice::Respond(t) => v["tone"] = json!(t.label()),
+                Choice::Handle(r) => v["effect"] = json!(response_effect(*r)),
                 _ => {}
             }
             v
@@ -302,6 +369,44 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
     Ok(json!({"messages": out, "awaiting": awaiting, "unread": unread}))
 }
 
+/// An incident as the person deciding about it knows it: what happened, to whom and where, and
+/// what has been done. The pressures that made it likely are the world's own business.
+fn incident_json(c: &Ctx, id: u32, paragraphs: &mut Vec<String>) -> Value {
+    let w = c.w;
+    let Some(i) = w.incidents.get(id) else { return Value::Null };
+    let me = c.me().unwrap_or(pw_core::PersonId::NONE);
+    let heard = if i.info != u32::MAX { pw_narrate::grapevine::version(w, i.info, me) } else { None };
+    if let Some(h) = &heard {
+        paragraphs.push(format!("What you know: {h}"));
+    }
+    let done: Vec<String> = i.responses.iter().map(|r| pw_narrate::incidents::response(w, id, r.by, r.response, me)).collect();
+    json!({
+        "what": pw_narrate::incidents::sentence(w, id, me), "place": pw_narrate::incidents::place(i.location), "date": i.date.0,
+        "parties": i.parties.iter().map(|&p| named(Ref::person(p), c.person_name(p))).collect::<Vec<_>>(),
+        "witnesses": i.witnesses.len(), "club": if i.club.is_some() { Some(named(Ref::club(i.club), c.club_name(i.club))) } else { None },
+        "responses": done, "resolved": i.resolved,
+    })
+}
+
+/// A question at a press conference, with what has already been asked and answered there.
+fn press_json(c: &Ctx, conf: u32, qi: usize) -> Value {
+    let w = c.w;
+    let Some(cf) = w.pressroom.conferences.get(conf as usize) else { return Value::Null };
+    let Some(q) = cf.questions.get(qi) else { return Value::Null };
+    let outlet = w.media.journalists.get(&q.journalist).filter(|j| j.outlet.is_some()).map(|j| w.media.outlets[j.outlet].name.clone());
+    let earlier: Vec<Value> = (0..qi)
+        .filter_map(|i| {
+            let quote = cf.answers.get(i).copied().flatten().and_then(|q| w.pressroom.quotes.get(q as usize))?;
+            Some(json!({"question": pw_narrate::press::question(w, conf, i as u8), "stance": pw_narrate::press::stance_label(quote.stance)}))
+        })
+        .collect();
+    json!({
+        "club": named(Ref::club(cf.club), c.club_name(cf.club)), "date": cf.date.0,
+        "journalist": named(Ref::person(q.journalist), c.person_name(q.journalist)), "outlet": outlet,
+        "follow_up": q.follow_up, "number": qi + 1, "of": cf.questions.len(), "earlier": earlier,
+    })
+}
+
 /// Everything a decision needs to be understood and answered.
 pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
     let w = c.w;
@@ -316,6 +421,8 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
     let mut current = Value::Null;
     let mut talk = Value::Null;
     let mut meeting = Value::Null;
+    let mut incident_block = Value::Null;
+    let mut press_block = Value::Null;
 
     match &d.kind {
         DecisionKind::ContractOffer { club, contract, renewal } => {
@@ -373,6 +480,24 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
         }
         DecisionKind::Treatment { .. } => {}
         DecisionKind::Endorsement { .. } => {}
+        DecisionKind::Incident { incident } => {
+            incident_block = incident_json(c, *incident, &mut paragraphs);
+            consequences.push("Whatever you decide is remembered by the people involved and by those who saw it.".into());
+            if live && !d.options.is_empty() {
+                consequences.push("Each response says what it does. Putting the decision off brings it back in a week.".into());
+            }
+        }
+        DecisionKind::IncidentAsk { incident, ask } => {
+            incident_block = incident_json(c, *incident, &mut paragraphs);
+            match ask {
+                Ask::RequestLeave => consequences.push("Asking tells the person in charge. It is theirs to grant or refuse, and they will remember how you handled it.".into()),
+                Ask::Apologise => consequences.push("Apologising settles it and eases the tension between you. Refusing is remembered by the person who asked, and the row stays open.".into()),
+            }
+        }
+        DecisionKind::PressQuestion { conference, question } => {
+            press_block = press_json(c, *conference, usize::from(*question));
+            consequences.push("Your answer goes on the record. People remember it, and the press can quote it back to you later.".into());
+        }
     }
     if !live {
         consequences.clear();
@@ -391,7 +516,7 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
         "default": {"i": d.default, "label": default_label},
         "without_response": if state != "awaiting" { Value::Null } else { json!(format!("If you do not respond by {}, the response your own judgement would give is applied: {}.", crate::fmt::date(d.deadline), default_label.to_lowercase())) },
         "consequences": consequences, "terms": terms, "current_terms": if live { current } else { Value::Null },
-        "talk": talk, "meeting": meeting, "outcome": outcome,
+        "talk": talk, "meeting": meeting, "incident": incident_block, "press": press_block, "outcome": outcome,
     })
 }
 

@@ -287,8 +287,13 @@ pub struct Social {
     rel: FxHashMap<(PersonId, PersonId), Rel>,
     /// Memories held by each person (sparse).
     held: FxHashMap<PersonId, SmallVec<[Memory; 4]>>,
+    /// Every promise, in the order made (so ids ascend); settled ones are pruned after a few years.
     pub promises: Vec<Promise>,
     next_promise: u32,
+    /// Ids of the promises each person was given and each person made, settled or not, so a
+    /// question about one person does not read the whole history (which grows all game).
+    promised_to: FxHashMap<PersonId, SmallVec<[u32; 3]>>,
+    promised_by: FxHashMap<PersonId, SmallVec<[u32; 3]>>,
 }
 
 impl Social {
@@ -379,29 +384,47 @@ impl Social {
         let id = self.next_promise;
         self.next_promise += 1;
         self.promises.push(Promise { id, from, to, club, kind, made, due, state: PromiseState::Open, team_minutes: 0, player_minutes: 0, cause });
+        self.promised_to.entry(to).or_default().push(id);
+        self.promised_by.entry(from).or_default().push(id);
         id
     }
 
+    /// Position of a promise in `promises`; ids only ever ascend, so this is a binary search.
+    pub fn promise_pos(&self, id: u32) -> Option<usize> {
+        self.promises.binary_search_by_key(&id, |p| p.id).ok()
+    }
+
     pub fn promise(&self, id: u32) -> Option<&Promise> {
-        self.promises.iter().find(|p| p.id == id)
+        self.promise_pos(id).map(|i| &self.promises[i])
     }
 
     pub fn promise_mut(&mut self, id: u32) -> Option<&mut Promise> {
-        self.promises.iter_mut().find(|p| p.id == id)
+        self.promise_pos(id).map(|i| &mut self.promises[i])
+    }
+
+    /// Every promise made to `to`, settled or not.
+    pub fn promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
+        self.promised_to.get(&to).into_iter().flatten().filter_map(|&id| self.promise(id))
+    }
+
+    /// Every promise `from` made, settled or not.
+    pub fn promises_by(&self, from: PersonId) -> impl Iterator<Item = &Promise> {
+        self.promised_by.get(&from).into_iter().flatten().filter_map(|&id| self.promise(id))
     }
 
     pub fn open_promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
-        self.promises.iter().filter(move |p| p.to == to && p.state == PromiseState::Open)
+        self.promises_to(to).filter(|p| p.state == PromiseState::Open)
     }
 
     pub fn open_promises_between(&self, from: PersonId, to: PersonId) -> impl Iterator<Item = &Promise> {
-        self.promises.iter().filter(move |p| p.from == from && p.to == to && p.state == PromiseState::Open)
+        // A manager has made hundreds of promises; a player was given only a few. Read the shorter list.
+        self.promises_to(to).filter(move |p| p.from == from && p.state == PromiseState::Open)
     }
 
     /// How many promises `from` has broken to anyone within `days` — a reputation
     /// for keeping one's word that others can hear about.
     pub fn broken_by(&self, from: PersonId, today: Date, days: i32) -> usize {
-        self.promises.iter().filter(|p| p.from == from && p.state == PromiseState::Broken && p.due.days_until(today) <= days).count()
+        self.promises_by(from).filter(|p| p.state == PromiseState::Broken && p.due.days_until(today) <= days).count()
     }
 
     /// Forget stale relationships and faded memories; settled promises go after a while.
@@ -412,6 +435,13 @@ impl Social {
         }
         self.held.retain(|_, l| !l.is_empty());
         self.promises.retain(|p| p.state == PromiseState::Open || p.due >= before);
+        let alive: Vec<u32> = self.promises.iter().map(|p| p.id).collect();
+        for index in [&mut self.promised_to, &mut self.promised_by] {
+            for ids in index.values_mut() {
+                ids.retain(|id| alive.binary_search(id).is_ok());
+            }
+            index.retain(|_, ids| !ids.is_empty());
+        }
     }
 
     pub fn len(&self) -> usize {

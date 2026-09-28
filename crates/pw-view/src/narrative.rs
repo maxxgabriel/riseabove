@@ -17,6 +17,7 @@ pub enum Group {
     Media,
     Board,
     International,
+    Incidents,
 }
 
 impl Group {
@@ -31,6 +32,7 @@ impl Group {
             "media" => Group::Media,
             "board" => Group::Board,
             "international" => Group::International,
+            "incidents" => Group::Incidents,
             _ => return None,
         })
     }
@@ -50,6 +52,10 @@ pub fn group_of(k: &E) -> Group {
         Published { .. } | Endorsed { .. } | EndorsementEnded { .. } | SponsorClash { .. } | ClubSponsor { .. } => Group::Media,
         Takeover { .. } | Administration { .. } | PointsDeducted { .. } | Austerity { .. } | OwnerInvestment { .. } | ProjectStarted { .. } | ProjectCompleted { .. } | BroadcastDeal { .. } | ManagerResigned { .. } | ManagerPoached { .. } | TacticalChange { .. } | StaffFollowed { .. } | StaffLeft { .. } => Group::Board,
         NationalSquad { .. } | InternationalDebut { .. } | InternationalResult { .. } | TournamentWon { .. } | ChoseNation { .. } | RetiredFromInternational { .. } | NationalManagerAppointed { .. } | NationalManagerLeft { .. } | WithdrewFromSquad { .. } => Group::International,
+        Incident { .. } | IncidentResponse { .. } | CaptainMediated { .. } | InvestigationCleared { .. } | LeakSuspected { .. } => Group::Incidents,
+        JournalistMoved { .. } | JournalistLeft { .. } | JournalistHired { .. } | SupporterAction { .. } => Group::Media,
+        BoardWarning { .. } | BoardQuery { .. } => Group::Board,
+        AgentExploring { .. } => Group::Transfers,
         Milestone { .. } | RecordBroken { .. } | BecameLegend { .. } | InductedHallOfFame { .. } | AcademyJoined { .. } | AcademyReleased { .. } | ScholarshipOffered { .. } | JoinedLocalClub { .. } | AcademyTrialStarted { .. } | Stagnated { .. } | CharacterChanged { .. } => Group::Career,
         _ => Group::Club,
     }
@@ -151,6 +157,16 @@ pub fn label(k: &E) -> &'static str {
         ClubSponsor { .. } => "Sponsorship",
         NewCareer { .. } | CareerEnded { .. } => "Career",
         Investment { .. } => "Investment",
+        BoardWarning { .. } => "Board warning",
+        BoardQuery { .. } => "Board query",
+        LeakSuspected { .. } => "Leak",
+        AgentExploring { .. } => "Agent",
+        Incident { .. } => "Incident",
+        IncidentResponse { .. } => "Response",
+        CaptainMediated { .. } => "Captain stepped in",
+        InvestigationCleared { .. } => "Investigation",
+        JournalistMoved { .. } | JournalistLeft { .. } | JournalistHired { .. } => "Press corps",
+        SupporterAction { .. } => "Supporters",
     }
 }
 

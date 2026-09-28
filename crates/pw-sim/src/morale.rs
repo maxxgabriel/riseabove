@@ -49,7 +49,7 @@ fn compose(w: &World, p: pw_core::PlayerId) -> (f32, Mood) {
         push(MoodFactor::Manager, (trust - 0.5) * 16.0 + aff * 8.0 - consider::grievance(w, who, m) * 4.0);
     }
     let open = w.social.open_promises_to(who).count() as f32;
-    let broken = w.social.promises.iter().filter(|pr| pr.to == who && pr.state == PromiseState::Broken && pr.due.days_until(w.date) < 180).count() as f32;
+    let broken = w.social.promises_to(who).filter(|pr| pr.state == PromiseState::Broken && pr.due.days_until(w.date) < 180).count() as f32;
     push(MoodFactor::Promises, open * 2.0 - broken * 7.0);
     let wage = f32::from(consider::wage_vs_peers(w, p));
     if wage < 80.0 {

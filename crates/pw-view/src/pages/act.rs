@@ -8,6 +8,7 @@ use pw_world::affairs::{CareerPath, Course, Helper};
 use pw_world::interaction::{Tone, Topic};
 use pw_world::life::{Lifestyle, Routine};
 use pw_world::media::Stance;
+use pw_world::socialnet::{Concept, NO_POST};
 use pw_world::staff::StaffRole;
 use pw_world::{Intent, PartnerAsk, PlayerStatus};
 use serde_json::{Value, json};
@@ -26,6 +27,23 @@ pub const STANCES: [(Stance, &str, &str); 7] = [
     (Stance::Complain, "complain", "Complain about your role"),
     (Stance::Criticise, "criticise", "Criticise"),
 ];
+
+/// What a person can say online, in the words the interface offers.
+pub const POSTS: [(Concept, &str, &str); 9] = [
+    (Concept::Praise, "praise", "Praise"),
+    (Concept::Celebrate, "celebrate", "Celebrate"),
+    (Concept::Defend, "defend", "Stand up for"),
+    (Concept::Agree, "agree", "Agree"),
+    (Concept::Statement, "statement", "Make a statement"),
+    (Concept::Lament, "lament", "Lament"),
+    (Concept::Disagree, "disagree", "Disagree"),
+    (Concept::Criticise, "criticise", "Criticise"),
+    (Concept::Mock, "mock", "Mock"),
+];
+
+pub fn concept_label(c: Concept) -> &'static str {
+    POSTS.iter().find(|p| p.0 == c).map_or("Post", |p| p.2)
+}
 
 const ROLES: [(StaffRole, &str); 7] = [
     (StaffRole::Coach, "coach"),
@@ -150,6 +168,11 @@ pub fn intent_text(c: &Ctx, i: &Intent) -> String {
         Intent::Invest { .. } => "Invest money".into(),
         Intent::PursueCareer(p) => format!("Start working in {}", p.label()),
         Intent::LeaveCareer => "Leave your current work".into(),
+        Intent::Post { about, concept, reply_to, .. } => {
+            let who = if Some(about) == c.me() { "yourself".to_string() } else { c.person_name(about) };
+            let what = concept_label(concept).to_lowercase();
+            if reply_to != pw_world::socialnet::NO_POST { format!("Reply online ({what}) about {who}") } else { format!("Post online ({what}) about {who}") }
+        }
     }
 }
 
@@ -334,6 +357,27 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
             Intent::PursueCareer(PATHS.iter().copied().find(|c| path_key(*c) == v).ok_or_else(|| ApiError::Bad("Unknown kind of work.".into()))?)
         }
         "leave_career" => Intent::LeaveCareer,
+        "post" => {
+            let v = text_arg(args, "concept")?;
+            let concept = POSTS.iter().find(|p| p.1 == v).map(|p| p.0).ok_or_else(|| ApiError::Bad("Unknown kind of post.".into()))?;
+            let post_id = |key: &str| args.get(key).and_then(Value::as_u64).map_or(NO_POST, |n| n as u32);
+            let (reply_to, quote_of) = (post_id("reply_to"), post_id("quote_of"));
+            let mut about = args.get("about").and_then(Value::as_u64).map(|n| PersonId(n as u32)).unwrap_or(me);
+            if about.0 as usize >= w.people.len() {
+                return Err(ApiError::NotFound("person".into()));
+            }
+            for id in [reply_to, quote_of] {
+                if id == NO_POST {
+                    continue;
+                }
+                // You can only answer what you can see, and the subject follows the post.
+                let post = w.net.post(id).ok_or_else(|| ApiError::NotFound("post".into()))?;
+                if about == me && post.about.is_some() {
+                    about = post.about;
+                }
+            }
+            Intent::Post { about, concept, reply_to, quote_of }
+        }
         _ => return Err(ApiError::Bad("Unknown action.".into())),
     })
 }
@@ -406,6 +450,7 @@ pub fn options(c: &Ctx) -> ApiResult<Value> {
         "courses": courses, "helpers": helpers,
         "careers": PATHS.iter().map(|&pa| json!({"key": path_key(pa), "label": pa.label()})).collect::<Vec<_>>(),
         "lifestyles": Lifestyle::ALL.iter().map(|l| json!({"key": l.label(), "label": l.label()})).collect::<Vec<_>>(),
+        "posts": POSTS.iter().map(|p| json!({"key": p.1, "label": p.2})).collect::<Vec<_>>(),
         "agents": agents, "nations": nations, "routine_budget": Routine::BUDGET,
     }))
 }

@@ -177,7 +177,7 @@ fn add_tie(w: &mut World, j: PersonId, s: PersonId, strength: u8) {
         if let Some(i) = prof.ties.iter().enumerate().min_by_key(|(_, t)| t.strength).map(|(i, _)| i) {
             let gone = prof.ties.remove(i).person;
             if let Some(jj) = w.media.journalists.get_mut(&j) {
-                jj.sources.retain(|&x| x != gone);
+                jj.sources.retain(|x| *x != gone);
             }
         }
     }

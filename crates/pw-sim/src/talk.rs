@@ -68,7 +68,7 @@ pub fn request(w: &mut World, initiator: PersonId, with: PersonId, player: Playe
     } else {
         m.response = Some(default);
     }
-    w.meetings.list.push(m);
+    let id = w.meetings.push(m);
     Some(id)
 }
 
@@ -521,14 +521,7 @@ fn want_away(w: &mut World, c: &mut Ctx, mood: f32) {
 }
 
 fn follow_up(w: &mut World, c: &mut Ctx, mood: f32) {
-    let open: Vec<usize> = w
-        .social
-        .promises
-        .iter()
-        .enumerate()
-        .filter(|(_, p)| p.from == c.manager && p.to == c.player_person && p.state == pw_world::PromiseState::Open)
-        .map(|(i, _)| i)
-        .collect();
+    let open: Vec<usize> = w.social.open_promises_between(c.manager, c.player_person).filter_map(|p| w.social.promise_pos(p.id)).collect();
     let Some(&i) = open.first() else {
         c.outcomes.push(Outcome::Refused);
         c.satisfaction = -5;

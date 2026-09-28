@@ -265,12 +265,11 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         return;
     }
     let tier = w.comps[comp].tier;
-    let club = |t: TeamId| w.teams[t].club;
     // Title (tier 1) or promotion (lower tiers) decided by a few points.
     let (first, second) = (rows[0], rows[1]);
     if first.points - second.points <= 3 {
         let kind = if tier == 1 { RivalryKind::TitleRace } else { RivalryKind::Promotion };
-        let (a, b) = (Side::Club(club(first.team)), Side::Club(club(second.team)));
+        let (a, b) = (Side::Club(w.teams[first.team].club), Side::Club(w.teams[second.team].club));
         let r = w.culture.rivalries.ensure(a, b, kind, 30, today);
         r.intensity = r.intensity.saturating_add(8).min(100);
         remember(w, a, b, Moment { date: today, kind: MomentKind::TitleDecided { winner: a }, event: EventId::NONE });
@@ -282,7 +281,7 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         let safe = rows[n - relegate - 1];
         let down = rows[n - relegate];
         if safe.points - down.points <= 2 {
-            let (a, b) = (Side::Club(club(safe.team)), Side::Club(club(down.team)));
+            let (a, b) = (Side::Club(w.teams[safe.team].club), Side::Club(w.teams[down.team].club));
             let r = w.culture.rivalries.ensure(a, b, RivalryKind::Relegation, 25, today);
             r.intensity = r.intensity.saturating_add(6).min(100);
         }

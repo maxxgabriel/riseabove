@@ -385,7 +385,8 @@ fn invite(w: &mut World, club: ClubId, p: PlayerId) {
         return;
     }
     // Families usually say yes; unsupportive or far-away ones sometimes don't.
-    let support = f32::from(w.lives[who].household.parents.support) / 20.0;
+    // Children without a life record yet are assumed to have ordinarily supportive families.
+    let support = w.lives.get(who).map_or(0.5, |l| f32::from(l.household.parents.support) / 20.0);
     let mut rng = Rng::keyed(&[w.seed, stream::FAMILY, u64::from(p.0), today.0 as u64]);
     if rng.chance(0.5 + support * 0.5) {
         start_trial(w, club, p);

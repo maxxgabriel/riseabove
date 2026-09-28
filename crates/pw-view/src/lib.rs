@@ -216,6 +216,8 @@ impl Api {
             "me.promises" => self.with(pages::life::promises),
             "me.rumours" => self.with(pages::life::rumours),
             "me.press" => self.with(pages::life::press),
+            "me.feed" => self.with(|c| pages::social::feed(c, &args)),
+            "social.thread" => self.with(|c| pages::social::thread(c, &args)),
             "me.story" => self.with(|c| pages::life::story(c, &args)),
             "me.agent" => self.with(pages::life::agent),
             "me.journal" => self.with(pages::life::journal),
