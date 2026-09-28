@@ -202,7 +202,9 @@ pub fn is_homegrown(w: &World, p: PlayerId, club: ClubId) -> bool {
 pub fn work_permit_points(w: &World, p: PlayerId, fee: Money, wage: Money) -> u8 {
     let c = &w.players.cold[p];
     let person = &w.people[c.person];
-    let nation_rep = if person.nation.is_some() { f32::from(w.nations[person.nation].reputation) } else { 0.0 };
+    // The nation they actually play for, if committed.
+    let nat = w.intl.locked_to(p).unwrap_or(person.nation);
+    let nation_rep = if nat.is_some() { f32::from(w.nations[nat].reputation) } else { 0.0 };
     let caps = f32::from(c.caps.min(40));
     let intl = (caps / 2.0).min(10.0) * (nation_rep / 8000.0).min(1.0) * 1.5;
     let fee_p = if fee >= 20_000_000 { 6.0 } else if fee >= 8_000_000 { 4.0 } else if fee >= 2_000_000 { 2.0 } else { 0.0 };

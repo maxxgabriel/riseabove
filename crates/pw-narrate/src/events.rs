@@ -130,6 +130,23 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JoinedLocalClub { player: p, local } => format!("{} signed up with {}.", pl(p), w.youth.local[local].name),
         AcademyTrialStarted { player: p, club: c } => format!("{} began a trial with the {} academy.", pl(p), club(w, c)),
         ExamsSat { person: x, passed } => format!("{} {} school exams.", me(x), if passed { "passed" } else { "struggled in" }),
+        NationalSquad { player: p, nation: n, level } => format!("{} {} named in the {} {} squad.", pl(p), if w.players.cold[p].person == viewer { "were" } else { "was" }, nation(w, n), level.label()),
+        InternationalDebut { player: p, nation: n, level } => format!("{} made a {} debut for {}.", pl(p), level.label(), nation(w, n)),
+        InternationalResult { index } => {
+            let m = &w.intl.matches[index as usize];
+            format!("{} {}-{} {} ({}, {}).", nation(w, m.home), m.home_goals, m.away_goals, nation(w, m.away), m.level.label(), if m.kind.competitive() { "competitive" } else { "friendly" })
+        }
+        TournamentWon { nation: n, tournament } => {
+            let t = &w.intl.tournaments[tournament as usize];
+            format!("{} won the {} {}.", nation(w, n), t.kind.label(), t.year)
+        }
+        ChoseNation { player: p, nation: n } => format!("{} committed their international future to {}.", pl(p), nation(w, n)),
+        RetiredFromInternational { player: p, nation: n } => format!("{} retired from international football with {}.", pl(p), nation(w, n)),
+        NationalManagerAppointed { staff, nation: n, level } => format!("{} appointed {} to lead their {} side.", nation(w, n), w.staff_name(staff), level.label()),
+        NationalManagerLeft { staff, nation: n, level, sacked } => {
+            format!("{} {} the {} {} job.", w.staff_name(staff), if sacked { "was dismissed from" } else { "left" }, nation(w, n), level.label())
+        }
+        WithdrewFromSquad { player: p, nation: n } => format!("{} withdrew from the {} squad.", pl(p), nation(w, n)),
     })
 }
 

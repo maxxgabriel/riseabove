@@ -82,6 +82,8 @@ fn apply(w: &mut World, who: PersonId, intent: Intent) {
             w.players.hot[p].status = PlayerStatus::Amateur;
             crate::youth::join_local_near(w, p, who);
         }
+        Intent::DeclareForNation(n) if p.is_some() => crate::intl::declare(w, p, n),
+        Intent::RetireFromInternational if p.is_some() => crate::intl::retire(w, p),
         _ => {}
     }
 }

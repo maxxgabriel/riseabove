@@ -14,6 +14,7 @@ pub mod governance;
 pub mod health;
 pub mod hungarian;
 pub mod intents;
+pub mod intl;
 pub mod life;
 pub mod managers;
 pub mod market;
@@ -97,6 +98,7 @@ impl Sim {
             scouting::ensure(w);
             scouting::assign(w);
             youth::school(w);
+            intl::ensure(w);
             if today.month() == 6 {
                 youth::reviews(w);
             }
@@ -138,6 +140,8 @@ impl Sim {
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
         matchday::play_today(w);
+        // National teams: windows, qualifiers, tournaments.
+        intl::daily(w);
 
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
@@ -196,6 +200,7 @@ pub fn prepare(w: &mut World) {
     managers::ensure(w);
     scouting::ensure(w);
     youth::ensure(w);
+    intl::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

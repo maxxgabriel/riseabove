@@ -5,7 +5,7 @@
 //! the deadline. AI minds answer immediately; `External` minds (a human)
 //! answer through the client. The simulation never asks who is behind a mind.
 
-use pw_core::{ClubId, Date, DecisionId, IdVec, MeetingId, Money, PersonId, PlayerId, TalkId};
+use pw_core::{ClubId, Date, DecisionId, IdVec, MeetingId, Money, NationId, PersonId, PlayerId, TalkId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
@@ -40,6 +40,9 @@ pub enum DecisionKind {
     Partner { partner: PersonId, ask: crate::intent::PartnerAsk },
     /// A club invites an unattached player for a trial.
     Trial { club: ClubId, days: u8 },
+    /// A dual national has been called up; accepting commits them to `nation`,
+    /// rejecting commits them to `other`.
+    NationChoice { nation: NationId, other: NationId },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -73,6 +76,7 @@ impl DecisionKind {
             DecisionKind::Meeting { .. } => "Meeting",
             DecisionKind::Partner { .. } => "Your partner",
             DecisionKind::Trial { .. } => "Trial invitation",
+            DecisionKind::NationChoice { .. } => "International allegiance",
         }
     }
 

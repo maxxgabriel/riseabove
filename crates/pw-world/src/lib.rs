@@ -15,6 +15,7 @@ pub mod governance;
 pub mod history;
 pub mod intent;
 pub mod interaction;
+pub mod intl;
 pub mod knowledge;
 pub mod life;
 pub mod media;

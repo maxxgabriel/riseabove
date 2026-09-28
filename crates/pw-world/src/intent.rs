@@ -6,7 +6,7 @@
 //! here and applied by the same system, so anything a human can do an AI
 //! person can do too — and does.
 
-use pw_core::{AgentId, Date, PersonId};
+use pw_core::{AgentId, Date, NationId, PersonId};
 use serde::{Deserialize, Serialize};
 
 use crate::interaction::{Tone, Topic};
@@ -39,6 +39,10 @@ pub enum Intent {
     OpenToDating(bool),
     /// Sign up to play amateur football locally.
     JoinAmateurFootball,
+    /// Commit to one of the nations a player is eligible for.
+    DeclareForNation(NationId),
+    /// Stop being available for national selection.
+    RetireFromInternational,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]

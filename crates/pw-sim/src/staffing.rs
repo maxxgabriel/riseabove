@@ -68,7 +68,7 @@ fn best_candidate(w: &World, club: ClubId, role: StaffRole, rng: &mut Rng) -> Op
     let manager = w.clubs[club].manager.get().map(|m| w.staff[m].person);
     w.staff
         .iter_enumerated()
-        .filter(|(_, s)| s.role == role && !s.employed() && !s.retired)
+        .filter(|(id, s)| s.role == role && !s.employed() && !s.retired && !w.intl.managers.contains(id))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 2000)
         .map(|(id, s)| {
             let skill = s.role_rating(role) / 20.0;

@@ -248,6 +248,9 @@ pub fn resolve_due(w: &mut World) {
                     }
                 }
             }
+            DecisionKind::NationChoice { nation, other } => {
+                crate::intl::answer_call(w, p, if choice == Choice::Accept { nation } else { other }, nation);
+            }
             DecisionKind::TransferTalks { .. } => {}
         }
     }

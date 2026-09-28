@@ -87,7 +87,7 @@ pub fn appoint(w: &mut World, club: ClubId) {
     let best = w
         .staff
         .iter_enumerated()
-        .filter(|(_, s)| s.role == StaffRole::Manager && !s.employed() && !s.retired)
+        .filter(|(id, s)| s.role == StaffRole::Manager && !s.employed() && !s.retired && !w.intl.managers.contains(id))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 1500)
         .map(|(id, s)| {
             let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0

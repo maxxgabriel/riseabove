@@ -31,8 +31,10 @@ pub fn value_of(w: &World, p: PlayerId) -> Money {
     let years = (h.club.is_some()).then(|| c.contract.days_left(w.date) as f32 / 365.0).unwrap_or(0.0);
     let contract = if h.status == PlayerStatus::FreeAgent { 0.3 } else { 0.35 + 0.65 * (years / 3.0).min(1.0) };
     let rep = 0.85 + 0.3 * f32::from(c.rep.world) / 10_000.0;
+    // Current internationals carry a premium buyers pay for.
+    let intl = 1.0 + 0.12 * crate::intl::standing(w, p);
     let inj = if h.injury_days > 60 { 0.8 } else { 1.0 };
-    let v = t.value_base * exp(t.value_exp * (ca - 100.0)) * potential * age_mult * contract * rep * inj * w.economy.global();
+    let v = t.value_base * exp(t.value_exp * (ca - 100.0)) * potential * age_mult * contract * rep * intl * inj * w.economy.global();
     (v.max(5_000.0) as Money / 5_000) * 5_000
 }
 

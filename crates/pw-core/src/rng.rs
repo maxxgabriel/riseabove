@@ -29,6 +29,7 @@ pub mod stream {
     pub const PLAYTHROUGH: u64 = 0x17;
     pub const NEGOTIATION: u64 = 0x18;
     pub const NARRATION: u64 = 0x19;
+    pub const INTL: u64 = 0x1a;
 }
 
 #[inline]

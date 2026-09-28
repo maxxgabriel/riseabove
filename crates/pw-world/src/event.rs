@@ -190,6 +190,21 @@ pub enum EventKind {
     JoinedLocalClub { player: PlayerId, local: pw_core::LocalClubId },
     AcademyTrialStarted { player: PlayerId, club: ClubId },
     ExamsSat { person: PersonId, passed: bool },
+    /// A national side named its squad (the player was in it).
+    NationalSquad { player: PlayerId, nation: NationId, level: crate::intl::Level },
+    InternationalDebut { player: PlayerId, nation: NationId, level: crate::intl::Level },
+    /// Result of an international match (index into `World::intl::matches`).
+    InternationalResult { index: u32 },
+    TournamentWon { nation: NationId, tournament: u32 },
+    /// A dual national committed to one country.
+    ChoseNation { player: PlayerId, nation: NationId },
+    RetiredFromInternational { player: PlayerId, nation: NationId },
+    /// A federation appointed a manager for one of its sides.
+    NationalManagerAppointed { staff: StaffId, nation: NationId, level: crate::intl::Level },
+    /// A national manager left (sacked after failure, poached, retired).
+    NationalManagerLeft { staff: StaffId, nation: NationId, level: crate::intl::Level, sacked: bool },
+    /// A player was withdrawn from a national squad (injury, club pressure, refusal).
+    WithdrewFromSquad { player: PlayerId, nation: NationId },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -259,6 +274,11 @@ impl EventKind {
             | ScholarshipOffered { player, .. }
             | JoinedLocalClub { player, .. }
             | AcademyTrialStarted { player, .. }
+            | NationalSquad { player, .. }
+            | InternationalDebut { player, .. }
+            | ChoseNation { player, .. }
+            | RetiredFromInternational { player, .. }
+            | WithdrewFromSquad { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),

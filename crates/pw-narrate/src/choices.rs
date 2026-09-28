@@ -30,6 +30,11 @@ pub fn title(w: &World, d: &Decision) -> String {
             format!("{} {what}", person(w, *partner))
         }
         DecisionKind::Trial { club: c, days } => format!("{} invite you for a {days}-day trial", club(w, *c)),
+        DecisionKind::NationChoice { nation: n, other } => format!(
+            "{} have called you up. Accepting commits you to them; refusing commits you to {}",
+            crate::fmt::nation(w, *n),
+            crate::fmt::nation(w, *other)
+        ),
     }
 }
 

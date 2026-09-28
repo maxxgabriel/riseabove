@@ -238,7 +238,8 @@ fn finances(w: &mut World, who: PersonId) {
     if person.player.is_some() && w.players.hot[person.player].status == PlayerStatus::Active {
         gross_week += w.players.cold[person.player].contract.current_wage(today);
     }
-    if person.staff.is_some() && w.staff[person.staff].employed() {
+    // Club staff, or a federation's manager.
+    if person.staff.is_some() && (w.staff[person.staff].employed() || w.intl.managers.contains(&person.staff)) {
         gross_week += w.staff[person.staff].wage;
     }
     let home = w.lives[who].home;

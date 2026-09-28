@@ -108,6 +108,8 @@ pub struct World {
     pub deals: crate::deals::Deals,
     /// Grassroots and amateur clubs, academies, trials, schooling.
     pub youth: crate::youth::Youth,
+    /// National sides, caps, international matches and tournaments.
+    pub intl: crate::intl::Intl,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -151,6 +153,7 @@ impl World {
             scouting: Default::default(),
             deals: Default::default(),
             youth: Default::default(),
+            intl: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,
