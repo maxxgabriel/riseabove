@@ -304,10 +304,52 @@ fn new_system_tables_answer() {
         ("tournaments", json!({})),
         ("boards", json!({})),
         ("sponsors", json!({})),
+        ("posts", json!({})),
+        ("chants", json!({})),
+        ("memes", json!({})),
+        ("groups", json!({})),
+        ("rivalries", json!({})),
+        ("incidents", json!({})),
+        ("conferences", json!({})),
+        ("quotes", json!({})),
+        ("referees", json!({})),
+        ("controversies", json!({})),
+        ("charges", json!({})),
+        ("record_book", json!({})),
+        ("records_broken", json!({})),
+        ("votes", json!({})),
+        ("hall_members", json!({})),
+        ("chronicle", json!({})),
+        ("schools", json!({})),
+        ("rule_changes", json!({})),
+        ("institutions", json!({})),
+        ("minor_seasons", json!({})),
+        ("outlets", json!({})),
+        ("journalists", json!({})),
+        ("grapevine", json!({})),
     ] {
         let t = table(&api, name, filters, 20);
         assert!(t["columns"].as_array().is_some_and(|c| !c.is_empty()), "{name} has columns");
         assert!(t["total"].is_number(), "{name} reports a total");
+        // Every table also answers, differently, once somebody is inhabited.
+    }
+    let mut lively = 0;
+    for name in ["posts", "chants", "groups", "rivalries", "incidents", "conferences", "quotes", "referees", "record_book", "institutions", "outlets", "journalists", "grapevine"] {
+        if table(&api, name, json!({}), 5)["total"].as_u64().unwrap_or(0) > 0 {
+            lively += 1;
+        }
+    }
+    assert!(lively >= 8, "only {lively} of the new systems have anything in them after four months");
+    // Sorting and searching work on them like on any table.
+    let posts = table(&api, "posts", json!({"q": "a"}), 5);
+    assert!(posts["rows"].is_array());
+    // Once inhabiting, what the world hides stays hidden: the grapevine is for observers alone.
+    let me = pick_player(&api);
+    api.call("persp.inhabit", json!({"person": me})).unwrap();
+    assert_eq!(table(&api, "grapevine", json!({}), 5)["total"], 0);
+    for name in ["posts", "incidents", "referees", "controversies", "outlets"] {
+        let t = table(&api, name, json!({}), 5);
+        assert!(t["all_columns"].as_array().unwrap().iter().all(|c| c["presets"].as_array().unwrap().iter().all(|p| p != "internal")), "{name} leaks internal columns to an inhabited view");
     }
 }
 

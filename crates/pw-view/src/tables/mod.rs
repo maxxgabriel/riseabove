@@ -5,6 +5,7 @@ mod comps;
 mod events;
 mod fixtures;
 mod players;
+mod society;
 mod stats;
 mod staff;
 mod systems;
@@ -47,6 +48,29 @@ pub fn query(c: &Ctx, req: &TableReq) -> ApiResult<Value> {
         "tournaments" => run(&systems::Tournaments, c, req),
         "boards" => run(&systems::Boards, c, req),
         "sponsors" => run(&systems::Sponsors, c, req),
+        "posts" => run(&society::Posts, c, req),
+        "chants" => run(&society::chants(), c, req),
+        "memes" => run(&society::memes(), c, req),
+        "groups" => run(&society::groups(), c, req),
+        "rivalries" => run(&society::rivalries(), c, req),
+        "incidents" => run(&society::Incidents, c, req),
+        "conferences" => run(&society::Conferences, c, req),
+        "quotes" => run(&society::Quotes, c, req),
+        "referees" => run(&society::referees(), c, req),
+        "controversies" => run(&society::controversies(), c, req),
+        "charges" => run(&society::charges(), c, req),
+        "record_book" => run(&society::record_book(), c, req),
+        "records_broken" => run(&society::records_broken(), c, req),
+        "votes" => run(&society::votes(), c, req),
+        "hall_members" => run(&society::hall_members(), c, req),
+        "chronicle" => run(&society::chronicle(), c, req),
+        "schools" => run(&society::schools(), c, req),
+        "rule_changes" => run(&society::rule_changes(), c, req),
+        "institutions" => run(&society::institutions(), c, req),
+        "minor_seasons" => run(&society::minor_seasons(), c, req),
+        "outlets" => run(&society::outlets(), c, req),
+        "journalists" => run(&society::journalists(), c, req),
+        "grapevine" => run(&society::grapevine(), c, req),
         other => return Err(ApiError::NotFound(format!("table {other}"))),
     };
     serde_json::to_value(resp).map_err(|e| ApiError::State(e.to_string()))

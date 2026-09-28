@@ -72,8 +72,3 @@ pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let replies: Vec<Value> = c.w.net.posts.iter().filter(|r| r.reply_to == id).take(30).map(|r| post_json(c, r, 1)).collect();
     Ok(json!({"post": post_json(c, p, 0), "replies": replies}))
 }
-
-pub fn person_of(c: &Ctx, p: &Post) -> Option<PersonId> {
-    let a = &c.w.net.accounts[p.author as usize];
-    a.person.is_some().then_some(a.person)
-}
