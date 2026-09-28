@@ -122,6 +122,10 @@ pub struct World {
     pub honours: crate::honours::Honours,
     /// Local, continental and celebrity standing, followers.
     pub renown: crate::renown::Renowns,
+    /// Study, homes, personal staff, giving, investments, post-playing work.
+    pub affairs: crate::affairs::AffairsBook,
+    /// Brands, club sponsorships and personal endorsements.
+    pub commerce: crate::commerce::Commerce,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -172,6 +176,8 @@ impl World {
             growth: Default::default(),
             honours: Default::default(),
             renown: Default::default(),
+            affairs: Default::default(),
+            commerce: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

@@ -87,6 +87,16 @@ fn apply(w: &mut World, who: PersonId, intent: Intent) {
         Intent::PlayThroughPain(b) if p.is_some() => crate::medical::set_willing(w, p, b),
         Intent::Mentor(mentee) if playing => crate::growth::offer_mentoring(w, who, mentee),
         Intent::SpeakToPress { about, stance } => crate::press::speak(w, who, about, stance),
+        Intent::Enrol(course) => crate::affairs::enrol(w, who, course),
+        Intent::MoveHome { buy, quality } => crate::affairs::move_home(w, who, buy, quality),
+        Intent::HireHelper(h, q) => crate::affairs::hire_helper(w, who, h, q),
+        Intent::DismissHelper(h) => crate::affairs::dismiss_helper(w, who, h),
+        Intent::SetGiving { pct, community } => crate::affairs::set_giving(w, who, pct, community),
+        Intent::StartFoundation => crate::affairs::start_foundation(w, who),
+        Intent::Invest { amount, risk } => crate::affairs::invest_money(w, who, amount, risk),
+        // Playing on and a second career can overlap only for amateurs.
+        Intent::PursueCareer(path) if !playing => crate::affairs::pursue(w, who, path),
+        Intent::LeaveCareer => crate::affairs::leave_work(w, who),
         _ => {}
     }
 }

@@ -237,6 +237,21 @@ pub enum EventKind {
     BecameLegend { person: PersonId, club: ClubId },
     InductedHallOfFame { person: PersonId },
     ManagerOfSeason { staff: StaffId, comp: CompId, season: i32 },
+    EnrolledCourse { person: PersonId, course: crate::affairs::Course },
+    Qualified { person: PersonId, course: crate::affairs::Course },
+    MovedHome { person: PersonId, bought: bool },
+    HiredHelper { person: PersonId, helper: crate::affairs::Helper },
+    /// Started a foundation or a visible community commitment.
+    GaveBack { person: PersonId, foundation: bool },
+    Endorsed { person: PersonId, brand: u32, fee_year: Money },
+    EndorsementEnded { person: PersonId, brand: u32, why: crate::commerce::DealEnd },
+    /// A personal deal collides with a club partner in the same sector.
+    SponsorClash { person: PersonId, brand: u32, club: ClubId },
+    ClubSponsor { club: ClubId, brand: u32, slot: crate::commerce::ClubSlot, fee_year: Money },
+    /// Began a working life after (or beside) playing.
+    NewCareer { person: PersonId, path: crate::affairs::CareerPath },
+    CareerEnded { person: PersonId, path: crate::affairs::CareerPath },
+    Investment { person: PersonId, gain: Money },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -393,6 +408,17 @@ impl EventKind {
         match *self {
             Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } | ExamsSat { person, .. } | CharacterChanged { person, .. } => v.push(person),
             BecameLegend { person, .. } | InductedHallOfFame { person } => v.push(person),
+            EnrolledCourse { person, .. }
+            | Qualified { person, .. }
+            | MovedHome { person, .. }
+            | HiredHelper { person, .. }
+            | GaveBack { person, .. }
+            | Endorsed { person, .. }
+            | EndorsementEnded { person, .. }
+            | SponsorClash { person, .. }
+            | NewCareer { person, .. }
+            | CareerEnded { person, .. }
+            | Investment { person, .. } => v.push(person),
             TookUnderWing { mentor, mentee } => {
                 v.push(mentor);
                 v.push(mentee);
@@ -427,6 +453,7 @@ impl EventKind {
             | ManagerSacked { club, .. }
             | ManagerAppointed { club, .. }
             | PlayerSettled { club, .. }
+            | ClubSponsor { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

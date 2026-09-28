@@ -1,7 +1,9 @@
 //! The living world: the daily pipeline (01 §4) and every system it runs.
 
+pub mod affairs;
 pub mod agents;
 pub mod board;
+pub mod commerce;
 pub mod consider;
 pub mod contracts;
 pub mod deals;
@@ -85,6 +87,8 @@ impl Sim {
             economy::yearly(w);
             governance::yearly(w);
             managers::yearly(w);
+            commerce::ensure(w);
+            commerce::yearly(w);
         }
         season::daily(w);
         contracts::daily(w);
@@ -115,6 +119,8 @@ impl Sim {
             interpret::monthly(w);
             honours::monthly(w);
             renown::monthly(w);
+            affairs::monthly(w);
+            commerce::monthly(w);
             if today.month() == 6 {
                 youth::reviews(w);
             }
@@ -219,6 +225,7 @@ pub fn prepare(w: &mut World) {
     scouting::ensure(w);
     youth::ensure(w);
     intl::ensure(w);
+    commerce::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

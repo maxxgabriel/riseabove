@@ -1,11 +1,13 @@
 //! Complete world state. Plain data plus small, local invariants; the systems
 //! that evolve it live in `pw-sim`.
 
+pub mod affairs;
 pub mod agent;
 pub mod beliefs;
 pub mod calendar;
 pub mod careers;
 pub mod club;
+pub mod commerce;
 pub mod comp;
 pub mod contract;
 pub mod deals;

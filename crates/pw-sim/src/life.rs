@@ -244,10 +244,13 @@ fn finances(w: &mut World, who: PersonId) {
     }
     let home = w.lives[who].home;
     let tax = tax_rate(w, home);
-    let income = (gross_week as f32 * 52.0 / 12.0 * (1.0 - tax)) as i64;
+    // Endorsements, post-playing work, homes, helpers, giving.
+    let (extra_in, extra_out) = crate::affairs::money(w, who);
+    let income = ((gross_week as f32 * 52.0 / 12.0 + extra_in as f32) * (1.0 - tax)) as i64;
     let (share, floor) = w.lives[who].finances.lifestyle.spend();
     let kids = i64::from(w.lives[who].household.children) * 350;
-    let spend = ((income as f32 * share) as i64).max(floor) + kids;
+    let floor = (floor as f32 * crate::affairs::cost_index(w, home) / 0.7) as i64;
+    let spend = ((income as f32 * share) as i64).max(floor) + kids + extra_out;
     let parents = w.lives[who].household.parents;
     let support = if parents.alive > 0 && parents.means <= 2 && income > 6_000 {
         (income as f32 * 0.04 * f32::from(parents.closeness) / 60.0) as i64
@@ -569,6 +572,7 @@ pub fn relocate(w: &mut World, who: PersonId, to: NationId, cause: Cause) {
         l.home_since = today;
         l.stress = l.stress.saturating_add(10).min(100);
     }
+    crate::affairs::on_relocate(w, who);
     if let Some(pt) = w.lives[who].household.partner {
         let p = consider::partner_would_move(w, pt.person, to, pt.bond);
         let mut rng = Rng::keyed(&[w.seed, stream::FAMILY, u64::from(pt.person.0), today.0 as u64]);

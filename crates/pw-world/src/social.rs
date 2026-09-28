@@ -273,6 +273,12 @@ impl Social {
         self.rel.get(&(from, to)).copied()
     }
 
+    /// Everyone who has a relationship toward `to` (a full scan: use rarely,
+    /// e.g. when someone starts a new career and needs contacts).
+    pub fn toward(&self, to: PersonId) -> impl Iterator<Item = (PersonId, Rel)> + '_ {
+        self.rel.iter().filter(move |((_, b), _)| *b == to).map(|((a, _), r)| (*a, *r))
+    }
+
     /// Existing relationship or a first impression from `compat` (-30..=30).
     pub fn get_or(&self, from: PersonId, to: PersonId, today: Date, compat: i8) -> Rel {
         self.get(from, to).unwrap_or_else(|| Rel::neutral(today, compat))

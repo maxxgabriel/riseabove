@@ -252,6 +252,7 @@ pub fn resolve_due(w: &mut World) {
                 crate::intl::answer_call(w, p, if choice == Choice::Accept { nation } else { other }, nation);
             }
             DecisionKind::Treatment { .. } => crate::medical::answer_treatment(w, p, choice == Choice::Accept),
+            DecisionKind::Endorsement { .. } => crate::commerce::answer(w, person, &kind, choice),
             DecisionKind::TransferTalks { .. } => {}
         }
     }

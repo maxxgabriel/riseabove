@@ -69,6 +69,14 @@ fn best_candidate(w: &World, club: ClubId, role: StaffRole, rng: &mut Rng) -> Op
     w.staff
         .iter_enumerated()
         .filter(|(id, s)| s.role == role && !s.employed() && !s.retired && !w.intl.managers.contains(id))
+        .filter(|(_, s)| {
+            let need = match role {
+                StaffRole::Assistant => 2,
+                StaffRole::Coach | StaffRole::GkCoach | StaffRole::HeadOfYouth => 1,
+                _ => 0,
+            };
+            crate::affairs::coaching_level(w, s.person) >= need
+        })
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 2000)
         .map(|(id, s)| {
             let skill = s.role_rating(role) / 20.0;

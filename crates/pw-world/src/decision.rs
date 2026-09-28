@@ -45,6 +45,8 @@ pub enum DecisionKind {
     NationChoice { nation: NationId, other: NationId },
     /// A serious injury: accept = surgery, reject = rehabilitation.
     Treatment { surgery_days: u16, rehab_days: u16 },
+    /// A brand offers an endorsement.
+    Endorsement { brand: u32, fee_year: Money, years: u8, days: u8 },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -80,6 +82,7 @@ impl DecisionKind {
             DecisionKind::Trial { .. } => "Trial invitation",
             DecisionKind::NationChoice { .. } => "International allegiance",
             DecisionKind::Treatment { .. } => "Treatment",
+            DecisionKind::Endorsement { .. } => "Endorsement offer",
         }
     }
 

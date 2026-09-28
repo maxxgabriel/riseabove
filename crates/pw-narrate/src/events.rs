@@ -185,6 +185,35 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         }
         BecameLegend { person: x, club: c } => format!("{} {} now spoken of as a legend at {}.", me(x), if x == viewer { "are" } else { "is" }, club(w, c)),
         InductedHallOfFame { person: x } => format!("{} {} inducted into the Hall of Fame.", me(x), if x == viewer { "were" } else { "was" }),
+        EnrolledCourse { person: x, course } => format!("{} enrolled on a {}.", me(x), course.label()),
+        Qualified { person: x, course } => format!("{} completed the {}.", me(x), course.label()),
+        MovedHome { person: x, bought } => format!("{} {} a new home.", me(x), if bought { "bought" } else { "moved into" }),
+        HiredHelper { person: x, helper } => format!("{} took on a {}.", me(x), helper.label()),
+        GaveBack { person: x, foundation } => {
+            if foundation { format!("{} launched a charitable foundation.", me(x)) } else { format!("{} committed time to community work.", me(x)) }
+        }
+        Endorsed { person: x, brand, fee_year } => {
+            let b = &w.commerce.brands[brand as usize];
+            format!("{} signed an endorsement with {} ({}, {} a year).", me(x), b.name, b.sector.label(), money(fee_year))
+        }
+        EndorsementEnded { person: x, brand, why } => {
+            let b = &w.commerce.brands[brand as usize];
+            let how = match why {
+                pw_world::commerce::DealEnd::Expired => "came to an end",
+                pw_world::commerce::DealEnd::Scandal => "was terminated after damaging headlines",
+                pw_world::commerce::DealEnd::Conflict => "was dropped because of a clash with the club's partners",
+                pw_world::commerce::DealEnd::Retired => "ended with retirement",
+                pw_world::commerce::DealEnd::Faded => "was not renewed",
+            };
+            format!("{}'s deal with {} {how}.", me(x), b.name)
+        }
+        SponsorClash { person: x, brand, club: c } => format!("{}'s deal with {} clashes with {}'s own partners.", me(x), w.commerce.brands[brand as usize].name, club(w, c)),
+        ClubSponsor { club: c, brand, slot, fee_year } => format!("{} agreed a {} sponsorship with {} worth {} a year.", club(w, c), slot.label(), w.commerce.brands[brand as usize].name, money(fee_year)),
+        NewCareer { person: x, path } => format!("{} began a career in {}.", me(x), path.label()),
+        CareerEnded { person: x, path } => format!("{} stepped away from {}.", me(x), path.label()),
+        Investment { person: x, gain } => {
+            if gain >= 0 { format!("{}'s investments returned {}.", me(x), money(gain)) } else { format!("{} lost {} on investments.", me(x), money(-gain)) }
+        }
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })
 }

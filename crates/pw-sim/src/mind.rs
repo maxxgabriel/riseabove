@@ -137,9 +137,13 @@ pub fn weekly(w: &mut World) {
                 }
             }
             PlayerStatus::Retired => {
-                if person.staff.is_none() && today.month() == 8 && rng.chance(staff_calling(w, p)) {
-                    let role = preferred_staff_role(w, p);
-                    queued.push((who, Intent::SeekStaffJob(role)));
+                // A working life after playing: coaching (badges first), the
+                // media, agency, scouting, a club role or business.
+                let idle = person.staff.is_none() && w.affairs.of(who).is_none_or(|a| a.work.is_none() && a.studying.is_none());
+                if idle && today.month() == 8 && rng.chance(staff_calling(w, p).max(0.25)) {
+                    if let Some(i) = crate::affairs::ai_next_step(w, who, p) {
+                        queued.push((who, i));
+                    }
                 }
             }
             PlayerStatus::Amateur => {
@@ -248,7 +252,7 @@ fn staff_calling(w: &World, p: PlayerId) -> f32 {
     ((lead + det - 18.0) / 30.0).clamp(0.02, 0.6)
 }
 
-fn preferred_staff_role(w: &World, p: PlayerId) -> StaffRole {
+pub(crate) fn preferred_staff_role(w: &World, p: PlayerId) -> StaffRole {
     let c = &w.players.cold[p];
     let a = |x: Attr| c.attrs.get(x);
     if a(Attr::Leadership) >= 15.0 {

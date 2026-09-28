@@ -94,6 +94,7 @@ pub fn hazard_mult(w: &World, p: PlayerId) -> f32 {
         * age_mult
         * wellbeing
         * w.medical.fragility(p)
+        * crate::affairs::body_care(w, c.person)
 }
 
 /// Pick an injury from the catalogue for a mechanism; returns (catalogue index, days).

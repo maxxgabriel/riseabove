@@ -35,6 +35,10 @@ pub fn title(w: &World, d: &Decision) -> String {
             crate::fmt::nation(w, *n),
             crate::fmt::nation(w, *other)
         ),
+        DecisionKind::Endorsement { brand, fee_year, years, days } => {
+            let b = &w.commerce.brands[*brand as usize];
+            format!("{} ({}) offer {} a year for {years} years, {days} appearance days a month", b.name, b.sector.label(), money(*fee_year))
+        }
         DecisionKind::Treatment { surgery_days, rehab_days } => format!(
             "Surgery (about {}, lower risk of recurrence) or rehabilitation (about {}, setbacks likelier)?",
             crate::fmt::duration_days(*surgery_days),

@@ -49,6 +49,18 @@ pub enum Intent {
     Mentor(PersonId),
     /// Say something on the record about someone (or yourself).
     SpeakToPress { about: PersonId, stance: crate::media::Stance },
+    /// Start a course (coaching badges, degrees, media training…).
+    Enrol(crate::affairs::Course),
+    MoveHome { buy: bool, quality: u8 },
+    HireHelper(crate::affairs::Helper, u8),
+    DismissHelper(crate::affairs::Helper),
+    /// Share of income to give, and monthly hours of community work.
+    SetGiving { pct: u8, community: u8 },
+    StartFoundation,
+    Invest { amount: pw_core::Money, risk: u8 },
+    /// Begin a working life beyond (or after) playing.
+    PursueCareer(crate::affairs::CareerPath),
+    LeaveCareer,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
