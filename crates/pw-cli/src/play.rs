@@ -218,6 +218,12 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
                 print(pw_career::views::social(g.world(), me, 15));
             }
         }
+        "feed" => {
+            if let Some(me) = me_or_warn(g) {
+                print(pw_career::views::feed(g.world(), me, arg(1).parse().unwrap_or(15)));
+            }
+        }
+        "post" => post(g, &p[1..]),
         "rumours" | "interest" => {
             if let Some(me) = me_or_warn(g) {
                 print(pw_career::views::rumours(g.world(), me));
@@ -376,6 +382,51 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
         _ => println!("Unknown command. Type `help`."),
     }
     true
+}
+
+/// post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <person #>] [reply <post #>|quote <post #>]
+fn post(g: &mut Game, a: &[&str]) {
+    use pw_world::socialnet::{Concept, NO_POST};
+    let Some(me) = me_or_warn(g) else { return };
+    let concept = match a.first().copied().unwrap_or("") {
+        "praise" => Concept::Praise,
+        "criticise" | "criticize" => Concept::Criticise,
+        "celebrate" => Concept::Celebrate,
+        "lament" => Concept::Lament,
+        "defend" => Concept::Defend,
+        "mock" => Concept::Mock,
+        "agree" => Concept::Agree,
+        "disagree" => Concept::Disagree,
+        "statement" => Concept::Statement,
+        _ => {
+            println!("post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <person #>] [reply <post #>|quote <post #>]");
+            return;
+        }
+    };
+    let (mut about, mut reply_to, mut quote_of) = (me, NO_POST, NO_POST);
+    for pair in a[1..].chunks(2) {
+        let n: u32 = pair.get(1).and_then(|x| x.parse().ok()).unwrap_or(u32::MAX);
+        match pair[0] {
+            "about" if n != u32::MAX && (n as usize) < g.world().people.len() => about = PersonId(n),
+            "reply" => reply_to = n,
+            "quote" => quote_of = n,
+            _ => {}
+        }
+    }
+    // Replies and quotes must point at posts that exist; the subject follows.
+    for id in [reply_to, quote_of] {
+        if id != NO_POST {
+            match g.world().net.post(id) {
+                Some(p) if about == me && p.about.is_some() => about = p.about,
+                Some(_) => {}
+                None => {
+                    println!("There is no post #{id}.");
+                    return;
+                }
+            }
+        }
+    }
+    act(g, Intent::Post { about, concept, reply_to, quote_of });
 }
 
 fn act(g: &mut Game, i: Intent) {
@@ -544,7 +595,8 @@ fn help() {
         "\
 World:     find <name> · clubs · become <id> · create <first> <last> <age> <pos> [club] · leave
 You:       me · self · life · people · promises · contract · rumours · goals · goal <apps N|goals N|topflight|text> · note <text>
-Club:      club · table · fixtures · news · social
+Club:      club · table · fixtures · news · social · feed [n]
+Post:      post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <#>] [reply <post #>|quote <post #>]
 Feed:      new · inbox [n] · why <event #> · meetings
 Decide:    decisions · answer <decision #> <option #>
 Act:       meet manager|agent|<id> <topic> [tone] · train … · routine k=v … · lifestyle …

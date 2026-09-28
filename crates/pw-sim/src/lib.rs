@@ -49,6 +49,7 @@ pub mod scouting;
 pub mod season;
 pub mod selection;
 pub mod social;
+pub mod socialnet;
 pub mod staffing;
 pub mod talk;
 pub mod youth;
@@ -133,6 +134,7 @@ impl Sim {
             incidents::monthly(w);
             affairs::monthly(w);
             commerce::monthly(w);
+            socialnet::monthly(w);
             if today.month() == 6 {
                 youth::reviews(w);
             }
@@ -184,6 +186,8 @@ impl Sim {
         grapevine::daily(w);
         pressroom::daily(w);
         newsroom::daily(w);
+        socialnet::persons_post(w);
+        socialnet::daily(w);
 
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
@@ -192,6 +196,7 @@ impl Sim {
             grapevine::feelings(w);
             incidents::weekly(w);
             newsroom::weekly(w);
+            socialnet::weekly(w);
             dressing::weekly(w);
             perception::weekly(w);
             social::weekly(w);
@@ -251,6 +256,7 @@ pub fn prepare(w: &mut World) {
     commerce::ensure(w);
     culture::ensure(w);
     newsroom::ensure_profiles(w);
+    socialnet::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

@@ -459,6 +459,23 @@ pub fn social(w: &World, me: PersonId, n: usize) -> Vec<String> {
     v
 }
 
+/// A person's social feed: posts from the persistent population, rendered
+/// in their authors' voices, with the ids to reply to or quote.
+pub fn feed(w: &World, me: PersonId, n: usize) -> Vec<String> {
+    let ids = pw_sim::socialnet::feed(w, me, n);
+    if ids.is_empty() {
+        return vec!["Your feed is quiet.".into()];
+    }
+    ids.into_iter()
+        .filter_map(|id| w.net.post(id))
+        .map(|p| {
+            let a = &w.net.accounts[p.author as usize];
+            let lead = if p.reply_to != pw_world::socialnet::NO_POST { format!("↳ #{} ", p.reply_to) } else { String::new() };
+            format!("#{} {} @{} ({}): {lead}{}  [{} likes, {} reposts]", p.id, p.date, a.handle, a.display, pw_narrate::social::post(w, p), p.likes, p.reposts)
+        })
+        .collect()
+}
+
 /// People a human could step into: players matching a name fragment.
 pub fn find(w: &World, text: &str, limit: usize) -> Vec<(PersonId, String)> {
     let q = text.to_lowercase();

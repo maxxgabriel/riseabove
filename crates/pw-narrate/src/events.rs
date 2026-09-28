@@ -225,6 +225,7 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JournalistMoved { person: x, from, to } => format!("{} left {} for {}.", me(x), w.media.outlets[from].name, w.media.outlets[to].name),
         JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
         JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
+        SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })
 }
@@ -297,6 +298,7 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::Pressure { pressure, level } => format!("{} ({})", pressure.label(), crate::incidents::strength(level)),
         Fact::Disposition { person: x, reason, level } => format!("{}'s {} ({})", person(w, x), reason.label(), crate::incidents::strength(level)),
         Fact::PoorRun { club: c, defeats, games } => format!("{} had lost {defeats} of their last {games}", club(w, c)),
+        Fact::Viral { reposts, .. } => format!("a supporter's post was shared {reposts} times"),
         Fact::Newsworthy { importance, relevance, controversy } => format!("editors judged it newsworthy (importance {importance}, relevance {relevance}, controversy {controversy})"),
     }
 }

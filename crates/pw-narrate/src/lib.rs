@@ -14,6 +14,7 @@ pub mod grapevine;
 pub mod incidents;
 pub mod lexicon;
 pub mod press;
+pub mod social;
 pub mod talk;
 
 pub use fmt::{club, money, person, player};

@@ -87,6 +87,8 @@ pub enum Fact {
     PoorRun { club: ClubId, defeats: u8, games: u8 },
     /// How newsworthy a story was judged, and why (0–100 each).
     Newsworthy { importance: u8, relevance: u8, controversy: u8 },
+    /// A supporter post that spread (see `World::net`).
+    Viral { post: u32, reposts: u32 },
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
@@ -280,6 +282,8 @@ pub enum EventKind {
     JournalistMoved { person: PersonId, from: pw_core::OutletId, to: pw_core::OutletId },
     JournalistLeft { person: PersonId, outlet: pw_core::OutletId },
     JournalistHired { person: PersonId, outlet: pw_core::OutletId },
+    /// A supporter group acted together (see `World::net.groups`).
+    SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -498,6 +502,7 @@ impl EventKind {
             | BoardWarning { club, .. }
             | BoardQuery { club, .. }
             | InvestigationCleared { club }
+            | SupporterAction { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

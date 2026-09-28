@@ -212,6 +212,8 @@ struct Candidate {
     earliest: u16,
     rivalry: f32,
     fixture: u64,
+    /// A supporter post the story is about (`NO_POST` if none).
+    post: u32,
 }
 
 impl Candidate {
@@ -233,6 +235,7 @@ impl Candidate {
             earliest: 480,
             rivalry: 0.0,
             fixture: 0,
+            post: pw_world::socialnet::NO_POST,
         }
     }
 }
@@ -528,7 +531,9 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
         tone += if affinity == c.club { 20.0 } else if w.media.rivalry(affinity, c.club) >= 50 { -20.0 } else { 0.0 };
     }
     let leaker = if c.info != u32::MAX { w.grapevine.chain(c.info, j).last().map_or(PersonId::NONE, |t| t.from) } else { PersonId::NONE };
-    let source = if c.public || c.info == u32::MAX {
+    let source = if let Some(p) = w.net.post(c.post) {
+        Cause::Fact(Fact::Viral { post: c.post, reposts: p.reposts })
+    } else if c.public || c.info == u32::MAX {
         if c.event.is_some() { Cause::Event(c.event) } else { Cause::Fact(Fact::Newsworthy { importance: why[0], relevance: why[1], controversy: why[2] }) }
     } else {
         Cause::Fact(Fact::Heard { info: c.info, from: leaker })
@@ -641,6 +646,35 @@ fn public_incidents(w: &mut World) {
         for j in covering(w, nation, inc.club, 2) {
             let _ = run(w, c, j, 0);
         }
+    }
+}
+
+/// A supporter post spread far enough that the press writes about the
+/// reaction itself. The story says what supporters said, sourced to the post.
+pub fn fan_reaction(w: &mut World, club: ClubId, about: PersonId, post: u32) {
+    let Some(p) = w.net.post(post) else { return };
+    let reposts = p.reposts;
+    let tone = match p.concept {
+        pw_world::socialnet::Concept::Criticise | pw_world::socialnet::Concept::Mock | pw_world::socialnet::Concept::Sarcasm | pw_world::socialnet::Concept::CallOut => -25,
+        pw_world::socialnet::Concept::Praise | pw_world::socialnet::Concept::Celebrate | pw_world::socialnet::Concept::Defend => 20,
+        _ => 0,
+    };
+    // One reaction story per club and subject per week.
+    let today = w.date;
+    if w.media.stories.iter().rev().take(300).any(|s| s.kind == StoryKind::FanReaction && s.club == club && s.person == about && s.date.days_until(today) < 7) {
+        return;
+    }
+    let mut c = Candidate::new(StoryKind::FanReaction);
+    c.public = true;
+    c.club = club;
+    c.person = about;
+    c.importance = (0.15 + (reposts as f32).log10() / 20.0).min(0.6);
+    c.tone = tone;
+    c.earliest = 660;
+    c.post = post;
+    let nation = w.clubs[club].nation;
+    for j in covering(w, nation, club, 1) {
+        let _ = run(w, c, j, 0);
     }
 }
 
