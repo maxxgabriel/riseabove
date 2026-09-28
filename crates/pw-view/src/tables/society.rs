@@ -251,7 +251,7 @@ pub fn groups() -> Grid {
                 .map(|g| {
                     Row::new()
                         .cell("club", club_cell(c, g.club), Key::text(c.club_short(g.club)))
-                        .text("kind", words(&g.kind))
+                        .text("kind", crate::pages::club::group_word(g.kind))
                         .num("size", f64::from(g.size))
                         .cell("manager", mood(g.manager), Key::Num(f64::from(g.manager)))
                         .cell("board", mood(g.board), Key::Num(f64::from(g.board)))
@@ -289,7 +289,7 @@ pub fn rivalries() -> Grid {
                 .map(|r| {
                     let (a, ar) = side_name(c, r.a);
                     let (b, br) = side_name(c, r.b);
-                    let kinds = r.kinds.iter().map(words).collect::<Vec<_>>().join(", ");
+                    let kinds = r.kinds.iter().map(|k| crate::pages::club::rivalry_word(*k)).collect::<Vec<_>>().join(", ");
                     let mut row = Row::new()
                         .cell("a", ar.map_or_else(|| Cell::text(a.clone()), |x| Cell::link(x, a.clone())), Key::text(&a))
                         .cell("b", br.map_or_else(|| Cell::text(b.clone()), |x| Cell::link(x, b.clone())), Key::text(&b))

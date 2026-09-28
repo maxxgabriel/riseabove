@@ -1,5 +1,6 @@
 use pw_core::{ClubId, CompId, NationId};
 use pw_world::comp::Stage;
+use pw_world::culture::Side;
 use pw_world::club::Ownership;
 use pw_world::{CompKind, StaffRole, TeamKind};
 use serde_json::{Value, json};
@@ -221,6 +222,35 @@ fn bond_text(c: &Ctx, b: pw_world::dressing::Bond) -> String {
     }
 }
 
+pub(crate) fn rivalry_word(k: pw_world::culture::RivalryKind) -> &'static str {
+    use pw_world::culture::RivalryKind as R;
+    match k {
+        R::Derby => "Derby",
+        R::Regional => "Regional",
+        R::Historic => "Historic",
+        R::TitleRace => "Title race",
+        R::Promotion => "Promotion battle",
+        R::Relegation => "Relegation battle",
+        R::CupRevenge => "Cup revenge",
+        R::BadBlood => "Bad blood",
+        R::Institutional => "Institutional",
+        R::International => "International",
+    }
+}
+
+pub(crate) fn group_word(k: pw_world::socialnet::GroupKind) -> &'static str {
+    use pw_world::socialnet::GroupKind as G;
+    match k {
+        G::SeasonTicket => "Season-ticket holders",
+        G::Online => "Online community",
+        G::International => "Overseas supporters",
+        G::Academy => "Academy followers",
+        G::Ultras => "Ultras",
+        G::Numbers => "Numbers and data fans",
+        G::Trust => "Supporters' trust",
+    }
+}
+
 /// Who owns and runs the club, what it is building, what its staff are planning. Public facts (owner,
 /// announced projects, sponsors) are shown to everyone; boardroom numbers, the squad plan, scouting and
 /// the dressing room only to the observer.
@@ -319,5 +349,41 @@ pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
         .filter(|d| d.club == id && d.end >= w.date)
         .map(|d| json!({"brand": w.commerce.brands[d.brand as usize].name, "slot": format!("{:?}", d.slot).to_lowercase(), "until": d.end.0, "fee": if internals { json!(d.fee_year) } else { Value::Null }}))
         .collect();
-    Ok(json!({"board": board, "plan": plan, "scouting": scouting, "room": room, "sponsors": sponsors, "internal": internals}))
+    let rivalries: Vec<Value> = w
+        .culture
+        .rivalries
+        .list
+        .iter()
+        .filter(|r| r.a == Side::Club(id) || r.b == Side::Club(id))
+        .map(|r| {
+            let other = if r.a == Side::Club(id) { r.b } else { r.a };
+            let (name, target) = match other {
+                Side::Club(x) => (c.club_name(x), Some(Ref::club(x))),
+                Side::Nation(n) => (c.nation_name(n), Some(Ref::nation(n))),
+                Side::Institution(i) => (pw_narrate::history::institution(w, i), None),
+            };
+            json!({
+                "with": target.map_or_else(|| Value::String(name.clone()), |t| named(t, name.clone())), "intensity": r.intensity,
+                "why": r.kinds.iter().map(|k| rivalry_word(*k)).collect::<Vec<_>>(), "record": [r.h2h.0, r.h2h.1, r.h2h.2], "since": r.since.0, "last_met": r.last_meeting.0,
+            })
+        })
+        .collect();
+    let supporters: Vec<Value> = w
+        .net
+        .groups
+        .iter()
+        .filter(|g| g.club == id)
+        .map(|g| json!({"kind": group_word(g.kind), "size": g.size, "manager": g.manager, "board": g.board, "team": g.team, "voice": g.voice, "last_acted": g.last_action.0}))
+        .collect();
+    let culture = if internals {
+        w.culture.clubs.get(&id).map(|k| {
+            json!({
+                "identity": {"youth": k.identity.youth, "local": k.identity.local, "flair": k.identity.flair, "grit": k.identity.grit, "underdog": k.identity.underdog, "glamour": k.identity.glamour},
+                "discipline": k.discipline, "expectations": k.expectations, "patience": k.patience, "tribalism": k.tribalism, "graduates": k.graduates, "drought": k.drought,
+            })
+        })
+    } else {
+        None
+    };
+    Ok(json!({"board": board, "plan": plan, "scouting": scouting, "room": room, "sponsors": sponsors, "rivalries": rivalries, "supporters": supporters, "culture": culture, "internal": internals}))
 }

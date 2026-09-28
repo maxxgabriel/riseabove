@@ -2,7 +2,6 @@
 //! can join in. Every post is rendered by narration from what the author recorded; the sender's
 //! own reasons and opinions stay in the world.
 
-use pw_core::PersonId;
 use pw_world::socialnet::{AccountKind, NO_POST, Post};
 use serde_json::{Value, json};
 
