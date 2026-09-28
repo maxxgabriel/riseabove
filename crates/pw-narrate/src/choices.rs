@@ -39,6 +39,7 @@ pub fn title(w: &World, d: &Decision) -> String {
             let b = &w.commerce.brands[*brand as usize];
             format!("{} ({}) offer {} a year for {years} years, {days} appearance days a month", b.name, b.sector.label(), money(*fee_year))
         }
+        DecisionKind::PressQuestion { conference, question } => crate::press::question(w, *conference, *question),
         DecisionKind::Incident { incident } => format!("You need to deal with this: {}", crate::incidents::summary(w, *incident, false, false)),
         DecisionKind::IncidentAsk { incident, ask } => match ask {
             pw_world::incident::Ask::RequestLeave => format!("Ask for time away? ({})", crate::incidents::summary(w, *incident, false, false)),
@@ -57,6 +58,7 @@ pub fn option(c: &Choice) -> String {
         Choice::Accept => "Accept".into(),
         Choice::Reject => "Reject".into(),
         Choice::Decline => "Decline".into(),
+        Choice::Say(s) => crate::press::stance_label(*s).into(),
         Choice::Handle(r) => match r {
             pw_world::incident::Response::Protect(_) => "Take one side".into(),
             other => format!("{}{}", other.label()[..1].to_uppercase(), &other.label()[1..]),

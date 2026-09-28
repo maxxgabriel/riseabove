@@ -51,6 +51,8 @@ pub enum DecisionKind {
     Incident { incident: u32 },
     /// You are asked (or may ask) something about an incident.
     IncidentAsk { incident: u32, ask: crate::incident::Ask },
+    /// A question at a press conference.
+    PressQuestion { conference: u32, question: u8 },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -66,6 +68,8 @@ pub enum Choice {
     Decline,
     /// Deal with an incident in this way.
     Handle(crate::incident::Response),
+    /// Answer a question (or post) with this stance.
+    Say(crate::media::Stance),
 }
 
 impl Choice {
@@ -90,6 +94,7 @@ impl DecisionKind {
             DecisionKind::Treatment { .. } => "Treatment",
             DecisionKind::Endorsement { .. } => "Endorsement offer",
             DecisionKind::Incident { .. } => "Something to deal with",
+            DecisionKind::PressQuestion { .. } => "Press conference",
             DecisionKind::IncidentAsk { ask: crate::incident::Ask::RequestLeave, .. } => "Ask for time away?",
             DecisionKind::IncidentAsk { ask: crate::incident::Ask::Apologise, .. } => "Apologise?",
         }

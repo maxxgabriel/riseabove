@@ -256,3 +256,49 @@ fn volume(v: u8) -> &'static str {
         _ => "trending",
     }
 }
+
+/// A stance as an answer option.
+pub fn stance_label(s: Stance) -> &'static str {
+    match s {
+        Stance::Praise => "Praise",
+        Stance::Criticise => "Criticise",
+        Stance::Deflect => "Deflect",
+        Stance::Ambition => "Talk up ambitions",
+        Stance::Loyalty => "Declare loyalty",
+        Stance::Complain => "Complain",
+        Stance::Support => "Back them",
+        Stance::Deny => "Deny it",
+    }
+}
+
+/// A press-conference question as the journalist asks it.
+pub fn question(w: &World, conference: u32, q: u8) -> String {
+    use pw_world::pressroom::QTopic;
+    let Some(c) = w.pressroom.conferences.get(conference as usize) else { return "A question.".into() };
+    let Some(q) = c.questions.get(usize::from(q)) else { return "A question.".into() };
+    let who = person(w, q.journalist);
+    let outlet = w.media.journalists.get(&q.journalist).map_or("the press".to_string(), |j| w.media.outlets[j.outlet].name.clone());
+    let lead = if q.follow_up { "Just to press you on that — " } else { "" };
+    let body = match q.topic {
+        QTopic::LastMatch { uid } => match w.recent_matches.by_uid(uid) {
+            Some(m) => format!("what did you make of the {}-{} against {}?", m.hg, m.ag, club_short(w, if m.home == c.club { m.away } else { m.home })),
+            None => "what did you make of the last game?".into(),
+        },
+        QTopic::Transfer { story, player: p } => format!("{} report {} — is {} leaving?", outlet_of(w, story), headline(w, &w.media.stories[story]).to_lowercase(), player(w, p)),
+        QTopic::Trouble { story } => format!("there are reports that {} — what's going on?", headline(w, &w.media.stories[story]).to_lowercase()),
+        QTopic::Injury { player: p } => format!("how long will {} be out?", player(w, p)),
+        QTopic::Pressure => "after this run of results, are you worried about your job?".into(),
+        QTopic::Rival { club: o } => format!("how big is this one against {}?", club(w, o)),
+        QTopic::EarlierQuote { quote } => match w.pressroom.quotes.get(quote as usize) {
+            Some(r) => format!("a few weeks ago you said {} — do you stand by that?", quote_line(w, r.about, r.stance, u64::from(quote)).trim_end_matches('.').to_lowercase()),
+            None => "do you stand by what you said before?".into(),
+        },
+        QTopic::Selection { player: p } => format!("what's the latest on {}'s place in the side?", player(w, p)),
+    };
+    format!("{who} ({outlet}): {lead}{body}")
+}
+
+fn outlet_of(w: &World, s: pw_core::StoryId) -> String {
+    let st = &w.media.stories[s];
+    if st.outlet.is_some() { w.media.outlets[st.outlet].name.clone() } else { "Reports".into() }
+}

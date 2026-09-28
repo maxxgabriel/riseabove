@@ -136,6 +136,8 @@ pub struct World {
     pub agenda: crate::agenda::Agenda,
     /// Facts of the last four weeks of senior matches.
     pub recent_matches: crate::matchfacts::RecentMatches,
+    /// Press conferences and every quote on the record.
+    pub pressroom: crate::pressroom::Pressroom,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -193,6 +195,7 @@ impl World {
             incidents: Default::default(),
             agenda: Default::default(),
             recent_matches: Default::default(),
+            pressroom: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

@@ -35,6 +35,7 @@ pub mod negotiation;
 pub mod nation;
 pub mod perf;
 pub mod person;
+pub mod pressroom;
 pub mod player;
 pub mod renown;
 pub mod rules;
