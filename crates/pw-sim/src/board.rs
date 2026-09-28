@@ -58,8 +58,13 @@ pub fn weekly(w: &mut World) {
         if b.satisfaction < 15 {
             b.warnings += 1;
             b.satisfaction = 40;
-            if b.warnings >= 3 {
+            let warnings = b.warnings;
+            if warnings >= 3 {
                 sack.push(club);
+            } else if let Some(m) = w.clubs[club].manager.get() {
+                // Privately: the manager and the board know; others may hear.
+                let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+                w.events.push_caused(today, Visibility::Club(club), EventKind::BoardWarning { club, manager: m, warnings }, causes);
             }
         }
     }

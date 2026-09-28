@@ -214,6 +214,10 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         Investment { person: x, gain } => {
             if gain >= 0 { format!("{}'s investments returned {}.", me(x), money(gain)) } else { format!("{} lost {} on investments.", me(x), money(-gain)) }
         }
+        BoardWarning { club: c, manager, warnings } => format!("The {} board privately warned {} ({} warning{}).", club(w, c), w.staff_name(manager), warnings, if warnings == 1 { "" } else { "s" }),
+        BoardQuery { club: c, manager, .. } => format!("The {} board asked {} to explain what they had heard.", club(w, c), me_lc(manager)),
+        LeakSuspected { by, suspect, .. } => format!("{} suspects {} of talking to the press.", me(by), me_lc(suspect)),
+        AgentExploring { agent, player: p } => format!("{} began quietly sounding out clubs about {}.", me(agent), pl(p)),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })
 }
@@ -282,6 +286,7 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::Reading { player: p } => format!("how {} performances are being read", who(p)),
         Fact::Ranking => "a published ranking".into(),
         Fact::Anniversary { year } => format!("the anniversary of {year}"),
+        Fact::Heard { info, from } => format!("{} heard it ({})", person(w, from), crate::grapevine::what(w, info)),
     }
 }
 

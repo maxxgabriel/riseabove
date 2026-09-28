@@ -77,6 +77,8 @@ pub enum Fact {
     Ranking,
     /// An anniversary of a season.
     Anniversary { year: i32 },
+    /// Someone heard something (an information item) from someone.
+    Heard { info: u32, from: PersonId },
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
@@ -252,6 +254,14 @@ pub enum EventKind {
     NewCareer { person: PersonId, path: crate::affairs::CareerPath },
     CareerEnded { person: PersonId, path: crate::affairs::CareerPath },
     Investment { person: PersonId, gain: Money },
+    /// The board issued a private warning to its manager.
+    BoardWarning { club: ClubId, manager: StaffId, warnings: u8 },
+    /// The board asked the manager to explain something it heard.
+    BoardQuery { club: ClubId, manager: PersonId, info: u32 },
+    /// Someone believes a colleague leaked to the press.
+    LeakSuspected { by: PersonId, suspect: PersonId, info: u32 },
+    /// An agent began quietly sounding out clubs for a client.
+    AgentExploring { agent: PersonId, player: PlayerId },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -394,6 +404,7 @@ impl EventKind {
             | Stagnated { player }
             | Milestone { player, .. }
             | RecordBroken { player, .. }
+            | AgentExploring { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -419,6 +430,11 @@ impl EventKind {
             | NewCareer { person, .. }
             | CareerEnded { person, .. }
             | Investment { person, .. } => v.push(person),
+            BoardQuery { manager, .. } => v.push(manager),
+            LeakSuspected { by, suspect, .. } => {
+                v.push(by);
+                v.push(suspect);
+            }
             TookUnderWing { mentor, mentee } => {
                 v.push(mentor);
                 v.push(mentee);
@@ -454,6 +470,8 @@ impl EventKind {
             | ManagerAppointed { club, .. }
             | PlayerSettled { club, .. }
             | ClubSponsor { club, .. }
+            | BoardWarning { club, .. }
+            | BoardQuery { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

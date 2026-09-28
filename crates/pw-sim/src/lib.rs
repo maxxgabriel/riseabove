@@ -15,6 +15,7 @@ pub mod economy;
 pub mod finance;
 pub mod generate;
 pub mod governance;
+pub mod grapevine;
 pub mod growth;
 pub mod health;
 pub mod honours;
@@ -122,6 +123,7 @@ impl Sim {
             interpret::monthly(w);
             honours::monthly(w);
             renown::monthly(w);
+            grapevine::compact(w);
             affairs::monthly(w);
             commerce::monthly(w);
             if today.month() == 6 {
@@ -168,10 +170,14 @@ impl Sim {
         // National teams: windows, qualifiers, tournaments.
         intl::daily(w);
 
+        // 8b. What people heard today, and whom they told.
+        grapevine::daily(w);
+
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
             development::weekly(w);
             medical::weekly(w);
+            grapevine::feelings(w);
             dressing::weekly(w);
             perception::weekly(w);
             social::weekly(w);

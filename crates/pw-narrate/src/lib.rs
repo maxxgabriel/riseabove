@@ -10,6 +10,8 @@
 pub mod choices;
 pub mod events;
 pub mod fmt;
+pub mod grapevine;
+pub mod lexicon;
 pub mod press;
 pub mod talk;
 
