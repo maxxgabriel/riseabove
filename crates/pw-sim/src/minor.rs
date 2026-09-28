@@ -520,6 +520,7 @@ pub fn season_end(w: &mut World) {
         let hidx = w.minor.history.len() as u32;
         w.minor.history.push(season);
         w.events.push(today, Visibility::Public, EventKind::MinorTitle { history: hidx });
+        crate::records::minor_season(w, hidx);
         // Standout players are noticed by professional clubs nearby.
         for p in [top.0, best] {
             if p.is_some() {
@@ -544,6 +545,7 @@ pub fn season_end(w: &mut World) {
     // Lines become careers.
     let mut by_player: Vec<(PlayerId, MinorLine)> = lines.into_iter().map(|((p, _), l)| (p, l)).collect();
     by_player.sort_by_key(|x| (x.0, x.1.season));
+    crate::records::minor_lines(w, &by_player);
     for (p, l) in by_player {
         let v = w.minor.careers.entry(p).or_default();
         v.push(l);

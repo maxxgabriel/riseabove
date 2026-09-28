@@ -171,7 +171,7 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         },
         RecordBroken { player: p, kind, club: c, value } => {
             use pw_world::event::RecordKind as R;
-            match kind {
+            let base = match kind {
                 R::ClubTopScorer => format!("{} became {}'s all-time top scorer ({value} goals).", pl(p), club(w, c)),
                 R::ClubMostApps => format!("{} now has more appearances for {} than anyone ({value}).", pl(p), club(w, c)),
                 R::ClubRecordSigning => format!("{} became {}'s record signing ({}).", pl(p), club(w, c), money(value)),
@@ -181,7 +181,8 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
                 R::NationMostCaps => format!("{} became their country's most-capped player ({value}).", pl(p)),
                 R::NationTopScorer => format!("{} became their country's all-time top scorer ({value}).", pl(p)),
                 R::WorldRecordFee => format!("{} became the most expensive player in history ({}).", pl(p), money(value)),
-            }
+            };
+            format!("{base}{}", crate::history::pro_context(w, e.date, kind, c))
         }
         BecameLegend { person: x, club: c } => format!("{} {} now spoken of as a legend at {}.", me(x), if x == viewer { "are" } else { "is" }, club(w, c)),
         InductedHallOfFame { person: x } => format!("{} {} inducted into the Hall of Fame.", me(x), if x == viewer { "were" } else { "was" }),
@@ -233,6 +234,7 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
                 format!("{} graduated from {}.", me(x), crate::history::institution(w, institution))
             }
         }
+        Record { broken, .. } => w.records.broken.get(broken as usize).map_or_else(String::new, |b| crate::history::broken(w, b)),
         MinorTitle { history } => w.minor.history.get(history as usize).map_or_else(String::new, |s| crate::history::season_line(w, s)),
         SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),

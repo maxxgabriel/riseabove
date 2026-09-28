@@ -287,6 +287,8 @@ pub enum EventKind {
     Graduated { person: PersonId, institution: u32, early: bool },
     /// A minor competition's season finished (`World::minor.history` index).
     MinorTitle { history: u32 },
+    /// A record fell (`World::records.broken` index).
+    Record { broken: u32, person: PersonId, club: ClubId },
     /// A supporter group acted together (see `World::net.groups`).
     SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
@@ -459,6 +461,7 @@ impl EventKind {
             | Investment { person, .. }
             | EnrolledUniversity { person, .. }
             | Graduated { person, .. } => v.push(person),
+            Record { person, .. } if person.is_some() => v.push(person),
             BoardQuery { manager, .. } => v.push(manager),
             IncidentResponse { by, .. } => v.push(by),
             JournalistMoved { person, .. } | JournalistLeft { person, .. } | JournalistHired { person, .. } => v.push(person),
@@ -510,6 +513,7 @@ impl EventKind {
             | BoardQuery { club, .. }
             | InvestigationCleared { club }
             | SupporterAction { club, .. }
+            | Record { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

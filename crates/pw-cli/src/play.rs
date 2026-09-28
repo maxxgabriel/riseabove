@@ -271,6 +271,16 @@ fn command(g: &mut Game, p: &[&str]) -> bool {
             }
         }
         "post" => post(g, &p[1..]),
+        "records" => {
+            if let Some(me) = me_or_warn(g) {
+                print(pw_career::views::records(g.world(), me));
+            }
+        }
+        "history" => {
+            if let Some(me) = me_or_warn(g) {
+                print(pw_career::views::history(g.world(), me));
+            }
+        }
         "rumours" | "interest" => {
             if let Some(me) = me_or_warn(g) {
                 print(pw_career::views::rumours(g.world(), me));
@@ -641,7 +651,7 @@ fn help() {
     println!(
         "\
 World:     find <name> · clubs · become <id> · create <first> <last> <age> <pos> [club] · leave
-You:       me · self · life · people · promises · contract · rumours · goals · goal <apps N|goals N|topflight|text> · note <text>
+You:       me · self · life · people · promises · contract · rumours · records · history · goals · goal <apps N|goals N|topflight|text> · note <text>
 Club:      club · table · fixtures · news · social · feed [n]
 Post:      post <praise|criticise|celebrate|lament|defend|mock|agree|disagree|statement> [about <#>] [reply <post #>|quote <post #>]
 Feed:      new · events [n] · inbox [n] · thread <#> · reply <msg #> <option #> · why <event #> · meetings

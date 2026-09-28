@@ -476,6 +476,52 @@ pub fn feed(w: &World, me: PersonId, n: usize) -> Vec<String> {
         .collect()
 }
 
+/// Records held by you and by your club, with who held them before.
+pub fn records(w: &World, me: PersonId) -> Vec<String> {
+    use pw_world::records::Holder;
+    let mut v = Vec::new();
+    for r in w.records.held_by(Holder::Person(me)) {
+        v.push(format!("You hold {}: {}", pw_narrate::history::record_name(w, r.key), pw_narrate::history::value(r.key.stat, r.current.value)));
+    }
+    let club = w.club_of_person(me);
+    if club.is_some() {
+        for r in w.records.in_scope(pw_world::records::Scope::Club(club)) {
+            let prev = r.previous.last().map_or_else(String::new, |m| format!(" (before: {}, {})", pw_narrate::history::holder(w, m.holder), pw_narrate::history::value(r.key.stat, m.value)));
+            v.push(format!("{}: {}, {}{prev}", pw_narrate::history::record_name(w, r.key), pw_narrate::history::holder(w, r.current.holder), pw_narrate::history::value(r.key.stat, r.current.value)));
+        }
+    }
+    if v.is_empty() {
+        v.push("No records yet.".into());
+    }
+    v
+}
+
+/// Where you played before the professional game, and what you won there.
+pub fn history(w: &World, me: PersonId) -> Vec<String> {
+    let mut v = Vec::new();
+    let p = w.people[me].player;
+    if p.is_some() {
+        for l in w.minor.career(p) {
+            v.push(format!(
+                "{}/{:02}  {} ({}): {} apps, {} goals",
+                l.season,
+                (l.season + 1) % 100,
+                pw_narrate::history::entrant(w, l.entrant),
+                pw_narrate::history::level(pw_sim::records::minor_level(w, l.entrant, l.kind)),
+                l.apps,
+                l.goals
+            ));
+        }
+        for s in w.minor.history.iter().filter(|s| s.top_scorer == p || s.best == p) {
+            v.push(format!("  {}", pw_narrate::history::season_line(w, s)));
+        }
+    }
+    if v.is_empty() {
+        v.push("No football history below the professional game.".into());
+    }
+    v
+}
+
 /// People a human could step into: players matching a name fragment.
 pub fn find(w: &World, text: &str, limit: usize) -> Vec<(PersonId, String)> {
     let q = text.to_lowercase();

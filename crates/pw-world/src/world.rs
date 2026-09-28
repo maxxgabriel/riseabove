@@ -144,6 +144,8 @@ pub struct World {
     pub inbox: crate::inbox::Inbox,
     /// Schools, universities, amateur and grassroots competitions and their history.
     pub minor: crate::minor::Minor,
+    /// Records at every level, with their histories.
+    pub records: crate::records::RecordBook,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -205,6 +207,7 @@ impl World {
             net: Default::default(),
             inbox: Default::default(),
             minor: Default::default(),
+            records: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

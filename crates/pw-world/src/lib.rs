@@ -39,6 +39,7 @@ pub mod perf;
 pub mod person;
 pub mod pressroom;
 pub mod player;
+pub mod records;
 pub mod renown;
 pub mod rules;
 pub mod scouting;

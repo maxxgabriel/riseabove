@@ -67,6 +67,27 @@ pub enum MinorKind {
 }
 
 impl MinorKind {
+    /// A stable code (record scopes, title counts).
+    pub const fn code(self) -> u8 {
+        match self {
+            MinorKind::SchoolLeague => 1,
+            MinorKind::SchoolCup => 2,
+            MinorKind::UniversityLeague => 3,
+            MinorKind::GrassrootsCup => 4,
+            MinorKind::AmateurLeague { tier } => 10u8.saturating_add(tier),
+        }
+    }
+
+    pub fn from_code(c: u8) -> MinorKind {
+        match c {
+            1 => MinorKind::SchoolLeague,
+            2 => MinorKind::SchoolCup,
+            3 => MinorKind::UniversityLeague,
+            4 => MinorKind::GrassrootsCup,
+            t => MinorKind::AmateurLeague { tier: t.saturating_sub(10) },
+        }
+    }
+
     pub fn is_cup(self) -> bool {
         matches!(self, MinorKind::SchoolCup | MinorKind::GrassrootsCup)
     }

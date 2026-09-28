@@ -197,6 +197,7 @@ fn close_league(w: &mut World, c: CompId, year: i32) {
         w.clubs[club].finance.season_income += amount;
     }
     crate::culture::season_end(w, c, &rows);
+    crate::records::league_season(w, c, &rows);
     w.history.tables.push(ArchivedTable { comp: c, season: year, rows });
     archive_stats(w, c, year);
     w.comps[c].state.stage = Stage::Finished;

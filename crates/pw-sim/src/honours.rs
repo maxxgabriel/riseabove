@@ -12,6 +12,7 @@ use pw_world::history::AwardRecord;
 use pw_world::honours::{Holder, Inductee, Vote};
 use pw_world::intl::Level;
 use pw_world::nation::Confed;
+use pw_world::records::{Holder as RHolder, Scope, Stat};
 use pw_world::stats::StatLine;
 use pw_world::{CompKind, FanReason, FxHashMap, PlayerStatus, TeamKind, World};
 
@@ -85,6 +86,7 @@ pub fn on_result(w: &mut World, winner: ClubId, loser: ClubId, margin: u8) {
         let first = rec.biggest_win.value == 0;
         rec.biggest_win = Holder { player: PlayerId::NONE, value: i64::from(margin), date: today };
         rec.biggest_win_against = loser;
+        crate::records::mirror(w, Scope::Club(winner), Stat::BiggestWin, RHolder::Club(winner), i64::from(margin), Some(RHolder::Club(loser)));
         if !first {
             w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: PlayerId::NONE, kind: RecordKind::ClubBiggestWin, club: winner, value: i64::from(margin) });
         }
@@ -116,6 +118,9 @@ pub fn on_cap(w: &mut World, p: PlayerId, n: NationId) {
     for (kind, value) in broke {
         w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: p, kind, club: ClubId::NONE, value });
     }
+    let who = w.players.cold[p].person;
+    crate::records::mirror(w, Scope::Nation(n), Stat::Caps, RHolder::Person(who), i64::from(caps), None);
+    crate::records::mirror(w, Scope::Nation(n), Stat::IntlGoals, RHolder::Person(who), i64::from(goals), None);
 }
 
 /// After a transfer: record signings, sales, and the world record.
@@ -155,6 +160,14 @@ pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fe
     for (kind, club) in events {
         w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: p, kind, club, value: fee });
     }
+    let who = w.players.cold[p].person;
+    if buyer.is_some() {
+        crate::records::mirror(w, Scope::Club(buyer), Stat::FeePaid, RHolder::Person(who), fee, None);
+    }
+    if seller.is_some() {
+        crate::records::mirror(w, Scope::Club(seller), Stat::FeeReceived, RHolder::Person(who), fee, None);
+    }
+    crate::records::mirror(w, Scope::World, Stat::FeePaid, RHolder::Person(who), fee, None);
     // A record fee is a weight: fans expect, the media watch.
     if w.honours.clubs.get(&buyer).is_some_and(|r| r.record_signing.player == p) {
         let who = w.players.cold[p].person;
