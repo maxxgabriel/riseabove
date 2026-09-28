@@ -40,7 +40,12 @@ pub fn headline(w: &World, s: &Story) -> String {
                 _ => pick(key, &["set to bid for", "closing in on", "poised to swoop for"]),
             };
             let fee = if s.fee > 0 && s.claim >= 55 { format!(" in {} deal", money(s.fee)) } else { String::new() };
-            let base = format!("{} {verb} {who}{fee}", club(w, s.other_club),);
+            // An agent sounding out the market has no named club behind it.
+            let base = if s.other_club.is_some() {
+                format!("{} {verb} {who}{fee}", club(w, s.other_club))
+            } else {
+                format!("{who}'s agent {}", pick(key, &["sounds out clubs", "tests the market", "takes soundings abroad"]))
+            };
             if loud { format!("{}!", base.to_uppercase()) } else { base }
         }
         StoryKind::TransferNews => format!("{who} completes move to {}", club(w, s.club)),
@@ -65,7 +70,9 @@ pub fn headline(w: &World, s: &Story) -> String {
                 let speaker = person(w, q.speaker);
                 let target = if q.about.is_some() { person(w, q.about) } else { String::new() };
                 match q.stance {
+                    Stance::Praise if target.is_empty() => format!("{speaker} {}", pick(key, &["full of praise", "delighted", "all smiles"])),
                     Stance::Praise => format!("{speaker} hails {target}"),
+                    Stance::Criticise if target.is_empty() => format!("{speaker} {}", pick(key, &["does not hold back", "unhappy", "in critical mood"])),
                     Stance::Criticise => {
                         if loud {
                             format!("{speaker} SLAMS {}", target.to_uppercase())
@@ -73,6 +80,7 @@ pub fn headline(w: &World, s: &Story) -> String {
                             format!("{speaker} criticises {target}")
                         }
                     }
+                    Stance::Support if target.is_empty() => format!("{speaker} stands by the squad"),
                     Stance::Support => format!("{speaker} backs {target}"),
                     Stance::Deny => format!("{speaker} denies the reports"),
                     Stance::Complain => format!("{speaker} speaks out over role"),

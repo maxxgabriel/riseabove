@@ -53,7 +53,8 @@ pub fn generate(w: &mut World) {
     for comp in leagues {
         let nation = w.comps[comp].nation;
         let clubs: Vec<ClubId> = {
-            let mut v: Vec<ClubId> = w.comps[comp].state.table.iter().map(|r| w.teams[r.team].club).collect();
+            // League membership, not the table: tables are drawn at season start.
+            let mut v: Vec<ClubId> = w.clubs.ids().filter(|&c| w.clubs[c].league == comp).collect();
             v.sort();
             v
         };
@@ -104,6 +105,7 @@ pub fn generate(w: &mut World) {
     w.backfill.from = from;
     w.backfill.to = start - 1;
     w.backfill.done = true;
+    w.backfill.people_at = w.people.len() as u32;
     consequences(w);
 }
 

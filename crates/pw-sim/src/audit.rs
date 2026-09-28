@@ -133,7 +133,10 @@ fn inbox(w: &World, v: &mut Vec<Violation>) {
 }
 
 fn past(w: &World, v: &mut Vec<Violation>) {
-    let real: FxHashSet<String> = w.people.iter().map(|p| p.display_name(&w.names).into_owned()).collect();
+    // The world's people at the time the past was written; people born
+    // since may share a name with a figure of the past, as in life.
+    let n = w.backfill.people_at as usize;
+    let real: FxHashSet<String> = w.people.iter().take(n).map(|p| p.display_name(&w.names).into_owned()).collect();
     for f in &w.backfill.figures {
         if f.provenance == pw_world::backfill::Provenance::Generated && real.contains(&f.name) {
             v.push(Violation::PastFigureNamedLikeReal { figure: f.id });

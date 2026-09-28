@@ -78,8 +78,13 @@ pub struct Sim {
 }
 
 impl Sim {
+    /// Start simulating a world: a new world is prepared once; a loaded
+    /// (already prepared) world continues exactly where it stopped.
     pub fn new(mut world: World) -> Self {
-        prepare(&mut world);
+        if !world.prepared {
+            prepare(&mut world);
+            world.prepared = true;
+        }
         Self { world }
     }
 

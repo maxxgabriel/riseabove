@@ -54,6 +54,9 @@ pub struct Backfill {
     pub from: i32,
     pub to: i32,
     pub done: bool,
+    /// People in the world when the past was generated (ids below this are
+    /// the world's own people; generated names must not match theirs).
+    pub people_at: u32,
 }
 
 impl Backfill {

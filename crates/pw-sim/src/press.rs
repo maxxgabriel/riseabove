@@ -62,7 +62,7 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
     let quote = w.pressroom.quotes.len() as u32;
     w.pressroom.quotes.push(pw_world::pressroom::QuoteRecord { id: quote, speaker, about, stance, topic: None, date: today, conference: u32::MAX, story: id });
     let ev = w.media.stories[id].event;
-    let compat = consider::compat(w, about, speaker);
+    let compat = if about.is_some() { consider::compat(w, about, speaker) } else { 0 };
     let fan_club = if about.is_some() { w.club_of_person(about) } else { club };
     match stance {
         Stance::Praise if about.is_some() => {

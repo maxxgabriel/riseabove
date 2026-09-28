@@ -157,6 +157,9 @@ pub struct World {
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
+    /// Whether the one-time preparation (`pw_sim::prepare`) has run. A saved
+    /// world is prepared; preparing it again would advance it.
+    pub prepared: bool,
     /// Mixed into the seed when a playthrough begins, so two playthroughs of
     /// the same starting world diverge while one save replays exactly (S22).
     pub playthrough: u64,
@@ -222,6 +225,7 @@ impl World {
             backfill: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
+            prepared: false,
             playthrough: 0,
         }
     }

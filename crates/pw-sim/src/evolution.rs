@@ -179,7 +179,7 @@ fn rules(w: &mut World) {
         }
         let comps = nation_comps(w, n);
         let Some(&top) = w.nations[n].leagues.first() else { continue };
-        let clubs = w.comps[top].state.table.len().max(1) as f32 * w.nations[n].leagues.len() as f32;
+        let clubs = w.clubs.iter().filter(|c| c.nation == n && c.league.is_some()).count().max(1) as f32;
         let prof = pw_world::rules::profile(w, n);
         let season = w.comps[top].state.season + 1;
         // Candidate changes with their pressure (≥ 1 = over the threshold).
@@ -197,7 +197,7 @@ fn rules(w: &mut World) {
             let (wn, d, l) = side.record;
             let games = (wn + d + l).max(1) as f32;
             let win_rate = f32::from(wn) / games;
-            let squad: Vec<pw_core::PlayerId> = w.comps[top].state.table.iter().flat_map(|r| w.teams[r.team].squad.iter().copied()).collect();
+            let squad: Vec<pw_core::PlayerId> = w.clubs.iter().filter(|c| c.league == top).flat_map(|c| w.teams[c.first_team()].squad.iter().copied()).collect();
             let home = squad.iter().filter(|&&p| w.people[w.players.cold[p].person].nation == n).count() as f32 / squad.len().max(1) as f32;
             if games >= 8.0 && prof.homegrown_min < 8 {
                 let pressure = (0.4 - win_rate).max(0.0) * 3.0 + (0.45 - home).max(0.0) * 3.0;
