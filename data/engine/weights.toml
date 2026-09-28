@@ -1,0 +1,231 @@
+# Current-ability weights per position (17 §1). Listed weights are explicit;
+# the remainder is shared equally by every unlisted attribute (goalkeeping
+# attributes are excluded for outfield positions, Eccentricity everywhere).
+
+[GK]
+reflexes = 0.14
+handling = 0.11
+one_on_ones = 0.10
+aerial_reach = 0.09
+command_of_area = 0.08
+positioning = 0.08
+communication = 0.05
+kicking = 0.05
+rushing_out = 0.05
+concentration = 0.05
+decisions = 0.04
+anticipation = 0.04
+agility = 0.04
+throwing = 0.03
+composure = 0.03
+
+[DC]
+marking = 0.11
+tackling = 0.11
+positioning = 0.10
+heading = 0.09
+jumping_reach = 0.08
+strength = 0.07
+anticipation = 0.06
+concentration = 0.06
+decisions = 0.05
+pace = 0.05
+bravery = 0.04
+composure = 0.04
+acceleration = 0.03
+passing = 0.03
+
+[DR]
+tackling = 0.09
+marking = 0.08
+positioning = 0.08
+pace = 0.08
+acceleration = 0.07
+stamina = 0.07
+crossing = 0.07
+work_rate = 0.06
+anticipation = 0.05
+concentration = 0.05
+decisions = 0.05
+passing = 0.05
+dribbling = 0.04
+teamwork = 0.04
+agility = 0.03
+
+[DL]
+tackling = 0.09
+marking = 0.08
+positioning = 0.08
+pace = 0.08
+acceleration = 0.07
+stamina = 0.07
+crossing = 0.07
+work_rate = 0.06
+anticipation = 0.05
+concentration = 0.05
+decisions = 0.05
+passing = 0.05
+dribbling = 0.04
+teamwork = 0.04
+agility = 0.03
+
+[WBR]
+crossing = 0.09
+pace = 0.09
+stamina = 0.09
+acceleration = 0.08
+work_rate = 0.07
+dribbling = 0.07
+tackling = 0.06
+off_the_ball = 0.05
+passing = 0.05
+teamwork = 0.05
+marking = 0.04
+positioning = 0.04
+decisions = 0.04
+technique = 0.04
+agility = 0.03
+
+[WBL]
+crossing = 0.09
+pace = 0.09
+stamina = 0.09
+acceleration = 0.08
+work_rate = 0.07
+dribbling = 0.07
+tackling = 0.06
+off_the_ball = 0.05
+passing = 0.05
+teamwork = 0.05
+marking = 0.04
+positioning = 0.04
+decisions = 0.04
+technique = 0.04
+agility = 0.03
+
+[DM]
+positioning = 0.10
+tackling = 0.09
+anticipation = 0.08
+decisions = 0.08
+passing = 0.08
+marking = 0.07
+concentration = 0.06
+teamwork = 0.06
+composure = 0.05
+work_rate = 0.05
+stamina = 0.05
+strength = 0.04
+first_touch = 0.04
+vision = 0.03
+
+[MC]
+passing = 0.11
+decisions = 0.08
+first_touch = 0.07
+vision = 0.07
+technique = 0.06
+teamwork = 0.06
+stamina = 0.06
+work_rate = 0.06
+anticipation = 0.05
+composure = 0.05
+tackling = 0.05
+off_the_ball = 0.04
+positioning = 0.04
+dribbling = 0.04
+acceleration = 0.03
+
+[MR]
+crossing = 0.10
+pace = 0.08
+acceleration = 0.08
+dribbling = 0.08
+stamina = 0.07
+work_rate = 0.06
+passing = 0.06
+technique = 0.06
+first_touch = 0.05
+off_the_ball = 0.05
+teamwork = 0.05
+decisions = 0.04
+agility = 0.04
+vision = 0.03
+
+[ML]
+crossing = 0.10
+pace = 0.08
+acceleration = 0.08
+dribbling = 0.08
+stamina = 0.07
+work_rate = 0.06
+passing = 0.06
+technique = 0.06
+first_touch = 0.05
+off_the_ball = 0.05
+teamwork = 0.05
+decisions = 0.04
+agility = 0.04
+vision = 0.03
+
+[AMC]
+vision = 0.10
+passing = 0.10
+technique = 0.09
+first_touch = 0.08
+decisions = 0.08
+dribbling = 0.07
+off_the_ball = 0.07
+composure = 0.06
+flair = 0.05
+long_shots = 0.05
+anticipation = 0.05
+acceleration = 0.04
+agility = 0.04
+finishing = 0.04
+
+[AMR]
+dribbling = 0.11
+acceleration = 0.10
+pace = 0.09
+crossing = 0.08
+technique = 0.08
+first_touch = 0.07
+off_the_ball = 0.07
+agility = 0.06
+flair = 0.05
+finishing = 0.05
+decisions = 0.04
+passing = 0.04
+composure = 0.03
+
+[AML]
+dribbling = 0.11
+acceleration = 0.10
+pace = 0.09
+crossing = 0.08
+technique = 0.08
+first_touch = 0.07
+off_the_ball = 0.07
+agility = 0.06
+flair = 0.05
+finishing = 0.05
+decisions = 0.04
+passing = 0.04
+composure = 0.03
+
+[ST]
+finishing = 0.14
+off_the_ball = 0.09
+composure = 0.08
+first_touch = 0.07
+anticipation = 0.07
+pace = 0.07
+acceleration = 0.07
+dribbling = 0.05
+technique = 0.05
+heading = 0.05
+strength = 0.04
+decisions = 0.04
+balance = 0.03
+agility = 0.03

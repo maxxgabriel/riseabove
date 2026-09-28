@@ -1,0 +1,47 @@
+# Season templates (02 §4). Dates are [month, day]. A nation's import row names
+# the template it uses.
+
+international_windows = [
+  { start = [3, 20], end = [3, 28] },
+  { start = [6, 3], end = [6, 11] },
+  { start = [9, 2], end = [9, 10] },
+  { start = [10, 7], end = [10, 15] },
+  { start = [11, 11], end = [11, 19] },
+]
+
+[[calendar]]
+key = "autumn_spring"
+season_start = [8, 8]
+season_end = [5, 25]
+windows = [
+  { start = [6, 14], end = [9, 1] },
+  { start = [1, 1], end = [2, 1] },
+]
+
+[[calendar]]
+key = "autumn_spring_break"
+season_start = [8, 1]
+season_end = [5, 20]
+winter_break = { start = [12, 22], end = [1, 12] }
+windows = [
+  { start = [6, 14], end = [9, 1] },
+  { start = [1, 1], end = [2, 1] },
+]
+
+[[calendar]]
+key = "calendar_year"
+season_start = [4, 1]
+season_end = [12, 5]
+windows = [
+  { start = [1, 10], end = [3, 31] },
+  { start = [7, 1], end = [8, 15] },
+]
+
+[[calendar]]
+key = "calendar_year_nordic"
+season_start = [4, 1]
+season_end = [11, 20]
+windows = [
+  { start = [1, 5], end = [3, 31] },
+  { start = [7, 15], end = [8, 31] },
+]

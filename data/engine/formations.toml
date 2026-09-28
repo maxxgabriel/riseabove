@@ -1,0 +1,95 @@
+# Slot order is irrelevant; each formation needs exactly 11 slots and one GK.
+
+[[formation]]
+key = "4-4-2"
+name = "4-4-2"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DR", "FullBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["DL", "FullBack"],
+  ["MR", "WideMidfielder"], ["MC", "BoxToBox"], ["MC", "CentralMidfielder"], ["ML", "WideMidfielder"],
+  ["ST", "TargetForward"], ["ST", "Poacher"],
+]
+
+[[formation]]
+key = "4-3-3"
+name = "4-3-3"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DR", "FullBack"], ["DC", "CentreBack"], ["DC", "BallPlayingDefender"], ["DL", "FullBack"],
+  ["DM", "Anchor"], ["MC", "BoxToBox"], ["MC", "Mezzala"],
+  ["AMR", "InsideForward"], ["AML", "Winger"], ["ST", "CompleteForward"],
+]
+
+[[formation]]
+key = "4-2-3-1"
+name = "4-2-3-1"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DR", "FullBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["DL", "FullBack"],
+  ["MC", "DeepLyingPlaymaker"], ["MC", "BoxToBox"],
+  ["AMR", "InvertedWinger"], ["AMC", "AdvancedPlaymaker"], ["AML", "Winger"],
+  ["ST", "CompleteForward"],
+]
+
+[[formation]]
+key = "4-1-4-1"
+name = "4-1-4-1"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DR", "FullBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["DL", "FullBack"],
+  ["DM", "Anchor"],
+  ["MR", "Winger"], ["MC", "CentralMidfielder"], ["MC", "BoxToBox"], ["ML", "Winger"],
+  ["ST", "PressingForward"],
+]
+
+[[formation]]
+key = "4-3-1-2"
+name = "4-3-1-2 Diamond"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DR", "WingBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["DL", "WingBack"],
+  ["DM", "DeepLyingPlaymaker"], ["MC", "BoxToBox"], ["MC", "Mezzala"],
+  ["AMC", "AdvancedPlaymaker"],
+  ["ST", "CompleteForward"], ["ST", "Poacher"],
+]
+
+[[formation]]
+key = "3-5-2"
+name = "3-5-2"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DC", "CentreBack"], ["DC", "BallPlayingDefender"], ["DC", "CentreBack"],
+  ["WBR", "WingBack"], ["WBL", "WingBack"],
+  ["DM", "Anchor"], ["MC", "BoxToBox"], ["MC", "Mezzala"],
+  ["ST", "CompleteForward"], ["ST", "Poacher"],
+]
+
+[[formation]]
+key = "3-4-3"
+name = "3-4-3"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DC", "CentreBack"], ["DC", "BallPlayingDefender"], ["DC", "CentreBack"],
+  ["WBR", "WingBack"], ["MC", "BoxToBox"], ["MC", "DeepLyingPlaymaker"], ["WBL", "WingBack"],
+  ["AMR", "InsideForward"], ["AML", "InsideForward"], ["ST", "CompleteForward"],
+]
+
+[[formation]]
+key = "5-3-2"
+name = "5-3-2"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["WBR", "WingBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["WBL", "WingBack"],
+  ["MC", "BallWinner"], ["MC", "CentralMidfielder"], ["MC", "BoxToBox"],
+  ["ST", "TargetForward"], ["ST", "Poacher"],
+]
+
+[[formation]]
+key = "4-5-1"
+name = "4-5-1"
+slots = [
+  ["GK", "Goalkeeper"],
+  ["DR", "FullBack"], ["DC", "CentreBack"], ["DC", "CentreBack"], ["DL", "FullBack"],
+  ["MR", "WideMidfielder"], ["MC", "BallWinner"], ["MC", "CentralMidfielder"], ["MC", "BoxToBox"], ["ML", "WideMidfielder"],
+  ["ST", "TargetForward"],
+]

@@ -1,0 +1,27 @@
+# Engine tuning. Every value is optional; omitted values use the defaults in
+# crates/pw-data/src/tuning.rs. Values are calibration starting points (14 §2).
+
+[development]
+growth = 0.085
+decline = 0.06
+weekly_cap = 0.12
+weekly_cap_youth = 0.20
+
+[health]
+match_exposure = 0.00034
+training_session = 0.00045
+
+[matches]
+contest_k = 0.32
+home_advantage = 0.35
+max_subs = 5
+sub_windows = 3
+bench_size = 9
+
+[market]
+rebid_cooldown_days = 10
+search_interval_days = 4
+
+[perception]
+sigma0 = 4.0
+decay_per_week = 0.05

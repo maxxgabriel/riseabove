@@ -1,0 +1,17 @@
+# Vendored from OpenFootManager (crates/engine, v0.3.0), GPL-3.0 — see LICENSE.md.
+# Source files are unmodified; only this manifest differs (package name, no
+# workspace lints).
+[package]
+name = "ofm-engine"
+version = "0.3.0"
+edition = "2024"
+license = "GPL-3.0-only"
+publish = false
+
+[lib]
+name = "ofm_engine"
+path = "src/lib.rs"
+
+[dependencies]
+rand = "0.10"
+serde = { version = "1.0", features = ["derive"] }

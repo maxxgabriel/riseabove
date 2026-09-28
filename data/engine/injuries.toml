@@ -1,0 +1,274 @@
+# Injury catalogue (05 §3.2). days = [min, mode, max] out; weight = relative
+# incidence within its mechanism; wear = region wear added; permanent = possible
+# lasting loss (attribute, max points).
+
+[[injury]]
+key = "knock"
+name = "Minor knock"
+region = "quadriceps"
+mechanism = "contact"
+days = [1, 3, 7]
+weight = 18.0
+wear = 1
+play_through = true
+
+[[injury]]
+key = "dead_leg"
+name = "Dead leg"
+region = "quadriceps"
+mechanism = "contact"
+days = [2, 5, 12]
+weight = 7.0
+wear = 2
+play_through = true
+
+[[injury]]
+key = "bruised_ankle"
+name = "Bruised ankle"
+region = "ankle"
+mechanism = "contact"
+days = [3, 7, 14]
+weight = 8.0
+wear = 2
+play_through = true
+
+[[injury]]
+key = "ankle_sprain"
+name = "Sprained ankle"
+region = "ankle"
+mechanism = "contact"
+days = [10, 21, 45]
+weight = 9.0
+wear = 6
+
+[[injury]]
+key = "ankle_ligament"
+name = "Ankle ligament damage"
+region = "ankle"
+mechanism = "contact"
+days = [42, 70, 120]
+weight = 1.5
+wear = 14
+permanent = [["agility", 1.0]]
+
+[[injury]]
+key = "mcl_sprain"
+name = "Knee ligament strain (MCL)"
+region = "knee"
+mechanism = "contact"
+days = [14, 35, 70]
+weight = 3.0
+wear = 10
+
+[[injury]]
+key = "acl_rupture"
+name = "Cruciate ligament rupture"
+region = "knee"
+mechanism = "non_contact"
+days = [190, 250, 340]
+weight = 0.45
+wear = 35
+permanent = [["acceleration", 3.0], ["agility", 3.0], ["pace", 2.0]]
+
+[[injury]]
+key = "meniscus"
+name = "Torn meniscus"
+region = "knee"
+mechanism = "non_contact"
+days = [30, 50, 100]
+weight = 0.9
+wear = 16
+permanent = [["agility", 1.0]]
+
+[[injury]]
+key = "hamstring_g1"
+name = "Hamstring strain"
+region = "hamstring"
+mechanism = "non_contact"
+days = [7, 14, 24]
+weight = 14.0
+wear = 6
+
+[[injury]]
+key = "hamstring_g2"
+name = "Torn hamstring"
+region = "hamstring"
+mechanism = "non_contact"
+days = [21, 35, 60]
+weight = 5.0
+wear = 12
+permanent = [["pace", 1.0]]
+
+[[injury]]
+key = "hamstring_g3"
+name = "Ruptured hamstring"
+region = "hamstring"
+mechanism = "non_contact"
+days = [70, 100, 150]
+weight = 0.6
+wear = 22
+permanent = [["pace", 2.0], ["acceleration", 2.0]]
+
+[[injury]]
+key = "calf_strain"
+name = "Calf strain"
+region = "calf"
+mechanism = "non_contact"
+days = [7, 16, 30]
+weight = 8.0
+wear = 6
+
+[[injury]]
+key = "achilles"
+name = "Achilles tendinopathy"
+region = "calf"
+mechanism = "overuse"
+days = [14, 30, 80]
+weight = 2.0
+wear = 12
+permanent = [["acceleration", 1.0]]
+
+[[injury]]
+key = "achilles_rupture"
+name = "Ruptured Achilles tendon"
+region = "calf"
+mechanism = "non_contact"
+days = [180, 240, 320]
+weight = 0.2
+wear = 32
+permanent = [["pace", 3.0], ["acceleration", 3.0], ["jumping_reach", 2.0]]
+
+[[injury]]
+key = "quad_strain"
+name = "Thigh strain"
+region = "quadriceps"
+mechanism = "non_contact"
+days = [7, 14, 30]
+weight = 6.0
+wear = 5
+
+[[injury]]
+key = "groin_strain"
+name = "Groin strain"
+region = "groin"
+mechanism = "non_contact"
+days = [7, 14, 35]
+weight = 8.0
+wear = 6
+
+[[injury]]
+key = "pubalgia"
+name = "Pubalgia"
+region = "groin"
+mechanism = "overuse"
+days = [28, 60, 120]
+weight = 1.5
+wear = 15
+
+[[injury]]
+key = "back_spasm"
+name = "Back spasms"
+region = "back"
+mechanism = "overuse"
+days = [3, 8, 20]
+weight = 5.0
+wear = 4
+play_through = true
+
+[[injury]]
+key = "disc"
+name = "Slipped disc"
+region = "back"
+mechanism = "overuse"
+days = [30, 60, 120]
+weight = 0.6
+wear = 18
+
+[[injury]]
+key = "patellar"
+name = "Patellar tendinitis"
+region = "knee"
+mechanism = "overuse"
+days = [10, 21, 50]
+weight = 3.0
+wear = 9
+
+[[injury]]
+key = "stress_fracture"
+name = "Stress fracture (foot)"
+region = "foot"
+mechanism = "overuse"
+days = [42, 70, 110]
+weight = 1.0
+wear = 14
+
+[[injury]]
+key = "metatarsal"
+name = "Broken metatarsal"
+region = "foot"
+mechanism = "contact"
+days = [42, 60, 90]
+weight = 1.2
+wear = 10
+
+[[injury]]
+key = "broken_leg"
+name = "Broken leg"
+region = "calf"
+mechanism = "contact"
+days = [120, 180, 270]
+weight = 0.3
+wear = 25
+permanent = [["pace", 2.0], ["acceleration", 1.0]]
+
+[[injury]]
+key = "shoulder_dislocation"
+name = "Dislocated shoulder"
+region = "shoulder"
+mechanism = "contact"
+days = [21, 42, 84]
+weight = 1.2
+wear = 12
+
+[[injury]]
+key = "concussion"
+name = "Concussion"
+region = "head"
+mechanism = "contact"
+days = [6, 10, 28]
+weight = 2.0
+wear = 8
+
+[[injury]]
+key = "facial"
+name = "Facial injury"
+region = "head"
+mechanism = "contact"
+days = [3, 10, 30]
+weight = 1.5
+wear = 3
+play_through = true
+
+[[injury]]
+key = "virus"
+name = "Virus"
+region = "systemic"
+mechanism = "illness"
+days = [2, 5, 12]
+weight = 10.0
+
+[[injury]]
+key = "flu"
+name = "Flu"
+region = "systemic"
+mechanism = "illness"
+days = [4, 7, 14]
+weight = 5.0
+
+[[injury]]
+key = "food_poisoning"
+name = "Food poisoning"
+region = "systemic"
+mechanism = "illness"
+days = [1, 3, 6]
+weight = 3.0

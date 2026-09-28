@@ -1,0 +1,52 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/pw-core",
+    "crates/pw-data",
+    "crates/pw-world",
+    "crates/pw-match",
+    "crates/pw-sim",
+    "crates/pw-import",
+    "crates/pw-career",
+    "crates/pw-cli",
+    "app/src-tauri",
+    "vendor/ofm-engine",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+pw-core = { path = "crates/pw-core" }
+pw-data = { path = "crates/pw-data" }
+pw-world = { path = "crates/pw-world" }
+pw-match = { path = "crates/pw-match" }
+pw-sim = { path = "crates/pw-sim" }
+pw-import = { path = "crates/pw-import" }
+pw-career = { path = "crates/pw-career" }
+ofm-engine = { path = "vendor/ofm-engine" }
+rand = "0.10"
+
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
+bincode = "1.3"
+lz4_flex = "0.11"
+rayon = "1.10"
+toml = "1.1"
+rustc-hash = "2.1"
+smallvec = { version = "1.13", features = ["serde", "union", "const_generics"] }
+bitflags = { version = "2.6", features = ["serde"] }
+thiserror = "2.0"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+panic = "abort"

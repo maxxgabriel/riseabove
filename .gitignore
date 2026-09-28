@@ -1,0 +1,21 @@
+# Build output
+/target/
+/app/src-tauri/target/
+/app/dist/
+**/node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Game databases, extracted data and saves (never committed)
+/fm23_extracted/
+/fm23_test_extract_*/
+*.dat
+*.raw
+*.bin
+*.pws
+*.tmp
+
+# Local-only dumps
+/foundation/_ofm_worktree_*
