@@ -237,6 +237,22 @@ risks: **`docs/WORLD_SYSTEMS.md`**.
   staff pool, ambassadors, business); brands, club sponsorship, endorsements with image rights, clashes and
   morality clauses.
 
+### 3.9b Media, social and history pass — ⚠️ written 2026-09-28, never compiled
+
+See `docs/MEDIA_SOCIAL_HISTORY_SYSTEMS.md`. Eleven commits (3d013fa…adf8e58):
+- Seeds and streams: a fresh seed for every new world, named RNG streams, keyed draws.
+- Culture: club identities, national trends, typed rivalries with memory, match meaning.
+- The grapevine: information items, versions, motives, leaks.
+- Contextual incidents: 30 kinds from 29 pressures, and an incident-response AI.
+- The newsroom: journalists as people, outlet profiles, verification, threads, corrections, the agenda.
+- Press conferences built on what journalists know.
+- Social media: persistent accounts, opinions, replies and call-outs, supporter groups, chants, memes,
+  contextual trust, the feed, human posting.
+- An inbox built from real communications, where replies become intents.
+- School, university, amateur and grassroots competitions with history.
+- A generic record engine with holder histories.
+- Voted awards with ballots, halls of fame at every scope, and a chronicle of firsts.
+
 ### 3.10 `app/` — desktop client — ⬜ not started (the terminal client comes first)
 
 ---
