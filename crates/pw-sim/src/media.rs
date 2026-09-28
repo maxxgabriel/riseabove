@@ -431,10 +431,7 @@ fn news_from_events(w: &mut World) {
     let events: Vec<(EventId, EventKind, Visibility, pw_world::Causes)> = w.events.since(from).iter().filter(|e| e.date <= today).map(|e| (e.id, e.kind.clone(), e.vis, e.causes.clone())).collect();
     for (id, kind, vis, _causes) in events {
         let (story, player, club, other, tone): (StoryKind, PlayerId, ClubId, ClubId, i8) = match kind {
-            EventKind::Transfer { player, from, to, fee } if big_enough(w, to) || big_enough(w, from) => {
-                let _ = fee;
-                (StoryKind::TransferNews, player, to, from, 10)
-            }
+            EventKind::Transfer { player, from, to, .. } if big_enough(w, to) || big_enough(w, from) => (StoryKind::TransferNews, player, to, from, 10),
             EventKind::ManagerSacked { club, .. } if big_enough(w, club) => (StoryKind::ManagerChange, PlayerId::NONE, club, ClubId::NONE, -20),
             EventKind::ManagerAppointed { club, .. } if big_enough(w, club) => (StoryKind::ManagerChange, PlayerId::NONE, club, ClubId::NONE, 10),
             EventKind::Injured { player, days, .. } if days >= 28 && big_enough(w, w.players.hot[player].club) && is_senior(w, player) => {

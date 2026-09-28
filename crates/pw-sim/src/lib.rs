@@ -165,6 +165,8 @@ impl Sim {
             prof!("culture::yearly", culture::yearly(w));
             prof!("newsroom::yearly", newsroom::yearly(w));
         }
+        // People created by the yearly systems (referees, journalists) get lives.
+        life::sync(w);
         prof!("season::daily", season::daily(w));
         prof!("contracts::daily", contracts::daily(w));
         prof!("people::daily", people::daily(w));
@@ -214,6 +216,8 @@ impl Sim {
             vacancies(w);
             w.beliefs.forget(today.add_days(-240));
         }
+        // Anyone created by the monthly systems (cohorts, staff) has a life.
+        life::sync(w);
         if monday {
             prof!("board::weekly", board::weekly(w));
         }
@@ -263,6 +267,7 @@ impl Sim {
         prof!("inbox::daily", inbox::daily(w));
 
         // 9. Aftermath (weekly systems run after the weekend's games).
+        life::sync(w);
         if monday {
             prof!("development::weekly", development::weekly(w));
             prof!("medical::weekly", medical::weekly(w));
