@@ -306,6 +306,7 @@ fn still_valid(w: &World, id: TalkId) -> bool {
         TalkKind::Renewal | TalkKind::FirstPro => h.club == t.club && h.status == PlayerStatus::Active,
         TalkKind::FreeAgent => h.status == PlayerStatus::FreeAgent,
         TalkKind::Loan => h.club == t.seller,
+        TalkKind::PreContract => h.club == t.seller && h.status == PlayerStatus::Active,
     }
 }
 
@@ -342,6 +343,10 @@ fn complete(w: &mut World, id: TalkId) {
                 market::execute_loan(w, t.player, l);
             }
         }
+        TalkKind::PreContract => crate::deals::sign_pre_contract(w, t.player, t.club, t.offer),
+    }
+    if t.kind == TalkKind::Transfer {
+        crate::deals::on_completed(w, t.player, t.club);
     }
     // Signing-on fee reaches the player's bank account, net of the agent's cut.
     let person = w.players.cold[t.player].person;
@@ -354,7 +359,7 @@ fn complete(w: &mut World, id: TalkId) {
             r.satisfaction = r.satisfaction.saturating_add(8).min(100);
         }
     }
-    if let Some(s) = t.offer.status {
+    if let Some(s) = t.offer.status.filter(|_| t.kind != TalkKind::PreContract) {
         w.players.cold[t.player].contract.promised_status = Some(s);
     }
     let x = &mut w.talks[id];
@@ -372,6 +377,9 @@ fn end(w: &mut World, id: TalkId, how: TalkEnd) {
         x.end = Some(how);
     }
     w.market.talking.remove(&t.player);
+    if t.kind == TalkKind::Transfer {
+        crate::deals::on_talks_failed(w, t.player, t.club);
+    }
     if how == TalkEnd::Overtaken {
         return;
     }

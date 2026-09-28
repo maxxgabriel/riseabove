@@ -4,6 +4,7 @@ pub mod agents;
 pub mod board;
 pub mod consider;
 pub mod contracts;
+pub mod deals;
 pub mod decisions;
 pub mod development;
 pub mod economy;
@@ -23,6 +24,7 @@ pub mod morale;
 pub mod negotiation;
 pub mod people;
 pub mod perception;
+pub mod planning;
 pub mod reputation;
 pub mod save;
 pub mod schedule;
@@ -82,6 +84,8 @@ impl Sim {
         // 3. Club management and the slow rhythms of life.
         if first_of_month {
             market::monthly(w);
+            deals::shortlists(w);
+            deals::monthly(w);
             perception::monthly(w);
             life::monthly(w);
             mind::monthly(w);
@@ -111,7 +115,13 @@ impl Sim {
         if today.weekday() == Weekday::Thu {
             market::free_agent_sweep(w);
         }
+        deals::daily(w);
         negotiation::daily(w);
+        if monday {
+            deals::recalls(w);
+            deals::pre_contracts(w);
+            deals::trials(w);
+        }
 
         // 7. Decisions due today (answered or defaulted), then conversations.
         decisions::resolve_due(w);

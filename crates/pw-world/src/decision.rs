@@ -38,6 +38,8 @@ pub enum DecisionKind {
     Meeting { meeting: MeetingId },
     /// A partner has proposed something that needs an answer.
     Partner { partner: PersonId, ask: crate::intent::PartnerAsk },
+    /// A club invites an unattached player for a trial.
+    Trial { club: ClubId, days: u8 },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -70,6 +72,7 @@ impl DecisionKind {
             DecisionKind::Negotiation { .. } => "Contract talks",
             DecisionKind::Meeting { .. } => "Meeting",
             DecisionKind::Partner { .. } => "Your partner",
+            DecisionKind::Trial { .. } => "Trial invitation",
         }
     }
 

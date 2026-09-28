@@ -172,6 +172,15 @@ pub enum EventKind {
     /// A member of staff followed their manager to a new club.
     StaffFollowed { staff: StaffId, manager: StaffId, club: ClubId },
     StaffLeft { staff: StaffId, club: ClubId },
+    /// A club-to-club deal fell through.
+    DealCollapsed { player: PlayerId, buyer: ClubId, seller: ClubId, reason: crate::deals::DealEnd },
+    PreContractSigned { player: PlayerId, club: ClubId },
+    TrialStarted { player: PlayerId, club: ClubId },
+    TrialEnded { player: PlayerId, club: ClubId, offered: bool },
+    LoanRecalled { player: PlayerId, club: ClubId },
+    OptionExercised { player: PlayerId, club: ClubId, fee: Money },
+    AddOnPaid { player: PlayerId, from: ClubId, to: ClubId, amount: Money },
+    SellOnPaid { player: PlayerId, to: ClubId, amount: Money },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -230,6 +239,12 @@ impl EventKind {
             | AgentHired { player, .. }
             | AgentLeft { player, .. }
             | AgentPitch { player, .. }
+            | DealCollapsed { player, .. }
+            | PreContractSigned { player, .. }
+            | TrialStarted { player, .. }
+            | TrialEnded { player, .. }
+            | LoanRecalled { player, .. }
+            | OptionExercised { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -297,10 +312,15 @@ impl EventKind {
             | StaffFollowed { club, .. }
             | StaffLeft { club, .. }
             | JoinedStaff { club, .. } => v.push(club),
-            ManagerPoached { from, to, .. } => {
+            ManagerPoached { from, to, .. } | AddOnPaid { from, to, .. } => {
                 v.push(from);
                 v.push(to);
             }
+            DealCollapsed { buyer, seller, .. } => {
+                v.push(buyer);
+                v.push(seller);
+            }
+            PreContractSigned { club, .. } | TrialStarted { club, .. } | TrialEnded { club, .. } | LoanRecalled { club, .. } | OptionExercised { club, .. } => v.push(club),
             _ => {}
         }
         v

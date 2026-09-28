@@ -239,6 +239,11 @@ pub fn resolve_due(w: &mut World) {
                     market::execute_transfer(w, p, club, ClubId::NONE, 0, contract);
                 }
             }
+            DecisionKind::Trial { club, .. } => {
+                if choice == Choice::Accept && w.players.hot[p].status != pw_world::PlayerStatus::Active {
+                    crate::deals::start_trial(w, club, p);
+                }
+            }
             DecisionKind::TransferTalks { .. } => {}
         }
     }

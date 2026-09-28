@@ -79,6 +79,8 @@ pub enum TalkKind {
     FirstPro,
     /// A loan's player-side agreement (wage share is the club's business).
     Loan,
+    /// Agreement now to join on a free when the current contract ends.
+    PreContract,
 }
 
 impl TalkKind {
@@ -89,6 +91,7 @@ impl TalkKind {
             TalkKind::FreeAgent => "contract as a free agent",
             TalkKind::FirstPro => "first professional contract",
             TalkKind::Loan => "loan terms",
+            TalkKind::PreContract => "pre-contract",
         }
     }
 }

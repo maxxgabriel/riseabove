@@ -8,6 +8,7 @@ pub mod careers;
 pub mod club;
 pub mod comp;
 pub mod contract;
+pub mod deals;
 pub mod decision;
 pub mod event;
 pub mod governance;

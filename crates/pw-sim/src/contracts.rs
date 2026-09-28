@@ -29,6 +29,14 @@ pub fn daily(w: &mut World) {
     for p in expired {
         if w.players.cold[p].loan.is_some() {
             market::end_loan(w, p);
+            // The loan club may have made it permanent on a new contract.
+            if w.players.cold[p].contract.end >= today {
+                continue;
+            }
+        }
+        // A pre-contract signed months ago takes effect now.
+        if crate::deals::honour_pre_contract(w, p) {
+            continue;
         }
         release(w, p);
     }

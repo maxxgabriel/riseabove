@@ -104,6 +104,8 @@ pub struct World {
     pub careers: crate::careers::Careers,
     /// Scouts, their assignments and reports.
     pub scouting: crate::scouting::Scouting,
+    /// Squad plans, shortlists, club-to-club deals, payables, clauses.
+    pub deals: crate::deals::Deals,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -145,6 +147,7 @@ impl World {
             economy: Default::default(),
             careers: Default::default(),
             scouting: Default::default(),
+            deals: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

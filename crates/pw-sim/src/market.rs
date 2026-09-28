@@ -202,6 +202,8 @@ fn plan_squad(w: &mut World, club: ClubId) {
         .filter(|&p| w.players.cold[p].status == SquadStatus::NotNeeded || w.market.listed.contains_key(&p) || w.market.requests.contains_key(&p))
         .collect();
     w.clubs[club].market.listed = listed;
+    // The full multi-season plan refines needs and the sell list.
+    crate::planning::plan(w, club);
 }
 
 // --------------------------------------------------------------- searches
@@ -222,7 +224,10 @@ pub fn daily(w: &mut World) {
         if w.clubs[club].market.signed_this_window >= max || w.clubs[club].market.needs.is_empty() {
             continue;
         }
-        search(w, club);
+        // Shortlist first; a broad search only when the shortlist is exhausted.
+        if !crate::deals::pursue(w, club) {
+            search(w, club);
+        }
     }
 }
 
@@ -305,6 +310,12 @@ pub fn asking_price(w: &World, p: PlayerId) -> Money {
 fn approach(w: &mut World, buyer: ClubId, p: PlayerId, asking: Money) {
     let today = w.date;
     let seller = w.players.hot[p].club;
+    // Players under contract are pursued through club-to-club deals.
+    if seller.is_some() {
+        let group = w.players.cold[p].best_pos.group();
+        crate::deals::enquire(w, buyer, p, Some(group));
+        return;
+    }
     let budget = w.clubs[buyer].finance.transfer_budget;
     let value = w.players.cold[p].value;
     let mut rng = Rng::keyed(&[w.seed, stream::MARKET, u64::from(buyer.0), u64::from(p.0), today.0 as u64]);
@@ -372,6 +383,9 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
         c.status = SquadStatus::Squad;
     }
     finance::pay_fee(w, buyer, seller, fee);
+    if seller.is_some() {
+        crate::deals::on_transfer_fee(w, p, seller, fee);
+    }
     w.clubs[buyer].market.signed_this_window += 1;
     w.clubs[buyer].market.needs.retain(|n| n.group != w.players.cold[p].best_pos.group());
     if seller.is_some() {
@@ -409,6 +423,10 @@ pub fn execute_loan(w: &mut World, p: PlayerId, loan: Loan) {
 
 /// Loanee goes back to the parent club.
 pub fn end_loan(w: &mut World, p: PlayerId) {
+    // Obligations and options can make the move permanent instead.
+    if crate::deals::loan_ends(w, p) {
+        return;
+    }
     let Some(loan) = w.players.cold[p].loan.take() else { return };
     let today = w.date;
     remove_from_team(w, p);
@@ -462,8 +480,8 @@ pub fn weekly_loans(w: &mut World) {
             .max_by_key(|(id, c)| (c.reputation, std::cmp::Reverse(*id)))
             .map(|(id, _)| id);
         let Some(dest) = dest else { continue };
-        let end = w.nations[nation].season.end;
-        let loan = Loan { parent, club: dest, start: today, end, wage_share: 60, fee: 0, buy_option: 0, recall: true };
+        let (loan, terms) = crate::deals::loan_terms(w, parent, dest, p);
+        w.deals.loans.insert(p, terms);
         let _ = first;
         if decisions::propose(w, p, Proposal::Loan { loan }) == Some(false) {
             w.market.cooldown.insert((ClubId::NONE, p), today.add_days(60));

@@ -29,6 +29,7 @@ pub fn title(w: &World, d: &Decision) -> String {
             };
             format!("{} {what}", person(w, *partner))
         }
+        DecisionKind::Trial { club: c, days } => format!("{} invite you for a {days}-day trial", club(w, *c)),
     }
 }
 

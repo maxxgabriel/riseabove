@@ -116,6 +116,14 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         TacticalChange { club: c, staff, formation } => format!("{} switched {} to a {}.", w.staff_name(staff), club(w, c), w.data.formations.get(usize::from(formation)).map_or("new system", |f| f.name.as_str())),
         StaffFollowed { staff, manager, club: c } => format!("{} followed {} to {}.", w.staff_name(staff), w.staff_name(manager), club(w, c)),
         StaffLeft { staff, club: c } => format!("{} left the {} backroom staff.", w.staff_name(staff), club(w, c)),
+        DealCollapsed { player: p, buyer, seller, reason } => format!("{}'s move from {} to {} collapsed: {}.", pl(p), club(w, seller), club(w, buyer), reason.label()),
+        PreContractSigned { player: p, club: c } => format!("{} agreed a pre-contract to join {} when their deal expires.", pl(p), club(w, c)),
+        TrialStarted { player: p, club: c } => format!("{} began a trial at {}.", pl(p), club(w, c)),
+        TrialEnded { player: p, club: c, offered } => format!("{}'s trial at {} ended{}.", pl(p), club(w, c), if offered { " with a contract offer" } else { " without an offer" }),
+        LoanRecalled { player: p, club: c } => format!("{} recalled {} from loan.", club(w, c), player(w, p)),
+        OptionExercised { player: p, club: c, fee } => format!("{} made {}'s loan permanent for {}.", club(w, c), player(w, p), money(fee)),
+        AddOnPaid { player: p, from, to, amount } => format!("{} paid {} {} in add-ons for {}.", club(w, from), club(w, to), money(amount), player(w, p)),
+        SellOnPaid { player: p, to, amount } => format!("{} received a {} sell-on payment for {}.", club(w, to), money(amount), player(w, p)),
     })
 }
 
