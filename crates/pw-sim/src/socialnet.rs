@@ -325,6 +325,10 @@ fn frames(w: &World) -> Vec<(Frame, SmallVec<[ClubId; 2]>, PersonId, EventId)> {
                 let Some(i) = w.incidents.get(incident) else { continue };
                 (Frame::Incident { incident }, [i.club].into_iter().filter(|c| c.is_some()).collect(), i.parties.first().copied().unwrap_or(PersonId::NONE))
             }
+            EventKind::RefereeControversy { controversy } => {
+                let Some(c) = w.officials.controversies.get(controversy as usize) else { continue };
+                (Frame::Controversy { controversy }, [c.against, c.benefited].into_iter().collect(), crate::officials::referee_person(w, c.referee))
+            }
             EventKind::Published { story } => {
                 let s = &w.media.stories[story];
                 if !matches!(s.kind, StoryKind::TransferRumour | StoryKind::Leak | StoryKind::Unhappy | StoryKind::Discipline | StoryKind::IncidentNews | StoryKind::Interview | StoryKind::Criticism | StoryKind::Praise) {
@@ -365,6 +369,7 @@ pub fn frame_key(f: Frame) -> u64 {
         Frame::Record { player } => (14, u64::from(player.0), 0),
         Frame::Injury { player } => (15, u64::from(player.0), 0),
         Frame::Incident { incident } => (16, u64::from(incident), 0),
+        Frame::Controversy { controversy } => (18, u64::from(controversy), 0),
         Frame::Post { post } => (17, u64::from(post), 0),
     };
     pw_core::rng::hash_key(&[k, a, b])
@@ -393,6 +398,8 @@ fn valence(w: &World, f: Frame, club: ClubId) -> i8 {
             Stance::Criticise | Stance::Complain | Stance::Ambition => -1,
             _ => 0,
         }),
+        // A call that went against you is bad news, whoever was right.
+        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or(0, |c| if c.against == club { -1 } else if c.benefited == club { 1 } else { 0 }),
         Frame::Post { .. } => 0,
     }
 }
@@ -407,6 +414,7 @@ fn weight(w: &World, f: Frame) -> f32 {
         Frame::TransferRequest { .. } | Frame::ManagerSacked { .. } => 0.8,
         Frame::Story { story } => 0.2 + f32::from(w.media.stories[story].news) / 150.0,
         Frame::Quote { .. } => 0.4,
+        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or(0.3, |c| 0.3 + f32::from(c.grievance) / 200.0),
         _ => 0.4,
     }
 }
@@ -604,6 +612,7 @@ fn frame_subjects(w: &World, f: Frame) -> (SmallVec<[ClubId; 2]>, PersonId) {
         Frame::Quote { quote } => w.pressroom.quotes.get(quote as usize).map_or((SmallVec::new(), PersonId::NONE), |q| ([w.club_of_person(q.speaker)].into_iter().collect(), q.about)),
         Frame::Incident { incident } => w.incidents.get(incident).map_or((SmallVec::new(), PersonId::NONE), |i| ([i.club].into_iter().collect(), i.parties.first().copied().unwrap_or(PersonId::NONE))),
         Frame::Post { post } => w.net.post(post).map_or((SmallVec::new(), PersonId::NONE), |p| ([p.club].into_iter().collect(), p.about)),
+        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or((SmallVec::new(), PersonId::NONE), |c| ([c.against, c.benefited].into_iter().collect(), crate::officials::referee_person(w, c.referee))),
     }
 }
 

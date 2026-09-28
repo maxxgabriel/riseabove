@@ -37,6 +37,7 @@ pub mod minor;
 pub mod mind;
 pub mod morale;
 pub mod negotiation;
+pub mod officials;
 pub mod newsroom;
 pub mod people;
 pub mod perception;
@@ -96,6 +97,7 @@ impl Sim {
             honours::yearly_votes(w);
         }
         if today.month() == 7 && today.day() == 1 {
+            officials::season_review(w);
             economy::yearly(w);
             governance::yearly(w);
             managers::yearly(w);
@@ -188,7 +190,9 @@ impl Sim {
 
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
+        officials::pre_match(w);
         matchday::play_today(w);
+        officials::daily(w);
         // National teams: windows, qualifiers, tournaments.
         intl::daily(w);
 
@@ -265,6 +269,7 @@ pub fn prepare(w: &mut World) {
     scouting::ensure(w);
     youth::ensure(w);
     minor::ensure(w);
+    officials::ensure(w);
     intl::ensure(w);
     commerce::ensure(w);
     culture::ensure(w);

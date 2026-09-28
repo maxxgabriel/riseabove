@@ -241,6 +241,9 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             format!("{} {} inducted into {}{share}.", me(x), if x == viewer { "were" } else { "was" }, crate::history::hall_name(w, h.scope))
         }),
         Chronicle { entry } => w.acclaim.chronicle.get(entry as usize).map_or_else(String::new, |e| crate::history::chronicle(w, e)),
+        RefereeControversy { controversy } => w.officials.controversies.get(controversy as usize).map_or_else(String::new, |c| crate::officiating::controversy(w, c)),
+        AppealDecided { appeal, .. } => w.officials.appeals.get(appeal as usize).map_or_else(String::new, |a| crate::officiating::appeal(w, a)),
+        Charged { charge, .. } => w.officials.charges.get(charge as usize).map_or_else(String::new, |c| crate::officiating::charge(w, c)),
         MinorTitle { history } => w.minor.history.get(history as usize).map_or_else(String::new, |s| crate::history::season_line(w, s)),
         SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),

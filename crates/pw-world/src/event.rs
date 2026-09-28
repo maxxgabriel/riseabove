@@ -296,6 +296,11 @@ pub enum EventKind {
     HallInduction { hall: u32, person: PersonId },
     /// An entry in the world's chronicle of achievements.
     Chronicle { entry: u32 },
+    /// A big refereeing call that one side's supporters dispute.
+    RefereeControversy { controversy: u32 },
+    AppealDecided { appeal: u32, player: PlayerId },
+    /// A club was charged by its federation (`World::officials.charges`).
+    Charged { charge: u32, club: ClubId },
     /// A supporter group acted together (see `World::net.groups`).
     SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
@@ -444,6 +449,7 @@ impl EventKind {
             | Milestone { player, .. }
             | RecordBroken { player, .. }
             | AgentExploring { player, .. }
+            | AppealDecided { player, .. }
             | CoachNote { player, .. }
             | StatusChanged { player, .. }
             | Captaincy { player, .. } => Some(player),
@@ -525,6 +531,7 @@ impl EventKind {
             | InvestigationCleared { club }
             | SupporterAction { club, .. }
             | Record { club, .. }
+            | Charged { club, .. }
             | DressingRoomSplit { club, .. }
             | LeaderEmerged { club, .. }
             | YouthIntake { club, .. }

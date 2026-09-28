@@ -15,6 +15,7 @@ pub mod history;
 pub mod inbox;
 pub mod incidents;
 pub mod lexicon;
+pub mod officiating;
 pub mod press;
 pub mod social;
 pub mod talk;
