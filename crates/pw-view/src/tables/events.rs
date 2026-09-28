@@ -58,9 +58,6 @@ pub struct Events;
 impl Source for Events {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "events"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -109,9 +106,6 @@ pub struct Transfers;
 impl Source for Transfers {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "transfers"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -214,9 +208,6 @@ pub struct Honours;
 impl Source for Honours {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "honours"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -274,9 +265,6 @@ pub struct Awards;
 impl Source for Awards {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "awards"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -356,9 +344,6 @@ pub struct Spells;
 impl Source for Spells {
     type Prep = Vec<Spell>;
 
-    fn id(&self) -> &'static str {
-        "spells"
-    }
 
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let mut v = vec![

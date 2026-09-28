@@ -31,7 +31,6 @@ impl From<f64> for Key {
 
 pub trait Source {
     type Prep;
-    fn id(&self) -> &'static str;
     fn cols(&self, c: &Ctx) -> Vec<Col>;
     /// Preset shown when the client does not ask for one.
     fn default_preset(&self) -> &'static str {

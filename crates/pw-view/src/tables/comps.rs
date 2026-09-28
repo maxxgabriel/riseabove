@@ -34,9 +34,6 @@ const G: &str = "general";
 impl Source for Comps {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "comps"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -190,9 +187,6 @@ pub fn visible_table(c: &Ctx, comp: CompId) -> (Vec<TableRow>, usize) {
 impl Source for Standings {
     type Prep = StandingsPrep;
 
-    fn id(&self) -> &'static str {
-        "standings"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -348,7 +342,8 @@ impl Source for Standings {
         (!parts.is_empty()).then(|| {
             let mut s = parts.join("; ");
             s.push('.');
-            s
+            let mut chars = s.chars();
+            chars.next().map_or(String::new(), |f| f.to_uppercase().collect::<String>() + chars.as_str())
         })
     }
 }

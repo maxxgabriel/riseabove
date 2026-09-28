@@ -99,9 +99,6 @@ fn pos_text(c: &Ctx, p: PlayerId) -> String {
 impl Source for Players {
     type Prep = Prep;
 
-    fn id(&self) -> &'static str {
-        "players"
-    }
 
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let obs = c.observer();

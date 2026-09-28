@@ -46,9 +46,6 @@ pub fn round_text(c: &Ctx, f: &Fixture) -> String {
 impl Source for Fixtures {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "fixtures"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![

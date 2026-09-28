@@ -1,7 +1,7 @@
 //! Wire types shared by every page: entity references, table cells and the
 //! generic table protocol. Everything here is plain data the client renders.
 
-use pw_core::{ClubId, CompId, NationId, PersonId, TeamId};
+use pw_core::{ClubId, CompId, NationId, PersonId};
 use serde::{Deserialize, Serialize};
 
 /// A stable pointer to a thing the client can navigate to.
@@ -23,9 +23,6 @@ impl Ref {
     }
     pub fn nation(id: NationId) -> Self {
         Self { k: "nation", id: id.0 }
-    }
-    pub fn team(id: TeamId) -> Self {
-        Self { k: "team", id: id.0 }
     }
     pub fn fixture(uid: u64) -> Self {
         Self { k: "match", id: uid as u32 }
@@ -123,9 +120,6 @@ impl Cell {
     pub fn link(r: Ref, s: impl Into<String>) -> Self {
         Self { s: Some(s.into()), r: Some(r), ..Default::default() }
     }
-    pub fn unknown() -> Self {
-        Self { u: true, ..Default::default() }
-    }
     pub fn empty() -> Self {
         Self::default()
     }
@@ -143,10 +137,6 @@ impl Cell {
     }
     pub fn with_ref(mut self, r: Ref) -> Self {
         self.r = Some(r);
-        self
-    }
-    pub fn with_range(mut self, lo: f32, hi: f32) -> Self {
-        self.range = Some([lo, hi]);
         self
     }
     pub fn with_parts(mut self, parts: Vec<Part>) -> Self {
@@ -202,10 +192,6 @@ impl Col {
             _ => Align::Right,
         };
         Self { key, label, short: label, fmt, align, w, presets, sortable: true, help: "" }
-    }
-    pub const fn short(mut self, s: &'static str) -> Self {
-        self.short = s;
-        self
     }
     pub const fn help(mut self, s: &'static str) -> Self {
         self.help = s;

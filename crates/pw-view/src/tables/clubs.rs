@@ -14,9 +14,6 @@ const FIN: &str = "finance";
 impl Source for Clubs {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "clubs"
-    }
 
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let mut v = vec![
@@ -147,9 +144,6 @@ pub struct Nations;
 impl Source for Nations {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "nations"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![

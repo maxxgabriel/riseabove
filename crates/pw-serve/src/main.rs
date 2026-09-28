@@ -3,7 +3,6 @@
 //!
 //! pathway-serve [--port 8787] [--data DIR] [--static DIR]
 
-use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 

@@ -4,7 +4,7 @@
 
 use pw_core::{Attr, ClubId, CompId, NationId, PersonId, PlayerId, TeamId};
 use pw_world::knowledge::{Observer, field, perceive, sigma};
-use pw_world::{PlayerStatus, TeamKind, World};
+use pw_world::{PlayerStatus, World};
 
 use crate::model::Ref;
 use crate::session::Session;
@@ -111,10 +111,6 @@ impl<'a> Ctx<'a> {
     /// Navigation target for a team: youth and reserve sides open their club.
     pub fn team_ref(&self, t: TeamId) -> Ref {
         Ref::club(self.w.teams[t].club)
-    }
-
-    pub fn team_is_first(&self, t: TeamId) -> bool {
-        self.w.teams[t].kind == TeamKind::First
     }
 
     // ---- what the viewer may see -------------------------------------------------

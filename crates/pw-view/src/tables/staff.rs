@@ -31,9 +31,6 @@ fn role_from(s: &str) -> Option<StaffRole> {
 impl Source for StaffTable {
     type Prep = ();
 
-    fn id(&self) -> &'static str {
-        "staff"
-    }
 
     fn cols(&self, c: &Ctx) -> Vec<Col> {
         let mut v = vec![

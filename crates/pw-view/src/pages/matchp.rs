@@ -65,10 +65,6 @@ fn pref(c: &Ctx, p: PlayerId) -> Value {
     if p.is_none() { Value::Null } else { named(c.player_ref(p), c.player_short(p)) }
 }
 
-fn side_team(fx: &Fixture, side: u8) -> TeamId {
-    if side == 0 { fx.home } else { fx.away }
-}
-
 /// Everything recorded about a played match with a detailed report.
 fn detail(c: &Ctx, fx: &Fixture, r: &MatchResult) -> Value {
     use pw_match::{ZONES_X, ZONES_Y, zone_xy};
@@ -200,9 +196,10 @@ pub fn get(c: &Ctx, args: &Value, watching: bool) -> ApiResult<Value> {
         "score": score, "detail": detail_or_null(&detailed),
         "detail_kept": report.is_some(),
         "can_follow": follow_hint,
+        // Who is missing is today's state, so it says nothing about a match that has already been played.
         "pre": {
-            "home": {"position": position(fx.home), "absences": absences(c, fx.home)},
-            "away": {"position": position(fx.away), "absences": absences(c, fx.away)},
+            "home": {"position": position(fx.home), "absences": if played { Vec::new() } else { absences(c, fx.home) }},
+            "away": {"position": position(fx.away), "absences": if played { Vec::new() } else { absences(c, fx.away) }},
         },
         "previous": previous,
         "rules": {"subs": comp.rules.subs, "bench": comp.rules.bench, "extra_time": comp.rules.extra_time},

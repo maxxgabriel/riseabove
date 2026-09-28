@@ -55,7 +55,7 @@ fn fixture_brief(c: &Ctx, f: &pw_world::Fixture) -> Value {
     json!({
         "uid": f.uid, "date": f.date.0, "comp": named(Ref::comp(f.comp), c.comp_short(f.comp)), "round": round_text(c, f),
         "opponent": named(c.team_ref(opp), c.team_short(opp)), "home": home, "days": f.date.0 - c.w.date.0,
-        "venue": if f.neutral { "Neutral venue".to_string() } else { c.w.clubs[c.w.teams[f.home].club].stadium.clone() },
+        "venue": if f.neutral { Some("Neutral venue".to_string()) } else { Some(c.w.clubs[c.w.teams[f.home].club].stadium.clone()).filter(|v| !v.trim().is_empty()) },
     })
 }
 
@@ -158,12 +158,17 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
 
     // Commitments.
     let mut commitments: Vec<Value> = Vec::new();
+    let mut match_listed = false;
     if let Some(f) = my_fixtures(c, date, date).into_iter().next() {
         if f.score.is_none() {
-            commitments.push(json!({"kind": "match", "text": format!("Match: {} {}", if f.home == team { "home to" } else { "away at" }, c.team_short(f.opponent(team))), "ref": Ref::fixture(f.uid)}));
+            let text = format!("Match day: {} {}", if f.home == team { "home to" } else { "away at" }, c.team_short(f.opponent(team)));
+            commitments.push(json!({"kind": "match", "text": text, "ref": Ref::fixture(f.uid)}));
+            match_listed = true;
         }
     }
-    commitments.push(json!({"kind": day_key, "text": day_label}));
+    if !(match_listed && day_key == "match") {
+        commitments.push(json!({"kind": day_key, "text": day_label}));
+    }
     if h.injury != 0 {
         commitments.push(json!({"kind": "medical", "text": format!("Rehabilitation: {}, about {} days to go", health::injury_name(w, h.injury).to_lowercase(), h.injury_days)}));
     }
@@ -310,12 +315,17 @@ pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let options: Vec<Value> = d.kind.options().iter().enumerate().map(|(i, l)| json!({"i": i, "label": l})).collect();
         let pending = w.market.pending.iter().find(|x| x.decision == did);
         let cold = &w.players.cold[c.my_player().expect("me")];
+        let state = state_of(d);
+        // Once an offer is settled, "your current contract" and "what accepting means" describe a world that has moved on.
+        let live = matches!(state, "awaiting" | "answered");
         let mut paragraphs: Vec<String> = vec![summary];
         let mut consequences: Vec<String> = Vec::new();
         let default_label = d.kind.options()[usize::from(d.default).min(d.kind.options().len() - 1)];
         match &d.kind {
             DecisionKind::ContractOffer { renewal: true, .. } => {
-                paragraphs.push(format!("Your current contract runs until {}.", crate::fmt::date(cold.contract.end)));
+                if live {
+                    paragraphs.push(format!("Your current contract runs until {}.", crate::fmt::date(cold.contract.end)));
+                }
                 consequences.push("Accepting replaces your current contract with the terms shown.".into());
                 consequences.push("Declining leaves your current contract unchanged. The club may approach you again later.".into());
             }
@@ -341,21 +351,23 @@ pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
             }
             DecisionKind::TransferTalks { .. } => consequences.push("Agreeing only opens talks.".into()),
         }
-        let state = state_of(d);
+        if !live {
+            consequences.clear();
+        }
         let outcome = match (state, d.answer) {
             ("settled", Some(a)) | ("answered", Some(a)) => Some(format!("You chose: {}", d.kind.options()[usize::from(a).min(d.kind.options().len() - 1)])),
             ("expired", _) => Some(format!("No response was given. The default was applied: {default_label}.")),
             _ => None,
         };
         let terms: Vec<Value> = contracts.iter().map(|k| contract_rows(c, k)).collect();
-        let current = if matches!(d.kind, DecisionKind::ContractOffer { renewal: true, .. }) { contract_rows(c, &cold.contract) } else { Value::Null };
+        let current = if live && matches!(d.kind, DecisionKind::ContractOffer { renewal: true, .. }) { contract_rows(c, &cold.contract) } else { Value::Null };
         let club = decision_club(d);
         return Ok(json!({
             "id": id, "kind": "decision", "title": d.kind.title(), "from": named(Ref::club(club), c.club_name(club)),
             "created": d.created.0, "deadline": d.deadline.0, "state": state,
             "paragraphs": paragraphs, "options": options, "answer": d.answer,
             "default": {"i": d.default, "label": default_label},
-            "without_response": format!("If you do not respond by {}, the response your own judgement would give is applied: {}.", crate::fmt::date(d.deadline), default_label.to_lowercase()),
+            "without_response": if state != "awaiting" { Value::Null } else { json!(format!("If you do not respond by {}, the response your own judgement would give is applied: {}.", crate::fmt::date(d.deadline), default_label.to_lowercase())) },
             "consequences": consequences, "terms": terms.first().cloned().unwrap_or(Value::Null), "current_terms": current,
             "outcome": outcome,
         }));

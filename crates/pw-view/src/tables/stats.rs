@@ -19,9 +19,6 @@ fn player_of(c: &Ctx, f: &Value) -> Option<PlayerId> {
 impl Source for PlayerSeasons {
     type Prep = Vec<StatLine>;
 
-    fn id(&self) -> &'static str {
-        "player_stats"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![
@@ -113,9 +110,6 @@ pub struct CompLeaders;
 impl Source for CompLeaders {
     type Prep = Vec<StatLine>;
 
-    fn id(&self) -> &'static str {
-        "comp_stats"
-    }
 
     fn cols(&self, _c: &Ctx) -> Vec<Col> {
         vec![

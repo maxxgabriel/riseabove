@@ -229,13 +229,6 @@ fn after_step(s: &mut Session, played: Date, req: &AdvanceReq, done: u32, max_da
     if stop.is_none() && s.meta.stops.matches {
         if let (Some(msg), Some(_)) = (&played_mine, my_team) {
             stop = Some(StopInfo { kind: "match".into(), text: format!("{msg}. The result is waiting for you.") });
-        } else if let (Some(team), false) = (my_team, matches!(req, AdvanceReq::UntilMatch)) {
-            if s.w().fixtures.on(now).iter().any(|&f| {
-                let fx = s.w().fixtures.get(f);
-                fx.involves(team) && fx.score.is_none()
-            }) {
-                stop = Some(StopInfo { kind: "match".into(), text: "Match day. Your team plays today.".into() });
-            }
         }
     }
 
