@@ -268,6 +268,13 @@ endpoint over local HTTP for development and browser tests. See `app/README.md`.
 - **Checked**: `cargo test --workspace --exclude ofm-engine`, `npm test`, and two browser scripts (`app/e2e/smoke.mjs` visits
   every route on a fresh world; `app/e2e/inbox.mjs` answers a decision and replies to a conversation). Imported (non-synthetic)
   worlds have only been tried on tiny hand-made data.
+- **Unrevealed results**: while one of your matches is unrevealed, its scoreline is kept out of tables, match pages, Today,
+  match-report stories, the events feed and posts about it (`crates/pw-view/tests/api.rs`, `a_concealed_result_is_not_given_away_…`).
+  It covers what the API renders; anything a future system prints about a match must go through `Ctx::headline` / `Ctx::post_text`.
+- **Speed** (release, small synthetic world, four simulated years, measured after merging the simulation branch of 2026-09-28):
+  about 23 s in all; an ordinary day costs 17 ms in year 1 and 34 ms in year 4, a Monday about 220 ms and the worst day about
+  340 ms, from the weekly systems (morale, media, agents, youth, manager summons). `cargo run --release -p pw-view --example
+  profile -- small 4 [--hash]` prints this and a fingerprint of the world, which is how speedups here were shown to change nothing.
 
 ---
 

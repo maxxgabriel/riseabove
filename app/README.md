@@ -35,6 +35,9 @@ Desktop app (needs the platform webview toolchain, see the Tauri prerequisites):
 cd app && npm install && npx tauri build
 ```
 
+`tauri build` bundles the interface into the binary. A bare `cargo build --release` in `app/src-tauri` would open the
+dev-server address instead and show a blank page, so use `--features custom-protocol` there.
+
 No game data ships with the project. "New world" offers a generated world; "Import" reads a folder in the
 format described in `data/IMPORT_FORMAT.md`.
 
