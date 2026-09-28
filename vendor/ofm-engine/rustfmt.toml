@@ -1,0 +1,2 @@
+# Vendored source is kept as upstream wrote it: do not reformat.
+disable_all_formatting = true

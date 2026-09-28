@@ -85,7 +85,13 @@ pub fn hazard_mult(w: &World, p: PlayerId) -> f32 {
     };
     let wear = f32::from(c.wear.iter().copied().max().unwrap_or(0));
     let age = person.dob.age_years(w.date);
-    let age_mult = if age > 28.0 { 1.0 + 0.03 * (age - 28.0) } else if age < 20.0 { 1.0 + 0.02 * (20.0 - age) } else { 1.0 };
+    let age_mult = if age > 28.0 {
+        1.0 + 0.03 * (age - 28.0)
+    } else if age < 20.0 {
+        1.0 + 0.02 * (20.0 - age)
+    } else {
+        1.0
+    };
     let wellbeing = 1.1 - 0.2 * f32::from(h.wellbeing) / 100.0;
     (0.6 + 0.04 * person.hidden.f(Hidden::InjuryProneness))
         * acwr_mult.min(2.5)
@@ -124,10 +130,13 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
     let tuning = w.data.tuning.health.clone();
     let winter = matches!(today.month(), 11 | 12 | 1 | 2);
     let medical: Vec<f32> = w.clubs.iter().map(|c| 0.9 + 0.012 * f32::from(c.facilities.medical)).collect();
-    let hazards: Vec<f32> = (0..w.players.len()).into_par_iter().map(|i| {
-        let p = PlayerId(i as u32);
-        if w.players.hot[p].status == PlayerStatus::Active { hazard_mult(w, p) } else { 1.0 }
-    }).collect();
+    let hazards: Vec<f32> = (0..w.players.len())
+        .into_par_iter()
+        .map(|i| {
+            let p = PlayerId(i as u32);
+            if w.players.hot[p].status == PlayerStatus::Active { hazard_mult(w, p) } else { 1.0 }
+        })
+        .collect();
     let injuries = &w.data.injuries;
     let people = &w.people;
     let lives = &w.lives;
@@ -172,11 +181,7 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             // (intensity, extra sessions, recovery work) and their week off the pitch.
             let plan = c.plan;
             let training_day = matches!(kind, DayKind::Training | DayKind::BeforeMatch);
-            let own = if training_day {
-                plan.intensity.load_mult() + f32::from(plan.extra) * 0.06 - f32::from(plan.recovery) * 0.03
-            } else {
-                1.0
-            };
+            let own = if training_day { plan.intensity.load_mult() + f32::from(plan.extra) * 0.06 - f32::from(plan.recovery) * 0.03 } else { 1.0 };
             let load = kind.load() * own * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
             let routine = lives.get(c.person).map(|l| l.routine).unwrap_or_default();
             let sleep = lives.get(c.person).map_or(70.0, |l| f32::from(l.sleep));
@@ -211,7 +216,10 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
                     pw_world::Intensity::Normal => 0.0,
                     pw_world::Intensity::High => 0.2,
                 } + f32::from(plan.extra) * 0.06;
-                let base = 5.8 + 0.06 * (prof - 10.0) + 0.05 * (det - 10.0) + 0.012 * (f32::from(c.ca) - 100.0).clamp(-40.0, 60.0)
+                let base = 5.8
+                    + 0.06 * (prof - 10.0)
+                    + 0.05 * (det - 10.0)
+                    + 0.012 * (f32::from(c.ca) - 100.0).clamp(-40.0, 60.0)
                     + 0.3 * (f32::from(h.wellbeing) - 60.0) / 40.0
                     + 0.4 * (f32::from(h.condition) - 85.0) / 15.0
                     + effort

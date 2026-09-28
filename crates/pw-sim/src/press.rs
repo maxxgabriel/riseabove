@@ -138,11 +138,7 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
 fn player_interviews(w: &mut World) {
     let today = w.date;
     let week = (today.0 / 7) as u64;
-    let ids: Vec<PlayerId> = w
-        .players
-        .ids()
-        .filter(|&p| w.players.hot[p].status == PlayerStatus::Active && w.players.cold[p].rep.current >= 3000 && big_enough(w, w.players.hot[p].club))
-        .collect();
+    let ids: Vec<PlayerId> = w.players.ids().filter(|&p| w.players.hot[p].status == PlayerStatus::Active && w.players.cold[p].rep.current >= 3000 && big_enough(w, w.players.hot[p].club)).collect();
     for p in ids {
         let who = w.players.cold[p].person;
         if w.people[who].mind != MindKind::Ai {
@@ -259,7 +255,8 @@ fn features(w: &mut World) {
 
 fn news_from_honours(w: &mut World) {
     let today = w.date;
-    let events: Vec<(pw_core::EventId, EventKind)> = w.events.since(today.add_days(-7)).iter().filter(|e| e.date <= today && matches!(e.vis, Visibility::Public)).map(|e| (e.id, e.kind.clone())).collect();
+    let events: Vec<(pw_core::EventId, EventKind)> =
+        w.events.since(today.add_days(-7)).iter().filter(|e| e.date <= today && matches!(e.vis, Visibility::Public)).map(|e| (e.id, e.kind.clone())).collect();
     for (id, kind) in events {
         let (story, player, person, club, other, tone, link): (StoryKind, PlayerId, PersonId, ClubId, ClubId, i8, Option<StoryLink>) = match kind {
             EventKind::Award { player, award, .. } if !matches!(award, AwardKind::TeamOfSeason | AwardKind::PlayerOfMonth) => {
@@ -287,7 +284,13 @@ fn news_from_honours(w: &mut World) {
             EventKind::InductedHallOfFame { person } => (StoryKind::Retrospective, w.people[person].player, person, ClubId::NONE, ClubId::NONE, 70, None),
             _ => continue,
         };
-        let nation = if club.is_some() { w.clubs[club].nation } else if person.is_some() { w.people[person].nation } else { continue };
+        let nation = if club.is_some() {
+            w.clubs[club].nation
+        } else if person.is_some() {
+            w.people[person].nation
+        } else {
+            continue;
+        };
         let Some(j) = outlet_journalist(w, nation, club, u64::from(id.0) ^ 0x40) else { continue };
         let sid = publish(w, j, story, player, person, club, other, 0, 100, true, Cause::Event(id), PersonId::NONE, tone);
         if let Some(l) = link {

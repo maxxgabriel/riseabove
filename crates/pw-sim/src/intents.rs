@@ -5,8 +5,8 @@
 
 use pw_core::{EventId, PersonId, PlayerId};
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
-use pw_world::interaction::Topic;
 use pw_world::intent::PendingIntent;
+use pw_world::interaction::Topic;
 use pw_world::{FanReason, Intent, MemoryKind, PlayerStatus, World};
 
 use crate::consider;

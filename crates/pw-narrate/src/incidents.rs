@@ -3,8 +3,8 @@
 //! are rendered by `why` from the event's causes, not invented here.
 
 use pw_core::PersonId;
-use pw_world::incident::{IncidentKind, Location, Response};
 use pw_world::World;
+use pw_world::incident::{IncidentKind, Location, Response};
 
 use crate::fmt::{club, nation, person};
 use crate::pick;
@@ -54,7 +54,11 @@ fn describe(w: &World, id: u32, vague: bool, loud: bool, viewer: PersonId) -> St
             }
         }
         IncidentKind::TacticalDisagreement => {
-            if vague { format!("that {a} fell out with the coaching staff") } else { format!("that {a} argued with {b} over tactics") }
+            if vague {
+                format!("that {a} fell out with the coaching staff")
+            } else {
+                format!("that {a} argued with {b} over tactics")
+            }
         }
         IncidentKind::StormedOut => format!("that {a} stormed out of training"),
         IncidentKind::LateArrival => format!("that {a} turned up late"),
@@ -68,7 +72,11 @@ fn describe(w: &World, id: u32, vague: bool, loud: bool, viewer: PersonId) -> St
         IncidentKind::CoachResigned => format!("that {a} walked out on {c}"),
         IncidentKind::StaffPoached => format!("that {a} was lured away from {c}"),
         IncidentKind::FamilyEmergency => {
-            if vague { format!("that {a} has something going on at home") } else { format!("that {a} has a family emergency") }
+            if vague {
+                format!("that {a} has something going on at home")
+            } else {
+                format!("that {a} has a family emergency")
+            }
         }
         IncidentKind::RelationshipConflict => format!("that {a} is having trouble at home"),
         IncidentKind::Pregnancy => format!("that {a} and {b} are expecting a child"),

@@ -146,17 +146,7 @@ impl Rivalries {
         let i = match self.index.get(&k) {
             Some(&i) => i,
             None => {
-                self.list.push(Rivalry {
-                    a: k.0,
-                    b: k.1,
-                    kinds: SmallVec::new(),
-                    intensity: 0,
-                    since: today,
-                    h2h: (0, 0, 0),
-                    last_meeting: Date(0),
-                    revenge_due: None,
-                    moments: SmallVec::new(),
-                });
+                self.list.push(Rivalry { a: k.0, b: k.1, kinds: SmallVec::new(), intensity: 0, since: today, h2h: (0, 0, 0), last_meeting: Date(0), revenge_due: None, moments: SmallVec::new() });
                 let i = (self.list.len() - 1) as u32;
                 self.index.insert(k, i);
                 i

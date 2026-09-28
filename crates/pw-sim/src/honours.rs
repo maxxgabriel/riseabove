@@ -295,8 +295,7 @@ fn player_of_month(w: &mut World) {
 /// long enough); the hall of fame weighs whole careers after retirement.
 fn legends_and_hall(w: &mut World) {
     let today = w.date;
-    let candidates: Vec<((ClubId, PlayerId), pw_world::honours::Tally)> =
-        w.honours.tallies.iter().filter(|(_, t)| t.apps >= 150 || t.goals >= 60).map(|(&k, &t)| (k, t)).collect();
+    let candidates: Vec<((ClubId, PlayerId), pw_world::honours::Tally)> = w.honours.tallies.iter().filter(|(_, t)| t.apps >= 150 || t.goals >= 60).map(|(&k, &t)| (k, t)).collect();
     for ((club, p), t) in candidates {
         let who = w.players.cold[p].person;
         if w.honours.is_legend(club, who) {
@@ -317,9 +316,13 @@ fn legends_and_hall(w: &mut World) {
 
 /// A whole career in one number: trophies, awards, caps, appearances, peak.
 pub fn career_score(w: &World, p: PlayerId) -> u32 {
-    let trophies = w.honours.tallies.iter().filter(|((_, x), _)| *x == p).map(|(&(c, _), t)| {
-        w.history.honours.iter().filter(|h| h.club == c && h.season >= t.first.year() && h.season <= t.last.year()).count() as u32
-    }).sum::<u32>();
+    let trophies = w
+        .honours
+        .tallies
+        .iter()
+        .filter(|((_, x), _)| *x == p)
+        .map(|(&(c, _), t)| w.history.honours.iter().filter(|h| h.club == c && h.season >= t.first.year() && h.season <= t.last.year()).count() as u32)
+        .sum::<u32>();
     let awards: u32 = w
         .history
         .awards
@@ -334,9 +337,13 @@ pub fn career_score(w: &World, p: PlayerId) -> u32 {
             AwardKind::PlayerOfMonth => 5,
         })
         .sum();
-    let intl_wins = w.intl.tournaments.iter().filter(|t| t.winner.is_some()).filter(|t| {
-        w.intl.caps.get(&p).is_some_and(|v| v.iter().any(|c| c.nation == t.winner && c.level == Level::Senior && c.last.year() >= t.year))
-    }).count() as u32;
+    let intl_wins = w
+        .intl
+        .tournaments
+        .iter()
+        .filter(|t| t.winner.is_some())
+        .filter(|t| w.intl.caps.get(&p).is_some_and(|v| v.iter().any(|c| c.nation == t.winner && c.level == Level::Senior && c.last.year() >= t.year)))
+        .count() as u32;
     let c = &w.players.cold[p];
     let peak = u32::from(w.renown.of(c.person).peak_world.max(c.rep.world)) / 20;
     trophies * 60 + awards + intl_wins * 250 + u32::from(c.caps) * 3 + u32::from(c.senior_apps) / 2 + peak

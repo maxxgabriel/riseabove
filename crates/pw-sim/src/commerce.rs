@@ -50,16 +50,7 @@ pub fn ensure(w: &mut World) {
             let nouns = NOUNS.iter().find(|x| x.0 == sector).map_or(&["Group"][..], |x| x.1);
             let name = format!("{} {}", w.names.get(last), nouns[rng.index(nouns.len())]);
             let budget = (f32::from(size).powi(3) * 2_000.0 * (0.3 + econ)) as Money;
-            w.commerce.brands.push(Brand {
-                name,
-                nation: n,
-                sector,
-                size,
-                budget,
-                committed: 0,
-                sensitivity: rng.range_i32(4, 18) as u8,
-                youthful: rng.chance(0.4),
-            });
+            w.commerce.brands.push(Brand { name, nation: n, sector, size, budget, committed: 0, sensitivity: rng.range_i32(4, 18) as u8, youthful: rng.chance(0.4) });
         }
     }
 }

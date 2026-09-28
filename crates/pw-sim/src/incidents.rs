@@ -21,7 +21,7 @@
 use pw_core::rng::{period, stream};
 use pw_core::{ClubId, FixtureId, Hidden, NationId, PersonId, PlayerId, StaffId, TeamId};
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
-use pw_world::incident::{def, Exposure, Incident, IncidentDef, IncidentKind, Location, Pressure};
+use pw_world::incident::{Exposure, Incident, IncidentDef, IncidentKind, Location, Pressure, def};
 use pw_world::info::InfoKind;
 use pw_world::{FanReason, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, World};
 use smallvec::SmallVec;
@@ -109,14 +109,22 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
         }
         Pressure::Temper => (1.0 - hid(c.a, Hidden::Temperament)).max(if c.b.is_some() { 1.0 - hid(c.b, Hidden::Temperament) } else { 0.0 }),
         Pressure::LowMorale => {
-            if c.pa.is_some() { ((50.0 - f32::from(w.players.hot[c.pa].morale)) / 50.0).max(0.0) } else { 0.0 }
+            if c.pa.is_some() {
+                ((50.0 - f32::from(w.players.hot[c.pa].morale)) / 50.0).max(0.0)
+            } else {
+                0.0
+            }
         }
         Pressure::PublicCriticism => {
             let recent = w.media.stories.iter().rev().take(400).any(|s| s.person == c.a && s.tone <= -40 && s.date.days_until(w.date) <= 21);
             if recent { 1.0 } else { 0.0 }
         }
         Pressure::TrainingLoad => {
-            if c.pa.is_some() { f32::from(w.players.hot[c.pa].fatigue) / 100.0 } else { 0.0 }
+            if c.pa.is_some() {
+                f32::from(w.players.hot[c.pa].fatigue) / 100.0
+            } else {
+                0.0
+            }
         }
         Pressure::RoomTension => w.rooms.clubs.get(&c.club).map_or(0.2, |r| 1.0 - f32::from(r.harmony) / 100.0),
         Pressure::Unresolved => {
@@ -154,11 +162,19 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
         }
         Pressure::OwnerMeddling => w.governance.get(&c.club).map_or(0.0, |g| f32::from(g.owner.meddling) / 100.0),
         Pressure::PoorResults => {
-            if c.club.is_none() { 0.0 } else { ((60.0 - f32::from(w.clubs[c.club].board.satisfaction)) / 60.0).max(0.0) }
+            if c.club.is_none() {
+                0.0
+            } else {
+                ((60.0 - f32::from(w.clubs[c.club].board.satisfaction)) / 60.0).max(0.0)
+            }
         }
         Pressure::Fame => f32::from(w.renown.of(c.a).fame) / 10_000.0,
         Pressure::ManagerPressure => {
-            if c.club.is_none() { 0.0 } else { f32::from(w.clubs[c.club].board.warnings) / 3.0 }
+            if c.club.is_none() {
+                0.0
+            } else {
+                f32::from(w.clubs[c.club].board.warnings) / 3.0
+            }
         }
         Pressure::StaffDiscontent => {
             let m = club_manager(w, c.club);
@@ -179,18 +195,34 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
             let adult = w.affairs.of(c.a).is_some_and(|a| a.studying.is_some());
             let school = w.youth.school.contains_key(&c.a) && consider::age(w, c.a) >= 15.0;
             let exam_season = matches!(w.date.month(), 5 | 6 | 12 | 1);
-            if (adult || school) && exam_season { 1.0 } else if adult || school { 0.2 } else { 0.0 }
+            if (adult || school) && exam_season {
+                1.0
+            } else if adult || school {
+                0.2
+            } else {
+                0.0
+            }
         }
         Pressure::WeakEconomy => {
             let g = w.economy.nations.get(&c.nation).map_or(0.02, |e| e.growth);
             ((0.01 - g) * 25.0).clamp(0.0, 1.0)
         }
         Pressure::OldFacilities => {
-            if c.club.is_none() { 0.0 } else { (1.0 - f32::from(w.clubs[c.club].facilities.training) / 20.0).clamp(0.0, 1.0) }
+            if c.club.is_none() {
+                0.0
+            } else {
+                (1.0 - f32::from(w.clubs[c.club].facilities.training) / 20.0).clamp(0.0, 1.0)
+            }
         }
         Pressure::Congestion => {
             let t = if c.pa.is_some() { w.players.hot[c.pa].team } else { TeamId::NONE };
-            let team = if t.is_some() { t } else if c.club.is_some() { w.clubs[c.club].first_team() } else { TeamId::NONE };
+            let team = if t.is_some() {
+                t
+            } else if c.club.is_some() {
+                w.clubs[c.club].first_team()
+            } else {
+                TeamId::NONE
+            };
             if team.is_none() {
                 0.0
             } else {
@@ -202,7 +234,11 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
         Pressure::RecentMove => w.lives.get(c.a).map_or(0.0, |l| if l.home_since.days_until(w.date) < 90 { 1.0 } else { 0.0 }),
         Pressure::Wealth => w.lives.get(c.a).map_or(0.0, |l| ((l.finances.savings as f32).max(1.0).log10() - 4.0).clamp(0.0, 3.0) / 3.0),
         Pressure::FanAnger => {
-            if c.club.is_none() { 0.0 } else { ((45.0 - f32::from(w.clubs[c.club].fan_mood)) / 45.0).max(0.0) }
+            if c.club.is_none() {
+                0.0
+            } else {
+                ((45.0 - f32::from(w.clubs[c.club].fan_mood)) / 45.0).max(0.0)
+            }
         }
     };
     v.clamp(0.0, 1.0)
@@ -260,7 +296,8 @@ fn witnesses(w: &World, loc: Location, c: &Ctx, key: u64) -> SmallVec<[PersonId;
                     }
                 }
                 if loc == Location::TrainingGround {
-                    let coaches: Vec<PersonId> = w.clubs[c.club].staff.iter().filter(|&&s| matches!(w.staff[s].role, StaffRole::Assistant | StaffRole::Coach | StaffRole::FitnessCoach)).map(|&s| w.staff[s].person).collect();
+                    let coaches: Vec<PersonId> =
+                        w.clubs[c.club].staff.iter().filter(|&&s| matches!(w.staff[s].role, StaffRole::Assistant | StaffRole::Coach | StaffRole::FitnessCoach)).map(|&s| w.staff[s].person).collect();
                     if let Some(&x) = coaches.first() {
                         v.push(x);
                     }
@@ -830,7 +867,8 @@ fn consequences(w: &mut World, id: u32) {
             if let Some(brand) = brand {
                 // Every club and person the brand paid loses the deal.
                 w.commerce.club_deals.retain(|d| d.brand != brand);
-                let people: Vec<u32> = (0..w.commerce.endorsements.len() as u32).filter(|&i| w.commerce.endorsements[i as usize].brand == brand && w.commerce.endorsements[i as usize].ended.is_none()).collect();
+                let people: Vec<u32> =
+                    (0..w.commerce.endorsements.len() as u32).filter(|&i| w.commerce.endorsements[i as usize].brand == brand && w.commerce.endorsements[i as usize].ended.is_none()).collect();
                 for i in people {
                     let e = &mut w.commerce.endorsements[i as usize];
                     e.ended = Some((today, pw_world::commerce::DealEnd::Faded));
@@ -962,4 +1000,3 @@ pub fn unavailable(w: &World, p: PlayerId) -> bool {
 pub fn involves(w: &World, id: u32, who: PersonId) -> bool {
     w.incidents.get(id).is_some_and(|i| i.parties.contains(&who) || i.witnesses.contains(&who))
 }
-

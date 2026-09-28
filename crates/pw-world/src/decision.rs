@@ -63,7 +63,12 @@ pub enum Choice {
     Accept,
     Reject,
     /// Counter-offer in talks.
-    Counter { wage: Money, years: u8, status: Option<SquadStatus>, release_clause: Money },
+    Counter {
+        wage: Money,
+        years: u8,
+        status: Option<SquadStatus>,
+        release_clause: Money,
+    },
     /// Answer a conversation in a tone.
     Respond(Tone),
     /// Refuse to take part.

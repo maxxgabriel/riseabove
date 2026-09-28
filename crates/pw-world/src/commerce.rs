@@ -23,17 +23,7 @@ pub enum Sector {
 }
 
 impl Sector {
-    pub const ALL: [Sector; 9] = [
-        Sector::Sportswear,
-        Sector::Drinks,
-        Sector::Betting,
-        Sector::Automotive,
-        Sector::Finance,
-        Sector::Fashion,
-        Sector::Technology,
-        Sector::Airline,
-        Sector::Food,
-    ];
+    pub const ALL: [Sector; 9] = [Sector::Sportswear, Sector::Drinks, Sector::Betting, Sector::Automotive, Sector::Finance, Sector::Fashion, Sector::Technology, Sector::Airline, Sector::Food];
 
     pub const fn label(self) -> &'static str {
         match self {

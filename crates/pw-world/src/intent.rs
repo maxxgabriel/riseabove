@@ -17,7 +17,11 @@ use crate::staff::StaffRole;
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Intent {
     /// Ask to see someone (manager, coach, agent) about a topic.
-    RequestMeeting { with: PersonId, topic: Topic, tone: Tone },
+    RequestMeeting {
+        with: PersonId,
+        topic: Topic,
+        tone: Tone,
+    },
     /// Hand in a formal transfer request.
     TransferRequest,
     WithdrawTransferRequest,
@@ -48,23 +52,45 @@ pub enum Intent {
     /// Offer to take a younger teammate under your wing.
     Mentor(PersonId),
     /// Say something on the record about someone (or yourself).
-    SpeakToPress { about: PersonId, stance: crate::media::Stance },
+    SpeakToPress {
+        about: PersonId,
+        stance: crate::media::Stance,
+    },
     /// Post on social media: a concept about someone, optionally replying to
     /// or quoting a post that exists (`socialnet::NO_POST` for none).
-    Post { about: PersonId, concept: crate::socialnet::Concept, reply_to: u32, quote_of: u32 },
+    Post {
+        about: PersonId,
+        concept: crate::socialnet::Concept,
+        reply_to: u32,
+        quote_of: u32,
+    },
     /// Pass on something you know (a grapevine item) to someone.
-    Tell { to: PersonId, info: u32 },
+    Tell {
+        to: PersonId,
+        info: u32,
+    },
     /// Thank someone privately for telling you something.
-    Thank { to: PersonId },
+    Thank {
+        to: PersonId,
+    },
     /// Start a course (coaching badges, degrees, media training…).
     Enrol(crate::affairs::Course),
-    MoveHome { buy: bool, quality: u8 },
+    MoveHome {
+        buy: bool,
+        quality: u8,
+    },
     HireHelper(crate::affairs::Helper, u8),
     DismissHelper(crate::affairs::Helper),
     /// Share of income to give, and monthly hours of community work.
-    SetGiving { pct: u8, community: u8 },
+    SetGiving {
+        pct: u8,
+        community: u8,
+    },
     StartFoundation,
-    Invest { amount: pw_core::Money, risk: u8 },
+    Invest {
+        amount: pw_core::Money,
+        risk: u8,
+    },
     /// Begin a working life beyond (or after) playing.
     PursueCareer(crate::affairs::CareerPath),
     LeaveCareer,

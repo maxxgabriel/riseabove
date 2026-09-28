@@ -83,14 +83,7 @@ impl TableRow {
 
 /// Standard ordering: points, goal difference, goals for, then id (stable).
 pub fn sort_table(rows: &mut [TableRow]) {
-    rows.sort_by(|a, b| {
-        (a.group)
-            .cmp(&b.group)
-            .then(b.points.cmp(&a.points))
-            .then(b.gd().cmp(&a.gd()))
-            .then(b.gf.cmp(&a.gf))
-            .then(a.team.cmp(&b.team))
-    });
+    rows.sort_by(|a, b| (a.group).cmp(&b.group).then(b.points.cmp(&a.points)).then(b.gd().cmp(&a.gd())).then(b.gf.cmp(&a.gf)).then(a.team.cmp(&b.team)));
 }
 
 /// A knockout pairing across one or two legs.
@@ -308,8 +301,7 @@ impl Fixtures {
     /// Drop played fixtures older than `before`. Invalidates `FixtureId`s;
     /// callers keep only `uid`s across compaction.
     pub fn compact(&mut self, before: Date) {
-        let kept: Vec<Fixture> =
-            std::mem::take(&mut self.list).into_vec().into_iter().filter(|f| f.date >= before || f.score.is_none()).collect();
+        let kept: Vec<Fixture> = std::mem::take(&mut self.list).into_vec().into_iter().filter(|f| f.date >= before || f.score.is_none()).collect();
         self.by_date.clear();
         self.list = IdVec::with_capacity(kept.len());
         for f in kept {

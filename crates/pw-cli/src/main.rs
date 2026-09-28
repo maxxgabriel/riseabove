@@ -60,15 +60,7 @@ fn main() {
             let t = Instant::now();
             let (w, rep) = pw_import::load_dir_seeded(&dir, DataPack::builtin(), a.seed).unwrap_or_else(|e| die(&e.to_string()));
             println!("world seed: {}", pw_core::rng::seed_label(w.seed));
-            println!(
-                "imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}",
-                rep.nations,
-                rep.competitions,
-                rep.clubs,
-                rep.players,
-                rep.staff,
-                t.elapsed()
-            );
+            println!("imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}", rep.nations, rep.competitions, rep.clubs, rep.players, rep.staff, t.elapsed());
             for wmsg in rep.warnings.iter().take(20) {
                 println!("  warning: {wmsg}");
             }
@@ -109,11 +101,7 @@ fn simulate(sim: &mut Sim, days: u32) {
         }
     }
     let el = t.elapsed();
-    println!(
-        "simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches",
-        el.as_secs_f64() * 1000.0 / f64::from(days.max(1)),
-        worst as f64 / 1000.0
-    );
+    println!("simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches", el.as_secs_f64() * 1000.0 / f64::from(days.max(1)), worst as f64 / 1000.0);
 }
 
 fn report(w: &World) {

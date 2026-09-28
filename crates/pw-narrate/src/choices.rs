@@ -1,7 +1,7 @@
 //! Decisions and their options as text.
 
-use pw_world::decision::{Choice, Decision, DecisionKind};
 use pw_world::World;
+use pw_world::decision::{Choice, Decision, DecisionKind};
 
 use crate::fmt::{club, money, person, wage};
 
@@ -30,27 +30,27 @@ pub fn title(w: &World, d: &Decision) -> String {
             format!("{} {what}", person(w, *partner))
         }
         DecisionKind::Trial { club: c, days } => format!("{} invite you for a {days}-day trial", club(w, *c)),
-        DecisionKind::NationChoice { nation: n, other } => format!(
-            "{} have called you up. Accepting commits you to them; refusing commits you to {}",
-            crate::fmt::nation(w, *n),
-            crate::fmt::nation(w, *other)
-        ),
+        DecisionKind::NationChoice { nation: n, other } => {
+            format!("{} have called you up. Accepting commits you to them; refusing commits you to {}", crate::fmt::nation(w, *n), crate::fmt::nation(w, *other))
+        }
         DecisionKind::Endorsement { brand, fee_year, years, days } => {
             let b = &w.commerce.brands[*brand as usize];
             format!("{} ({}) offer {} a year for {years} years, {days} appearance days a month", b.name, b.sector.label(), money(*fee_year))
         }
         DecisionKind::PressQuestion { conference, question } => crate::press::question(w, *conference, *question),
-        DecisionKind::Appeal { controversy } => w.officials.controversies.get(*controversy as usize).map_or_else(String::new, |c| format!("Appeal {}'s red card against {}?", crate::fmt::player(w, c.player), crate::history::holder(w, pw_world::records::Holder::Club(c.benefited)))),
+        DecisionKind::Appeal { controversy } => w
+            .officials
+            .controversies
+            .get(*controversy as usize)
+            .map_or_else(String::new, |c| format!("Appeal {}'s red card against {}?", crate::fmt::player(w, c.player), crate::history::holder(w, pw_world::records::Holder::Club(c.benefited)))),
         DecisionKind::Incident { incident } => format!("You need to deal with this: {}", crate::incidents::summary(w, *incident, false, false)),
         DecisionKind::IncidentAsk { incident, ask } => match ask {
             pw_world::incident::Ask::RequestLeave => format!("Ask for time away? ({})", crate::incidents::summary(w, *incident, false, false)),
             pw_world::incident::Ask::Apologise => format!("You are expected to apologise: {}", crate::incidents::summary(w, *incident, false, false)),
         },
-        DecisionKind::Treatment { surgery_days, rehab_days } => format!(
-            "Surgery (about {}, lower risk of recurrence) or rehabilitation (about {}, setbacks likelier)?",
-            crate::fmt::duration_days(*surgery_days),
-            crate::fmt::duration_days(*rehab_days)
-        ),
+        DecisionKind::Treatment { surgery_days, rehab_days } => {
+            format!("Surgery (about {}, lower risk of recurrence) or rehabilitation (about {}, setbacks likelier)?", crate::fmt::duration_days(*surgery_days), crate::fmt::duration_days(*rehab_days))
+        }
     }
 }
 

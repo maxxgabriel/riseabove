@@ -97,8 +97,7 @@ pub fn appoint(w: &mut World, club: ClubId) {
         .filter(|(_, s)| crate::affairs::coaching_level(w, s.person) >= crate::affairs::required_level(w.clubs[club].reputation))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 1500)
         .map(|(id, s)| {
-            let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0
-                + if w.people[s.person].nation == nation { 0.5 } else { 0.0 };
+            let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 };
             (id, fit)
         })
         .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));

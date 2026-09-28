@@ -64,12 +64,8 @@ fn mentoring(w: &mut World) {
         let squad: Vec<PlayerId> = w.teams[t].squad.iter().copied().filter(|&p| w.players.hot[p].status == PlayerStatus::Active).collect();
         // Seniors at the club (first team) can mentor youngsters in any of its sides.
         let first = w.clubs[club].teams.iter().copied().find(|&x| w.teams[x].kind == TeamKind::First);
-        let seniors: Vec<PlayerId> = first
-            .map(|f| w.teams[f].squad.clone())
-            .unwrap_or_default()
-            .into_iter()
-            .filter(|&p| w.players.hot[p].status == PlayerStatus::Active && w.age_years(p) >= 27.0)
-            .collect();
+        let seniors: Vec<PlayerId> =
+            first.map(|f| w.teams[f].squad.clone()).unwrap_or_default().into_iter().filter(|&p| w.players.hot[p].status == PlayerStatus::Active && w.age_years(p) >= 27.0).collect();
         for &y in &squad {
             if w.age_years(y) > 21.0 {
                 continue;

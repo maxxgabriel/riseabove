@@ -27,16 +27,8 @@ pub enum Occupation {
 }
 
 impl Occupation {
-    pub const ALL: [Occupation; 8] = [
-        Occupation::None,
-        Occupation::Student,
-        Occupation::Service,
-        Occupation::Trade,
-        Occupation::Professional,
-        Occupation::Creative,
-        Occupation::Athlete,
-        Occupation::Carer,
-    ];
+    pub const ALL: [Occupation; 8] =
+        [Occupation::None, Occupation::Student, Occupation::Service, Occupation::Trade, Occupation::Professional, Occupation::Creative, Occupation::Athlete, Occupation::Carer];
 
     pub const fn label(self) -> &'static str {
         match self {
@@ -152,10 +144,7 @@ impl Routine {
     pub const BUDGET: u32 = 60;
 
     pub fn total(&self) -> u32 {
-        [self.rest, self.recovery, self.family, self.partner, self.social, self.study, self.hobbies, self.media, self.nightlife, self.language]
-            .iter()
-            .map(|&h| u32::from(h))
-            .sum()
+        [self.rest, self.recovery, self.family, self.partner, self.social, self.study, self.hobbies, self.media, self.nightlife, self.language].iter().map(|&h| u32::from(h)).sum()
     }
 
     /// Scale down proportionally if it exceeds the budget.

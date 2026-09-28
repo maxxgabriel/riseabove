@@ -31,19 +31,15 @@ pub fn monthly(w: &mut World) {
         }
         let fans = if club.is_some() { w.media.fan(club, who).map_or(0.0, |f| f32::from(f.score)) } else { 0.0 };
         let years = c.joined.days_until(today) as f32 / 365.0;
-        let local_target = if retired {
-            0.0
-        } else {
-            (f32::from(c.rep.current) * 0.6 + fans * 3.0 + years.min(8.0) * 250.0 + if club.is_some() && c.youth_club == club { 1500.0 } else { 0.0 }).clamp(0.0, 10_000.0)
-        };
+        let local_target =
+            if retired { 0.0 } else { (f32::from(c.rep.current) * 0.6 + fans * 3.0 + years.min(8.0) * 250.0 + if club.is_some() && c.youth_club == club { 1500.0 } else { 0.0 }).clamp(0.0, 10_000.0) };
         let cont_apps = w.perf.recent.get(&p).map_or(0, |v| v.iter().filter(|a| continental.contains(&a.comp)).count()) as f32;
         let intl = crate::intl::standing(w, p);
         let cont_target = (f32::from(c.rep.world) * 0.7 + cont_apps * 250.0 + intl * 1500.0).clamp(0.0, 10_000.0);
         let image = f32::from(w.media.image.get(&who).copied().unwrap_or(0));
         let media_time = w.lives.get(who).map_or(1.0, |l| f32::from(l.routine.media));
         let partner_fame = w.lives.get(who).and_then(|l| l.household.partner).map_or(0.0, |pt| f32::from(w.renown.of(pt.person).fame) * 0.2);
-        let fame_target = (f32::from(c.rep.world) * 0.8 + image.abs() * 1.5 + media_time * 250.0 + partner_fame).clamp(0.0, 10_000.0)
-            * if retired { 0.7 } else { 1.0 };
+        let fame_target = (f32::from(c.rep.world) * 0.8 + image.abs() * 1.5 + media_time * 250.0 + partner_fame).clamp(0.0, 10_000.0) * if retired { 0.7 } else { 1.0 };
         let world_rep = c.rep.world;
         let r = w.renown.people.entry(who).or_default();
         let step = |cur: u16, tgt: f32, a: f32| (f32::from(cur) + a * (tgt - f32::from(cur))).clamp(0.0, 10_000.0) as u16;

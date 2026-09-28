@@ -11,11 +11,11 @@
 
 use pw_core::rng::{period, stream};
 use pw_core::{ClubId, Hidden, PersonId};
+use pw_world::World;
 use pw_world::careers::MediaStyle;
 use pw_world::decision::{Choice, Decision, DecisionKind, MindKind};
 use pw_world::media::{Stance, StoryKind};
 use pw_world::pressroom::{Conference, QTopic, Question};
-use pw_world::World;
 
 use crate::consider;
 use crate::media::big_enough;
@@ -212,9 +212,21 @@ fn ai_stance(w: &World, speaker: PersonId, q: &Question) -> Stance {
             _ => Stance::Deflect,
         },
         QTopic::Rival { .. } => {
-            if matches!(style, Some(MediaStyle::Combative)) && temper > 0.5 { Stance::Criticise } else if matches!(style, Some(MediaStyle::Charming)) { Stance::Praise } else { Stance::Deflect }
+            if matches!(style, Some(MediaStyle::Combative)) && temper > 0.5 {
+                Stance::Criticise
+            } else if matches!(style, Some(MediaStyle::Charming)) {
+                Stance::Praise
+            } else {
+                Stance::Deflect
+            }
         }
-        QTopic::Injury { .. } => if trust > 0.5 { Stance::Support } else { Stance::Deflect },
+        QTopic::Injury { .. } => {
+            if trust > 0.5 {
+                Stance::Support
+            } else {
+                Stance::Deflect
+            }
+        }
         QTopic::EarlierQuote { quote } => {
             let prev = w.pressroom.quotes.get(quote as usize).map(|q| q.stance);
             match prev {
@@ -224,7 +236,13 @@ fn ai_stance(w: &World, speaker: PersonId, q: &Question) -> Stance {
             }
         }
         QTopic::LastMatch { .. } | QTopic::Selection { .. } => {
-            if trust > 0.6 { Stance::Praise } else if temper > 0.7 && trust < 0.35 { Stance::Criticise } else { Stance::Deflect }
+            if trust > 0.6 {
+                Stance::Praise
+            } else if temper > 0.7 && trust < 0.35 {
+                Stance::Criticise
+            } else {
+                Stance::Deflect
+            }
         }
     }
 }
@@ -263,4 +281,3 @@ pub fn decide(w: &mut World, conf: u32, question: u8, choice: Choice) {
         answer(w, conf, usize::from(question), s);
     }
 }
-

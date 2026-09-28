@@ -65,13 +65,7 @@ pub fn status(w: &World, me: PersonId) -> Vec<String> {
             }
         }
         if h.status != PlayerStatus::Retired {
-            v.push(format!(
-                "Body: {}, {}. Morale {}. Confidence {}.",
-                words_condition(h.condition),
-                words_sharpness(h.sharpness),
-                words_morale(h.morale),
-                level(h.confidence)
-            ));
+            v.push(format!("Body: {}, {}. Morale {}. Confidence {}.", words_condition(h.condition), words_sharpness(h.sharpness), words_morale(h.morale), level(h.confidence)));
             if h.injury != 0 {
                 let name = w.data.injuries.get(usize::from(h.injury - 1)).map_or("injury", |d| d.name.as_str());
                 v.push(format!("Injured: {name}, about {} days to go.", h.injury_days));
@@ -138,11 +132,41 @@ pub fn self_view(w: &World, me: PersonId) -> Vec<String> {
     let groups: [(&str, &[Attr]); 4] = [
         (
             "Technical",
-            &[Attr::Corners, Attr::Crossing, Attr::Dribbling, Attr::Finishing, Attr::FirstTouch, Attr::FreeKicks, Attr::Heading, Attr::LongShots, Attr::LongThrows, Attr::Marking, Attr::Passing, Attr::PenaltyTaking, Attr::Tackling, Attr::Technique],
+            &[
+                Attr::Corners,
+                Attr::Crossing,
+                Attr::Dribbling,
+                Attr::Finishing,
+                Attr::FirstTouch,
+                Attr::FreeKicks,
+                Attr::Heading,
+                Attr::LongShots,
+                Attr::LongThrows,
+                Attr::Marking,
+                Attr::Passing,
+                Attr::PenaltyTaking,
+                Attr::Tackling,
+                Attr::Technique,
+            ],
         ),
         (
             "Mental",
-            &[Attr::Aggression, Attr::Anticipation, Attr::Bravery, Attr::Composure, Attr::Concentration, Attr::Decisions, Attr::Determination, Attr::Flair, Attr::Leadership, Attr::OffTheBall, Attr::Positioning, Attr::Teamwork, Attr::Vision, Attr::WorkRate],
+            &[
+                Attr::Aggression,
+                Attr::Anticipation,
+                Attr::Bravery,
+                Attr::Composure,
+                Attr::Concentration,
+                Attr::Decisions,
+                Attr::Determination,
+                Attr::Flair,
+                Attr::Leadership,
+                Attr::OffTheBall,
+                Attr::Positioning,
+                Attr::Teamwork,
+                Attr::Vision,
+                Attr::WorkRate,
+            ],
         ),
         ("Physical", &[Attr::Acceleration, Attr::Agility, Attr::Balance, Attr::JumpingReach, Attr::NaturalFitness, Attr::Pace, Attr::Stamina, Attr::Strength]),
         (
@@ -332,7 +356,14 @@ pub fn life(w: &World, me: PersonId) -> Vec<String> {
         n => format!("{} parent(s) in {}, health {}, you are {} close.", n, nation(w, par.nation), level(par.health), level(par.closeness)),
     });
     let f = &l.finances;
-    v.push(format!("Money: savings {}, last month in {} / out {}, lifestyle {}{}.", money(f.savings), money(f.income), money(f.spending), f.lifestyle.label(), if f.debt > 0 { format!(", debt {}", money(f.debt)) } else { String::new() }));
+    v.push(format!(
+        "Money: savings {}, last month in {} / out {}, lifestyle {}{}.",
+        money(f.savings),
+        money(f.income),
+        money(f.spending),
+        f.lifestyle.label(),
+        if f.debt > 0 { format!(", debt {}", money(f.debt)) } else { String::new() }
+    ));
     let r = l.routine;
     v.push(format!(
         "Your week (hours): rest {} · recovery {} · family {} · partner {} · social {} · study {} · hobbies {} · media {} · nights out {} · language {}",
@@ -436,22 +467,24 @@ pub fn news(w: &World, me: PersonId, n: usize) -> Vec<String> {
 
 pub fn social(w: &World, me: PersonId, n: usize) -> Vec<String> {
     let my_club = w.club_of_person(me);
-    let mut v: Vec<String> = w
-        .media
-        .reactions
-        .iter()
-        .rev()
-        .filter(|r| r.about == me || (my_club.is_some() && r.club == my_club))
-        .take(n)
-        .map(|r| format!("{}  {}", r.date, pw_narrate::press::reaction(w, r)))
-        .collect();
+    let mut v: Vec<String> =
+        w.media.reactions.iter().rev().filter(|r| r.about == me || (my_club.is_some() && r.club == my_club)).take(n).map(|r| format!("{}  {}", r.date, pw_narrate::press::reaction(w, r))).collect();
     let mine: Vec<(ClubId, &pw_world::media::FanStanding)> = w.media.fans.iter().filter(|((_, p), _)| *p == me).map(|((c, _), f)| (*c, f)).collect();
     for (c, f) in mine {
         let why: Vec<&str> = f.reasons.iter().map(|r| r.0.label()).collect();
         v.push(format!("{} fans see you as: {} ({})", club(w, c), f.label(), why.join(", ")));
     }
     if let Some(&img) = w.media.image.get(&me) {
-        v.push(format!("Public image: {}", if img > 100 { "positive" } else if img < -100 { "negative" } else { "neutral" }));
+        v.push(format!(
+            "Public image: {}",
+            if img > 100 {
+                "positive"
+            } else if img < -100 {
+                "negative"
+            } else {
+                "neutral"
+            }
+        ));
     }
     if v.is_empty() {
         v.push("Nobody is talking about you. Yet.".into());
@@ -495,7 +528,13 @@ pub fn records(w: &World, me: PersonId) -> Vec<String> {
         if !past.is_empty() {
             let generated = past.iter().filter(|s| s.provenance == pw_world::backfill::Provenance::Generated).count();
             let years: Vec<String> = past.iter().map(|s| format!("{}/{:02}", s.season, (s.season + 1) % 100)).collect();
-            let note = if generated == past.len() { " (generated history)" } else if generated > 0 { " (partly generated history)" } else { "" };
+            let note = if generated == past.len() {
+                " (generated history)"
+            } else if generated > 0 {
+                " (partly generated history)"
+            } else {
+                ""
+            };
             v.push(format!("League titles before this era{note}: {}", years.join(", ")));
         }
     }
@@ -567,6 +606,12 @@ pub fn find(w: &World, text: &str, limit: usize) -> Vec<(PersonId, String)> {
 
 pub fn personality_hint(w: &World, me: PersonId) -> String {
     let h = &w.people[me].hidden;
-    let adapt = if h.get(Hidden::Adaptability) >= 14 { "settle quickly in new places" } else if h.get(Hidden::Adaptability) <= 7 { "find it hard to settle away from home" } else { "adapt reasonably well" };
+    let adapt = if h.get(Hidden::Adaptability) >= 14 {
+        "settle quickly in new places"
+    } else if h.get(Hidden::Adaptability) <= 7 {
+        "find it hard to settle away from home"
+    } else {
+        "adapt reasonably well"
+    };
     format!("People say you {adapt}.")
 }

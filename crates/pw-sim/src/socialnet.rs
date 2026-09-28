@@ -15,8 +15,8 @@ use pw_core::{ClubId, Date, EventId, Hidden, NationId, PersonId, PlayerId};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::media::{ClaimType, Stance};
 use pw_world::socialnet::{
-    AccountId, AccountKind, Age, Chant, ChantKind, Concept, Frame, GroupAction, GroupKind, Knew, Meme, MemeSource, MomentKind, NO_POST, Opinion, Persona, Post, Remembered,
-    SocialAccount, SupporterGroup, TopicKey, Trend,
+    AccountId, AccountKind, Age, Chant, ChantKind, Concept, Frame, GroupAction, GroupKind, Knew, Meme, MemeSource, MomentKind, NO_POST, Opinion, Persona, Post, Remembered, SocialAccount,
+    SupporterGroup, TopicKey, Trend,
 };
 use pw_world::{FanReason, FxHashMap, MemoryKind, StoryKind, World};
 use smallvec::SmallVec;
@@ -103,10 +103,15 @@ fn new_account(w: &mut World, kind: AccountKind, nation: NationId, club: ClubId,
         _ => Age::Older,
     };
     let rival = if club.is_some() {
-        w.culture.rivalries.of(pw_world::culture::Side::Club(club)).max_by_key(|r| r.intensity).and_then(|r| match r.other(pw_world::culture::Side::Club(club)) {
-            pw_world::culture::Side::Club(c) => Some(c),
-            _ => None,
-        }).unwrap_or(ClubId::NONE)
+        w.culture
+            .rivalries
+            .of(pw_world::culture::Side::Club(club))
+            .max_by_key(|r| r.intensity)
+            .and_then(|r| match r.other(pw_world::culture::Side::Club(club)) {
+                pw_world::culture::Side::Club(c) => Some(c),
+                _ => None,
+            })
+            .unwrap_or(ClubId::NONE)
     } else {
         ClubId::NONE
     };
@@ -164,7 +169,13 @@ pub fn ensure(w: &mut World) {
                 1 => AccountKind::Casual,
                 2 => AccountKind::Hardcore,
                 4 => AccountKind::Local,
-                _ => if rep >= 5000 { AccountKind::International } else { AccountKind::Supporter },
+                _ => {
+                    if rep >= 5000 {
+                        AccountKind::International
+                    } else {
+                        AccountKind::Supporter
+                    }
+                }
             };
             new_account(w, kind, nation, club, PersonId::NONE, key | i);
         }
@@ -331,7 +342,17 @@ fn frames(w: &World) -> Vec<(Frame, SmallVec<[ClubId; 2]>, PersonId, EventId)> {
             }
             EventKind::Published { story } => {
                 let s = &w.media.stories[story];
-                if !matches!(s.kind, StoryKind::TransferRumour | StoryKind::Leak | StoryKind::Unhappy | StoryKind::Discipline | StoryKind::IncidentNews | StoryKind::Interview | StoryKind::Criticism | StoryKind::Praise) {
+                if !matches!(
+                    s.kind,
+                    StoryKind::TransferRumour
+                        | StoryKind::Leak
+                        | StoryKind::Unhappy
+                        | StoryKind::Discipline
+                        | StoryKind::IncidentNews
+                        | StoryKind::Interview
+                        | StoryKind::Criticism
+                        | StoryKind::Praise
+                ) {
                     continue;
                 }
                 let clubs: SmallVec<[ClubId; 2]> = [s.club, s.other_club].into_iter().filter(|c| c.is_some()).collect();
@@ -383,15 +404,47 @@ fn valence(w: &World, f: Frame, club: ClubId) -> i8 {
             Some(_) => -1,
             None => 0,
         }),
-        Frame::LateWinner { player, .. } | Frame::HatTrick { player, .. } => if w.players.hot[player].club == club { 1 } else { -1 },
-        Frame::RedCard { player, .. } => if w.players.hot[player].club == club { -1 } else { 1 },
-        Frame::Signing { club: c, .. } => if c == club { 1 } else { -1 },
-        Frame::Departure { from, .. } => if from == club { -1 } else { 1 },
+        Frame::LateWinner { player, .. } | Frame::HatTrick { player, .. } => {
+            if w.players.hot[player].club == club {
+                1
+            } else {
+                -1
+            }
+        }
+        Frame::RedCard { player, .. } => {
+            if w.players.hot[player].club == club {
+                -1
+            } else {
+                1
+            }
+        }
+        Frame::Signing { club: c, .. } => {
+            if c == club {
+                1
+            } else {
+                -1
+            }
+        }
+        Frame::Departure { from, .. } => {
+            if from == club {
+                -1
+            } else {
+                1
+            }
+        }
         Frame::TransferRequest { .. } | Frame::Injury { .. } | Frame::ManagerSacked { .. } | Frame::Incident { .. } => -1,
         Frame::Award { .. } | Frame::Milestone { .. } | Frame::Record { .. } | Frame::ManagerAppointed { .. } => 1,
         Frame::Story { story } => {
             let s = &w.media.stories[story];
-            if s.kind == StoryKind::TransferRumour && s.club == club { -1 } else if s.tone < -20 { -1 } else if s.tone > 20 { 1 } else { 0 }
+            if s.kind == StoryKind::TransferRumour && s.club == club {
+                -1
+            } else if s.tone < -20 {
+                -1
+            } else if s.tone > 20 {
+                1
+            } else {
+                0
+            }
         }
         Frame::Quote { quote } => w.pressroom.quotes.get(quote as usize).map_or(0, |q| match q.stance {
             Stance::Praise | Stance::Support | Stance::Loyalty => 1,
@@ -399,7 +452,15 @@ fn valence(w: &World, f: Frame, club: ClubId) -> i8 {
             _ => 0,
         }),
         // A call that went against you is bad news, whoever was right.
-        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or(0, |c| if c.against == club { -1 } else if c.benefited == club { 1 } else { 0 }),
+        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or(0, |c| {
+            if c.against == club {
+                -1
+            } else if c.benefited == club {
+                1
+            } else {
+                0
+            }
+        }),
         Frame::Post { .. } => 0,
     }
 }
@@ -431,7 +492,13 @@ pub fn believes(w: &World, a: AccountId, story: pw_core::StoryId) -> f32 {
     let know = f32::from(acc.persona.knowledge) / 100.0;
     // Nobody wants to believe their best player is leaving; everyone wants
     // to believe the rival's is.
-    let desirable = if s.club == acc.club && s.tone < 0 { -0.2 } else if s.club == acc.rival && s.tone < 0 { 0.2 } else { 0.0 };
+    let desirable = if s.club == acc.club && s.tone < 0 {
+        -0.2
+    } else if s.club == acc.rival && s.tone < 0 {
+        0.2
+    } else {
+        0.0
+    };
     let corroborated = if s.thread != u32::MAX { (w.media.threads[s.thread as usize].stories.len() as f32 - 1.0).min(3.0) * 0.08 } else { 0.0 };
     let claim = match s.claim_type {
         ClaimType::Fact => 0.4,
@@ -459,11 +526,7 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
     }
     if rival && !own {
         // The other lot.
-        return if club_val < 0 && p.hostility > 40 {
-            Some((if p.humour > 60 { Concept::Sarcasm } else { Concept::Mock }, PersonId::NONE, refs))
-        } else {
-            None
-        };
+        return if club_val < 0 && p.hostility > 40 { Some((if p.humour > 60 { Concept::Sarcasm } else { Concept::Mock }, PersonId::NONE, refs)) } else { None };
     }
     if !own {
         return None;
@@ -498,17 +561,56 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
     }
     let c = match (club_val, f) {
         (1, Frame::Result { .. }) => Concept::Celebrate,
-        (-1, Frame::Result { .. }) => if p.optimism < 35 { Concept::Criticise } else { Concept::Lament },
-        (1, _) => if roll < 0.5 { Concept::Praise } else { Concept::Celebrate },
+        (-1, Frame::Result { .. }) => {
+            if p.optimism < 35 {
+                Concept::Criticise
+            } else {
+                Concept::Lament
+            }
+        }
+        (1, _) => {
+            if roll < 0.5 {
+                Concept::Praise
+            } else {
+                Concept::Celebrate
+            }
+        }
         (-1, Frame::Injury { .. }) => Concept::Worry,
-        (-1, Frame::Departure { .. }) => if p.loyalty > 60 { Concept::Criticise } else { Concept::Lament },
-        (-1, _) => if p.hostility > 55 { Concept::Criticise } else { Concept::Lament },
+        (-1, Frame::Departure { .. }) => {
+            if p.loyalty > 60 {
+                Concept::Criticise
+            } else {
+                Concept::Lament
+            }
+        }
+        (-1, _) => {
+            if p.hostility > 55 {
+                Concept::Criticise
+            } else {
+                Concept::Lament
+            }
+        }
         _ => Concept::Question,
     };
     Some((c, PersonId::NONE, refs))
 }
 
-fn create_post(w: &mut World, author: AccountId, frame: Frame, c: Concept, about: PersonId, about2: PersonId, club: ClubId, intensity: u8, claim: ClaimType, reply_to: u32, quote_of: u32, refs: SmallVec<[u32; 2]>, knew: Knew, minute: u16) -> u32 {
+fn create_post(
+    w: &mut World,
+    author: AccountId,
+    frame: Frame,
+    c: Concept,
+    about: PersonId,
+    about2: PersonId,
+    club: ClubId,
+    intensity: u8,
+    claim: ClaimType,
+    reply_to: u32,
+    quote_of: u32,
+    refs: SmallVec<[u32; 2]>,
+    knew: Knew,
+    minute: u16,
+) -> u32 {
     let today = w.date;
     let id = w.net.next_post_id();
     let prior = w.net.opinion(author, about).map_or(0, |o| o.score);
@@ -603,7 +705,9 @@ fn frame_subjects(w: &World, f: Frame) -> (SmallVec<[ClubId; 2]>, PersonId) {
         }
         Frame::Signing { player, club } => ([club].into_iter().collect(), pp(player)),
         Frame::Departure { player, from, to } => ([from, to].into_iter().collect(), pp(player)),
-        Frame::TransferRequest { player } | Frame::Award { player } | Frame::Milestone { player } | Frame::Record { player } | Frame::Injury { player } => ([w.players.hot[player].club].into_iter().collect(), pp(player)),
+        Frame::TransferRequest { player } | Frame::Award { player } | Frame::Milestone { player } | Frame::Record { player } | Frame::Injury { player } => {
+            ([w.players.hot[player].club].into_iter().collect(), pp(player))
+        }
         Frame::ManagerSacked { club } | Frame::ManagerAppointed { club } => ([club].into_iter().collect(), PersonId::NONE),
         Frame::Story { story } => {
             let s = &w.media.stories[story];
@@ -612,7 +716,11 @@ fn frame_subjects(w: &World, f: Frame) -> (SmallVec<[ClubId; 2]>, PersonId) {
         Frame::Quote { quote } => w.pressroom.quotes.get(quote as usize).map_or((SmallVec::new(), PersonId::NONE), |q| ([w.club_of_person(q.speaker)].into_iter().collect(), q.about)),
         Frame::Incident { incident } => w.incidents.get(incident).map_or((SmallVec::new(), PersonId::NONE), |i| ([i.club].into_iter().collect(), i.parties.first().copied().unwrap_or(PersonId::NONE))),
         Frame::Post { post } => w.net.post(post).map_or((SmallVec::new(), PersonId::NONE), |p| ([p.club].into_iter().collect(), p.about)),
-        Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or((SmallVec::new(), PersonId::NONE), |c| ([c.against, c.benefited].into_iter().collect(), crate::officials::referee_person(w, c.referee))),
+        Frame::Controversy { controversy } => w
+            .officials
+            .controversies
+            .get(controversy as usize)
+            .map_or((SmallVec::new(), PersonId::NONE), |c| ([c.against, c.benefited].into_iter().collect(), crate::officials::referee_person(w, c.referee))),
     }
 }
 
@@ -732,11 +840,19 @@ fn threads(w: &mut World, new_posts: &[u32]) {
                 let theirs = w.net.opinion(a, post.about).map_or(0, |o| o.score);
                 let disagree = post.about.is_some() && ((post.prior >= 0) != (theirs >= 0)) && theirs.abs() > 150;
                 let callout_of = if matches!(post.concept, Concept::Praise | Concept::Celebrate | Concept::ConcedeWrong | Concept::ReluctantPraise) && post.about.is_some() {
-                    w.net.posts_by(post.author).rev().find(|x| x.id != post.id && x.about == post.about && matches!(x.concept, Concept::Criticise | Concept::DoubleDown) && x.date.days_until(w.date) <= 60).map(|x| x.id)
+                    w.net
+                        .posts_by(post.author)
+                        .rev()
+                        .find(|x| x.id != post.id && x.about == post.about && matches!(x.concept, Concept::Criticise | Concept::DoubleDown) && x.date.days_until(w.date) <= 60)
+                        .map(|x| x.id)
                 } else {
                     None
                 };
-                let p = 0.06 * momentum * (0.5 + f32::from(acc.persona.hostility.max(acc.persona.humour)) / 100.0) * if disagree || callout_of.is_some() { 2.5 } else { 1.0 } * 0.5f32.powi(i32::from(depth));
+                let p = 0.06
+                    * momentum
+                    * (0.5 + f32::from(acc.persona.hostility.max(acc.persona.humour)) / 100.0)
+                    * if disagree || callout_of.is_some() { 2.5 } else { 1.0 }
+                    * 0.5f32.powi(i32::from(depth));
                 let r = w.roll(stream::SOCIAL_ACTIVITY, &[u64::from(a), u64::from(pid), 0x9e]);
                 if r >= p {
                     continue;
@@ -753,7 +869,22 @@ fn threads(w: &mut World, new_posts: &[u32]) {
                 };
                 // Rivals quote rather than reply.
                 let (reply_to, quote_of) = if !own && depth == 0 { (NO_POST, pid) } else { (pid, NO_POST) };
-                let id = create_post(w, a, Frame::Post { post: pid }, c, post.about, PersonId::NONE, if own { club } else { acc.club }, post.intensity.saturating_sub(10), ClaimType::Opinion, reply_to, quote_of, refs, Knew::Saw { post: pid }, post.minute.saturating_add(20 + (r * 200.0) as u16).min(1439));
+                let id = create_post(
+                    w,
+                    a,
+                    Frame::Post { post: pid },
+                    c,
+                    post.about,
+                    PersonId::NONE,
+                    if own { club } else { acc.club },
+                    post.intensity.saturating_sub(10),
+                    ClaimType::Opinion,
+                    reply_to,
+                    quote_of,
+                    refs,
+                    Knew::Saw { post: pid },
+                    post.minute.saturating_add(20 + (r * 200.0) as u16).min(1439),
+                );
                 next.push(id);
                 // Hostile back-and-forth ends in mutes.
                 if c == Concept::Disagree && acc.persona.hostility > 80 && r < p * 0.2 {
@@ -906,7 +1037,8 @@ fn memes(w: &mut World, new_posts: &[u32]) {
         for a in mockers {
             let r = w.roll(stream::SOCIAL_ACTIVITY, &[u64::from(a), u64::from(m.id), period::day(today)]);
             if r < f32::from(m.recognition) / 400.0 {
-                let id = create_post(w, a, Frame::Post { post: NO_POST }, Concept::Meme, m.about, PersonId::NONE, m.club, 50, ClaimType::Opinion, NO_POST, NO_POST, SmallVec::new(), Knew::Watched, 1200);
+                let id =
+                    create_post(w, a, Frame::Post { post: NO_POST }, Concept::Meme, m.about, PersonId::NONE, m.club, 50, ClaimType::Opinion, NO_POST, NO_POST, SmallVec::new(), Knew::Watched, 1200);
                 if let Some(p) = w.net.post_mut(id) {
                     p.extra = m.id;
                 }
@@ -992,7 +1124,21 @@ pub fn weekly(w: &mut World) {
         let g = w.net.groups[gid as usize].clone();
         let club = g.club;
         let cult = w.culture.club(club);
-        let results: Vec<i8> = w.recent_matches.of_club(club).rev().take(5).map(|m| if m.winner() == Some(club) { 1 } else if m.winner().is_none() { 0 } else { -1 }).collect();
+        let results: Vec<i8> = w
+            .recent_matches
+            .of_club(club)
+            .rev()
+            .take(5)
+            .map(|m| {
+                if m.winner() == Some(club) {
+                    1
+                } else if m.winner().is_none() {
+                    0
+                } else {
+                    -1
+                }
+            })
+            .collect();
         let form = results.iter().map(|&r| i32::from(r)).sum::<i32>() as f32 / 5.0;
         let expect = f32::from(cult.expectations) / 100.0;
         let derby_loss = w.recent_matches.of_club(club).rev().take(5).any(|m| m.derby && m.winner().is_some_and(|x| x != club));
@@ -1097,7 +1243,19 @@ fn chants(w: &mut World) {
             let id = w.net.chants.len() as u32;
             let seed = pw_core::rng::hash_key(&[w.seed, stream::CULTURE, u64::from(person.0), u64::from(club.0)]);
             let target = if m.home == club { m.away } else { m.home };
-            w.net.chants.push(Chant { id, club, kind: if m.derby { ChantKind::Rivalry } else { ChantKind::PlayerPraise }, about: person, target, shape: (seed % 6) as u8, seed, born: today, moment: EventId::NONE, popularity: 40, last_sung: today });
+            w.net.chants.push(Chant {
+                id,
+                club,
+                kind: if m.derby { ChantKind::Rivalry } else { ChantKind::PlayerPraise },
+                about: person,
+                target,
+                shape: (seed % 6) as u8,
+                seed,
+                born: today,
+                moment: EventId::NONE,
+                popularity: 40,
+                last_sung: today,
+            });
         }
     }
     // Players who crossed to a rival get a mocking chant at their old club.
@@ -1127,7 +1285,19 @@ fn chants(w: &mut World) {
         let owner = w.governance.get(&club).map_or(PersonId::NONE, |g| g.owner.person);
         let id = w.net.chants.len() as u32;
         let seed = pw_core::rng::hash_key(&[w.seed, stream::CULTURE, u64::from(club.0), today.0 as u64]);
-        w.net.chants.push(Chant { id, club, kind: ChantKind::Protest, about: owner, target: ClubId::NONE, shape: (seed % 6) as u8, seed, born: today, moment: EventId::NONE, popularity: 60, last_sung: today });
+        w.net.chants.push(Chant {
+            id,
+            club,
+            kind: ChantKind::Protest,
+            about: owner,
+            target: ClubId::NONE,
+            shape: (seed % 6) as u8,
+            seed,
+            born: today,
+            moment: EventId::NONE,
+            popularity: 60,
+            last_sung: today,
+        });
     }
     // Popularity fades unless sung (atmosphere sings them on matchdays).
     for c in w.net.chants.iter_mut() {
@@ -1158,7 +1328,13 @@ pub fn person_post(w: &mut World, who: PersonId, about: PersonId, concept: Conce
         }
     }
     let club = w.club_of_person(who);
-    let frame = if reply_to != NO_POST { Frame::Post { post: reply_to } } else if quote_of != NO_POST { Frame::Post { post: quote_of } } else { Frame::Post { post: NO_POST } };
+    let frame = if reply_to != NO_POST {
+        Frame::Post { post: reply_to }
+    } else if quote_of != NO_POST {
+        Frame::Post { post: quote_of }
+    } else {
+        Frame::Post { post: NO_POST }
+    };
     let id = create_post(w, a, frame, concept, about, PersonId::NONE, club, 70, ClaimType::Opinion, reply_to, quote_of, SmallVec::new(), Knew::Own, 720);
     // What saying it publicly does.
     if about.is_some() && about != who {
@@ -1201,7 +1377,10 @@ pub fn feed(w: &World, who: PersonId, n: usize) -> Vec<u32> {
     let club = w.club_of_person(who);
     let me = w.net.account_of(who);
     let follows: SmallVec<[AccountId; 8]> = me.and_then(|a| w.net.follows.get(&a).cloned()).unwrap_or_default();
-    let team = { let p = w.people[who].player; if p.is_some() { w.players.hot[p].team } else { pw_core::TeamId::NONE } };
+    let team = {
+        let p = w.people[who].player;
+        if p.is_some() { w.players.hot[p].team } else { pw_core::TeamId::NONE }
+    };
     let mates: Vec<PersonId> = if team.is_some() { w.teams[team].squad.iter().map(|&p| w.players.cold[p].person).collect() } else { Vec::new() };
     let rival = me.map_or(ClubId::NONE, |a| w.net.accounts[a as usize].rival);
     let trending: Vec<TopicKey> = w.net.trends.iter().filter(|t| t.date.days_until(today) <= 2).map(|t| t.key).collect();

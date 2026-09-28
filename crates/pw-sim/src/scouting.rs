@@ -21,11 +21,8 @@ use smallvec::SmallVec;
 use crate::consider;
 
 pub fn ensure(w: &mut World) {
-    let ids: Vec<StaffId> = w
-        .staff
-        .ids()
-        .filter(|&s| matches!(w.staff[s].role, StaffRole::Scout | StaffRole::HeadOfYouth | StaffRole::DirectorOfFootball) && !w.scouting.profiles.contains_key(&s))
-        .collect();
+    let ids: Vec<StaffId> =
+        w.staff.ids().filter(|&s| matches!(w.staff[s].role, StaffRole::Scout | StaffRole::HeadOfYouth | StaffRole::DirectorOfFootball) && !w.scouting.profiles.contains_key(&s)).collect();
     for s in ids {
         let st = &w.staff[s];
         let person = &w.people[st.person];
@@ -65,12 +62,7 @@ pub fn assign(w: &mut World) {
     w.scouting.assignments.retain(|a| a.until > today);
     let clubs: Vec<ClubId> = w.clubs.ids().collect();
     // Nations a club could realistically buy from, weighted by league strength.
-    let nations: Vec<(NationId, f32)> = w
-        .nations
-        .iter_enumerated()
-        .filter(|(_, n)| !n.leagues.is_empty())
-        .map(|(id, n)| (id, (f32::from(n.reputation) / 1000.0).powi(2) + 0.2))
-        .collect();
+    let nations: Vec<(NationId, f32)> = w.nations.iter_enumerated().filter(|(_, n)| !n.leagues.is_empty()).map(|(id, n)| (id, (f32::from(n.reputation) / 1000.0).powi(2) + 0.2)).collect();
     for club in clubs {
         let scouts: Vec<StaffId> = w.clubs[club].staff.iter().copied().filter(|&s| w.scouting.profiles.contains_key(&s)).collect();
         if scouts.is_empty() {
@@ -165,7 +157,13 @@ pub(crate) fn judge(w: &World, s: StaffId, club: ClubId, p: PlayerId, context: u
     let need = consider::club_need_for(w, club, p);
     let score = (ca - ideal) / 10.0 + (pa - ca).max(0.0) / 25.0 * if age < 23.0 { 1.0 } else { 0.2 } + need;
     let grade = (3.0 + score).round().clamp(1.0, 5.0) as u8;
-    let verdict = if grade >= 4 { Verdict::Sign } else if grade == 3 { Verdict::Monitor } else { Verdict::Pass };
+    let verdict = if grade >= 4 {
+        Verdict::Sign
+    } else if grade == 3 {
+        Verdict::Monitor
+    } else {
+        Verdict::Pass
+    };
     let mut notes: SmallVec<[Note; 3]> = SmallVec::new();
     let key = pw_core::Role::default_for(c.best_pos).key_attrs();
     if let Some(&(best, _)) = key.iter().max_by(|x, y| a(x.0).total_cmp(&a(y.0))) {
@@ -261,12 +259,7 @@ pub fn weekly(w: &mut World) {
 /// Analysts read the numbers from leagues the club follows: broad, shallow evidence.
 fn analysts(w: &mut World) {
     let today = w.date;
-    let clubs: Vec<(ClubId, usize)> = w
-        .clubs
-        .iter_enumerated()
-        .map(|(id, c)| (id, c.staff.iter().filter(|&&s| w.staff[s].role == StaffRole::Analyst).count()))
-        .filter(|&(_, n)| n > 0)
-        .collect();
+    let clubs: Vec<(ClubId, usize)> = w.clubs.iter_enumerated().map(|(id, c)| (id, c.staff.iter().filter(|&&s| w.staff[s].role == StaffRole::Analyst).count())).filter(|&(_, n)| n > 0).collect();
     for (club, n) in clubs {
         let home = w.clubs[club].nation;
         let rep = w.clubs[club].reputation;

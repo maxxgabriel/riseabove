@@ -6,23 +6,23 @@ use serde::{Deserialize, Serialize};
 use crate::agent::Agents;
 use crate::beliefs::Beliefs;
 use crate::club::{Club, Team, TeamKind};
-use crate::intent::Intents;
-use crate::interaction::Meetings;
-use crate::life::Life;
-use crate::media::Media;
 use crate::comp::{Competition, Fixtures};
 use crate::contract::{Contract, Loan};
 use crate::decision::{Decisions, MindKind};
 use crate::event::EventLog;
 use crate::history::History;
+use crate::intent::Intents;
+use crate::interaction::Meetings;
 use crate::knowledge::Knowledge;
+use crate::life::Life;
+use crate::media::Media;
 use crate::names::Names;
 use crate::nation::Nation;
+use crate::negotiation::Negotiation;
 use crate::person::Person;
 use crate::player::{PlayerStatus, Players};
-use crate::staff::Staff;
-use crate::negotiation::Negotiation;
 use crate::social::Social;
+use crate::staff::Staff;
 use crate::stats::SeasonStats;
 use crate::{FxHashMap, FxHashSet};
 
@@ -372,12 +372,7 @@ impl World {
     /// Teams whose matches are recorded at full detail: those with an
     /// externally-minded player, plus their opponents' view comes for free.
     pub fn watched_teams(&self) -> FxHashSet<TeamId> {
-        self.people
-            .iter()
-            .filter(|p| p.mind == MindKind::External && p.player.is_some())
-            .map(|p| self.players.hot[p.player].team)
-            .filter(|t| t.is_some())
-            .collect()
+        self.people.iter().filter(|p| p.mind == MindKind::External && p.player.is_some()).map(|p| self.players.hot[p.player].team).filter(|t| t.is_some()).collect()
     }
 
     pub fn external_players(&self) -> impl Iterator<Item = PlayerId> + '_ {
@@ -396,9 +391,6 @@ impl World {
     pub fn club_manager_judging(&self, club: ClubId) -> (f32, f32) {
         let c = &self.clubs[club];
         let best = |f: fn(&Staff) -> f32| c.staff.iter().map(|&s| f(&self.staff[s])).fold(6.0f32, f32::max);
-        (
-            best(|s| s.attrs.f(pw_core::StaffAttr::JudgingAbility)),
-            best(|s| s.attrs.f(pw_core::StaffAttr::JudgingPotential)),
-        )
+        (best(|s| s.attrs.f(pw_core::StaffAttr::JudgingAbility)), best(|s| s.attrs.f(pw_core::StaffAttr::JudgingPotential)))
     }
 }

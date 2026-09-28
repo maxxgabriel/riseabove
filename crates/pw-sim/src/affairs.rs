@@ -72,12 +72,7 @@ pub fn money(w: &World, who: PersonId) -> (Money, Money) {
 // ---------------------------------------------------------------------------
 
 pub fn monthly(w: &mut World) {
-    let people: Vec<PersonId> = w
-        .people
-        .iter_enumerated()
-        .filter(|(id, p)| (p.player.is_some() || p.staff.is_some()) && consider::age(w, *id) >= 16.0)
-        .map(|(id, _)| id)
-        .collect();
+    let people: Vec<PersonId> = w.people.iter_enumerated().filter(|(id, p)| (p.player.is_some() || p.staff.is_some()) && consider::age(w, *id) >= 16.0).map(|(id, _)| id).collect();
     for who in people {
         if w.people[who].mind == MindKind::Ai {
             ai_choices(w, who);
@@ -393,30 +388,58 @@ pub fn can_pursue(w: &World, who: PersonId, path: CareerPath) -> Result<(), &'st
     let has = |c: Course| a.is_some_and(|x| x.has(c));
     match path {
         CareerPath::Coach => {
-            if coaching_level(w, who) >= 1 { Ok(()) } else { Err("needs at least a C licence") }
+            if coaching_level(w, who) >= 1 {
+                Ok(())
+            } else {
+                Err("needs at least a C licence")
+            }
         }
         CareerPath::Pundit => {
-            if fame >= 2500 || world_rep >= 3500 { Ok(()) } else { Err("not well known enough") }
+            if fame >= 2500 || world_rep >= 3500 {
+                Ok(())
+            } else {
+                Err("not well known enough")
+            }
         }
         CareerPath::Journalist => {
-            if has(Course::Journalism) || w.lives.get(who).is_some_and(|l| l.education >= 4) { Ok(()) } else { Err("needs a journalism course or a degree") }
+            if has(Course::Journalism) || w.lives.get(who).is_some_and(|l| l.education >= 4) {
+                Ok(())
+            } else {
+                Err("needs a journalism course or a degree")
+            }
         }
         CareerPath::Agent => {
-            if insider >= 100 || world_rep >= 3000 || has(Course::Business) { Ok(()) } else { Err("needs contacts in the game") }
+            if insider >= 100 || world_rep >= 3000 || has(Course::Business) {
+                Ok(())
+            } else {
+                Err("needs contacts in the game")
+            }
         }
         CareerPath::Analyst => {
-            if has(Course::DataAnalysis) || has(Course::SportsScience) { Ok(()) } else { Err("needs an analysis qualification") }
+            if has(Course::DataAnalysis) || has(Course::SportsScience) {
+                Ok(())
+            } else {
+                Err("needs an analysis qualification")
+            }
         }
         CareerPath::Scout => Ok(()),
         CareerPath::Director => {
-            if has(Course::Business) || coaching_level(w, who) >= 3 || insider >= 300 { Ok(()) } else { Err("needs a business degree, an A licence or standing in the game") }
+            if has(Course::Business) || coaching_level(w, who) >= 3 || insider >= 300 {
+                Ok(())
+            } else {
+                Err("needs a business degree, an A licence or standing in the game")
+            }
         }
         CareerPath::Ambassador => {
             let legend = w.honours.clubs.iter().any(|(_, r)| r.legends.contains(&who));
             if legend { Ok(()) } else { Err("clubs only make legends ambassadors") }
         }
         CareerPath::Business => {
-            if w.lives.get(who).is_some_and(|l| l.finances.savings >= 200_000) { Ok(()) } else { Err("needs capital") }
+            if w.lives.get(who).is_some_and(|l| l.finances.savings >= 200_000) {
+                Ok(())
+            } else {
+                Err("needs capital")
+            }
         }
     }
 }
@@ -613,7 +636,8 @@ fn ai_choices(w: &mut World, who: PersonId) {
     let age = consider::age(w, who);
     let prof = consider::hid(w, who, Hidden::Professionalism);
     let sport = consider::hid(w, who, Hidden::Sportsmanship);
-    let (income, savings, spending, lifestyle) = w.lives.get(who).map_or((0, 0, 0, pw_world::Lifestyle::Modest), |l| (l.finances.income, l.finances.savings, l.finances.spending, l.finances.lifestyle));
+    let (income, savings, spending, lifestyle) =
+        w.lives.get(who).map_or((0, 0, 0, pw_world::Lifestyle::Modest), |l| (l.finances.income, l.finances.savings, l.finances.spending, l.finances.lifestyle));
     let fame = w.renown.of(who).fame;
     let a = w.affairs.of(who).cloned().unwrap_or_default();
 

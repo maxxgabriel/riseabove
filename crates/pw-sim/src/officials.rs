@@ -87,7 +87,11 @@ pub fn referee_for(w: &World, fx: &Fixture) -> Option<u32> {
     let (hn, an) = (w.clubs[w.teams[fx.home].club].nation, w.clubs[w.teams[fx.away].club].nation);
     let pool: Vec<u32> = if comp.nation.is_some() {
         let tier = comp.tier.clamp(1, 3);
-        let v: Vec<u32> = w.officials.by_nation.get(&comp.nation).map_or_else(Vec::new, |v| v.iter().copied().filter(|&r| w.officials.referees[r as usize].active && w.officials.referees[r as usize].tier == tier).collect());
+        let v: Vec<u32> = w
+            .officials
+            .by_nation
+            .get(&comp.nation)
+            .map_or_else(Vec::new, |v| v.iter().copied().filter(|&r| w.officials.referees[r as usize].active && w.officials.referees[r as usize].tier == tier).collect());
         if v.is_empty() { w.officials.by_nation.get(&comp.nation).map_or_else(Vec::new, |v| v.iter().copied().filter(|&r| w.officials.referees[r as usize].active).collect()) } else { v }
     } else {
         w.officials.referees.iter().filter(|r| r.active && r.tier == 1 && r.nation != hn && r.nation != an).map(|r| r.id).collect()

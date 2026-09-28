@@ -196,7 +196,15 @@ pub struct IncidentDef {
 pub fn def(kind: IncidentKind) -> IncidentDef {
     use IncidentKind as K;
     use Pressure as P;
-    let d = |scope: Scope, hazard: f32, pressures: &'static [(Pressure, f32)], location: Location, exposure: Exposure, sensitivity: u8| IncidentDef { kind, scope, hazard, pressures, location, exposure, sensitivity };
+    let d = |scope: Scope, hazard: f32, pressures: &'static [(Pressure, f32)], location: Location, exposure: Exposure, sensitivity: u8| IncidentDef {
+        kind,
+        scope,
+        hazard,
+        pressures,
+        location,
+        exposure,
+        sensitivity,
+    };
     match kind {
         K::TrainingConfrontation => d(
             Scope::SquadPair,
@@ -206,9 +214,15 @@ pub fn def(kind: IncidentKind) -> IncidentDef {
             Exposure::Club,
             65,
         ),
-        K::TacticalDisagreement => d(Scope::Player, 0.0015, &[(P::Resentment, 1.6), (P::Temper, 1.0), (P::LowMorale, 1.0), (P::PoorResults, 0.8), (P::RoomTension, 0.6)], Location::TrainingGround, Exposure::Club, 50),
-        K::StormedOut => d(Scope::Player, 0.0008, &[(P::Temper, 1.8), (P::LowMorale, 1.2), (P::Resentment, 1.2), (P::PublicCriticism, 0.8), (P::Unprofessional, 0.6)], Location::TrainingGround, Exposure::Club, 60),
-        K::LateArrival => d(Scope::Player, 0.004, &[(P::Unprofessional, 1.8), (P::Nightlife, 1.4), (P::Stress, 0.6), (P::Household, 0.5), (P::LowMorale, 0.5)], Location::TrainingGround, Exposure::Club, 25),
+        K::TacticalDisagreement => {
+            d(Scope::Player, 0.0015, &[(P::Resentment, 1.6), (P::Temper, 1.0), (P::LowMorale, 1.0), (P::PoorResults, 0.8), (P::RoomTension, 0.6)], Location::TrainingGround, Exposure::Club, 50)
+        }
+        K::StormedOut => {
+            d(Scope::Player, 0.0008, &[(P::Temper, 1.8), (P::LowMorale, 1.2), (P::Resentment, 1.2), (P::PublicCriticism, 0.8), (P::Unprofessional, 0.6)], Location::TrainingGround, Exposure::Club, 60)
+        }
+        K::LateArrival => {
+            d(Scope::Player, 0.004, &[(P::Unprofessional, 1.8), (P::Nightlife, 1.4), (P::Stress, 0.6), (P::Household, 0.5), (P::LowMorale, 0.5)], Location::TrainingGround, Exposure::Club, 25)
+        }
         K::EquipmentProblem => d(Scope::Club, 0.01, &[(P::OldFacilities, 2.0), (P::ClubFinances, 1.0)], Location::TrainingGround, Exposure::Club, 10),
         K::PitchDamage => d(Scope::Club, 0.01, &[(P::Winter, 1.8), (P::OldFacilities, 1.5), (P::ClubFinances, 0.6)], Location::Stadium, Exposure::Public, 15),
         K::TravelDelay => d(Scope::Fixture, 0.01, &[(P::Winter, 1.0), (P::Congestion, 1.4)], Location::Travel, Exposure::Public, 10),

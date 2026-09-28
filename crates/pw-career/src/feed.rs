@@ -3,8 +3,8 @@
 //! rendered from that event.
 
 use pw_core::{Date, EventId, PersonId};
-use pw_world::event::{Event, EventKind, Visibility};
 use pw_world::World;
+use pw_world::event::{Event, EventKind, Visibility};
 
 #[derive(Clone, Debug)]
 pub struct Item {

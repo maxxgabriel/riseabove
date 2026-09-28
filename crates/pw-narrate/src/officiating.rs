@@ -2,8 +2,8 @@
 //! right is hidden state: text reports what was given and how it was
 //! received, never the truth, until an appeal panel rules.
 
-use pw_world::officials::{Appeal, AppealOutcome, CallKind, Charge, ChargeKind, Controversy};
 use pw_world::World;
+use pw_world::officials::{Appeal, AppealOutcome, CallKind, Charge, ChargeKind, Controversy};
 
 use crate::fmt::{club, money, person, player};
 

@@ -59,11 +59,7 @@ impl NationSeason {
 
     /// Season label, e.g. "2026/27" or "2026".
     pub fn label(&self) -> String {
-        if self.end.year() != self.year {
-            format!("{}/{:02}", self.year, (self.year + 1) % 100)
-        } else {
-            self.year.to_string()
-        }
+        if self.end.year() != self.year { format!("{}/{:02}", self.year, (self.year + 1) % 100) } else { self.year.to_string() }
     }
 }
 

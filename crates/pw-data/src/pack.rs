@@ -168,11 +168,7 @@ impl PositionWeights {
             if sum > 1.0 + 1e-4 {
                 return Err(invalid(format!("{}: weights sum to {sum}", pos.code())));
             }
-            let eligible = |a: Attr| {
-                row[a.idx()] == 0.0
-                    && a != Attr::Eccentricity
-                    && (pos == Pos::GK || !a.is_goalkeeping())
-            };
+            let eligible = |a: Attr| row[a.idx()] == 0.0 && a != Attr::Eccentricity && (pos == Pos::GK || !a.is_goalkeeping());
             let rest: Vec<Attr> = Attr::ALL.into_iter().filter(|&a| eligible(a)).collect();
             let share = (1.0 - sum) / rest.len().max(1) as f32;
             for a in rest {

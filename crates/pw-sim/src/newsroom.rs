@@ -379,10 +379,28 @@ fn newsworthiness(w: &World, c: &Candidate, outlet: OutletId, j: PersonId, age_d
     let private = c.kind == StoryKind::Personal;
     let style_mult = match style {
         Style::Tabloid => 1.0 + controversy * 0.5 + if private { 0.5 } else { 0.0 },
-        Style::Statistical => if private || c.kind == StoryKind::IncidentNews { 0.2 } else { 0.8 },
-        Style::Broadsheet => if private { 0.3 } else { 1.0 },
+        Style::Statistical => {
+            if private || c.kind == StoryKind::IncidentNews {
+                0.2
+            } else {
+                0.8
+            }
+        }
+        Style::Broadsheet => {
+            if private {
+                0.3
+            } else {
+                1.0
+            }
+        }
         Style::Local => 1.0 + if local >= 1.0 { 0.3 } else { -0.3 },
-        Style::Fan => if local >= 1.0 { 1.4 } else { 0.3 },
+        Style::Fan => {
+            if local >= 1.0 {
+                1.4
+            } else {
+                0.3
+            }
+        }
         Style::Broadcast => 1.0,
     };
     let timely = (1.0 - age_days as f32 / 14.0).clamp(0.15, 1.0);
@@ -413,7 +431,8 @@ fn verify(w: &mut World, j: PersonId, c: &Candidate) -> Verification {
     } else {
         40.0
     };
-    let ties: Vec<SourceTie> = w.media.journalist_profiles.get(&j).map(|p| p.ties.iter().copied().filter(|t| w.club_of_person(t.person) == c.club || t.person == c.person).collect()).unwrap_or_default();
+    let ties: Vec<SourceTie> =
+        w.media.journalist_profiles.get(&j).map(|p| p.ties.iter().copied().filter(|t| w.club_of_person(t.person) == c.club || t.person == c.person).collect()).unwrap_or_default();
     let mut ties = ties;
     ties.sort_by(|a, b| b.strength.cmp(&a.strength).then(a.person.cmp(&b.person)));
     let (mut asked, mut confirmed, mut denied) = (0u8, 0u8, 0u8);
@@ -523,7 +542,13 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
     // Tone: the story's own, louder in some outlets, bent by affinity.
     let mut tone = f32::from(c.tone) * (0.8 + sens * 0.5);
     if affinity.is_some() {
-        tone += if affinity == c.club { 20.0 } else if w.media.rivalry(affinity, c.club) >= 50 { -20.0 } else { 0.0 };
+        tone += if affinity == c.club {
+            20.0
+        } else if w.media.rivalry(affinity, c.club) >= 50 {
+            -20.0
+        } else {
+            0.0
+        };
     }
     let leaker = if c.info != u32::MAX { w.grapevine.chain(c.info, j).last().map_or(PersonId::NONE, |t| t.from) } else { PersonId::NONE };
     let source = if let Some(p) = w.net.post(c.post) {
@@ -540,7 +565,8 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
         ClaimType::Speculation => 30,
         _ => 50,
     };
-    let grounded = c.public || (c.info != u32::MAX && w.grapevine.get(c.info).true_now && w.grapevine.get(c.info).knower(j).is_some_and(|k| !matches!(k.fidelity, Fidelity::Garbled | Fidelity::Planted)));
+    let grounded =
+        c.public || (c.info != u32::MAX && w.grapevine.get(c.info).true_now && w.grapevine.get(c.info).knower(j).is_some_and(|k| !matches!(k.fidelity, Fidelity::Garbled | Fidelity::Planted)));
     let key = pw_core::rng::hash_key(&[u64::from(j.0), u64::from(c.info), c.fixture, today.0 as u64]);
     let id = publish_draft(
         w,
@@ -575,7 +601,9 @@ fn run(w: &mut World, c: Candidate, j: PersonId, age_days: i32) -> Option<StoryI
     if thread != u32::MAX {
         w.agenda.schedule(today.add_days(3 + (key % 4) as i32), 540, Task::FollowUp { thread });
     }
-    if matches!(claim_type, ClaimType::Rumour | ClaimType::Speculation | ClaimType::Report) && matches!(c.kind, StoryKind::TransferRumour | StoryKind::Unhappy | StoryKind::Leak | StoryKind::Discipline) {
+    if matches!(claim_type, ClaimType::Rumour | ClaimType::Speculation | ClaimType::Report)
+        && matches!(c.kind, StoryKind::TransferRumour | StoryKind::Unhappy | StoryKind::Leak | StoryKind::Discipline)
+    {
         w.agenda.schedule(today.add_days(1 + (key % 3) as i32), 600 + (key % 300) as u16, Task::Denial { story: id });
     }
     Some(id)
@@ -680,7 +708,18 @@ fn covering(w: &World, nation: NationId, club: ClubId, n: usize) -> Vec<PersonId
         .journalists
         .values()
         .filter(|j| j.outlet.is_some() && w.media.outlets[j.outlet].nation == nation)
-        .map(|j| (if club.is_some() && j.beat.contains(&club) { 0 } else if w.media.outlets[j.outlet].leaning == club { 1 } else { 2 }, j.person))
+        .map(|j| {
+            (
+                if club.is_some() && j.beat.contains(&club) {
+                    0
+                } else if w.media.outlets[j.outlet].leaning == club {
+                    1
+                } else {
+                    2
+                },
+                j.person,
+            )
+        })
         .collect();
     v.sort();
     v.into_iter().take(n).map(|x| x.1).collect()
@@ -833,7 +872,12 @@ fn follow_up(w: &mut World, thread: u32) {
         ThreadSubject::Transfer { player, club } => {
             if w.players.hot[player].club == club {
                 close_thread(w, thread, ThreadState::Happened);
-            } else if w.events.since(t.opened).iter().any(|e| matches!(e.kind, EventKind::Transfer { player: p, .. } if p == player) || matches!(e.kind, EventKind::ContractSigned { player: p, renewal: true, .. } if p == player)) {
+            } else if w
+                .events
+                .since(t.opened)
+                .iter()
+                .any(|e| matches!(e.kind, EventKind::Transfer { player: p, .. } if p == player) || matches!(e.kind, EventKind::ContractSigned { player: p, renewal: true, .. } if p == player))
+            {
                 close_thread(w, thread, ThreadState::Collapsed);
             } else if t.stories.iter().any(|&s| w.media.stories[s].kind == StoryKind::Denial) && age > 20 {
                 close_thread(w, thread, ThreadState::Denied);
@@ -1088,7 +1132,11 @@ pub fn weekly(w: &mut World) {
                 .iter()
                 .copied()
                 .max_by(|&a, &b| {
-                    let s = |x: PersonId| consider::hid(w, x, Hidden::Controversy) + w.lives.get(x).map_or(0.0, |l| f32::from(l.routine.media)) * 2.0 + w.roll(stream::JOURNALISTS, &[u64::from(j.0), u64::from(x.0), period::week(today)]) * 8.0;
+                    let s = |x: PersonId| {
+                        consider::hid(w, x, Hidden::Controversy)
+                            + w.lives.get(x).map_or(0.0, |l| f32::from(l.routine.media)) * 2.0
+                            + w.roll(stream::JOURNALISTS, &[u64::from(j.0), u64::from(x.0), period::week(today)]) * 8.0
+                    };
                     s(a).total_cmp(&s(b)).then(b.cmp(&a))
                 })
                 .expect("pool");
@@ -1200,4 +1248,3 @@ fn hire(w: &mut World) {
 pub fn source_reliability(w: &World, j: PersonId, s: PersonId) -> Option<u8> {
     w.media.journalist_profiles.get(&j).and_then(|p| p.tie(s)).map(|t| t.reliability)
 }
-

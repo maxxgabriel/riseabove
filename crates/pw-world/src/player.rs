@@ -1,5 +1,5 @@
-use pw_core::{Attr, Attrs, ClubId, Date, IdVec, Money, N_POS, PersonId, PlayerId, PlayerTraits, Pos, TeamId};
 use pw_core::attr::AttrGroup;
+use pw_core::{Attr, Attrs, ClubId, Date, IdVec, Money, N_POS, PersonId, PlayerId, PlayerTraits, Pos, TeamId};
 use pw_data::{N_BODY_REGIONS, PositionWeights};
 use serde::{Deserialize, Serialize};
 
@@ -155,8 +155,20 @@ impl Focus {
     pub fn weight(&self, a: Attr) -> f32 {
         match *self {
             Focus::General | Focus::Position(_) => 1.0,
-            Focus::Group(g) => if a.group() == g { 1.35 } else { 0.9 },
-            Focus::Attribute(x) => if a == x { 1.8 } else { 0.92 },
+            Focus::Group(g) => {
+                if a.group() == g {
+                    1.35
+                } else {
+                    0.9
+                }
+            }
+            Focus::Attribute(x) => {
+                if a == x {
+                    1.8
+                } else {
+                    0.92
+                }
+            }
         }
     }
 }
@@ -284,14 +296,7 @@ pub fn familiarity_factor(f: u8) -> f32 {
     }
 }
 
-pub const FAMILIARITY_LABELS: [(u8, &str); 6] = [
-    (18, "Natural"),
-    (15, "Accomplished"),
-    (12, "Competent"),
-    (8, "Unconvincing"),
-    (5, "Awkward"),
-    (0, "Ineffectual"),
-];
+pub const FAMILIARITY_LABELS: [(u8, &str); 6] = [(18, "Natural"), (15, "Accomplished"), (12, "Competent"), (8, "Unconvincing"), (5, "Awkward"), (0, "Ineffectual")];
 
 pub fn familiarity_label(f: u8) -> &'static str {
     FAMILIARITY_LABELS.iter().find(|(min, _)| f >= *min).map_or("Ineffectual", |(_, l)| l)

@@ -187,8 +187,20 @@ pub fn after_result(w: &mut World, fx: &Fixture, hg: u8, ag: u8, pens: Option<(u
     let Some(r) = w.culture.rivalries.get_mut(h, a) else { return };
     let a_is_home = r.a == h;
     match hg.cmp(&ag) {
-        std::cmp::Ordering::Greater => if a_is_home { r.h2h.0 += 1 } else { r.h2h.2 += 1 },
-        std::cmp::Ordering::Less => if a_is_home { r.h2h.2 += 1 } else { r.h2h.0 += 1 },
+        std::cmp::Ordering::Greater => {
+            if a_is_home {
+                r.h2h.0 += 1
+            } else {
+                r.h2h.2 += 1
+            }
+        }
+        std::cmp::Ordering::Less => {
+            if a_is_home {
+                r.h2h.2 += 1
+            } else {
+                r.h2h.0 += 1
+            }
+        }
         std::cmp::Ordering::Equal => r.h2h.1 += 1,
     }
     r.last_meeting = today;

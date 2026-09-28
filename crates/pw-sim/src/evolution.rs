@@ -3,8 +3,8 @@
 
 use pw_core::rng::stream;
 use pw_core::{ClubId, CompId, NationId, PersonId, StaffId};
-use pw_world::evolution::{Federation, RuleCause, RuleChange, RuleKey, School};
 use pw_world::event::{EventKind, Visibility};
+use pw_world::evolution::{Federation, RuleCause, RuleChange, RuleKey, School};
 use pw_world::{CompKind, StaffRole, TeamKind, World};
 use smallvec::SmallVec;
 

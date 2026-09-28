@@ -152,26 +152,68 @@ pub struct Remembered {
 /// A real thing that happened, as supporters experience it.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum Frame {
-    Result { uid: u64 },
-    LateWinner { uid: u64, player: PlayerId },
-    HatTrick { uid: u64, player: PlayerId },
-    RedCard { uid: u64, player: PlayerId },
-    Signing { player: PlayerId, club: ClubId },
-    Departure { player: PlayerId, from: ClubId, to: ClubId },
-    TransferRequest { player: PlayerId },
-    Story { story: StoryId },
-    Quote { quote: u32 },
-    ManagerSacked { club: ClubId },
-    ManagerAppointed { club: ClubId },
-    Award { player: PlayerId },
-    Milestone { player: PlayerId },
-    Record { player: PlayerId },
-    Injury { player: PlayerId },
-    Incident { incident: u32 },
+    Result {
+        uid: u64,
+    },
+    LateWinner {
+        uid: u64,
+        player: PlayerId,
+    },
+    HatTrick {
+        uid: u64,
+        player: PlayerId,
+    },
+    RedCard {
+        uid: u64,
+        player: PlayerId,
+    },
+    Signing {
+        player: PlayerId,
+        club: ClubId,
+    },
+    Departure {
+        player: PlayerId,
+        from: ClubId,
+        to: ClubId,
+    },
+    TransferRequest {
+        player: PlayerId,
+    },
+    Story {
+        story: StoryId,
+    },
+    Quote {
+        quote: u32,
+    },
+    ManagerSacked {
+        club: ClubId,
+    },
+    ManagerAppointed {
+        club: ClubId,
+    },
+    Award {
+        player: PlayerId,
+    },
+    Milestone {
+        player: PlayerId,
+    },
+    Record {
+        player: PlayerId,
+    },
+    Injury {
+        player: PlayerId,
+    },
+    Incident {
+        incident: u32,
+    },
     /// A disputed refereeing call (`World::officials.controversies`).
-    Controversy { controversy: u32 },
+    Controversy {
+        controversy: u32,
+    },
     /// A person's own post (the human's, or an AI person's).
-    Post { post: u32 },
+    Post {
+        post: u32,
+    },
 }
 
 /// What a post does, semantically.
@@ -213,11 +255,17 @@ pub enum Concept {
 pub enum Knew {
     /// Watched it (the match, a public event).
     Watched,
-    Read { story: StoryId },
+    Read {
+        story: StoryId,
+    },
     /// Saw another post.
-    Saw { post: u32 },
+    Saw {
+        post: u32,
+    },
     /// Heard it through people (an information item).
-    Heard { info: u32 },
+    Heard {
+        info: u32,
+    },
     /// Their own life.
     Own,
 }
@@ -401,22 +449,14 @@ impl SocialNet {
         if id == NO_POST {
             return None;
         }
-        if id >= self.post_base {
-            self.posts.get((id - self.post_base) as usize)
-        } else {
-            self.kept.get(&id)
-        }
+        if id >= self.post_base { self.posts.get((id - self.post_base) as usize) } else { self.kept.get(&id) }
     }
 
     pub fn post_mut(&mut self, id: u32) -> Option<&mut Post> {
         if id == NO_POST {
             return None;
         }
-        if id >= self.post_base {
-            self.posts.get_mut((id - self.post_base) as usize)
-        } else {
-            self.kept.get_mut(&id)
-        }
+        if id >= self.post_base { self.posts.get_mut((id - self.post_base) as usize) } else { self.kept.get_mut(&id) }
     }
 
     pub fn next_post_id(&self) -> u32 {

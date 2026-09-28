@@ -17,12 +17,7 @@ use smallvec::SmallVec;
 use crate::market::ideal_ca;
 use crate::scouting;
 
-const GROUPS: [(PosGroup, usize, u8, Pos); 4] = [
-    (PosGroup::Gk, 1, 2, Pos::GK),
-    (PosGroup::Def, 4, 7, Pos::DC),
-    (PosGroup::Mid, 4, 7, Pos::MC),
-    (PosGroup::Att, 2, 4, Pos::ST),
-];
+const GROUPS: [(PosGroup, usize, u8, Pos); 4] = [(PosGroup::Gk, 1, 2, Pos::GK), (PosGroup::Def, 4, 7, Pos::DC), (PosGroup::Mid, 4, 7, Pos::MC), (PosGroup::Att, 2, 4, Pos::ST)];
 
 pub fn plan(w: &mut World, club: ClubId) {
     let today = w.date;
@@ -52,12 +47,7 @@ pub fn plan(w: &mut World, club: ClubId) {
 
     for (group, starters, depth_base, _) in GROUPS {
         let target_depth = depth_base + u8::from(big);
-        let mut members: Vec<(PlayerId, f32)> = squad
-            .iter()
-            .copied()
-            .filter(|&p| w.players.cold[p].best_pos.group() == group)
-            .map(|p| (p, scouting::view(w, club, p).0))
-            .collect();
+        let mut members: Vec<(PlayerId, f32)> = squad.iter().copied().filter(|&p| w.players.cold[p].best_pos.group() == group).map(|p| (p, scouting::view(w, club, p).0)).collect();
         members.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
         let starters_v: Vec<(PlayerId, f32)> = members.iter().take(starters).copied().collect();
         let quality = starters_v.iter().map(|x| x.1).sum::<f32>() / starters_v.len().max(1) as f32;
@@ -167,13 +157,7 @@ pub fn plan(w: &mut World, club: ClubId) {
     let simple: SmallVec<[Need; 4]> = needs
         .iter()
         .take(4)
-        .map(|n| Need {
-            group: n.group,
-            pos: GROUPS.iter().find(|g| g.0 == n.group).map_or(Pos::MC, |g| g.3),
-            min_ability: n.min_ability,
-            max_age: n.max_age,
-            urgency: n.urgency,
-        })
+        .map(|n| Need { group: n.group, pos: GROUPS.iter().find(|g| g.0 == n.group).map_or(Pos::MC, |g| g.3), min_ability: n.min_ability, max_age: n.max_age, urgency: n.urgency })
         .collect();
     w.clubs[club].market.needs = simple;
     for &p in &sell {

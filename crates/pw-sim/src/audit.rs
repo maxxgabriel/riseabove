@@ -17,25 +17,48 @@ use pw_world::{FxHashSet, World};
 #[derive(Clone, Debug, PartialEq)]
 pub enum Violation {
     /// A story stated as fact that rests on nothing true.
-    UngroundedFact { story: u32 },
-    DanglingPostRef { post: u32, missing: u32 },
+    UngroundedFact {
+        story: u32,
+    },
+    DanglingPostRef {
+        post: u32,
+        missing: u32,
+    },
     /// A call-out that does not point at the called-out author's own post.
-    CallOutWithoutPrior { post: u32 },
+    CallOutWithoutPrior {
+        post: u32,
+    },
     /// A relayed rumour without a story behind it.
-    RelayWithoutStory { post: u32 },
+    RelayWithoutStory {
+        post: u32,
+    },
     /// A record "broken" by a mark that is not better.
-    RecordNotBetter { broken: u32 },
-    InboxWithoutSource { message: u32 },
+    RecordNotBetter {
+        broken: u32,
+    },
+    InboxWithoutSource {
+        message: u32,
+    },
     /// A generated figure of the past shares a real person's name.
-    PastFigureNamedLikeReal { figure: u32 },
+    PastFigureNamedLikeReal {
+        figure: u32,
+    },
     /// Minor football membership lists disagree.
-    MembershipMismatch { player: u32 },
+    MembershipMismatch {
+        player: u32,
+    },
     /// A vote's points do not add up to its ballots.
-    VoteTally { vote: u32 },
+    VoteTally {
+        vote: u32,
+    },
     /// A referee recorded for a fixture is not the one the fixture draws.
-    RefereeAssignment { uid: u64 },
+    RefereeAssignment {
+        uid: u64,
+    },
     /// A rule value outside its sane range.
-    RuleOutOfRange { change: u32 },
+    RuleOutOfRange {
+        change: u32,
+    },
 }
 
 pub fn audit(w: &World) -> Vec<Violation> {

@@ -57,18 +57,8 @@ pub fn spawn_player(w: &mut World, np: NewPlayer, rng: &mut Rng) -> PlayerId {
     };
     let height = gen_::height_for(np.pos, rng);
     let player_id = w.players.hot.next_id();
-    let person = w.people.push(Person {
-        first,
-        last,
-        common: NameId::NONE,
-        dob: np.dob,
-        nation: np.nation,
-        nation2: NationId::NONE,
-        hidden,
-        player: player_id,
-        staff: Default::default(),
-        mind: MindKind::Ai,
-    });
+    let person =
+        w.people.push(Person { first, last, common: NameId::NONE, dob: np.dob, nation: np.nation, nation2: NationId::NONE, hidden, player: player_id, staff: Default::default(), mind: MindKind::Ai });
     let mut cold = PlayerCold {
         person,
         attrs,
@@ -170,14 +160,7 @@ fn youth_intake(w: &mut World, n: NationId) {
             let pa = intake_pa(youth_fac, youth_rating, rep, &mut rng);
             let age = age_days as f32 / 365.25;
             let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
-            let contract = Contract {
-                club,
-                kind: ContractKind::Youth,
-                wage: (80.0 + rep / 40.0) as i64,
-                start: today,
-                end: dob.add_months(12 * 18 + 12),
-                ..Default::default()
-            };
+            let contract = Contract { club, kind: ContractKind::Youth, wage: (80.0 + rep / 40.0) as i64, start: today, end: dob.add_months(12 * 18 + 12), ..Default::default() };
             let pos = gen_::random_position(&mut rng);
             spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team, contract }, &mut rng);
         }

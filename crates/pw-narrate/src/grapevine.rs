@@ -4,8 +4,8 @@
 //! always framed as what they heard, never as fact.
 
 use pw_core::PersonId;
-use pw_world::info::{Fidelity, InfoKind, Learned};
 use pw_world::World;
+use pw_world::info::{Fidelity, InfoKind, Learned};
 
 use crate::fmt::{club, money, person, player};
 use crate::lexicon;

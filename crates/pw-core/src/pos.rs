@@ -51,22 +51,7 @@ impl PosGroup {
 }
 
 impl Pos {
-    pub const ALL: [Pos; N_POS] = [
-        Pos::GK,
-        Pos::DR,
-        Pos::DC,
-        Pos::DL,
-        Pos::WBR,
-        Pos::WBL,
-        Pos::DM,
-        Pos::MR,
-        Pos::MC,
-        Pos::ML,
-        Pos::AMR,
-        Pos::AMC,
-        Pos::AML,
-        Pos::ST,
-    ];
+    pub const ALL: [Pos; N_POS] = [Pos::GK, Pos::DR, Pos::DC, Pos::DL, Pos::WBR, Pos::WBL, Pos::DM, Pos::MR, Pos::MC, Pos::ML, Pos::AMR, Pos::AMC, Pos::AML, Pos::ST];
 
     #[inline]
     pub const fn idx(self) -> usize {

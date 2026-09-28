@@ -170,13 +170,8 @@ pub fn feelings(w: &mut World) {
 /// A medical room that knows an injury is worse than the public estimate.
 fn injuries_worse_than_said(w: &mut World) {
     let today = w.date;
-    let cases: Vec<(PlayerId, u16, u16, ClubId, EventId)> = w
-        .medical
-        .open
-        .values()
-        .filter(|c| c.date == today && c.club.is_some())
-        .map(|c| (c.player, c.estimate, w.players.hot[c.player].injury_days, c.club, EventId::NONE))
-        .collect();
+    let cases: Vec<(PlayerId, u16, u16, ClubId, EventId)> =
+        w.medical.open.values().filter(|c| c.date == today && c.club.is_some()).map(|c| (c.player, c.estimate, w.players.hot[c.player].injury_days, c.club, EventId::NONE)).collect();
     for (p, estimate, truth, club, ev) in cases {
         if f32::from(truth) > f32::from(estimate) * 1.4 && truth >= 21 {
             let who = w.players.cold[p].person;
@@ -265,7 +260,9 @@ fn contacts(w: &World, who: PersonId, sources_of: &FxHashMap<PersonId, SmallVec<
 fn subject_person(w: &World, kind: &InfoKind) -> PersonId {
     match *kind {
         InfoKind::JobInDanger { manager, .. } => manager,
-        InfoKind::Unhappy { player, .. } | InfoKind::Discipline { player, .. } | InfoKind::InjuryWorse { player, .. } | InfoKind::ContractTalks { player, .. } | InfoKind::Exploring { player, .. } => w.players.cold[player].person,
+        InfoKind::Unhappy { player, .. } | InfoKind::Discipline { player, .. } | InfoKind::InjuryWorse { player, .. } | InfoKind::ContractTalks { player, .. } | InfoKind::Exploring { player, .. } => {
+            w.players.cold[player].person
+        }
         InfoKind::Interest { player, .. } | InfoKind::Bid { player, .. } => w.players.cold[player].person,
         InfoKind::DressingRoom { club, .. } => manager_person(w, club),
         InfoKind::Private { person, .. } => person,
@@ -383,11 +380,7 @@ fn spread(w: &mut World) {
                     continue;
                 }
                 // The version passed on.
-                let honest = if let Some(&a) = agent_by_person.get(&teller) {
-                    f32::from(w.agents.list[a].honesty) / 20.0
-                } else {
-                    consider::hid(w, teller, pw_core::Hidden::Sportsmanship) / 20.0
-                };
+                let honest = if let Some(&a) = agent_by_person.get(&teller) { f32::from(w.agents.list[a].honesty) / 20.0 } else { consider::hid(w, teller, pw_core::Hidden::Sportsmanship) / 20.0 };
                 let roll2 = w.roll(stream::GRAPEVINE, &[u64::from(info), u64::from(teller.0), u64::from(to.0), 0xf1d]);
                 let mut fidelity = k.fidelity.degrade(roll2, honest);
                 let still_true = w.grapevine.get(info).true_now;
@@ -525,12 +518,7 @@ pub fn on_published(w: &mut World, info: u32, story: StoryId) {
     if noticer.is_none() {
         return;
     }
-    let suspects: Vec<PersonId> = item
-        .holders
-        .iter()
-        .map(|k| k.person)
-        .filter(|&p| p != noticer && w.club_of_person(p) == club)
-        .collect();
+    let suspects: Vec<PersonId> = item.holders.iter().map(|k| k.person).filter(|&p| p != noticer && w.club_of_person(p) == club).collect();
     let best = suspects
         .iter()
         .map(|&s| {

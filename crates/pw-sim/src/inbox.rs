@@ -117,7 +117,9 @@ pub fn options(w: &World, msg: u32) -> SmallVec<[Reply; 6]> {
         }
         MsgSource::Question { conference, question } => {
             // The question's decision carries the options.
-            if let Some((id, _)) = w.decisions.pending_for(m.to).find(|(_, d)| matches!(d.kind, pw_world::decision::DecisionKind::PressQuestion { conference: c, question: q } if c == conference && q == question)) {
+            if let Some((id, _)) =
+                w.decisions.pending_for(m.to).find(|(_, d)| matches!(d.kind, pw_world::decision::DecisionKind::PressQuestion { conference: c, question: q } if c == conference && q == question))
+            {
                 let n = w.decisions.all[id].options.len();
                 v.extend((0..n as u8).map(Reply::Answer));
             }
@@ -161,7 +163,11 @@ fn topic_for(w: &World, m: &pw_world::inbox::Message) -> Topic {
     match m.source {
         MsgSource::Tell { info, .. } => match w.grapevine.get(info).kind {
             InfoKind::Interest { .. } | InfoKind::Bid { .. } | InfoKind::ContractTalks { .. } | InfoKind::Exploring { .. } => {
-                if w.agents.list.iter().any(|a| a.person == m.from) { Topic::AgentReview } else { Topic::NewContract }
+                if w.agents.list.iter().any(|a| a.person == m.from) {
+                    Topic::AgentReview
+                } else {
+                    Topic::NewContract
+                }
             }
             InfoKind::Unhappy { .. } | InfoKind::DressingRoom { .. } => Topic::TeammateIssue,
             InfoKind::Discipline { .. } => Topic::Discipline,
@@ -188,7 +194,11 @@ pub fn reply(w: &mut World, who: PersonId, msg: u32, r: Reply) -> bool {
     let ok = match (m.source, r) {
         (MsgSource::Decision { decision }, Reply::Answer(k)) => w.decisions.answer(decision, k),
         (MsgSource::Question { conference, question }, Reply::Answer(k)) => {
-            let id = w.decisions.pending_for(who).find(|(_, d)| matches!(d.kind, pw_world::decision::DecisionKind::PressQuestion { conference: c, question: q } if c == conference && q == question)).map(|(id, _)| id);
+            let id = w
+                .decisions
+                .pending_for(who)
+                .find(|(_, d)| matches!(d.kind, pw_world::decision::DecisionKind::PressQuestion { conference: c, question: q } if c == conference && q == question))
+                .map(|(id, _)| id);
             id.is_some_and(|id| w.decisions.answer(id, k))
         }
         (MsgSource::Tell { from, .. }, Reply::Thank) => {

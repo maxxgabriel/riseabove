@@ -102,7 +102,13 @@ fn club_limit(w: &World, club: ClubId, p: PlayerId, offer: &Terms) -> Terms {
     let ideal = market::ideal_ca(w.clubs[club].reputation);
     let want = ((ca - ideal) / 20.0 + (pa - ca).max(0.0) / 60.0 + consider::club_need_for(w, club, p) * 0.3).clamp(-0.5, 1.0);
     let stretch = (1.12 + 0.35 * want).clamp(1.02, 1.6);
-    let status = if want > 0.5 { Some(SquadStatus::Important) } else if want > 0.1 { Some(SquadStatus::Regular) } else { None };
+    let status = if want > 0.5 {
+        Some(SquadStatus::Important)
+    } else if want > 0.1 {
+        Some(SquadStatus::Regular)
+    } else {
+        None
+    };
     // The board's wage structure caps what anyone earns, unless this is a signing
     // the club badly wants.
     let ceiling = if want > 0.6 { Money::MAX } else { crate::governance::wage_ceiling(w, club).max(offer.wage) };
@@ -182,7 +188,9 @@ fn options(w: &World, id: TalkId) -> SmallVec<[Choice; 5]> {
         v.push(Choice::Counter { wage: o.wage + o.wage / 10, years: o.years, status: o.status, release_clause: 0 });
         v.push(Choice::Counter { wage: o.wage + o.wage / 4, years: o.years, status: o.status, release_clause: 0 });
         let better = match o.status {
-            None | Some(SquadStatus::Squad) | Some(SquadStatus::ImpactSub) | Some(SquadStatus::Fringe) | Some(SquadStatus::Backup) | Some(SquadStatus::Youngster) | Some(SquadStatus::NotNeeded) => SquadStatus::Regular,
+            None | Some(SquadStatus::Squad) | Some(SquadStatus::ImpactSub) | Some(SquadStatus::Fringe) | Some(SquadStatus::Backup) | Some(SquadStatus::Youngster) | Some(SquadStatus::NotNeeded) => {
+                SquadStatus::Regular
+            }
             Some(SquadStatus::Regular) => SquadStatus::Important,
             Some(s) => s,
         };
@@ -282,11 +290,7 @@ fn club_turn(w: &mut World, id: TalkId) {
     }
     // Move toward the ask; better agents extract more, better club negotiators give less.
     let pull = (0.45 + (agent_n - club_skill) * 0.025 + rng.normal() * 0.05).clamp(0.15, 0.9);
-    let wage = if ask.wage <= limit.wage && rng.chance(0.35 + pull * 0.4) {
-        ask.wage
-    } else {
-        (offer.wage + ((ask.wage.min(limit.wage) - offer.wage) as f32 * pull) as Money).max(offer.wage)
-    };
+    let wage = if ask.wage <= limit.wage && rng.chance(0.35 + pull * 0.4) { ask.wage } else { (offer.wage + ((ask.wage.min(limit.wage) - offer.wage) as f32 * pull) as Money).max(offer.wage) };
     let status = if status_ok { ask.status } else { offer.status.or(limit.status) };
     let release_clause = if ask.release_clause > 0 && rng.chance(0.4) { ask.release_clause } else { offer.release_clause };
     let improved = Terms { wage, status, release_clause, signing_fee: offer.signing_fee.max(ask.signing_fee.min(limit.signing_fee)), ..offer };

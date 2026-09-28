@@ -29,10 +29,14 @@ pub fn team_manager(w: &World, team: TeamId) -> Option<PersonId> {
 
 fn team_minutes_7d(w: &World, team: TeamId) -> u32 {
     let from = w.date.add_days(-7);
-    w.fixtures.between(from, w.date).filter(|&f| {
-        let fx = w.fixtures.get(f);
-        fx.score.is_some() && fx.involves(team)
-    }).count() as u32 * 90
+    w.fixtures
+        .between(from, w.date)
+        .filter(|&f| {
+            let fx = w.fixtures.get(f);
+            fx.score.is_some() && fx.involves(team)
+        })
+        .count() as u32
+        * 90
 }
 
 pub fn weekly(w: &mut World) {
@@ -120,7 +124,13 @@ fn player_view_of_manager(w: &mut World, p: PlayerId, who: PersonId, mgr: Person
     let compat = consider::compat(w, who, mgr);
     // Good man-managers soften the blow of being left out.
     let soften = 0.5 + (20.0 - man_mgmt) / 40.0;
-    let aff = if grievance > 0.3 { -(grievance * 4.0 * soften) } else if share >= expected { 1.0 } else { 0.0 };
+    let aff = if grievance > 0.3 {
+        -(grievance * 4.0 * soften)
+    } else if share >= expected {
+        1.0
+    } else {
+        0.0
+    };
     w.social.adjust(who, mgr, today, compat, aff.round() as i32, 0, 0);
 }
 
@@ -206,11 +216,7 @@ fn unrest(w: &mut World, team: TeamId, mgr: PersonId, week: u64) {
     let lp = consider::person(w, leader);
     let causes: Causes = pw_world::causes![
         Cause::Fact(Fact::LowTrust { from: lp, about: mgr, trust: (consider::trust(w, lp, mgr) * 100.0) as u8 }),
-        Cause::Fact(Fact::MinutesShortfall {
-            player: leader,
-            share_pct: (consider::minutes_share(w, leader).0 * 100.0) as u8,
-            expected_pct: (consider::minutes_share(w, leader).1 * 100.0) as u8
-        }),
+        Cause::Fact(Fact::MinutesShortfall { player: leader, share_pct: (consider::minutes_share(w, leader).0 * 100.0) as u8, expected_pct: (consider::minutes_share(w, leader).1 * 100.0) as u8 }),
     ];
     let ev = w.events.push_caused(today, Visibility::Club(club), EventKind::Unrest { club, player: leader }, causes);
     // Friends of the leader take his side.
@@ -267,12 +273,12 @@ fn promises(w: &mut World, teams: &[TeamId], team_mins: &[u32]) {
         let kept = match pr.kind {
             PromiseKind::Minutes { share } => pr.team_minutes > 0 && pr.player_minutes as f32 >= share * pr.team_minutes as f32 * 0.9,
             PromiseKind::Status(s) => promisee_player.is_some() && w.players.cold[promisee_player].status <= s,
-            PromiseKind::NewContract => w.events.since(pr.made).iter().any(|e| {
-                matches!(e.kind, EventKind::ContractSigned { player, renewal: true, .. } | EventKind::TalksOpened { player, .. } if player == promisee_player)
-            }),
-            PromiseKind::LetLeave => !w.events.since(pr.made).iter().any(|e| {
-                matches!(e.kind, EventKind::BidRejected { player, fee, .. } if player == promisee_player && fee >= w.players.cold[promisee_player].value)
-            }),
+            PromiseKind::NewContract => {
+                w.events.since(pr.made).iter().any(|e| matches!(e.kind, EventKind::ContractSigned { player, renewal: true, .. } | EventKind::TalksOpened { player, .. } if player == promisee_player))
+            }
+            PromiseKind::LetLeave => {
+                !w.events.since(pr.made).iter().any(|e| matches!(e.kind, EventKind::BidRejected { player, fee, .. } if player == promisee_player && fee >= w.players.cold[promisee_player].value))
+            }
             PromiseKind::Position(pos) => promisee_player.is_some() && w.players.cold[promisee_player].familiarity[pos.idx()] >= 15,
             PromiseKind::Loan => w.events.since(pr.made).iter().any(|e| matches!(e.kind, EventKind::LoanMove { player, .. } if player == promisee_player)),
             PromiseKind::Captaincy => {
@@ -296,11 +302,7 @@ pub fn settle(w: &mut World, idx: usize, kept: bool) {
     let pr = w.social.promises[idx].clone();
     w.social.promises[idx].state = if kept { PromiseState::Kept } else { PromiseState::Broken };
     let causes: Causes = pw_world::causes![Cause::Event(pr.cause), Cause::Fact(Fact::PromiseDue { promise: pr.id })];
-    let kind = if kept {
-        EventKind::PromiseKept { promise: pr.id, from: pr.from, to: pr.to }
-    } else {
-        EventKind::PromiseBroken { promise: pr.id, from: pr.from, to: pr.to }
-    };
+    let kind = if kept { EventKind::PromiseKept { promise: pr.id, from: pr.from, to: pr.to } } else { EventKind::PromiseBroken { promise: pr.id, from: pr.from, to: pr.to } };
     let ev = w.events.push_caused(today, Visibility::Between(pr.from, pr.to), kind, causes);
     let compat = consider::compat(w, pr.to, pr.from);
     let memory = if kept { MemoryKind::PromiseKept } else { MemoryKind::PromiseBroken };

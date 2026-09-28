@@ -17,11 +17,19 @@ use crate::{consider, market, negotiation};
 #[derive(Clone, Debug)]
 pub enum Proposal {
     /// Clubs agreed a fee; personal terms follow in talks.
-    Transfer { buyer: ClubId, seller: ClubId, fee: Money },
+    Transfer {
+        buyer: ClubId,
+        seller: ClubId,
+        fee: Money,
+    },
     /// The club wants to extend the player's deal.
     Renewal,
-    Loan { loan: Loan },
-    FreeAgent { club: ClubId },
+    Loan {
+        loan: Loan,
+    },
+    FreeAgent {
+        club: ClubId,
+    },
 }
 
 /// Share of first-team minutes a player of ability `ca` could expect at `club`.
@@ -114,17 +122,7 @@ pub fn propose(w: &mut World, p: PlayerId, prop: Proposal) -> Option<bool> {
             }
             let kind = DecisionKind::LoanOffer { loan: loan.clone() };
             let options = kind.simple_options();
-            let id = w.decisions.push(Decision {
-                person,
-                player: p,
-                kind,
-                options,
-                created: today,
-                deadline: today.add_days(5),
-                default: if accept { 0 } else { 1 },
-                answer: None,
-                resolved: false,
-            });
+            let id = w.decisions.push(Decision { person, player: p, kind, options, created: today, deadline: today.add_days(5), default: if accept { 0 } else { 1 }, answer: None, resolved: false });
             let (buyer, seller) = (loan.club, loan.parent);
             w.market.pending.push(PendingDeal { player: p, buyer, seller, fee: loan.fee, contract: w.players.cold[p].contract.clone(), loan: Some(loan), decision: id });
             None
@@ -155,17 +153,7 @@ pub fn partner_asks(w: &mut World, who: PersonId, partner: PersonId, ask: Partne
     let kind = DecisionKind::Partner { partner, ask };
     let options = kind.simple_options();
     let player = w.people[who].player;
-    w.decisions.push(Decision {
-        person: who,
-        player,
-        kind,
-        options,
-        created: today,
-        deadline: today.add_days(10),
-        default: if accept { 0 } else { 1 },
-        answer: None,
-        resolved: false,
-    });
+    w.decisions.push(Decision { person: who, player, kind, options, created: today, deadline: today.add_days(10), default: if accept { 0 } else { 1 }, answer: None, resolved: false });
 }
 
 fn ai_partner_answer(w: &World, who: PersonId, partner: PersonId, ask: PartnerAsk) -> bool {

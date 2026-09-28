@@ -261,12 +261,7 @@ fn standing_in_squad(w: &World, p: PlayerId) -> f32 {
     let team = w.players.hot[p].team;
     let (me, _, _, _) = club_view(w, club, p);
     let group = w.players.cold[p].best_pos.group();
-    let mut rivals: Vec<f32> = w.teams[team]
-        .squad
-        .iter()
-        .filter(|&&x| x != p && w.players.cold[x].best_pos.group() == group)
-        .map(|&x| club_view(w, club, x).0)
-        .collect();
+    let mut rivals: Vec<f32> = w.teams[team].squad.iter().filter(|&&x| x != p && w.players.cold[x].best_pos.group() == group).map(|&x| club_view(w, club, x).0).collect();
     rivals.sort_by(|a, b| b.total_cmp(a));
     let starters: usize = match group {
         pw_core::PosGroup::Gk => 1,
@@ -395,11 +390,7 @@ fn feedback(w: &mut World, c: &mut Ctx, mood: f32) {
         c.player_person,
         Belief {
             about: c.player_person,
-            kind: BeliefKind::Assessment {
-                ca_lo: (ca - band * 0.5).clamp(1.0, 200.0) as u8,
-                ca_hi: (ca + band * 0.5).clamp(1.0, 200.0) as u8,
-                ceiling,
-            },
+            kind: BeliefKind::Assessment { ca_lo: (ca - band * 0.5).clamp(1.0, 200.0) as u8, ca_hi: (ca + band * 0.5).clamp(1.0, 200.0) as u8, ceiling },
             channel: Channel::Told(c.manager),
             confidence: (45.0 + honesty * 45.0) as u8,
             date: c.date,
@@ -409,14 +400,7 @@ fn feedback(w: &mut World, c: &mut Ctx, mood: f32) {
     let rating = (consider::trust(w, c.manager, c.player_person) * 3.0 + standing_in_squad(w, c.player) + 2.0).clamp(1.0, 5.0) as u8;
     w.beliefs.learn(
         c.player_person,
-        Belief {
-            about: c.player_person,
-            kind: BeliefKind::ManagerRating { manager: c.manager, stars: rating },
-            channel: Channel::Told(c.manager),
-            confidence: 70,
-            date: c.date,
-            origin: c.ev,
-        },
+        Belief { about: c.player_person, kind: BeliefKind::ManagerRating { manager: c.manager, stars: rating }, channel: Channel::Told(c.manager), confidence: 70, date: c.date, origin: c.ev },
     );
     if mood > 0.0 {
         c.outcomes.push(Outcome::Praised);
@@ -517,14 +501,7 @@ fn want_away(w: &mut World, c: &mut Ctx, mood: f32) {
 }
 
 fn follow_up(w: &mut World, c: &mut Ctx, mood: f32) {
-    let open: Vec<usize> = w
-        .social
-        .promises
-        .iter()
-        .enumerate()
-        .filter(|(_, p)| p.from == c.manager && p.to == c.player_person && p.state == pw_world::PromiseState::Open)
-        .map(|(i, _)| i)
-        .collect();
+    let open: Vec<usize> = w.social.promises.iter().enumerate().filter(|(_, p)| p.from == c.manager && p.to == c.player_person && p.state == pw_world::PromiseState::Open).map(|(i, _)| i).collect();
     let Some(&i) = open.first() else {
         c.outcomes.push(Outcome::Refused);
         c.satisfaction = -5;

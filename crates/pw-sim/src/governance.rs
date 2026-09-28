@@ -115,18 +115,7 @@ pub fn ensure(w: &mut World) {
         let academy_budget = revenue * Money::from(policy.youth_investment) / 1000;
         w.governance.insert(
             club,
-            Governance {
-                owner,
-                chairman,
-                policy,
-                projects: Vec::new(),
-                administration: None,
-                red_months: 0,
-                concerns: SmallVec::new(),
-                revenue_history: SmallVec::new(),
-                academy_budget,
-                injected: 0,
-            },
+            Governance { owner, chairman, policy, projects: Vec::new(), administration: None, red_months: 0, concerns: SmallVec::new(), revenue_history: SmallVec::new(), academy_budget, injected: 0 },
         );
     }
 }
@@ -291,7 +280,8 @@ fn invest(w: &mut World, club: ClubId, revenue: Money, rng: &mut Rng) {
         Ownership::Private => 0.3,
         Ownership::InvestmentGroup => 0.15,
         Ownership::MemberOwned => 0.0,
-    } * f32::from(o.ambition) / 100.0
+    } * f32::from(o.ambition)
+        / 100.0
         * (1.0 - f32::from(o.frugality) / 150.0);
     if willing <= 0.05 || !rng.chance(willing) {
         return;

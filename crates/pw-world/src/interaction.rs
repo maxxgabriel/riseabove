@@ -63,17 +63,8 @@ impl Topic {
     }
 
     /// Topics a player may raise with their manager.
-    pub const PLAYER_RAISES: [Topic; 9] = [
-        Topic::PlayingTime,
-        Topic::Feedback,
-        Topic::Position,
-        Topic::NewContract,
-        Topic::LoanRequest,
-        Topic::WantAway,
-        Topic::PromiseFollowUp,
-        Topic::TeammateIssue,
-        Topic::Apology,
-    ];
+    pub const PLAYER_RAISES: [Topic; 9] =
+        [Topic::PlayingTime, Topic::Feedback, Topic::Position, Topic::NewContract, Topic::LoanRequest, Topic::WantAway, Topic::PromiseFollowUp, Topic::TeammateIssue, Topic::Apology];
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -102,13 +93,17 @@ impl Tone {
 /// What a meeting led to. Several can happen at once.
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Outcome {
-    PromiseMade { promise: u32 },
+    PromiseMade {
+        promise: u32,
+    },
     Refused,
     /// "Show me in training first."
     Deferred,
     Praised,
     Warned,
-    Fined { weeks: u8 },
+    Fined {
+        weeks: u8,
+    },
     /// Left out of the next squad.
     Dropped,
     /// Transfer-listed at their request or as punishment.
@@ -173,19 +168,12 @@ impl Meetings {
 
     /// Most recent meeting between two people on a topic.
     pub fn last_between(&self, a: PersonId, b: PersonId, topic: Topic) -> Option<&Meeting> {
-        self.list
-            .iter()
-            .rev()
-            .find(|m| m.topic == topic && ((m.initiator == a && m.with == b) || (m.initiator == b && m.with == a)))
+        self.list.iter().rev().find(|m| m.topic == topic && ((m.initiator == a && m.with == b) || (m.initiator == b && m.with == a)))
     }
 
     /// Days since `a` last met `b` about anything, or `None`.
     pub fn days_since_any(&self, a: PersonId, b: PersonId, today: Date) -> Option<i32> {
-        self.list
-            .iter()
-            .rev()
-            .find(|m| (m.initiator == a && m.with == b) || (m.initiator == b && m.with == a))
-            .map(|m| m.date.days_until(today))
+        self.list.iter().rev().find(|m| (m.initiator == a && m.with == b) || (m.initiator == b && m.with == a)).map(|m| m.date.days_until(today))
     }
 
     pub fn involving(&self, p: PersonId) -> impl Iterator<Item = (MeetingId, &Meeting)> {

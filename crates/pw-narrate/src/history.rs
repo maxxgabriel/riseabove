@@ -1,8 +1,8 @@
 //! Names and lines for history below the professional game (and, with the
 //! record and award engines, for history at every level).
 
-use pw_world::minor::{Entrant, InstKind, Level, MinorKind, MinorSeason};
 use pw_world::World;
+use pw_world::minor::{Entrant, InstKind, Level, MinorKind, MinorSeason};
 
 use crate::fmt::{nation, player};
 
@@ -248,13 +248,19 @@ pub fn chronicle(w: &World, e: &pw_world::awards::Entry) -> String {
     let club = |c| crate::fmt::club(w, c);
     let nth = |n: u16| if n == 0 { "the first".to_string() } else { format!("the {}", pw_world::event::ordinal((n + 1).min(255) as u8)) };
     match e.feat {
-        Feat::Double { club: c, season } => format!("{} won the league and cup double in {season}/{:02} — {} in {}'s history.", club(c), (season + 1) % 100, nth(e.before), nation(w, w.clubs[c].nation)),
-        Feat::Unbeaten { club: c, comp, season } => format!("{} went through the {} {season}/{:02} season unbeaten — {} to do it there.", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100, nth(e.before)),
+        Feat::Double { club: c, season } => {
+            format!("{} won the league and cup double in {season}/{:02} — {} in {}'s history.", club(c), (season + 1) % 100, nth(e.before), nation(w, w.clubs[c].nation))
+        }
+        Feat::Unbeaten { club: c, comp, season } => {
+            format!("{} went through the {} {season}/{:02} season unbeaten — {} to do it there.", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100, nth(e.before))
+        }
         Feat::FirstTournament { nation: n, tournament } => {
             let t = w.intl.tournaments.iter().find(|t| t.id == tournament).map_or(String::new(), |t| format!(" ({})", t.year));
             format!("{} won an international tournament for the first time{t}.", nation(w, n))
         }
-        Feat::FirstWorldPlayerFrom { nation: n, person: p, year } => format!("{} became the first player from {} to be named World Player of the Year ({year}).", crate::fmt::person(w, p), nation(w, n)),
+        Feat::FirstWorldPlayerFrom { nation: n, person: p, year } => {
+            format!("{} became the first player from {} to be named World Player of the Year ({year}).", crate::fmt::person(w, p), nation(w, n))
+        }
         Feat::WorldPlayerAgain { person: p, times, year } => format!("{} was named World Player of the Year for the {} time ({year}).", crate::fmt::person(w, p), pw_world::event::ordinal(times)),
         Feat::FirstTo { person: p, what } => {
             let what = match what {
@@ -264,7 +270,9 @@ pub fn chronicle(w: &World, e: &pw_world::awards::Entry) -> String {
             };
             format!("{} became the first player in the world to reach {what}.", crate::fmt::person(w, p))
         }
-        Feat::FirstTitle { club: c, comp, season } => format!("{} won the {} for the first time in their history ({season}/{:02}).", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100),
+        Feat::FirstTitle { club: c, comp, season } => {
+            format!("{} won the {} for the first time in their history ({season}/{:02}).", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100)
+        }
     }
 }
 
@@ -288,12 +296,7 @@ pub fn school_style(s: &School) -> String {
 }
 
 pub fn school_founded(w: &World, s: &School) -> String {
-    format!(
-        "{} has become a school of thought: {}, built on {}.",
-        crate::fmt::person(w, s.founder),
-        school_name(w, s),
-        school_style(s)
-    )
+    format!("{} has become a school of thought: {}, built on {}.", crate::fmt::person(w, s.founder), school_name(w, s), school_style(s))
 }
 
 pub fn rule_change(w: &World, c: &RuleChange) -> String {
@@ -307,7 +310,9 @@ pub fn rule_change(w: &World, c: &RuleChange) -> String {
     let why = match c.cause {
         RuleCause::InjuryCrisis { per_club } => format!("after a season of {per_club:.0} injuries per club"),
         RuleCause::CardEpidemic { per_club } => format!("after {per_club:.1} suspensions per club last season"),
-        RuleCause::NationalDecline { win_rate, homegrown } => format!("with the national side winning {:.0}% of its games and {:.0}% of top-flight players homegrown", win_rate * 100.0, homegrown * 100.0),
+        RuleCause::NationalDecline { win_rate, homegrown } => {
+            format!("with the national side winning {:.0}% of its games and {:.0}% of top-flight players homegrown", win_rate * 100.0, homegrown * 100.0)
+        }
         RuleCause::AwayGoalsDebate { ties } => format!("after {ties} ties were decided on away goals"),
     };
     format!("The {n} federation announced that from {}/{:02} {what}, {why}.", c.from_season, (c.from_season + 1) % 100)

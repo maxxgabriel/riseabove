@@ -123,9 +123,21 @@ pub fn random_position(rng: &mut Rng) -> Pos {
 pub fn height_for(pos: Pos, rng: &mut Rng) -> u8 {
     let mean = match pos.group() {
         PosGroup::Gk => 189.0,
-        PosGroup::Def => if pos == Pos::DC { 187.0 } else { 178.0 },
+        PosGroup::Def => {
+            if pos == Pos::DC {
+                187.0
+            } else {
+                178.0
+            }
+        }
         PosGroup::Mid => 178.0,
-        PosGroup::Att => if pos == Pos::ST { 183.0 } else { 175.0 },
+        PosGroup::Att => {
+            if pos == Pos::ST {
+                183.0
+            } else {
+                175.0
+            }
+        }
     };
     rng.normal_ms(mean, 5.5).round().clamp(158.0, 205.0) as u8
 }

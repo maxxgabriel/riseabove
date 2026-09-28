@@ -6,9 +6,7 @@ use pw_world::club::{Board, ClubMarket, Facilities, Finance, Ownership};
 use pw_world::comp::{CompRules, CompState};
 use pw_world::nation::{Confed, NationSeason};
 use pw_world::staff::ManagerRecord;
-use pw_world::{
-    Archetype, Club, CompKind, Competition, Format, MindKind, NameId, Nation, Person, Philosophy, Staff, StaffRole, Team, TeamKind, World,
-};
+use pw_world::{Archetype, Club, CompKind, Competition, Format, MindKind, NameId, Nation, Person, Philosophy, Staff, StaffRole, Team, TeamKind, World};
 use smallvec::SmallVec;
 
 pub fn add_nation(w: &mut World, code: &str, name: &str, confed: Confed, reputation: u16, calendar: &str, economy: f32, youth_rating: u8) -> NationId {
@@ -221,12 +219,7 @@ pub fn new_staff(w: &mut World, club: ClubId, role: StaffRole, level: f32, rng: 
 pub fn finalize(w: &mut World) {
     // Nation league chains and cups.
     for n in w.nations.ids() {
-        let mut leagues: Vec<CompId> = w
-            .comps
-            .iter_enumerated()
-            .filter(|(_, c)| c.nation == n && c.kind == CompKind::League && c.team_kind == TeamKind::First)
-            .map(|(id, _)| id)
-            .collect();
+        let mut leagues: Vec<CompId> = w.comps.iter_enumerated().filter(|(_, c)| c.nation == n && c.kind == CompKind::League && c.team_kind == TeamKind::First).map(|(id, _)| id).collect();
         leagues.sort_by_key(|&c| (w.comps[c].tier, c));
         // One league per tier forms the promotion chain; extra regional
         // leagues at the same tier hang off the chain above.
@@ -250,13 +243,7 @@ pub fn finalize(w: &mut World) {
             continue;
         }
         let (nation, kind, size) = (comp.nation, comp.team_kind, usize::from(comp.size));
-        let mut teams: Vec<TeamId> = w
-            .clubs
-            .iter()
-            .filter(|cl| cl.nation == nation)
-            .flat_map(|cl| cl.teams.iter().copied())
-            .filter(|&t| w.teams[t].kind == kind)
-            .collect();
+        let mut teams: Vec<TeamId> = w.clubs.iter().filter(|cl| cl.nation == nation).flat_map(|cl| cl.teams.iter().copied()).filter(|&t| w.teams[t].kind == kind).collect();
         teams.sort_by_key(|&t| std::cmp::Reverse(w.clubs[w.teams[t].club].reputation));
         if size >= 2 {
             teams.truncate(size);
@@ -302,18 +289,7 @@ pub fn add_person(w: &mut World, first: &str, last: &str, common: &str, dob: Dat
     let first = w.names.intern(first);
     let last = w.names.intern(last);
     let common = w.names.intern(common);
-    w.people.push(Person {
-        first,
-        last,
-        common,
-        dob,
-        nation,
-        nation2,
-        hidden: Default::default(),
-        player: Default::default(),
-        staff: Default::default(),
-        mind: MindKind::Ai,
-    })
+    w.people.push(Person { first, last, common, dob, nation, nation2, hidden: Default::default(), player: Default::default(), staff: Default::default(), mind: MindKind::Ai })
 }
 
 pub fn familiarity_from(naturals: &[Pos]) -> [u8; pw_core::N_POS] {

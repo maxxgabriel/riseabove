@@ -121,7 +121,17 @@ pub struct Voice {
 
 impl Voice {
     pub const fn neutral() -> Self {
-        Voice { locale: Locale::En, dialect: Dialect::International, era: Era::Analytics, platform: Platform::Newspaper, register: Register::Neutral, age: AgeBand::Middle, emoji: false, humour: 20, hedging: 40 }
+        Voice {
+            locale: Locale::En,
+            dialect: Dialect::International,
+            era: Era::Analytics,
+            platform: Platform::Newspaper,
+            register: Register::Neutral,
+            age: AgeBand::Middle,
+            emoji: false,
+            humour: 20,
+            hedging: 40,
+        }
     }
 }
 

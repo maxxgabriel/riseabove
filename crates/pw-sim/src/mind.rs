@@ -33,7 +33,13 @@ pub fn ai_routine(w: &World, who: PersonId, life: &Life) -> Routine {
         family: (4 + kids * 3).min(14),
         partner: if partner { 8 } else { 0 },
         social: (8.0 - (age - 25.0).max(0.0) * 0.2) as u8,
-        study: if age < 19.0 { 6 } else if prof >= 15.0 && age > 29.0 { 2 } else { 0 },
+        study: if age < 19.0 {
+            6
+        } else if prof >= 15.0 && age > 29.0 {
+            2
+        } else {
+            0
+        },
         hobbies: 6,
         media: if contro >= 13.0 { 4 } else { 1 },
         nightlife: ((contro - prof * 0.5).max(0.0) * 0.8 + if age < 24.0 { 2.0 } else { 0.0 }).min(10.0) as u8,

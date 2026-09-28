@@ -136,7 +136,13 @@ fn profile_for(w: &World, s: StaffId) -> ManagerProfile {
         pw_world::Archetype::Loyalist => 25.0,
         _ => 45.0,
     };
-    let veteran = if ph.archetype == pw_world::Archetype::Loyalist { 70.0 } else if ph.archetype == pw_world::Archetype::Developer { 30.0 } else { 50.0 };
+    let veteran = if ph.archetype == pw_world::Archetype::Loyalist {
+        70.0
+    } else if ph.archetype == pw_world::Archetype::Developer {
+        30.0
+    } else {
+        50.0
+    };
     ManagerProfile {
         staff: s,
         likes,
@@ -150,11 +156,7 @@ fn profile_for(w: &World, s: StaffId) -> ManagerProfile {
         media_style,
         entourage: SmallVec::new(),
         reputation: st.reputation,
-        jobs: if st.club.is_some() {
-            vec![Job { club: st.club, from: st.joined, to: None, ended: None, record_at_start: st.record }]
-        } else {
-            Vec::new()
-        },
+        jobs: if st.club.is_some() { vec![Job { club: st.club, from: st.joined, to: None, ended: None, record_at_start: st.record }] } else { Vec::new() },
         systems: ph.formations.iter().copied().collect(),
         favourites: SmallVec::new(),
     }
@@ -348,13 +350,7 @@ pub fn monthly(w: &mut World) {
     }
     // Yearly-ish retirement of old managers.
     if today.month() == 6 {
-        let old: Vec<StaffId> = w
-            .careers
-            .managers
-            .keys()
-            .copied()
-            .filter(|&s| !w.staff[s].retired && consider::age(w, w.staff[s].person) > 66.0)
-            .collect();
+        let old: Vec<StaffId> = w.careers.managers.keys().copied().filter(|&s| !w.staff[s].retired && consider::age(w, w.staff[s].person) > 66.0).collect();
         for s in old {
             let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(s.0), today.year() as u64, 0x77]);
             if rng.chance(0.3) {

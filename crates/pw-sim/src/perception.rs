@@ -3,8 +3,8 @@
 //! estimates come from `pw_world::knowledge`.
 
 use pw_core::{ClubId, PlayerId};
-use pw_world::knowledge::{Observer, perceived_ca, perceived_pa, sigma};
 use pw_world::World;
+use pw_world::knowledge::{Observer, perceived_ca, perceived_pa, sigma};
 
 /// A club's view of a player: (ca estimate, ca band, pa estimate, pa band).
 pub fn club_view(w: &World, club: ClubId, p: PlayerId) -> (f32, f32, f32, f32) {

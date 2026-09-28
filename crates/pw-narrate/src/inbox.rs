@@ -1,8 +1,8 @@
 //! Rendering inbox messages and replies from the sources they refer to.
 
 use pw_core::PersonId;
-use pw_world::inbox::{Message, MsgSource, Reply, Thread, ThreadKey};
 use pw_world::World;
+use pw_world::inbox::{Message, MsgSource, Reply, Thread, ThreadKey};
 
 use crate::fmt::{club, person};
 
@@ -12,7 +12,13 @@ pub fn thread_title(w: &World, t: &Thread) -> String {
         ThreadKey::With(p) => person(w, p),
         ThreadKey::Press(th) => w.media.threads.get(th as usize).and_then(|x| x.stories.first()).map_or_else(|| "Press".to_string(), |&s| crate::press::headline(w, &w.media.stories[s])),
         ThreadKey::Post(_) => "Replies to your post".to_string(),
-        ThreadKey::Club(c) => if c.is_some() { club(w, c) } else { "Club".to_string() },
+        ThreadKey::Club(c) => {
+            if c.is_some() {
+                club(w, c)
+            } else {
+                "Club".to_string()
+            }
+        }
         ThreadKey::Decision(d) => w.decisions.all.get(d).map_or_else(|| "Decision".to_string(), |d| crate::choices::title(w, d)),
     }
 }

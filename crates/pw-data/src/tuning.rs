@@ -47,14 +47,7 @@ pub struct Health {
 
 impl Default for Health {
     fn default() -> Self {
-        Self {
-            match_exposure: 0.00034,
-            training_session: 0.00045,
-            illness_daily: 0.0009,
-            acwr_safe_low: 0.8,
-            acwr_safe_high: 1.3,
-            condition_recovery: 24.0,
-        }
+        Self { match_exposure: 0.00034, training_session: 0.00045, illness_daily: 0.0009, acwr_safe_low: 0.8, acwr_safe_high: 1.3, condition_recovery: 24.0 }
     }
 }
 

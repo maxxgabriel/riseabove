@@ -7,8 +7,8 @@
 
 use ofm_engine::ai::{self, AiPersonality, AiProfile};
 use ofm_engine::{
-    DefensiveLine, EventType, LiveMatchState, MatchConfig, MatchEvent as OfmEvent, PlayStyle, PlayerData, PlayerRole, Position,
-    PressingIntensity, Side, TacticsBuildUpStyle, TacticsConfig, TacticsPitchWidth, TeamData, Tempo, Zone,
+    DefensiveLine, EventType, LiveMatchState, MatchConfig, MatchEvent as OfmEvent, PlayStyle, PlayerData, PlayerRole, Position, PressingIntensity, Side, TacticsBuildUpStyle, TacticsConfig,
+    TacticsPitchWidth, TeamData, Tempo, Zone,
 };
 use pw_core::rng::hash2;
 use pw_core::{Attr, Hidden, Mentality, PlayerId, Pos, PosGroup, Role, Tactics};
@@ -41,12 +41,7 @@ pub fn simulate(inp: &MatchInput) -> MatchResult {
     // Planned rotation: how many subs each side wants made by each checkpoint.
     let mut plan_rng = pw_core::Rng::keyed(&[inp.seed, 0x5ab5]);
     let total = [2 + plan_rng.below(3) as u8, 2 + plan_rng.below(3) as u8];
-    let planned: [(u8, [u8; 2]); 4] = [
-        (60, [1, 1]),
-        (70, [total[0].min(2), total[1].min(2)]),
-        (78, [total[0].min(3), total[1].min(3)]),
-        (86, total),
-    ];
+    let planned: [(u8, [u8; 2]); 4] = [(60, [1, 1]), (70, [total[0].min(2), total[1].min(2)]), (78, [total[0].min(3), total[1].min(3)]), (86, total)];
     let mut guard = 0;
     while !state.is_finished() && guard < 400 {
         let r = state.step_minute(&mut rng);
@@ -92,14 +87,7 @@ fn team(t: &TeamSheet, inp: &MatchInput) -> TeamData {
         Position::Forward => (d, m, f + 1),
         Position::Goalkeeper => (d, m, f),
     });
-    TeamData {
-        id: t.team.0.to_string(),
-        name: String::new(),
-        formation: format!("{d}-{m}-{f}"),
-        play_style: play_style(&t.tactics),
-        players,
-        tactics: tactics(&t.tactics),
-    }
+    TeamData { id: t.team.0.to_string(), name: String::new(), formation: format!("{d}-{m}-{f}"), play_style: play_style(&t.tactics), players, tactics: tactics(&t.tactics) }
 }
 
 fn play_style(t: &Tactics) -> PlayStyle {
@@ -162,11 +150,8 @@ fn player(p: &PlayerSheet, pos: Pos, role: Option<Role>, inp: &MatchInput) -> Pl
     let fam = pw_core::math::lerp(0.7, 1.0, (f32::from(p.familiarity[pos.idx()]) / 20.0).clamp(0.0, 1.0));
     let fit = |v: f32| scale(v * fam);
     let outfield_pos = pos.group() != PosGroup::Gk;
-    let positioning = if matches!(pos.group(), PosGroup::Att | PosGroup::Mid) {
-        a(Attr::OffTheBall) * 0.5 + a(Attr::Anticipation) * 0.5
-    } else {
-        a(Attr::Positioning) * 0.6 + a(Attr::Anticipation) * 0.4
-    };
+    let positioning =
+        if matches!(pos.group(), PosGroup::Att | PosGroup::Mid) { a(Attr::OffTheBall) * 0.5 + a(Attr::Anticipation) * 0.5 } else { a(Attr::Positioning) * 0.6 + a(Attr::Anticipation) * 0.4 };
     let aerial = if outfield_pos { (a(Attr::Heading) + a(Attr::JumpingReach)) * 0.5 } else { a(Attr::AerialReach) };
     let mut data = PlayerData {
         id: p.id.0.to_string(),
@@ -224,10 +209,7 @@ fn derive_traits(p: &PlayerSheet) -> Vec<String> {
         ("TeamPlayer", a(Attr::Teamwork) >= 17.0),
         ("Tireless", a(Attr::NaturalFitness) >= 17.0),
         ("Visionary", a(Attr::Vision) >= 17.0),
-        (
-            "CompleteForward",
-            [Attr::Finishing, Attr::Heading, Attr::Dribbling, Attr::Passing].iter().all(|&x| a(x) >= 15.0),
-        ),
+        ("CompleteForward", [Attr::Finishing, Attr::Heading, Attr::Dribbling, Attr::Passing].iter().all(|&x| a(x) >= 15.0)),
     ];
     rules.iter().filter(|(_, on)| *on).map(|(n, _)| (*n).to_string()).collect()
 }
@@ -269,21 +251,13 @@ fn planned_subs(state: &mut LiveMatchState, side: Side, wanted: u8) {
     };
     let mut made = made;
     let mut used: Vec<&str> = Vec::new();
-    let mut outs: Vec<&PlayerData> = team
-        .players
-        .iter()
-        .filter(|p| p.position != Position::Goalkeeper && !snap.sent_off.contains(&p.id) && p.condition < 88)
-        .collect();
+    let mut outs: Vec<&PlayerData> = team.players.iter().filter(|p| p.position != Position::Goalkeeper && !snap.sent_off.contains(&p.id) && p.condition < 88).collect();
     outs.sort_by_key(|p| p.condition);
     for off in outs {
         if made >= wanted || made >= snap.max_subs {
             break;
         }
-        let Some(on) = bench
-            .iter()
-            .filter(|b| b.position == off.position && !used.contains(&b.id.as_str()))
-            .max_by(|a, b| a.overall().total_cmp(&b.overall()))
-        else {
+        let Some(on) = bench.iter().filter(|b| b.position == off.position && !used.contains(&b.id.as_str())).max_by(|a, b| a.overall().total_cmp(&b.overall())) else {
             continue;
         };
         let cmd = ofm_engine::MatchCommand::Substitute { side, player_off_id: off.id.clone(), player_on_id: on.id.clone() };
@@ -310,9 +284,7 @@ fn convert(inp: &MatchInput, rep: ofm_engine::MatchReport) -> MatchResult {
     let sheets: Vec<(&PlayerSheet, u8, Option<Pos>)> = [&inp.home, &inp.away]
         .into_iter()
         .enumerate()
-        .flat_map(|(s, t)| {
-            t.xi.iter().zip(t.slots.iter()).map(move |(p, sl)| (p, s as u8, Some(sl.pos))).chain(t.bench.iter().map(move |p| (p, s as u8, None)))
-        })
+        .flat_map(|(s, t)| t.xi.iter().zip(t.slots.iter()).map(move |(p, sl)| (p, s as u8, Some(sl.pos))).chain(t.bench.iter().map(move |p| (p, s as u8, None))))
         .collect();
     let index = |id: &str| -> Option<usize> {
         let n: u32 = id.parse().ok()?;
@@ -321,15 +293,7 @@ fn convert(inp: &MatchInput, rep: ofm_engine::MatchReport) -> MatchResult {
     let mut who: Vec<Who> = sheets
         .iter()
         .enumerate()
-        .map(|(i, &(p, side, pos))| Who {
-            sheet: i,
-            side,
-            started: pos.is_some(),
-            pos,
-            on: 0,
-            off: None,
-            line: PlayerLine { player: p.id, side, started: pos.is_some(), pos, ..Default::default() },
-        })
+        .map(|(i, &(p, side, pos))| Who { sheet: i, side, started: pos.is_some(), pos, on: 0, off: None, line: PlayerLine { player: p.id, side, started: pos.is_some(), pos, ..Default::default() } })
         .collect();
 
     let side_of = |s: Side| -> u8 { if s == Side::Home { 0 } else { 1 } };
@@ -631,10 +595,7 @@ fn rating(l: &PlayerLine, conceded: u8, result: f32) -> f32 {
         _ => 6.2,
     };
     let completion = if l.passes > 0 { f32::from(l.passes_completed) / f32::from(l.passes) } else { 0.8 };
-    let mut v = f32::from(l.goals) * 1.05
-        + f32::from(l.assists) * 0.7
-        + f32::from(l.on_target) * 0.12
-        - f32::from(l.shots.saturating_sub(l.on_target)) * 0.04
+    let mut v = f32::from(l.goals) * 1.05 + f32::from(l.assists) * 0.7 + f32::from(l.on_target) * 0.12 - f32::from(l.shots.saturating_sub(l.on_target)) * 0.04
         + f32::from(l.tackles_won) * 0.09
         + f32::from(l.interceptions) * 0.08
         + f32::from(l.clearances) * 0.04
