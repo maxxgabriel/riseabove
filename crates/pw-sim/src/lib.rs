@@ -2,6 +2,7 @@
 
 pub mod affairs;
 pub mod agents;
+pub mod audit;
 pub mod awards;
 pub mod backfill;
 pub mod board;

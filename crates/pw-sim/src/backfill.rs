@@ -14,17 +14,28 @@ use pw_world::backfill::{PastFigure, PastSeason, Provenance};
 use pw_world::culture::{RivalryKind, Side};
 use pw_world::minor::Level;
 use pw_world::records::{Holder, Mark, RecordKey, Scope, Stat};
-use pw_world::{CompKind, FxHashMap, TeamKind, World};
+use pw_world::{CompKind, FxHashMap, FxHashSet, TeamKind, World};
 
 const YEARS: i32 = 30;
 
-fn figure(w: &mut World, nation: NationId, club: ClubId, born: i32, apps: u16, goals: u16, rng: &mut Rng) -> u32 {
-    let (first, last) = crate::people::random_name(w, nation, rng);
-    let name = match (w.names.get(first), w.names.get(last)) {
-        ("", l) => l.to_string(),
-        (f, "") => f.to_string(),
-        (f, l) => format!("{f} {l}"),
-    };
+/// A generated figure of the past. Names come from the nation's pool, so a
+/// name that belongs to a real person in the world is drawn again: nothing
+/// generated may be mistaken for something a real person did.
+fn figure(w: &mut World, taken: &FxHashSet<String>, nation: NationId, club: ClubId, born: i32, apps: u16, goals: u16, rng: &mut Rng) -> u32 {
+    let mut name = String::new();
+    for attempt in 0..12 {
+        // After a few clashes, borrow a pool from another nation.
+        let pool = if attempt < 4 { nation } else { w.nations.ids().nth(rng.index(w.nations.len())).unwrap_or(nation) };
+        let (first, last) = crate::people::random_name(w, pool, rng);
+        name = match (w.names.get(first), w.names.get(last)) {
+            ("", l) => l.to_string(),
+            (f, "") => f.to_string(),
+            (f, l) => format!("{f} {l}"),
+        };
+        if !taken.contains(&name) && !name.is_empty() {
+            break;
+        }
+    }
     let id = w.backfill.figures.len() as u32;
     w.backfill.figures.push(PastFigure { id, name, nation, club, born, apps, goals, provenance: Provenance::Generated });
     id
@@ -37,6 +48,7 @@ pub fn generate(w: &mut World) {
     }
     let start = w.date.year();
     let from = start - YEARS;
+    let taken: FxHashSet<String> = w.people.iter().map(|p| p.display_name(&w.names).into_owned()).collect();
     let leagues: Vec<CompId> = w.comps.iter_enumerated().filter(|(_, c)| c.kind == CompKind::League && c.tier == 1 && c.team_kind == TeamKind::First).map(|(id, _)| id).collect();
     for comp in leagues {
         let nation = w.comps[comp].nation;
@@ -71,7 +83,7 @@ pub fn generate(w: &mut World) {
             let scorer_nation = if rng.chance(0.75) { nation } else { w.nations.ids().nth(rng.index(w.nations.len())).unwrap_or(nation) };
             let scorer_club = if rng.chance(0.4) { champion } else { clubs[rng.index(clubs.len())] };
             let born = season - rng.range_i32(22, 31);
-            let fig = figure(w, scorer_nation, scorer_club, born, 0, goals, &mut rng);
+            let fig = figure(w, &taken, scorer_nation, scorer_club, born, 0, goals, &mut rng);
             w.backfill.seasons.push(PastSeason { comp, season, champion, runner_up, top_scorer: fig, top_goals: goals, provenance: Provenance::Generated });
             last_champion = champion;
         }
@@ -85,7 +97,7 @@ pub fn generate(w: &mut World) {
                 let scorer = rng.chance(0.4);
                 let goals = if scorer { rng.range_i32(120, 260) } else { rng.range_i32(5, 60) } as u16;
                 let born = from + rng.range_i32(-25, 5);
-                figure(w, nation, c, born, apps, goals, &mut rng);
+                figure(w, &taken, nation, c, born, apps, goals, &mut rng);
             }
         }
     }

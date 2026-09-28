@@ -18,6 +18,7 @@ pub mod incidents;
 pub mod lexicon;
 pub mod officiating;
 pub mod press;
+pub mod quality;
 pub mod social;
 pub mod talk;
 
