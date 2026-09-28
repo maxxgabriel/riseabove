@@ -298,6 +298,9 @@ pub struct Social {
     held: FxHashMap<PersonId, SmallVec<[Memory; 4]>>,
     pub promises: Vec<Promise>,
     next_promise: u32,
+    /// Positions in `promises` by promisee and by promiser (rebuilt on prune).
+    by_to: FxHashMap<PersonId, SmallVec<[u32; 2]>>,
+    by_from: FxHashMap<PersonId, SmallVec<[u32; 4]>>,
 }
 
 impl Social {
@@ -387,30 +390,44 @@ impl Social {
     pub fn make_promise(&mut self, from: PersonId, to: PersonId, club: ClubId, kind: PromiseKind, made: Date, due: Date, cause: EventId) -> u32 {
         let id = self.next_promise;
         self.next_promise += 1;
+        let at = self.promises.len() as u32;
         self.promises.push(Promise { id, from, to, club, kind, made, due, state: PromiseState::Open, team_minutes: 0, player_minutes: 0, cause });
+        self.by_to.entry(to).or_default().push(at);
+        self.by_from.entry(from).or_default().push(at);
         id
     }
 
     pub fn promise(&self, id: u32) -> Option<&Promise> {
-        self.promises.iter().find(|p| p.id == id)
+        // Ids rise in the order promises are made, and pruning keeps the order.
+        self.promises.binary_search_by_key(&id, |p| p.id).ok().map(|i| &self.promises[i])
     }
 
     pub fn promise_mut(&mut self, id: u32) -> Option<&mut Promise> {
-        self.promises.iter_mut().find(|p| p.id == id)
+        self.promises.binary_search_by_key(&id, |p| p.id).ok().map(move |i| &mut self.promises[i])
+    }
+
+    /// Promises made to `to` (any state).
+    pub fn promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
+        self.by_to.get(&to).into_iter().flatten().map(|&i| &self.promises[i as usize])
+    }
+
+    /// Promises made by `from` (any state).
+    pub fn promises_by(&self, from: PersonId) -> impl Iterator<Item = &Promise> {
+        self.by_from.get(&from).into_iter().flatten().map(|&i| &self.promises[i as usize])
     }
 
     pub fn open_promises_to(&self, to: PersonId) -> impl Iterator<Item = &Promise> {
-        self.promises.iter().filter(move |p| p.to == to && p.state == PromiseState::Open)
+        self.promises_to(to).filter(|p| p.state == PromiseState::Open)
     }
 
     pub fn open_promises_between(&self, from: PersonId, to: PersonId) -> impl Iterator<Item = &Promise> {
-        self.promises.iter().filter(move |p| p.from == from && p.to == to && p.state == PromiseState::Open)
+        self.promises_to(to).filter(move |p| p.from == from && p.state == PromiseState::Open)
     }
 
     /// How many promises `from` has broken to anyone within `days` — a reputation
     /// for keeping one's word that others can hear about.
     pub fn broken_by(&self, from: PersonId, today: Date, days: i32) -> usize {
-        self.promises.iter().filter(|p| p.from == from && p.state == PromiseState::Broken && p.due.days_until(today) <= days).count()
+        self.promises_by(from).filter(|p| p.state == PromiseState::Broken && p.due.days_until(today) <= days).count()
     }
 
     /// Forget stale relationships and faded memories; settled promises go after a while.
@@ -421,6 +438,12 @@ impl Social {
         }
         self.held.retain(|_, l| !l.is_empty());
         self.promises.retain(|p| p.state == PromiseState::Open || p.due >= before);
+        self.by_to.clear();
+        self.by_from.clear();
+        for (i, p) in self.promises.iter().enumerate() {
+            self.by_to.entry(p.to).or_default().push(i as u32);
+            self.by_from.entry(p.from).or_default().push(i as u32);
+        }
     }
 
     pub fn len(&self) -> usize {

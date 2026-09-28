@@ -43,7 +43,7 @@ pub fn weekly(w: &mut World) {
     let today = w.date;
     let week = (today.0 / 7) as u64;
     let teams: Vec<TeamId> = w.teams.ids().collect();
-    let team_mins: Vec<u32> = teams.iter().map(|&t| team_minutes_7d(w, t)).collect();
+    let team_mins: Vec<u32> = prof!("social::team_minutes", teams.iter().map(|&t| team_minutes_7d(w, t)).collect());
 
     for &team in &teams {
         let Some(mgr) = team_manager(w, team) else { continue };
@@ -57,15 +57,15 @@ pub fn weekly(w: &mut World) {
             }
             let who = consider::person(w, p);
             let mut rng = Rng::keyed(&[w.seed, stream::SOCIAL, u64::from(p.0), week]);
-            coach_observes(w, p, who, mgr, club, discipline, &mut rng);
-            player_view_of_manager(w, p, who, mgr, man_mgmt);
+            prof!("social::coach_observes", coach_observes(w, p, who, mgr, club, discipline, &mut rng));
+            prof!("social::view_of_manager", player_view_of_manager(w, p, who, mgr, man_mgmt));
         }
         if w.teams[team].kind != TeamKind::U18 {
-            teammates(w, team, &squad, week);
+            prof!("social::teammates", teammates(w, team, &squad, week));
         }
-        unrest(w, team, mgr, week);
+        prof!("social::unrest", unrest(w, team, mgr, week));
     }
-    promises(w, &teams, &team_mins);
+    prof!("social::promises", promises(w, &teams, &team_mins));
     for h in w.players.hot.iter_mut() {
         h.minutes_week = 0;
     }
