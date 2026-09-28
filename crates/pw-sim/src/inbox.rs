@@ -32,7 +32,7 @@ pub fn daily(w: &mut World) {
         w.inbox.deliver(to, from, today, MsgSource::Tell { info, from }, ThreadKey::With(from), 60);
     }
     // Events: meetings, private notes, stories about them.
-    let evs: Vec<(pw_core::EventId, EventKind, Visibility)> = w.events.since(today).iter().map(|e| (e.id, e.kind, e.vis)).collect();
+    let evs: Vec<(pw_core::EventId, EventKind, Visibility)> = w.events.since(today).iter().map(|e| (e.id, e.kind.clone(), e.vis)).collect();
     for (id, kind, vis) in evs {
         match kind {
             EventKind::Meeting { from, with, .. } => {
@@ -168,7 +168,7 @@ fn topic_for(w: &World, m: &pw_world::inbox::Message) -> Topic {
             InfoKind::Incident { .. } => Topic::Apology,
             _ => Topic::Feedback,
         },
-        MsgSource::Private { event } => match w.events.get(event).map(|e| e.kind) {
+        MsgSource::Private { event } => match w.events.get(event).map(|e| e.kind.clone()) {
             Some(EventKind::BoardWarning { .. } | EventKind::BoardQuery { .. }) => Topic::Feedback,
             _ => Topic::Feedback,
         },

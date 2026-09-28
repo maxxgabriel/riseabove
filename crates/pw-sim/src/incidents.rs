@@ -21,9 +21,9 @@
 use pw_core::rng::{period, stream};
 use pw_core::{ClubId, FixtureId, Hidden, NationId, PersonId, PlayerId, StaffId, TeamId};
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
-use pw_world::incident::{def, Exposure, Incident, IncidentDef, IncidentKind, Location, Pressure, Scope};
+use pw_world::incident::{def, Exposure, Incident, IncidentDef, IncidentKind, Location, Pressure};
 use pw_world::info::InfoKind;
-use pw_world::{FanReason, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, TeamKind, World};
+use pw_world::{FanReason, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, World};
 use smallvec::SmallVec;
 
 use crate::consider;

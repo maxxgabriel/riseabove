@@ -435,13 +435,13 @@ pub fn news(w: &World, me: PersonId, n: usize) -> Vec<String> {
 }
 
 pub fn social(w: &World, me: PersonId, n: usize) -> Vec<String> {
-    let club = w.club_of_person(me);
+    let my_club = w.club_of_person(me);
     let mut v: Vec<String> = w
         .media
         .reactions
         .iter()
         .rev()
-        .filter(|r| r.about == me || (club.is_some() && r.club == club))
+        .filter(|r| r.about == me || (my_club.is_some() && r.club == my_club))
         .take(n)
         .map(|r| format!("{}  {}", r.date, pw_narrate::press::reaction(w, r)))
         .collect();

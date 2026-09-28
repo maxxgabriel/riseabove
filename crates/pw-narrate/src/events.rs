@@ -1,7 +1,7 @@
 //! Rendering events and their causes. Every line names its source event.
 
 use pw_core::PersonId;
-use pw_world::event::{Cause, CoachNote, Event, EventKind, Fact, LifeEventKind};
+use pw_world::event::{Cause, Event, EventKind, Fact, LifeEventKind};
 use pw_world::{MemoryKind, World};
 
 use crate::fmt::{club, money, nation, person, player};
@@ -92,10 +92,10 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         CameOutOfRetirement { person: x } => format!("{} came out of retirement.", me(x)),
         CoachNote { player: p, by, note } => {
             let n = match note {
-                CoachNote::PoorTraining => "has been below standard in training",
-                CoachNote::ExcellentTraining => "has been outstanding in training",
-                CoachNote::Improving => "is improving",
-                CoachNote::Declining => "is slipping",
+                pw_world::event::CoachNote::PoorTraining => "has been below standard in training",
+                pw_world::event::CoachNote::ExcellentTraining => "has been outstanding in training",
+                pw_world::event::CoachNote::Improving => "is improving",
+                pw_world::event::CoachNote::Declining => "is slipping",
             };
             format!("{} noted that {} {n}.", person(w, by), player(w, p))
         }

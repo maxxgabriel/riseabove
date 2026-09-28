@@ -266,7 +266,8 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         return;
     }
     let tier = w.comps[comp].tier;
-    let club = |t: TeamId| w.teams[t].club;
+    let clubs_of: pw_world::FxHashMap<TeamId, ClubId> = rows.iter().map(|r| (r.team, w.teams[r.team].club)).collect();
+    let club = |t: TeamId| clubs_of[&t];
     // Title (tier 1) or promotion (lower tiers) decided by a few points.
     let (first, second) = (rows[0], rows[1]);
     if first.points - second.points <= 3 {

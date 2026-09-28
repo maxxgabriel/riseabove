@@ -45,7 +45,7 @@ fn snapshots(w: &mut World) {
             if r.mentor.is_some() {
                 let me = w.players.cold[p].person;
                 if let Some(v) = w.growth.mentees.get_mut(&r.mentor) {
-                    v.retain(|&x| x != me);
+                    v.retain(|x| *x != me);
                 }
             }
         }
@@ -135,7 +135,7 @@ pub fn begin_mentoring(w: &mut World, mentor: PersonId, mentee: PersonId, mentee
 
 fn end_mentoring(w: &mut World, mentor: PersonId, mentee: PersonId) {
     if let Some(v) = w.growth.mentees.get_mut(&mentor) {
-        v.retain(|&x| x != mentee);
+        v.retain(|x| *x != mentee);
     }
     if let Some(p) = w.people[mentee].player.get() {
         if let Some(r) = w.growth.records.get_mut(&p) {

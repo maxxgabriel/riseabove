@@ -203,7 +203,8 @@ fn player_turn(w: &mut World, id: TalkId) {
         let ai = ai_choice(w, id);
         let default = match ai {
             Choice::Accept => 0,
-            Choice::Reject | Choice::Decline | Choice::Respond(_) => (opts.len() - 1) as u8,
+            // Talks never produce incident or press choices; treat any as a walk-away.
+            Choice::Reject | Choice::Decline | Choice::Respond(_) | Choice::Handle(_) | Choice::Say(_) => (opts.len() - 1) as u8,
             Choice::Counter { wage, .. } => opts
                 .iter()
                 .enumerate()

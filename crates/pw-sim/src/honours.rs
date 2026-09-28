@@ -185,7 +185,7 @@ pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fe
 pub fn season_awards(w: &mut World, c: CompId, year: i32, lines: &[StatLine], games: u16) {
     let date = w.date;
     let min_apps = (f32::from(games) * 0.6) as u16;
-    let mut give = |w: &mut World, kind: AwardKind, l: &StatLine, value: f32| {
+    let give = |w: &mut World, kind: AwardKind, l: &StatLine, value: f32| {
         w.history.awards.push(AwardRecord { comp: c, season: year, kind, player: l.player, club: l.club, value });
         w.events.push(date, Visibility::Public, EventKind::Award { player: l.player, comp: c, award: kind, season: year });
         award_effects(w, l.player, 1.0);

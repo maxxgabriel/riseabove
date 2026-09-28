@@ -177,7 +177,7 @@ fn add_tie(w: &mut World, j: PersonId, s: PersonId, strength: u8) {
         if let Some(i) = prof.ties.iter().enumerate().min_by_key(|(_, t)| t.strength).map(|(i, _)| i) {
             let gone = prof.ties.remove(i).person;
             if let Some(jj) = w.media.journalists.get_mut(&j) {
-                jj.sources.retain(|&x| x != gone);
+                jj.sources.retain(|x| *x != gone);
             }
         }
     }
@@ -339,7 +339,6 @@ fn from_info(w: &World, info: u32) -> Option<Candidate> {
             c.tone = -35;
             c.subject = Some(ThreadSubject::Incident { incident });
         }
-        _ => return None,
     }
     Some(c)
 }
@@ -347,10 +346,6 @@ fn from_info(w: &World, info: u32) -> Option<Candidate> {
 // ---------------------------------------------------------------------------
 // The pipeline
 // ---------------------------------------------------------------------------
-
-fn freshness(date: Date, today: Date) -> f32 {
-    (1.0 - date.days_until(today) as f32 / 10.0).clamp(0.1, 1.0)
-}
 
 /// How newsworthy a candidate is for one outlet and journalist, 0–1.
 fn newsworthiness(w: &World, c: &Candidate, outlet: OutletId, j: PersonId, age_days: i32) -> (f32, [u8; 3]) {

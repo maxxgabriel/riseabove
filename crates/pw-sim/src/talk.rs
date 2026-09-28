@@ -147,7 +147,6 @@ fn tone_lands(w: &World, tone: Tone, speaker: PersonId, listener: PersonId, seri
 // ------------------------------------------------------------------ holding
 
 struct Ctx {
-    id: MeetingId,
     date: Date,
     initiator: PersonId,
     with: PersonId,
@@ -155,7 +154,6 @@ struct Ctx {
     player_person: PersonId,
     manager: PersonId,
     club: ClubId,
-    topic: Topic,
     opening: Tone,
     response: Tone,
     rng: Rng,
@@ -181,7 +179,6 @@ pub fn hold(w: &mut World, id: MeetingId) {
     let player_person = if m.player.is_some() { w.players.cold[m.player].person } else { m.initiator };
     let manager = if player_person == m.initiator { m.with } else { m.initiator };
     let mut c = Ctx {
-        id,
         date: today,
         initiator: m.initiator,
         with: m.with,
@@ -189,7 +186,6 @@ pub fn hold(w: &mut World, id: MeetingId) {
         player_person,
         manager,
         club: m.club,
-        topic: m.topic,
         opening: m.opening,
         response,
         rng: Rng::keyed(&[w.seed, stream::TALK, u64::from(id.0), hash_key(&[today.0 as u64])]),
@@ -272,7 +268,7 @@ fn standing_in_squad(w: &World, p: PlayerId) -> f32 {
         .map(|&x| club_view(w, club, x).0)
         .collect();
     rivals.sort_by(|a, b| b.total_cmp(a));
-    let starters = match group {
+    let starters: usize = match group {
         pw_core::PosGroup::Gk => 1,
         pw_core::PosGroup::Att => 2,
         _ => 4,
