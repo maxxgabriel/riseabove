@@ -88,6 +88,13 @@ fn describe(w: &World, kind: &InfoKind, f: Fidelity) -> String {
     }
 }
 
+/// What `holder` believes an item says ("that X are interested in Y"), without the framing, and how sure they are.
+pub fn belief(w: &World, info: u32, holder: PersonId) -> Option<(String, u8)> {
+    let it = w.grapevine.items.get(info as usize)?;
+    let k = it.knower(holder)?;
+    Some((describe(w, &it.kind, k.fidelity), k.confidence))
+}
+
 /// What `holder` believes about an item, and how they came by it.
 pub fn version(w: &World, info: u32, holder: PersonId) -> Option<String> {
     let it = w.grapevine.items.get(info as usize)?;

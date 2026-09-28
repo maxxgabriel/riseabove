@@ -420,3 +420,51 @@ fn decisions_open_and_can_be_answered() {
     }
     assert!(opened >= 1, "no decision reached the inbox in ten simulated months");
 }
+
+#[test]
+fn the_world_inbox_groups_conversations_and_replies_become_actions() {
+    let api = api();
+    let _ = inhabit_one(&api);
+    let mut replied = 0;
+    let mut opened_threads = 0;
+    for _ in 0..40 {
+        advance(&api, 15);
+        let inbox = api.call("me.inbox", json!({})).unwrap();
+        for t in inbox["threads"].as_array().unwrap() {
+            assert!(t["title"].is_string() && t["preview"].is_string(), "{t}");
+            let id = t["id"].as_u64().unwrap();
+            let th = api.call("me.thread", json!({"id": id})).unwrap();
+            opened_threads += 1;
+            let msgs = th["messages"].as_array().unwrap();
+            assert_eq!(msgs.len() as u64, t["count"].as_u64().unwrap());
+            for m in msgs {
+                assert!(m["text"].as_str().is_some_and(|s| !s.is_empty()) || m["kind"] == "meeting", "{m}");
+                if replied == 0 {
+                    if let Some(r) = m["replies"].as_array().and_then(|r| r.first()) {
+                        let key = r["key"].as_str().unwrap();
+                        api.call("me.reply", json!({"message": m["id"], "key": key})).unwrap();
+                        // Once replied, it is recorded and cannot be answered twice.
+                        assert_eq!(api.call("me.reply", json!({"message": m["id"], "key": key})).unwrap_err().code(), "state");
+                        let again = api.call("me.thread", json!({"id": id})).unwrap();
+                        let mm = again["messages"].as_array().unwrap().iter().find(|x| x["id"] == m["id"]).unwrap();
+                        assert!(mm["replied"]["label"].is_string(), "{mm}");
+                        replied += 1;
+                    }
+                }
+            }
+            if t["unread"].as_u64().unwrap() > 0 {
+                api.call("me.thread_read", json!({"id": id})).unwrap();
+                let after = api.call("me.thread", json!({"id": id})).unwrap();
+                assert!(after["messages"].as_array().unwrap().iter().all(|m| m["read"] == true));
+            }
+        }
+        if replied > 0 && opened_threads > 5 {
+            break;
+        }
+    }
+    assert!(opened_threads > 0, "no conversation reached the inbox in ten simulated months");
+    assert!(replied > 0, "nothing in {opened_threads} conversations could be replied to");
+    // A reply that is not on offer, or for somebody else's message, is refused.
+    api.call("me.reply", json!({"message": 0, "key": "nonsense"})).unwrap_err();
+    api.call("me.thread", json!({"id": 999_999})).unwrap_err();
+}

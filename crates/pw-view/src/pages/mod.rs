@@ -6,4 +6,5 @@ pub mod matchp;
 pub mod me;
 pub mod person;
 pub mod social;
+pub mod threads;
 pub mod world;

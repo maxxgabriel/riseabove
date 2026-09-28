@@ -154,6 +154,11 @@ fn option_label(c: &Ctx, d: &Decision, ch: &Choice) -> String {
     }
 }
 
+/// The plain label of one choice of a decision.
+pub fn option_text(c: &Ctx, d: &Decision, ch: &Choice) -> String {
+    option_label(c, d, ch)
+}
+
 /// What you would be doing, in the imperative.
 fn response_label(c: &Ctx, r: Response) -> String {
     match r {
@@ -209,7 +214,7 @@ fn option_kind(ch: &Choice) -> &'static str {
     }
 }
 
-fn options_json(c: &Ctx, d: &Decision) -> Vec<Value> {
+pub fn options_json(c: &Ctx, d: &Decision) -> Vec<Value> {
     d.options
         .iter()
         .enumerate()
