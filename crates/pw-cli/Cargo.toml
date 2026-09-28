@@ -21,3 +21,6 @@ pw-sim.workspace = true
 pw-import.workspace = true
 pw-career.workspace = true
 pw-narrate.workspace = true
+
+[dev-dependencies]
+proptest = "1"
