@@ -2,6 +2,7 @@
 //! that evolve it live in `pw-sim`.
 
 pub mod affairs;
+pub mod agenda;
 pub mod agent;
 pub mod beliefs;
 pub mod calendar;
@@ -26,6 +27,7 @@ pub mod interaction;
 pub mod intl;
 pub mod knowledge;
 pub mod life;
+pub mod matchfacts;
 pub mod media;
 pub mod medical;
 pub mod names;

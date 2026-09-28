@@ -54,7 +54,7 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
         Stance::Praise | Stance::Support | Stance::Loyalty => 40,
         Stance::Criticise | Stance::Complain => -45,
         Stance::Ambition => -10,
-        Stance::Deflect => 0,
+        Stance::Deflect | Stance::Deny => 0,
     };
     let about_or_self = if about.is_some() { about } else { speaker };
     let id = publish(w, j, StoryKind::Interview, subject_player, about_or_self, club, ClubId::NONE, 0, 90, true, Cause::Fact(Fact::Said { person: speaker }), PersonId::NONE, tone);

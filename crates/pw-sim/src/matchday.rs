@@ -250,6 +250,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
     let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, &fx)).min(1.0);
     crate::interpret::record(w, &fx, home, away, &r, imp);
     crate::culture::after_result(w, &fx, hg, ag, r.pens, pw_core::EventId::NONE);
+    crate::facts::record(w, &fx, f, &r);
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);

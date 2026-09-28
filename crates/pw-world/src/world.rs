@@ -132,6 +132,10 @@ pub struct World {
     pub grapevine: crate::info::Grapevine,
     /// Incidents, unresolved tension, leave, deferred decisions.
     pub incidents: crate::incident::Incidents,
+    /// Communication due later (follow-ups, analysis, denials).
+    pub agenda: crate::agenda::Agenda,
+    /// Facts of the last four weeks of senior matches.
+    pub recent_matches: crate::matchfacts::RecentMatches,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -187,6 +191,8 @@ impl World {
             culture: Default::default(),
             grapevine: Default::default(),
             incidents: Default::default(),
+            agenda: Default::default(),
+            recent_matches: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

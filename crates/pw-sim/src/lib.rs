@@ -12,6 +12,7 @@ pub mod decisions;
 pub mod development;
 pub mod dressing;
 pub mod economy;
+pub mod facts;
 pub mod finance;
 pub mod generate;
 pub mod governance;
@@ -33,6 +34,7 @@ pub mod medical;
 pub mod mind;
 pub mod morale;
 pub mod negotiation;
+pub mod newsroom;
 pub mod people;
 pub mod perception;
 pub mod planning;
@@ -95,6 +97,7 @@ impl Sim {
             commerce::yearly(w);
             culture::ensure(w);
             culture::yearly(w);
+            newsroom::yearly(w);
         }
         season::daily(w);
         contracts::daily(w);
@@ -176,8 +179,9 @@ impl Sim {
         // National teams: windows, qualifiers, tournaments.
         intl::daily(w);
 
-        // 8b. What people heard today, and whom they told.
+        // 8b. What people heard today, and whom they told; what got printed.
         grapevine::daily(w);
+        newsroom::daily(w);
 
         // 9. Aftermath (weekly systems run after the weekend's games).
         if monday {
@@ -185,6 +189,7 @@ impl Sim {
             medical::weekly(w);
             grapevine::feelings(w);
             incidents::weekly(w);
+            newsroom::weekly(w);
             dressing::weekly(w);
             perception::weekly(w);
             social::weekly(w);
@@ -243,6 +248,7 @@ pub fn prepare(w: &mut World) {
     intl::ensure(w);
     commerce::ensure(w);
     culture::ensure(w);
+    newsroom::ensure_profiles(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

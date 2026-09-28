@@ -13,7 +13,7 @@ use pw_core::rng::{Rng, hash_key, stream};
 use pw_core::{ClubId, Date, EventId, Hidden, Money, NationId, OutletId, PersonId, PlayerId, StoryId};
 use pw_world::beliefs::{Belief, BeliefKind, Channel};
 use pw_world::event::{Cause, EventKind, Fact, Visibility};
-use pw_world::media::{Journalist, Outlet, OutletKind, Reaction, Story};
+use pw_world::media::{Angle, ClaimType, Journalist, Outlet, OutletKind, Reaction, Story, ThreadSubject, Verification};
 use pw_world::{CompKind, FanReason, MindKind, NameId, Person, PlayerStatus, StoryKind, TeamKind, World};
 use smallvec::SmallVec;
 
@@ -139,6 +139,46 @@ pub fn refresh_sources(w: &mut World) {
 
 // ------------------------------------------------------------------ publishing
 
+/// Everything a story is, before it exists.
+#[derive(Clone, Copy)]
+pub(crate) struct Draft {
+    pub journalist: PersonId,
+    pub kind: StoryKind,
+    pub player: PlayerId,
+    pub person: PersonId,
+    pub club: ClubId,
+    pub other_club: ClubId,
+    pub fee: Money,
+    pub claim: u8,
+    pub grounded: bool,
+    pub source: Cause,
+    pub leaker: PersonId,
+    pub tone: i8,
+    pub claim_type: ClaimType,
+    pub angle: Angle,
+    pub info: u32,
+    pub thread: Option<ThreadSubject>,
+    pub verification: Verification,
+    pub minute: u16,
+    pub news: u8,
+}
+
+/// The claim type a story makes if the caller did not decide it.
+fn default_claim(kind: StoryKind, source: Cause, leaker: PersonId, claim: u8) -> ClaimType {
+    match kind {
+        StoryKind::Interview | StoryKind::Feature | StoryKind::Analysis | StoryKind::WonderkidList | StoryKind::Praise | StoryKind::Criticism => ClaimType::Opinion,
+        StoryKind::TransferRumour => if claim >= 70 { ClaimType::Report } else { ClaimType::Rumour },
+        StoryKind::Denial => ClaimType::Denial,
+        StoryKind::Correction => ClaimType::Correction,
+        StoryKind::ManagerPressure => ClaimType::Speculation,
+        _ if leaker.is_some() => if claim >= 70 { ClaimType::Report } else { ClaimType::Rumour },
+        _ => match source {
+            Cause::Event(_) => ClaimType::Fact,
+            Cause::Fact(_) => ClaimType::Report,
+        },
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn publish(
     w: &mut World,
@@ -155,25 +195,100 @@ pub(crate) fn publish(
     leaker: PersonId,
     tone: i8,
 ) -> StoryId {
+    let claim_type = default_claim(kind, source, leaker, claim);
+    let thread = match kind {
+        StoryKind::TransferRumour | StoryKind::TransferNews if player.is_some() && other_club.is_some() => Some(ThreadSubject::Transfer { player, club: if kind == StoryKind::TransferRumour { other_club } else { club } }),
+        StoryKind::Injury if player.is_some() => Some(ThreadSubject::Injury { player }),
+        StoryKind::ManagerPressure | StoryKind::ManagerChange if club.is_some() => Some(ThreadSubject::ManagerPressure { club }),
+        StoryKind::Contract if player.is_some() => Some(ThreadSubject::Contract { player, club }),
+        _ => None,
+    };
+    let minute = 420 + (pw_core::rng::hash_key(&[u64::from(journalist.0), w.date.0 as u64, kind as u64]) % 720) as u16;
+    publish_draft(
+        w,
+        Draft {
+            journalist,
+            kind,
+            player,
+            person,
+            club,
+            other_club,
+            fee,
+            claim,
+            grounded,
+            source,
+            leaker,
+            tone,
+            claim_type,
+            angle: Angle::Straight,
+            info: u32::MAX,
+            thread,
+            verification: Verification { asked: 0, confirmed: 0, denied: 0, confidence: claim },
+            minute,
+            news: claim / 2,
+        },
+    )
+}
+
+/// Publish a story: the event, the record, its thread, what readers learn.
+pub(crate) fn publish_draft(w: &mut World, d: Draft) -> StoryId {
     let today = w.date;
-    let outlet = w.media.journalists.get(&journalist).map_or(OutletId::NONE, |j| j.outlet);
+    let outlet = w.media.journalists.get(&d.journalist).map_or(OutletId::NONE, |j| j.outlet);
     let id = w.media.stories.next_id();
     let mut causes = pw_world::Causes::new();
-    causes.push(source);
+    causes.push(d.source);
     let ev = w.events.push_caused(today, Visibility::Public, EventKind::Published { story: id }, causes);
-    w.media.stories.push(Story { id, date: today, outlet, journalist, kind, player, person, club, other_club, fee, claim, grounded, source, leaker, tone, event: ev });
+    // Running stories: attach to (or open) the thread; look back at earlier ones.
+    let thread = d.thread.map_or(u32::MAX, |s| crate::newsroom::thread_for(w, s, id, ev));
+    let refs = crate::newsroom::back_references(w, d.player, thread);
+    w.media.stories.push(Story {
+        id,
+        date: today,
+        outlet,
+        journalist: d.journalist,
+        kind: d.kind,
+        player: d.player,
+        person: d.person,
+        club: d.club,
+        other_club: d.other_club,
+        fee: d.fee,
+        claim: d.claim,
+        grounded: d.grounded,
+        source: d.source,
+        leaker: d.leaker,
+        tone: d.tone,
+        event: ev,
+        claim_type: d.claim_type,
+        angle: d.angle,
+        info: d.info,
+        thread,
+        verification: d.verification,
+        minute: d.minute,
+        news: d.news,
+        refs,
+    });
+    if outlet.is_some() {
+        if let Some(p) = w.media.outlet_profiles.get_mut(&outlet) {
+            p.published_this_week = p.published_this_week.saturating_add(1);
+        }
+    }
+    let person = d.person;
     // The subject reads it (or hears about it) — at the outlet's credibility.
     if person.is_some() {
         let cred = if outlet.is_some() { w.media.outlets[outlet].credibility } else { 40 };
         w.beliefs.learn(person, Belief { about: person, kind: BeliefKind::Rumour { story: id }, channel: Channel::Media(id), confidence: cred, date: today, origin: ev });
-        if kind == StoryKind::TransferRumour && other_club.is_some() {
-            w.beliefs.learn(person, Belief { about: person, kind: BeliefKind::ClubInterested { club: other_club }, channel: Channel::Media(id), confidence: cred / 2 + claim / 4, date: today, origin: ev });
+        if d.kind == StoryKind::TransferRumour && d.other_club.is_some() {
+            w.beliefs.learn(person, Belief { about: person, kind: BeliefKind::ClubInterested { club: d.other_club }, channel: Channel::Media(id), confidence: cred / 2 + d.claim / 4, date: today, origin: ev });
         }
-        if tone <= -40 {
+        if d.tone <= -40 {
             let l = &mut w.lives[person];
             let press = w.people[person].hidden.f(Hidden::Pressure);
             l.stress = l.stress.saturating_add(((20.0 - press) / 3.0) as u8).min(100);
         }
+    }
+    // Information that is now in print is public: the club notices the leak.
+    if d.info != u32::MAX {
+        crate::grapevine::on_published(w, d.info, id);
     }
     id
 }
@@ -319,18 +434,6 @@ fn news_from_events(w: &mut World) {
                     continue;
                 }
             }
-            // Club-internal matters only reach the press through a leak.
-            EventKind::Fined { player, club, .. } | EventKind::Unrest { player, club } if big_enough(w, club) => {
-                let Some(leaker) = inside_source(w, club, id) else { continue };
-                let kind = if matches!(kind, EventKind::Fined { .. }) { StoryKind::Discipline } else { StoryKind::Unhappy };
-                let person = w.players.cold[player].person;
-                let nation = w.clubs[club].nation;
-                if let Some(j) = source_journalist(w, leaker, nation, club, id) {
-                    publish(w, j, kind, player, person, club, ClubId::NONE, 0, 60, true, Cause::Event(id), leaker, -35);
-                    w.media.nudge_image(person, -20);
-                }
-                continue;
-            }
             EventKind::Life { person, kind: pw_world::LifeEventKind::Married { .. } } if matches!(vis, Visibility::Public) => {
                 let p = w.people[person].player;
                 if p.is_some() && w.players.cold[p].rep.current >= 4000 {
@@ -354,41 +457,20 @@ fn is_senior(w: &World, p: PlayerId) -> bool {
     t.is_some() && w.teams[t].kind == TeamKind::First
 }
 
-/// Someone at the club who would talk, if anyone.
-fn inside_source(w: &World, club: ClubId, key: EventId) -> Option<PersonId> {
-    let mut cands: Vec<PersonId> = w
-        .media
-        .journalists
-        .values()
-        .flat_map(|j| j.sources.iter().copied())
-        .filter(|&s| w.club_of_person(s) == club)
-        .collect();
-    cands.sort();
-    cands.dedup();
-    let r = hash_key(&[w.seed, stream::MEDIA, u64::from(key.0)]);
-    let pick = *cands.get((r % cands.len().max(1) as u64) as usize)?;
-    let p = &w.people[pick];
-    let loose = (p.hidden.f(Hidden::Controversy) + 20.0 - p.hidden.f(Hidden::Professionalism)) / 40.0;
-    if ((r >> 20) % 100) < (loose * 60.0) as u64 { Some(pick) } else { None }
-}
-
-fn source_journalist(w: &World, source: PersonId, nation: NationId, club: ClubId, key: EventId) -> Option<PersonId> {
-    let mut js: Vec<PersonId> = w.media.journalists.values().filter(|j| j.sources.contains(&source)).map(|j| j.person).collect();
-    js.sort();
-    js.first().copied().or_else(|| outlet_journalist(w, nation, club, u64::from(key.0)))
-}
-
-/// Form streaks and board pressure at the top two tiers make columns.
+/// Form streaks and public results at the top two tiers make columns. (A
+/// board's private warnings reach the press only through the grapevine.)
 fn form_and_pressure(w: &mut World) {
     let today = w.date;
     let week = (today.0 / 7) as u64;
     let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| big_enough(w, c)).collect();
     for club in clubs {
         let nation = w.clubs[club].nation;
-        let b = w.clubs[club].board;
-        if b.warnings >= 1 && today.weekday() == pw_core::Weekday::Mon && (u64::from(club.0) + week) % 3 == 0 {
+        let recent: Vec<i8> = w.recent_matches.of_club(club).rev().take(5).map(|m| if m.winner() == Some(club) { 1 } else if m.winner().is_none() { 0 } else { -1 }).collect();
+        let defeats = recent.iter().filter(|&&r| r < 0).count();
+        let already = w.media.stories.iter().rev().take(300).any(|s| s.club == club && s.kind == StoryKind::ManagerPressure && s.date.days_until(today) < 14);
+        if defeats >= 4 && !already && w.clubs[club].manager.is_some() {
             if let Some(j) = outlet_journalist(w, nation, club, hash_key(&[u64::from(club.0), week])) {
-                publish(w, j, StoryKind::ManagerPressure, PlayerId::NONE, PersonId::NONE, club, ClubId::NONE, 0, 60, true, Cause::Fact(Fact::BoardPressure { club, warnings: b.warnings }), PersonId::NONE, -30);
+                publish(w, j, StoryKind::ManagerPressure, PlayerId::NONE, PersonId::NONE, club, ClubId::NONE, 0, 55, true, Cause::Fact(Fact::PoorRun { club, defeats: defeats as u8, games: recent.len() as u8 }), PersonId::NONE, -30);
             }
         }
         let first = w.clubs[club].first_team();

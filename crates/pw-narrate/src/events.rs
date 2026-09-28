@@ -222,6 +222,9 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         IncidentResponse { incident, by, response } => crate::incidents::response(w, incident, by, response, viewer),
         CaptainMediated { captain, a, b } => format!("{} stepped in to settle things between {} and {}.", me(captain), me_lc(a), me_lc(b)),
         InvestigationCleared { club: c } => format!("{} were cleared by the investigation.", club(w, c)),
+        JournalistMoved { person: x, from, to } => format!("{} left {} for {}.", me(x), w.media.outlets[from].name, w.media.outlets[to].name),
+        JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
+        JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })
 }
@@ -293,6 +296,8 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::Heard { info, from } => format!("{} heard it ({})", person(w, from), crate::grapevine::what(w, info)),
         Fact::Pressure { pressure, level } => format!("{} ({})", pressure.label(), crate::incidents::strength(level)),
         Fact::Disposition { person: x, reason, level } => format!("{}'s {} ({})", person(w, x), reason.label(), crate::incidents::strength(level)),
+        Fact::PoorRun { club: c, defeats, games } => format!("{} had lost {defeats} of their last {games}", club(w, c)),
+        Fact::Newsworthy { importance, relevance, controversy } => format!("editors judged it newsworthy (importance {importance}, relevance {relevance}, controversy {controversy})"),
     }
 }
 
