@@ -182,7 +182,8 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
             if with == me || w.people.get(with).is_none() {
                 return Err(ApiError::Bad("Choose someone else to talk to.".into()));
             }
-            if w.meetings.has_pending(me, with) {
+            let queued = w.intents.queue.iter().any(|pi| pi.person == me && matches!(pi.intent, Intent::RequestMeeting { with: x, .. } if x == with));
+            if queued || w.meetings.has_pending(me, with) {
                 return Err(ApiError::State("A conversation with them is already waiting to happen.".into()));
             }
             Intent::RequestMeeting { with, topic, tone }

@@ -257,3 +257,166 @@ fn stop_lands_on_a_day_boundary() {
     let date = api.call("world.status", json!({})).unwrap()["date"].as_i64().unwrap();
     assert_eq!(date, job["from"].as_i64().unwrap() + done as i64);
 }
+
+fn inhabit_one(api: &Api) -> u32 {
+    new_world(api, "small");
+    advance(api, 60);
+    let me = pick_player(api);
+    api.call("persp.inhabit", json!({"person": me})).unwrap();
+    me
+}
+
+#[test]
+fn the_inhabited_pages_all_answer() {
+    let api = api();
+    let me = inhabit_one(&api);
+    for m in ["me.today", "me.messages", "me.options", "me.self", "me.life", "me.people", "me.promises", "me.rumours", "me.press", "me.agent", "me.journal", "me.contract", "me.football"] {
+        api.call(m, json!({})).unwrap_or_else(|e| panic!("{m}: {e:?}"));
+    }
+    let inbox = api.call("me.messages", json!({})).unwrap();
+    assert!(inbox["messages"].is_array());
+    // Every listed message opens, whichever kind it is.
+    for m in inbox["messages"].as_array().unwrap().iter().take(40) {
+        let id = m["id"].as_str().unwrap();
+        api.call("me.message", json!({"id": id})).unwrap_or_else(|e| panic!("message {id}: {e:?}"));
+    }
+    let life = api.call("me.life", json!({})).unwrap();
+    assert!(life["routine"].is_object());
+    // While inhabiting, only your own life is readable; someone else's stays private.
+    api.call("person.life", json!({"id": me})).unwrap();
+    assert_eq!(api.call("person.life", json!({"id": me + 1})).unwrap_err().code(), "state");
+    api.call("club.systems", json!({"id": 3})).unwrap();
+    api.call("persp.observe", json!({})).unwrap();
+    api.call("person.life", json!({"id": me + 1})).unwrap();
+}
+
+#[test]
+fn new_system_tables_answer() {
+    let api = api();
+    new_world(&api, "small");
+    advance(&api, 120);
+    for (name, filters) in [
+        ("stories", json!({})),
+        ("agents", json!({})),
+        ("talks", json!({})),
+        ("bids", json!({})),
+        ("intl_matches", json!({})),
+        ("tournaments", json!({})),
+        ("boards", json!({})),
+        ("sponsors", json!({})),
+    ] {
+        let t = table(&api, name, filters, 20);
+        assert!(t["columns"].as_array().is_some_and(|c| !c.is_empty()), "{name} has columns");
+        assert!(t["total"].is_number(), "{name} reports a total");
+    }
+}
+
+#[test]
+fn actions_are_checked_queued_and_applied_by_the_world() {
+    let api = api();
+    let _ = inhabit_one(&api);
+    let err = |v: Value| api.call("me.act", v).unwrap_err().code();
+    assert_eq!(err(json!({"action": "nonsense"})), "bad_request");
+    assert_eq!(err(json!({"action": "meet"})), "bad_request");
+
+    let opts = api.call("me.options", json!({})).unwrap();
+    assert!(opts["routine_budget"].as_u64().unwrap() > 0);
+    let manager = opts["meet_with"].as_array().unwrap().iter().find(|t| t["role"] == "Manager").expect("a first-team player has a manager");
+    let mgr = manager["who"]["id"].as_u64().unwrap();
+    assert_eq!(err(json!({"action": "meet", "with": mgr, "topic": "not a topic"})), "bad_request");
+
+    let queued = api.call("me.act", json!({"action": "meet", "with": mgr, "topic": "playing_time", "tone": "calm"})).unwrap();
+    assert_eq!(queued["ok"], true);
+    assert_eq!(queued["applies"], "next day");
+    // Asking twice while the first is still waiting is refused, with a reason.
+    assert_eq!(err(json!({"action": "meet", "with": mgr, "topic": "playing_time"})), "state");
+
+    let waiting = |api: &Api| api.call("me.today", json!({})).unwrap()["waiting_on"].as_array().unwrap().len();
+    assert!(waiting(&api) >= 1, "the request is visible while it waits");
+    advance(&api, 1);
+    // The intent has been taken up by the world; only the meeting itself may still be waiting.
+    let after = api.call("me.today", json!({})).unwrap();
+    assert!(after["waiting_on"].as_array().unwrap().iter().all(|w| w["kind"] != "intent"), "{}", after["waiting_on"]);
+
+    // The routine planner respects the budget and reports the change as queued.
+    let r = api.call("me.act", json!({"action": "routine", "hours": {"rest": 56}})).unwrap();
+    assert_eq!(r["ok"], true);
+}
+
+#[test]
+fn acting_needs_somebody_to_act_for() {
+    let api = api();
+    new_world(&api, "tiny");
+    let e = api.call("me.act", json!({"action": "retire"})).unwrap_err();
+    assert_eq!(e.code(), "state");
+    assert_eq!(api.call("me.options", json!({})).unwrap_err().code(), "state");
+    assert_eq!(api.call("me.messages", json!({})).unwrap_err().code(), "state");
+}
+
+#[test]
+fn journal_notes_and_goals_persist_with_the_save() {
+    let api = api();
+    let _ = inhabit_one(&api);
+    api.call("me.goal", json!({"text": "Reach fifty appearances", "kind": "appearances", "target": 50})).unwrap();
+    api.call("me.note", json!({"text": "Ask about the captaincy"})).unwrap();
+    let j = api.call("me.journal", json!({})).unwrap();
+    assert_eq!(j["goals"].as_array().unwrap().len(), 1);
+    assert_eq!(j["notes"].as_array().unwrap().len(), 1);
+    advance(&api, 3);
+    api.call("world.save", json!({"file": "career"})).unwrap();
+    api.call("persp.observe", json!({})).unwrap();
+    api.call("world.load", json!({"file": "career.pws"})).unwrap();
+    wait_task(&api);
+    let today = api.call("me.today", json!({})).unwrap();
+    assert!(today["me"]["person"].is_number(), "the inhabited person is restored");
+    let j = api.call("me.journal", json!({})).unwrap();
+    assert_eq!(j["goals"].as_array().unwrap().len(), 1, "goals survive save and load");
+    assert_eq!(j["notes"].as_array().unwrap().len(), 1, "notes survive save and load");
+    api.call("me.note_remove", json!({"i": 0})).unwrap();
+    assert!(api.call("me.journal", json!({})).unwrap()["notes"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn a_new_person_can_be_created_and_inhabited() {
+    let api = api();
+    new_world(&api, "small");
+    advance(&api, 10);
+    let bad = api.call("person.create", json!({"first": "Ada", "last": "", "pos": "ST"})).unwrap_err();
+    assert_eq!(bad.code(), "bad_request");
+    let r = api.call("person.create", json!({"first": "Ada", "last": "Test", "pos": "ST", "age": 16, "nation": 0})).unwrap();
+    let id = r["person"].as_u64().unwrap();
+    let today = api.call("me.today", json!({})).unwrap();
+    assert_eq!(today["me"]["person"].as_u64().unwrap(), id);
+    advance(&api, 30);
+    api.call("me.self", json!({})).unwrap();
+}
+
+#[test]
+fn decisions_open_and_can_be_answered() {
+    let api = api();
+    let _ = inhabit_one(&api);
+    let mut opened = 0;
+    for _ in 0..40 {
+        advance(&api, 15);
+        let inbox = api.call("me.messages", json!({})).unwrap();
+        for m in inbox["messages"].as_array().unwrap().iter().filter(|m| m["kind"] == "decision" && m["needs_action"] == true) {
+            let id = m["id"].as_str().unwrap();
+            let d = api.call("me.message", json!({"id": id})).unwrap();
+            let options = d["options"].as_array().expect("a decision lists its options");
+            assert!(!options.is_empty(), "{id} has options");
+            assert!(options.iter().all(|o| o["label"].is_string() && o["kind"].is_string()), "{d}");
+            api.call("me.answer", json!({"id": id, "choice": 0})).unwrap();
+            // Until the world's next day you may still change your mind; afterwards it is settled.
+            api.call("me.answer", json!({"id": id, "choice": (options.len() - 1) as u64})).unwrap();
+            api.call("me.answer", json!({"id": id, "choice": options.len() as u64})).unwrap_err();
+            advance(&api, 1);
+            assert_eq!(api.call("me.answer", json!({"id": id, "choice": 0})).unwrap_err().code(), "state");
+            opened += 1;
+            break;
+        }
+        if opened >= 3 {
+            break;
+        }
+    }
+    assert!(opened >= 1, "no decision reached the inbox in ten simulated months");
+}

@@ -170,7 +170,33 @@ pub fn nation(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let cups: Vec<Value> = n.cups.iter().map(|&l| named(Ref::comp(l), c.comp_name(l))).collect();
     let clubs = w.clubs.iter().filter(|cl| cl.nation == id).count();
     let players = w.people.iter().filter(|p| p.nation == id && p.player.is_some()).count();
+    let sides: Vec<Value> = pw_world::intl::Level::ALL
+        .iter()
+        .filter_map(|&lv| w.intl.sides.get(&(id, lv)).map(|s| (lv, s)))
+        .map(|(lv, s)| {
+            let mgr = (s.manager.is_some()).then(|| w.staff[s.manager].person);
+            json!({
+                "level": lv.label(), "manager": mgr.map(|m| named(Ref::person(m), c.person_name(m))), "since": s.since.0,
+                "captain": if s.captain.is_some() { Some(named(c.player_ref(s.captain), c.player_name(s.captain))) } else { None },
+                "squad": s.squad.len(), "selected": s.selected.0, "record": {"won": s.record.0, "drawn": s.record.1, "lost": s.record.2},
+            })
+        })
+        .collect();
+    let econ = w.economy.nations.get(&id);
+    let ranking = {
+        let mut all: Vec<(NationId, f32)> = w.economy.nations.keys().map(|&n| (n, w.economy.coefficient(n))).collect();
+        all.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
+        all.iter().position(|x| x.0 == id).map(|i| i + 1)
+    };
     Ok(json!({
+        "sides": sides,
+        "world_economy": econ.map(|e| json!({
+            "coefficient": w.economy.coefficient(id), "rank": ranking, "league_strength": e.league_strength,
+            "wage_index": if c.observer() { json!(w.economy.wage_index(id)) } else { Value::Null },
+            "broadcast_pool": if c.observer() { json!(e.broadcast_pool) } else { Value::Null },
+            "deal_until": if c.observer() { json!(e.deal_until) } else { Value::Null },
+            "growth": if c.observer() { json!(e.growth) } else { Value::Null },
+        })),
         "id": id.0, "name": n.name, "code": n.code, "confed": n.confed.code(), "reputation": n.reputation,
         "economy": if c.observer() { json!(n.economy) } else { Value::Null },
         "youth_rating": if c.observer() { json!(n.youth_rating) } else { Value::Null },
@@ -180,4 +206,118 @@ pub fn nation(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "leagues": leagues, "cups": cups, "clubs": clubs, "players": players,
         "window_open": n.season.window_open(w.date),
     }))
+}
+
+// ---- ownership, planning, scouting, the dressing room and sponsors ---------------------------------
+
+fn bond_text(c: &Ctx, b: pw_world::dressing::Bond) -> String {
+    use pw_world::dressing::Bond;
+    match b {
+        Bond::Nationality(n) => format!("Players from {}", c.nation_name(n)),
+        Bond::Generation => "The same generation".into(),
+        Bond::Veterans => "The senior players".into(),
+        Bond::Academy => "Academy graduates".into(),
+        Bond::Friendship => "Close friends".into(),
+    }
+}
+
+/// Who owns and runs the club, what it is building, what its staff are planning. Public facts (owner,
+/// announced projects, sponsors) are shown to everyone; boardroom numbers, the squad plan, scouting and
+/// the dressing room only to the observer.
+pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
+    let id = ClubId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing club id".into()))? as u32);
+    if id.0 as usize >= c.w.clubs.len() {
+        return Err(ApiError::NotFound(format!("club {}", id.0)));
+    }
+    let w = c.w;
+    let internals = c.sees_club_internals(id);
+    let person = |p: pw_core::PersonId| if p.is_some() { named(Ref::person(p), c.person_name(p)) } else { Value::Null };
+    let board = w.governance.get(&id).map(|g| {
+        json!({
+            "owner": person(g.owner.person), "kind": crate::tables::ownership_label(g.owner.kind), "since": g.owner.since.0, "chairman": person(g.chairman),
+            "administration": g.administration.map(|d| d.0),
+            "projects": g.projects.iter().map(|p| json!({"kind": p.kind.label(), "target": p.target, "started": p.started.0, "completes": p.completes.0, "cost": if internals { json!(p.cost) } else { Value::Null }})).collect::<Vec<_>>(),
+            "owner_traits": if internals { json!({"wealth": g.owner.wealth, "ambition": g.owner.ambition, "patience": g.owner.patience, "meddling": g.owner.meddling, "frugality": g.owner.frugality, "fan_sensitivity": g.owner.fan_sensitivity}) } else { Value::Null },
+            "policy": if internals { json!({
+                "wage_cap_mult": g.policy.wage_cap_mult, "youth_investment": g.policy.youth_investment, "transfer_style": g.policy.transfer_style.label(),
+                "max_signing_age": g.policy.max_signing_age, "sell_to_rivals": g.policy.sell_to_rivals, "debt_tolerance": g.policy.debt_tolerance,
+                "style_mandate": g.policy.style_mandate, "youth_minutes_target": g.policy.youth_minutes_target, "selling_stance": g.policy.selling_stance,
+            }) } else { Value::Null },
+            "concerns": if internals { json!(g.concerns.iter().filter(|x| x.1 != 0).map(|(k, v)| json!({"label": k.label(), "value": v})).collect::<Vec<_>>()) } else { Value::Null },
+            "revenue_history": if internals { json!(g.revenue_history) } else { Value::Null },
+            "red_months": if internals { json!(g.red_months) } else { Value::Null },
+        })
+    });
+    let plan = if internals {
+        w.deals.plans.get(&id).map(|p| {
+            json!({
+                "built": p.built.0, "homegrown_gap": p.homegrown_gap,
+                "groups": p.groups.iter().map(|g| json!({
+                    "group": g.group.label(), "depth": g.depth, "target_depth": g.target_depth, "quality": g.quality, "target_quality": g.target_quality,
+                    "avg_age": g.avg_age, "expiring": g.expiring, "injured": g.injured, "prospects": g.prospects, "ageing_starters": g.ageing_starters,
+                })).collect::<Vec<_>>(),
+                "needs": p.needs.iter().map(|n| json!({
+                    "group": n.group.label(), "role": n.role.label(), "min_ability": n.min_ability, "max_age": n.max_age, "homegrown": n.homegrown,
+                    "wage_band": n.wage_band, "fee_band": n.fee_band, "urgency": n.urgency,
+                })).collect::<Vec<_>>(),
+                "sell": p.sell.iter().map(|&x| named(c.player_ref(x), c.player_name(x))).collect::<Vec<_>>(),
+                "promote": p.promote.iter().map(|&x| named(c.player_ref(x), c.player_name(x))).collect::<Vec<_>>(),
+            })
+        })
+    } else {
+        None
+    };
+    let scouting = if internals {
+        let scouts: Vec<Value> = w.clubs[id]
+            .staff
+            .iter()
+            .filter(|&&s| w.staff[s].role == StaffRole::Scout)
+            .map(|&s| {
+                let st = &w.staff[s];
+                let prof = w.scouting.profiles.get(&s);
+                let briefs: Vec<String> = w
+                    .scouting
+                    .assignments
+                    .iter()
+                    .filter(|a| a.scout == s && a.club == id)
+                    .map(|a| match a.brief {
+                        pw_world::scouting::Brief::Nation(n) => format!("Covering {}", c.nation_name(n)),
+                        pw_world::scouting::Brief::Competition(x) => format!("Covering {}", c.comp_name(x)),
+                        pw_world::scouting::Brief::Youth(n) => format!("Youth football in {}", c.nation_name(n)),
+                        pw_world::scouting::Brief::Player(p) => format!("Watching {}", c.player_name(p)),
+                        pw_world::scouting::Brief::Need(g) => format!("Looking for {}", g.label().to_lowercase()),
+                    })
+                    .collect();
+                json!({"who": person(st.person), "based": prof.map(|p| c.nation_name(p.based)), "capacity": prof.map(|p| p.capacity), "briefs": briefs})
+            })
+            .collect();
+        let reports = w.scouting.reports.keys().filter(|(cl, _)| *cl == id).count();
+        Some(json!({"scouts": scouts, "reports": reports}))
+    } else {
+        None
+    };
+    let room = if internals {
+        w.rooms.clubs.get(&id).map(|r| {
+            let mut leaders: Vec<(&pw_core::PlayerId, &u8)> = r.influence.iter().collect();
+            leaders.sort_by_key(|(p, v)| (std::cmp::Reverse(**v), **p));
+            json!({
+                "harmony": r.harmony, "backing": r.backing, "updated": r.updated.0,
+                "groups": r.groups.iter().map(|g| json!({
+                    "bond": bond_text(c, g.bond), "cohesion": g.cohesion, "stance": g.stance, "size": g.members.len(),
+                    "leader": if g.leader.is_some() { named(c.player_ref(g.leader), c.player_name(g.leader)) } else { Value::Null },
+                })).collect::<Vec<_>>(),
+                "influential": leaders.iter().take(6).map(|(p, v)| json!({"who": named(c.player_ref(**p), c.player_name(**p)), "influence": v, "standing": r.standing.get(*p).map(|s| s.label())})).collect::<Vec<_>>(),
+            })
+        })
+    } else {
+        None
+    };
+    let sponsors: Vec<Value> = w
+        .commerce
+        .club_deals
+        .iter()
+        .filter(|d| d.club == id && d.end >= w.date)
+        .map(|d| json!({"brand": w.commerce.brands[d.brand as usize].name, "slot": format!("{:?}", d.slot).to_lowercase(), "until": d.end.0, "fee": if internals { json!(d.fee_year) } else { Value::Null }}))
+        .collect();
+    Ok(json!({"board": board, "plan": plan, "scouting": scouting, "room": room, "sponsors": sponsors, "internal": internals}))
 }

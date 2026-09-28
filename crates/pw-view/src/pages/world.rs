@@ -170,18 +170,21 @@ pub fn search(c: &Ctx, args: &Value) -> ApiResult<Value> {
 
 pub fn capabilities() -> Value {
     json!([
-        {"area": "World browsing", "status": "ready", "note": "People, clubs, competitions, fixtures, tables, transfers, honours and events read the live simulation."},
-        {"area": "Inhabiting a footballer", "status": "ready", "note": "Player decisions (offers, loans, approaches) reach you through the same route the AI uses."},
+        {"area": "World browsing", "status": "ready", "note": "People, clubs, competitions, fixtures, tables, transfers, honours, events, press, agents and international football read the live simulation."},
+        {"area": "Inhabiting a footballer", "status": "ready", "note": "Any active or retired player can be inhabited, or a new one created. The world keeps running around you and your decisions arrive through the same route the AI uses."},
+        {"area": "Decisions", "status": "ready", "note": "Offers, loans, contract talks, conversations, a partner's question, trials, allegiance, treatment and endorsements. The options are the ones the simulation generated; if you do not answer, your own judgement is applied at the deadline."},
+        {"area": "Things you do", "status": "ready", "note": "Meetings, transfer requests, agents, retirement, the week's routine, lifestyle, study, home, helpers, giving, investing, press stances and a second career are queued and applied by the world on the next simulated day. Some are refused by the other side."},
+        {"area": "Contract negotiation", "status": "partial", "note": "Multi-round talks with counters work. You choose among the counter-offers the world generates; free-form terms are not accepted."},
+        {"area": "Conversations and promises", "status": "ready", "note": "Meetings carry a subject and tone, leave a record on both sides and can produce promises that the world later keeps or breaks."},
+        {"area": "Life away from football", "status": "ready", "note": "Household, money, routine, well-being and the reasons behind your mood are simulated for everyone. Housing is a kind and a quality, personal staff are effects rather than people, and charity has no named causes."},
+        {"area": "Media and public standing", "status": "ready", "note": "Outlets, journalists, stories, fan standing and social reactions exist. Pundits do not write opinion pieces yet."},
+        {"area": "National teams", "status": "partial", "note": "Squads, call-ups, dual nationality, qualifiers and tournaments run. National managers pick squads by AI only, and youth sides play friendlies."},
+        {"area": "Youth pipeline", "status": "partial", "note": "Grassroots and academy football below U18 is statistical, not played out as matches."},
         {"area": "Match watching", "status": "partial", "note": "Recorded events and pitch zones only. There is no continuous player tracking, so the pitch view is an event map."},
-        {"area": "Training plan", "status": "partial", "note": "Your individual plan changes your workload and development. Club-wide programmes and coach approval are not simulated yet."},
-        {"area": "Contract negotiation", "status": "partial", "note": "Offers can be accepted or declined. Counter-proposals need the negotiation system to be wired into the simulation."},
-        {"area": "Relationships and promises", "status": "missing", "note": "The data model exists but nothing in the simulation records relationships, conversations or promises yet."},
-        {"area": "Agents and representation", "status": "missing", "note": "No agent entities exist in the world model."},
-        {"area": "Household, housing, education, health beyond injury", "status": "missing", "note": "Not simulated for anyone yet."},
-        {"area": "Personal finances and sponsorship", "status": "missing", "note": "Only the wage in your contract exists."},
-        {"area": "Media and public standing", "status": "missing", "note": "There are no outlets, journalists or coverage in the world."},
-        {"area": "National teams", "status": "partial", "note": "Call-up events exist; national squads, fixtures and eligibility rules are not implemented."},
-        {"area": "Staff, agent and other professions", "status": "missing", "note": "Only players can be inhabited. Other roles need their own decision routes and authority."},
+        {"area": "Training plan", "status": "partial", "note": "Your individual plan changes your workload and development. Club-wide programmes are not simulated."},
+        {"area": "Sponsorship", "status": "partial", "note": "Club shirt and kit deals and personal endorsements exist. Stadium naming and sleeve deals are not generated."},
+        {"area": "Staff, owners and national managers", "status": "missing", "note": "Only people who play (or played) can be inhabited. Boards, owners and federations run on AI logic."},
+        {"area": "Balance", "status": "partial", "note": "All numbers are tunable and none is calibrated against real football yet; expect odd results over long runs."},
         {"area": "Same-day decisions", "status": "missing", "note": "The day pipeline has no safe checkpoint inside a day; decisions resolve at day boundaries."},
     ])
 }

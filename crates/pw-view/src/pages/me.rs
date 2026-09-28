@@ -426,6 +426,11 @@ pub fn contract(c: &Ctx) -> ApiResult<Value> {
         .filter(|(_, d)| d.answer.is_none())
         .map(|(id, d)| json!({"id": format!("d{}", id.0), "title": d.kind.title(), "deadline": d.deadline.0}))
         .collect();
+    let agent = w.agents.of_player.get(&p).map(|r| {
+        let a = &w.agents.list[r.agent];
+        json!({"who": named(Ref::person(a.person), c.person_name(a.person)), "fee_pct": r.fee_pct, "until": r.until.0, "satisfaction": pw_narrate::fmt::level(r.satisfaction)})
+    });
+    let talks = w.market.talking.get(&p).map(|&t| super::inbox::talk_json(c, &w.talks[t]));
     let past: Vec<Value> = w
         .events
         .all()
@@ -441,7 +446,8 @@ pub fn contract(c: &Ctx) -> ApiResult<Value> {
         "summary": {"wage": k.current_wage(w.date), "end": k.end.0, "days_left": k.days_left(w.date), "status": cold.status.label(), "kind": format!("{:?}", k.kind)},
         "terms": contract_rows(c, k),
         "loan": cold.loan.as_ref().map(|l| json!({"parent": named(Ref::club(l.parent), c.club_name(l.parent)), "club": named(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0, "recall": l.recall, "wage_share": l.wage_share, "buy_option": l.buy_option})),
-        "offers": offers, "history": past,
+        "offers": offers, "history": past, "agent": agent, "talks": talks,
+        "transfer_request": w.market.requests.get(&p).map(|d| d.0), "listed": w.market.listed.contains_key(&p),
         "guaranteed_note": "Bonuses are paid only when earned. The wage shown is the current weekly figure including any yearly rises.",
     }))
 }

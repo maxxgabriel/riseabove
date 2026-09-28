@@ -80,8 +80,28 @@ pub fn self_view(c: &Ctx) -> ApiResult<Value> {
 
 // ---- life ------------------------------------------------------------------------------------------
 
+/// Someone else's private life is the observer's to see; an inhabited person sees only their own.
+pub fn life_of(c: &Ctx, args: &Value) -> ApiResult<Value> {
+    let id = args.get("id").and_then(Value::as_u64).map(|n| PersonId(n as u32));
+    let who = match (c.me(), id) {
+        (Some(me), None) => me,
+        (Some(me), Some(x)) if x == me => me,
+        (Some(_), Some(_)) => return Err(ApiError::State("You cannot see into someone else's private life.".into())),
+        (None, Some(x)) => x,
+        (None, None) => return Err(ApiError::Bad("missing person".into())),
+    };
+    if c.w.people.get(who).is_none() {
+        return Err(ApiError::NotFound(format!("person {}", who.0)));
+    }
+    life_for(c, who)
+}
+
 pub fn life(c: &Ctx) -> ApiResult<Value> {
     let me = need(c)?;
+    life_for(c, me)
+}
+
+fn life_for(c: &Ctx, me: PersonId) -> ApiResult<Value> {
     let w = c.w;
     let l = &w.lives[me];
     let aff = w.affairs.of(me);
@@ -130,7 +150,7 @@ pub fn life(c: &Ctx) -> ApiResult<Value> {
         "giving": aff.map(|a| json!({"pct": a.giving_pct, "community": a.community, "foundation": a.foundation})),
         "work": work,
         "open_to_dating": w.intents.dating.get(&me).copied(),
-        "wellbeing": mood_list(&l.wellbeing_why),
+        "wellbeing": mood_list(&l.wellbeing_why), "morale": mood_list(&l.morale_why),
     }))
 }
 
