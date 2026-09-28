@@ -18,7 +18,7 @@ use pw_world::socialnet::{
     AccountId, AccountKind, Age, Chant, ChantKind, Concept, Frame, GroupAction, GroupKind, Knew, Meme, MemeSource, MomentKind, NO_POST, Opinion, Persona, Post, Remembered, SocialAccount,
     SupporterGroup, TopicKey, Trend,
 };
-use pw_world::{FanReason, FxHashMap, MemoryKind, StoryKind, World};
+use pw_world::{FanReason, FxHashMap, FxHashSet, MemoryKind, StoryKind, World};
 use smallvec::SmallVec;
 
 use crate::consider;
@@ -199,21 +199,9 @@ pub fn ensure(w: &mut World) {
             new_account(w, kind, n, ClubId::NONE, PersonId::NONE, (u64::from(n.0) << 20) | i);
         }
     }
-    // Journalists and the famous post too.
-    let mut people: Vec<PersonId> = w.media.journalists.keys().copied().collect();
-    people.extend(w.renown.people.iter().filter(|(_, r)| r.fame >= 2500).map(|(&p, _)| p));
-    people.sort();
-    people.dedup();
-    for p in people {
-        if w.net.by_person.contains_key(&p) {
-            continue;
-        }
-        let club = w.club_of_person(p);
-        let nation = w.lives.get(p).map_or(w.people[p].nation, |l| l.home);
-        let id = new_account(w, AccountKind::Person, nation, club, p, (u64::from(p.0) << 24) | 0x77);
-        let fame = w.renown.of(p);
-        w.net.accounts[id as usize].followers = fame.followers.max(500);
-    }
+    // Real people (players, journalists, the famous) get their account the
+    // first time they post (`person_post`): identity is stable once made, and
+    // nobody pays for accounts that never speak.
 }
 
 fn ensure_groups(w: &mut World, club: ClubId) {
@@ -761,8 +749,9 @@ fn react(w: &mut World, f: Frame, clubs: &[ClubId], about: PersonId, ev: EventId
     let mut posted = Vec::new();
     for (a, own) in audience {
         let acc = w.net.accounts[a as usize].clone();
-        if !acc.active || acc.person.is_some() && w.people[acc.person].mind == pw_world::MindKind::External {
-            // Humans post for themselves.
+        // Real people (players, journalists, the famous, and any human) post
+        // about their own lives, not as supporters reacting to everything.
+        if !acc.active || acc.kind == AccountKind::Person {
             continue;
         }
         let club = if own { acc.club } else { acc.rival };
@@ -838,7 +827,7 @@ fn threads(w: &mut World, new_posts: &[u32]) {
             let momentum = (f32::from(post.intensity) / 100.0) * (1.0 + (w.net.accounts[post.author as usize].followers as f32).log10() / 6.0);
             for &a in pool.iter().take(10) {
                 let acc = w.net.accounts[a as usize].clone();
-                if acc.today >= 4 || acc.person.is_some() && w.people[acc.person].mind == pw_world::MindKind::External {
+                if acc.today >= 4 || acc.kind == AccountKind::Person {
                     continue;
                 }
                 let theirs = w.net.opinion(a, post.about).map_or(0, |o| o.score);
@@ -1017,9 +1006,11 @@ fn memes(w: &mut World, new_posts: &[u32]) {
         }
     }
     for &pid in new_posts {
+        // A viral jibe can become a meme; at most one new meme per club a month.
         if let Some(p) = w.net.post(pid)
             && p.reposts >= 800
-            && !w.net.memes.iter().any(|m| m.source == MemeSource::Post { post: pid })
+            && matches!(p.concept, Concept::Mock | Concept::Sarcasm | Concept::CallOut | Concept::Criticise)
+            && !w.net.memes.iter().rev().take(200).any(|m| m.source == MemeSource::Post { post: pid } || (m.club == p.club && m.born.days_until(today) < 30))
         {
             let id = w.net.memes.len() as u32;
             let (about, club) = (p.about, p.club);
@@ -1027,10 +1018,19 @@ fn memes(w: &mut World, new_posts: &[u32]) {
             w.net.memes.push(Meme { id, source: MemeSource::Post { post: pid }, about, club, born: today, recognition: 25, uses: 0, variants: 1, peak: today, alive: true });
         }
     }
-    // Rival accounts reuse live memes against the club.
-    let live: Vec<Meme> = w.net.memes.iter().filter(|m| m.alive && m.born.days_until(today) <= 120).copied().collect();
+    // Rival accounts reuse a club's best-known memes against it — on the days
+    // it plays, when there is something to hang them on.
+    let playing: FxHashSet<ClubId> = w.recent_matches.on(today).flat_map(|m| [m.home, m.away]).collect();
+    let mut live: Vec<Meme> = w.net.memes.iter().filter(|m| m.alive && playing.contains(&m.club)).copied().collect();
+    live.sort_by(|a, b| a.club.cmp(&b.club).then(b.recognition.cmp(&a.recognition)).then(a.id.cmp(&b.id)));
+    let mut per_club: FxHashMap<ClubId, u8> = FxHashMap::default();
+    live.retain(|m| {
+        let n = per_club.entry(m.club).or_default();
+        *n += 1;
+        *n <= 3
+    });
     for m in live {
-        let mockers: Vec<AccountId> = w.net.accounts.iter().filter(|a| a.rival == m.club && a.active && a.persona.humour > 50).map(|a| a.id).take(6).collect();
+        let mockers: Vec<AccountId> = w.net.accounts.iter().filter(|a| a.rival == m.club && a.active && a.today < 3 && a.persona.humour > 50).map(|a| a.id).take(6).collect();
         for a in mockers {
             let r = w.roll(stream::SOCIAL_ACTIVITY, &[u64::from(a), u64::from(m.id), period::day(today)]);
             if r < f32::from(m.recognition) / 400.0 {
@@ -1040,7 +1040,8 @@ fn memes(w: &mut World, new_posts: &[u32]) {
                 }
                 let mm = &mut w.net.memes[m.id as usize];
                 mm.uses += 1;
-                mm.recognition = (mm.recognition + 3).min(100);
+                // Each use spreads it a little less.
+                mm.recognition = (mm.recognition + (100 - mm.recognition.min(100)) / 25).min(100);
                 if mm.uses.is_multiple_of(10) {
                     mm.variants = mm.variants.saturating_add(1);
                 }
@@ -1055,8 +1056,13 @@ fn memes(w: &mut World, new_posts: &[u32]) {
 pub fn monthly(w: &mut World) {
     let today = w.date;
     for m in w.net.memes.iter_mut() {
+        // Everything fades; what nobody uses fades fast, and old jokes go stale.
+        m.recognition = m.recognition.saturating_sub(4);
         if m.peak.days_until(today) > 30 {
             m.recognition = m.recognition.saturating_sub(10);
+        }
+        if m.born.days_until(today) > 365 {
+            m.recognition = m.recognition.saturating_sub(5);
         }
         if m.recognition < 5 {
             m.alive = false;

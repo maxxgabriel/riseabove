@@ -68,13 +68,14 @@ pub fn request(w: &mut World, initiator: PersonId, with: PersonId, player: Playe
     } else {
         m.response = Some(default);
     }
-    w.meetings.list.push(m);
+    w.meetings.push(m);
     Some(id)
 }
 
 /// Meetings whose date has come are held.
 pub fn daily(w: &mut World) {
     let today = w.date;
+    w.meetings.trim_open();
     let due: Vec<MeetingId> = w.meetings.pending().filter(|(_, m)| m.date <= today && m.response.is_some()).map(|(id, _)| id).collect();
     for id in due {
         hold(w, id);

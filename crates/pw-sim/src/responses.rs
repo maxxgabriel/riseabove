@@ -197,7 +197,8 @@ fn options(w: &World, who: PersonId, id: u32, pr: &Profile) -> SmallVec<[Scored;
         })
         .fold(0.0f32, f32::max);
     let noise = |k: u64| w.roll(stream::RESPONSE, &[u64::from(id), u64::from(who.0), k]) * 0.15;
-    if inc.kind.is_conduct() {
+    // Only a club can fine (a player without one answers to nobody's rules).
+    if inc.kind.is_conduct() && inc.club.is_some() {
         v.push((
             Response::Fine,
             0.25 + pr.discipline * 0.6 + pr.culture * 0.3 + sev * 0.3 - rank * 0.3 + pr.evidence * 0.2 - 0.3 + noise(1),
@@ -330,7 +331,7 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
     }
     let compat = |w: &World, x: PersonId, y: PersonId| consider::compat(w, x, y);
     match response {
-        Response::Fine => {
+        Response::Fine if club.is_some() => {
             for &p in &culprits {
                 let wage = w.players.cold[p].contract.current_wage(today);
                 let amount = (wage as f32 * (0.5 + sev)) as i64;
@@ -344,6 +345,8 @@ pub fn apply(w: &mut World, id: u32, by: PersonId, response: Response, reasons: 
             }
             settle(w, &inc, 0.3);
         }
+        // No club, no fine: the incident is settled without one.
+        Response::Fine => settle(w, &inc, 0.1),
         Response::Drop => {
             for &p in culprits.iter().take(1) {
                 w.incidents.dropped.insert(p, today.add_days(7));
@@ -624,7 +627,7 @@ pub fn deferred(w: &mut World) {
         let escalated = inc.led_to.is_some();
         let (mut choice, reasons, _) = decide(w, who, id);
         if choice == Response::Delay {
-            choice = if escalated { Response::Fine } else { Response::Ignore };
+            choice = if escalated && inc.club.is_some() { Response::Fine } else { Response::Ignore };
         }
         apply(w, id, who, choice, reasons);
     }

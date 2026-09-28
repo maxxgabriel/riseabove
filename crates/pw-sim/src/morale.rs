@@ -15,7 +15,16 @@ use crate::consider;
 
 pub fn weekly(w: &mut World) {
     let ids: Vec<pw_core::PlayerId> = w.players.ids().filter(|&p| w.players.hot[p].status == PlayerStatus::Active).collect();
-    let updates: Vec<(pw_core::PlayerId, f32, Mood)> = ids.iter().map(|&p| (p, compose(w, p))).map(|(p, (t, m))| (p, t, m)).collect();
+    // Promises owed to each person, counted once (open, broken in the last 180 days).
+    let mut owed: pw_world::FxHashMap<pw_core::PersonId, (u16, u16)> = pw_world::FxHashMap::default();
+    for pr in &w.social.promises {
+        match pr.state {
+            PromiseState::Open => owed.entry(pr.to).or_default().0 += 1,
+            PromiseState::Broken if pr.due.days_until(w.date) < 180 => owed.entry(pr.to).or_default().1 += 1,
+            _ => {}
+        }
+    }
+    let updates: Vec<(pw_core::PlayerId, f32, Mood)> = ids.iter().map(|&p| (p, compose(w, p, &owed))).map(|(p, (t, m))| (p, t, m)).collect();
     for (p, target, mood) in updates {
         let who = w.players.cold[p].person;
         let h = &mut w.players.hot[p];
@@ -25,7 +34,7 @@ pub fn weekly(w: &mut World) {
     }
 }
 
-fn compose(w: &World, p: pw_core::PlayerId) -> (f32, Mood) {
+fn compose(w: &World, p: pw_core::PlayerId, owed: &pw_world::FxHashMap<pw_core::PersonId, (u16, u16)>) -> (f32, Mood) {
     let who = w.players.cold[p].person;
     let person = &w.people[who];
     let ambition = person.hidden.f(Hidden::Ambition) / 20.0;
@@ -48,8 +57,7 @@ fn compose(w: &World, p: pw_core::PlayerId) -> (f32, Mood) {
         let aff = consider::affinity(w, who, m);
         push(MoodFactor::Manager, (trust - 0.5) * 16.0 + aff * 8.0 - consider::grievance(w, who, m) * 4.0);
     }
-    let open = w.social.open_promises_to(who).count() as f32;
-    let broken = w.social.promises.iter().filter(|pr| pr.to == who && pr.state == PromiseState::Broken && pr.due.days_until(w.date) < 180).count() as f32;
+    let (open, broken) = owed.get(&who).map_or((0.0, 0.0), |&(o, b)| (f32::from(o), f32::from(b)));
     push(MoodFactor::Promises, open * 2.0 - broken * 7.0);
     let wage = f32::from(consider::wage_vs_peers(w, p));
     if wage < 80.0 {

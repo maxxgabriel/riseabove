@@ -24,18 +24,20 @@ use pw_core::rng::{period, stream};
 use pw_core::{AgentId, ClubId, EventId, PersonId, PlayerId, StoryId};
 use pw_world::event::{Cause, EventKind, Fact, Visibility};
 use pw_world::info::{Fidelity, InfoKind, Knower, Learned, Motive, Tell};
-use pw_world::{FxHashMap, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, World};
+use pw_world::{FxHashMap, FxHashSet, LifeEventKind, MemoryKind, PlayerStatus, StaffRole, World};
 use smallvec::SmallVec;
 
 use crate::consider;
 
 /// Items stop travelling after this many days.
 const SHELF_LIFE: i32 = 21;
+/// How long after learning something a person may still pass it on.
+const TELLING_DAYS: i32 = 7;
 
 pub fn daily(w: &mut World) {
-    absorb_events(w);
-    spread(w);
-    close_old(w);
+    prof!("grapevine::absorb", absorb_events(w));
+    prof!("grapevine::spread", spread(w));
+    prof!("grapevine::close_old", close_old(w));
 }
 
 // ---------------------------------------------------------------------------
@@ -92,6 +94,8 @@ fn absorb_events(w: &mut World) {
             continue;
         }
         match kind {
+            // A fine from a club (a player who has since left is fined by nobody).
+            EventKind::Fined { club, .. } if club.is_none() => {}
             EventKind::Fined { player, club, .. } => {
                 let who = w.players.cold[player].person;
                 let m = manager_person(w, club);
@@ -351,6 +355,8 @@ fn spread(w: &mut World) {
     }
     let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
     let active = w.grapevine.active.clone();
+    // Who someone talks to is a daily fact; work it out once per person.
+    let mut contacts_of: FxHashMap<PersonId, SmallVec<[(PersonId, Role); 16]>> = FxHashMap::default();
     for info in active {
         let (kind, sensitivity, date, closed) = {
             let it = w.grapevine.get(info);
@@ -365,13 +371,17 @@ fn spread(w: &mut World) {
             continue;
         }
         let holders: Vec<pw_world::info::Knower> = w.grapevine.get(info).holders.to_vec();
+        let mut knowers: FxHashSet<PersonId> = holders.iter().map(|k| k.person).collect();
         for k in holders {
-            if k.told >= 6 || k.person.is_none() {
+            // People pass on what they have just heard; after a week it is
+            // old news to them (and they have told whom they were going to).
+            if k.told >= 6 || k.person.is_none() || k.date.days_until(today) > TELLING_DAYS {
                 continue;
             }
             let teller = k.person;
-            for (to, role) in contacts(w, teller, &sources_of, &agent_by_person) {
-                if to.is_none() || w.grapevine.get(info).knows(to) {
+            let mine = contacts_of.entry(teller).or_insert_with(|| contacts(w, teller, &sources_of, &agent_by_person)).clone();
+            for (to, role) in mine {
+                if to.is_none() || knowers.contains(&to) {
                     continue;
                 }
                 let (p, motive) = inclination(w, teller, to, role, &kind, sensitivity, freshness, &agent_by_person);
@@ -390,7 +400,8 @@ fn spread(w: &mut World) {
                 if role == Role::Journalist && motive == Motive::AgentStrategy && honest < 0.45 {
                     fidelity = Fidelity::Planted;
                 }
-                tell(w, info, teller, to, fidelity, motive, k.confidence);
+                prof!("grapevine::tell", tell(w, info, teller, to, fidelity, motive, k.confidence));
+                knowers.insert(to);
             }
         }
     }

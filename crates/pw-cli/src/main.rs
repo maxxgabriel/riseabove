@@ -102,6 +102,12 @@ fn simulate(sim: &mut Sim, days: u32) {
     }
     let el = t.elapsed();
     println!("simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches", el.as_secs_f64() * 1000.0 / f64::from(days.max(1)), worst as f64 / 1000.0);
+    if pw_sim::profile::enabled() {
+        println!("time by system (PW_PROFILE):");
+        for (name, us, calls) in pw_sim::profile::take().into_iter().take(25) {
+            println!("  {name:<28} {:>10.1} ms  {calls:>6} calls", us as f64 / 1000.0);
+        }
+    }
 }
 
 fn report(w: &World) {
