@@ -112,7 +112,8 @@ fn assign_statuses(w: &mut World, club: ClubId) {
         .map(|&p| {
             let (ca, _, _, _) = club_view(w, club, p);
             let who = w.players.cold[p].person;
-            let opinion = manager.map_or(0.0, |m| {
+            let taste = w.clubs[club].manager.get().map_or(0.0, |s| crate::managers::preference(w, s, p) * 6.0);
+            let opinion = taste + manager.map_or(0.0, |m| {
                 (consider::trust(w, m, who) - 0.5) * 12.0
                     + w.social.get(m, who).map_or(0.0, |r| (f32::from(r.respect) - 50.0) * 0.15)
                     - consider::memory(w, m, who, MemoryKind::PoorAttitude) * 4.0
@@ -150,6 +151,11 @@ fn assign_statuses(w: &mut World, club: ClubId) {
             w.events.push_caused(today, Visibility::Club(club), EventKind::StatusChanged { player: p, club, from: before, to: after }, causes);
         }
     }
+}
+
+/// Re-rank a club's squad through its (possibly new) manager's eyes now.
+pub fn reassess(w: &mut World, club: ClubId) {
+    assign_statuses(w, club);
 }
 
 /// Target ability for a club's starters, from its reputation.
@@ -260,7 +266,9 @@ fn search(w: &mut World, club: ClubId) {
             let cost = (fee as f32 / 1e6).sqrt() * 0.8;
             // Players known to be available are easier to get.
             let available = if w.market.requests.contains_key(&p) || w.market.listed.contains_key(&p) { 3.0 } else { 0.0 };
-            let score = ca + youth - cost + available;
+            // Managers push for their kind of player and for favourites from past jobs.
+            let wanted = crate::managers::wants(w, club, p) * 6.0;
+            let score = ca + youth - cost + available + wanted;
             if best.as_ref().is_none_or(|b| score > b.score) {
                 best = Some(Target { player: p, score, fee });
             }

@@ -111,6 +111,11 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         ProjectStarted { club: c, kind } => format!("{} began work on a new {}.", club(w, c), kind.label()),
         ProjectCompleted { club: c, kind } => format!("{} opened their new {}.", club(w, c), kind.label()),
         BroadcastDeal { nation: n, pool } => format!("{}'s top flight signed a {} broadcast deal.", nation(w, n), money(pool)),
+        ManagerResigned { staff, club: c } => format!("{} resigned as manager of {}.", w.staff_name(staff), club(w, c)),
+        ManagerPoached { staff, from, to, compensation } => format!("{} left {} to take charge of {} ({} compensation).", w.staff_name(staff), club(w, from), club(w, to), money(compensation)),
+        TacticalChange { club: c, staff, formation } => format!("{} switched {} to a {}.", w.staff_name(staff), club(w, c), w.data.formations.get(usize::from(formation)).map_or("new system", |f| f.name.as_str())),
+        StaffFollowed { staff, manager, club: c } => format!("{} followed {} to {}.", w.staff_name(staff), w.staff_name(manager), club(w, c)),
+        StaffLeft { staff, club: c } => format!("{} left the {} backroom staff.", w.staff_name(staff), club(w, c)),
     })
 }
 

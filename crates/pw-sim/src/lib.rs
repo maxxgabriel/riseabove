@@ -14,6 +14,7 @@ pub mod health;
 pub mod hungarian;
 pub mod intents;
 pub mod life;
+pub mod managers;
 pub mod market;
 pub mod matchday;
 pub mod media;
@@ -68,6 +69,7 @@ impl Sim {
         if today.month() == 7 && today.day() == 1 {
             economy::yearly(w);
             governance::yearly(w);
+            managers::yearly(w);
         }
         season::daily(w);
         contracts::daily(w);
@@ -85,6 +87,7 @@ impl Sim {
             social::monthly(w);
             staffing::monthly(w);
             governance::monthly(w);
+            managers::monthly(w);
             vacancies(w);
             w.beliefs.forget(today.add_days(-240));
         }
@@ -168,6 +171,7 @@ pub fn prepare(w: &mut World) {
     life::sync(w);
     economy::ensure(w);
     governance::ensure(w);
+    managers::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

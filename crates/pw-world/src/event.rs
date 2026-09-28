@@ -164,6 +164,14 @@ pub enum EventKind {
     ProjectCompleted { club: ClubId, kind: crate::governance::ProjectKind },
     /// A nation's top flight signed a new broadcast deal.
     BroadcastDeal { nation: NationId, pool: Money },
+    ManagerResigned { staff: StaffId, club: ClubId },
+    /// A club lured another club's manager away, paying compensation.
+    ManagerPoached { staff: StaffId, from: ClubId, to: ClubId, compensation: Money },
+    /// A manager switched to a new system.
+    TacticalChange { club: ClubId, staff: StaffId, formation: u8 },
+    /// A member of staff followed their manager to a new club.
+    StaffFollowed { staff: StaffId, manager: StaffId, club: ClubId },
+    StaffLeft { staff: StaffId, club: ClubId },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -284,7 +292,15 @@ impl EventKind {
             | OwnerInvestment { club, .. }
             | ProjectStarted { club, .. }
             | ProjectCompleted { club, .. }
+            | ManagerResigned { club, .. }
+            | TacticalChange { club, .. }
+            | StaffFollowed { club, .. }
+            | StaffLeft { club, .. }
             | JoinedStaff { club, .. } => v.push(club),
+            ManagerPoached { from, to, .. } => {
+                v.push(from);
+                v.push(to);
+            }
             _ => {}
         }
         v

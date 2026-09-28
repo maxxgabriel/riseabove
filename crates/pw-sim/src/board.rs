@@ -72,6 +72,7 @@ pub fn weekly(w: &mut World) {
             let warnings = w.clubs[club].board.warnings;
             let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
             w.events.push_caused(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club }, causes);
+            crate::managers::on_departure(w, m, club, pw_world::careers::JobEnd::Sacked);
         }
         appoint(w, club);
     }
@@ -93,8 +94,11 @@ pub fn appoint(w: &mut World, club: ClubId) {
                 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 };
             (id, fit)
         })
-        .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)))
-        .map(|(id, _)| id);
+        .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));
+    let best_fit = best.map_or(-9.0, |b| b.1);
+    let best = best.map(|b| b.0);
+    // A bigger club may prefer to lure a manager doing well elsewhere.
+    let best = crate::managers::try_poach(w, club, best_fit).or(best);
     let chosen = best.or_else(|| {
         let a = w.clubs[club].staff.iter().copied().find(|&s| w.staff[s].role == StaffRole::Assistant)?;
         w.staff[a].role = StaffRole::Manager;
@@ -115,6 +119,7 @@ pub fn appoint(w: &mut World, club: ClubId) {
     w.clubs[club].board.satisfaction = 60;
     w.clubs[club].board.warnings = 0;
     w.events.push(today, Visibility::Public, EventKind::ManagerAppointed { staff: m, club });
+    crate::managers::on_appointment(w, m, club);
 }
 
 /// A newly qualified manager when the market is empty (F7).

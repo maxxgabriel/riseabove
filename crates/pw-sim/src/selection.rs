@@ -175,7 +175,8 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
                         0.55 * status_trust(c.status) + 0.45 * crate::consider::trust(w, m, c.person)
                             - 0.05 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::PoorAttitude)
                             + 0.04 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::ExtraWork)
-                    }) + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
+                    }) + w.clubs[club].manager.get().map_or(0.0, |s| crate::managers::preference(w, s, p) * 0.06)
+                        + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
                     youth: if age <= 21.5 { f32::from(phil.youth_trust) / 100.0 * (1.0 - ((age - 17.0) / 5.0).clamp(0.0, 1.0)) } else { 0.0 },
                     rotation: if rested <= 3 { 1.0 } else { 0.0 },
                 },

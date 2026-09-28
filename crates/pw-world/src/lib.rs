@@ -4,6 +4,7 @@
 pub mod agent;
 pub mod beliefs;
 pub mod calendar;
+pub mod careers;
 pub mod club;
 pub mod comp;
 pub mod contract;

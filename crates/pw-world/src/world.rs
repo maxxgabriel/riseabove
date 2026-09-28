@@ -100,6 +100,8 @@ pub struct World {
     /// Owners, boards, policies and projects, per club.
     pub governance: FxHashMap<ClubId, crate::governance::Governance>,
     pub economy: crate::governance::Economy,
+    /// Manager identities and CVs.
+    pub careers: crate::careers::Careers,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -139,6 +141,7 @@ impl World {
             intents: Intents::default(),
             governance: FxHashMap::default(),
             economy: Default::default(),
+            careers: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,
