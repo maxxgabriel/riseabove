@@ -261,3 +261,62 @@ pub fn chronicle(w: &World, e: &pw_world::awards::Entry) -> String {
         Feat::FirstTitle { club: c, comp, season } => format!("{} won the {} for the first time in their history ({season}/{:02}).", club(c), w.comps.get(comp).map_or("?", |x| x.name.as_str()), (season + 1) % 100),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Schools of thought and rule changes
+// ---------------------------------------------------------------------------
+
+use pw_world::evolution::{RuleCause, RuleChange, RuleKey, School};
+
+/// "the Okafor school" — named after its founder.
+pub fn school_name(w: &World, s: &School) -> String {
+    let full = crate::fmt::person(w, s.founder);
+    let surname = full.rsplit(' ').next().unwrap_or(&full).to_string();
+    format!("the {surname} school")
+}
+
+/// Its principles in football words, from its numbers.
+pub fn school_style(s: &School) -> String {
+    let press = match s.press {
+        0..=35 => "a deep, patient block",
+        36..=65 => "a measured press",
+        _ => "relentless pressing",
+    };
+    let tempo = match s.tempo {
+        0..=35 => "slow, controlled possession",
+        36..=65 => "a balanced tempo",
+        _ => "a high tempo",
+    };
+    let direct = match s.direct {
+        0..=35 => "short passing through the lines",
+        36..=65 => "a mix of short and long",
+        _ => "direct balls in behind",
+    };
+    format!("{press}, {tempo} and {direct}")
+}
+
+pub fn school_founded(w: &World, s: &School) -> String {
+    format!(
+        "{} has become a school of thought: {} built on {}.",
+        crate::fmt::person(w, s.founder),
+        school_name(w, s),
+        school_style(s)
+    )
+}
+
+pub fn rule_change(w: &World, c: &RuleChange) -> String {
+    let n = nation(w, c.nation);
+    let what = match c.key {
+        RuleKey::Subs => format!("teams may now make {} substitutions (was {})", c.new, c.old),
+        RuleKey::RedBan => format!("a straight red card now brings a {}-match ban (was {})", c.new, c.old),
+        RuleKey::HomegrownMin => format!("squads must now include at least {} homegrown players (was {})", c.new, c.old),
+        RuleKey::AwayGoals => "the away goals rule is abolished".to_string(),
+    };
+    let why = match c.cause {
+        RuleCause::InjuryCrisis { per_club } => format!("after a season of {per_club:.0} injuries per club"),
+        RuleCause::CardEpidemic { per_club } => format!("after {per_club:.1} suspensions per club last season"),
+        RuleCause::NationalDecline { win_rate, homegrown } => format!("with the national side winning {:.0}% of its games and {:.0}% of top-flight players homegrown", win_rate * 100.0, homegrown * 100.0),
+        RuleCause::AwayGoalsDebate { ties } => format!("after {ties} ties were decided on away goals"),
+    };
+    format!("The {n} federation announced that from {}/{:02} {what}, {why}.", c.from_season, (c.from_season + 1) % 100)
+}

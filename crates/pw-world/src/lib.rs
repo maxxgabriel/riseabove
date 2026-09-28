@@ -17,6 +17,7 @@ pub mod deals;
 pub mod dressing;
 pub mod decision;
 pub mod event;
+pub mod evolution;
 pub mod governance;
 pub mod growth;
 pub mod history;

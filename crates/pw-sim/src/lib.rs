@@ -13,6 +13,7 @@ pub mod decisions;
 pub mod development;
 pub mod dressing;
 pub mod economy;
+pub mod evolution;
 pub mod facts;
 pub mod finance;
 pub mod generate;
@@ -98,6 +99,7 @@ impl Sim {
         }
         if today.month() == 7 && today.day() == 1 {
             officials::season_review(w);
+            evolution::yearly(w);
             economy::yearly(w);
             governance::yearly(w);
             managers::yearly(w);

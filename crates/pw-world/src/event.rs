@@ -301,6 +301,10 @@ pub enum EventKind {
     AppealDecided { appeal: u32, player: PlayerId },
     /// A club was charged by its federation (`World::officials.charges`).
     Charged { charge: u32, club: ClubId },
+    /// A tactical school was born around a manager.
+    SchoolFounded { school: u32, founder: PersonId },
+    /// A federation changed a rule (`World::evolution.changes`).
+    RuleChanged { change: u32 },
     /// A supporter group acted together (see `World::net.groups`).
     SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
@@ -479,6 +483,7 @@ impl EventKind {
             | Graduated { person, .. } => v.push(person),
             Record { person, .. } if person.is_some() => v.push(person),
             Voted { person, .. } | HallInduction { person, .. } => v.push(person),
+            SchoolFounded { founder, .. } => v.push(founder),
             BoardQuery { manager, .. } => v.push(manager),
             IncidentResponse { by, .. } => v.push(by),
             JournalistMoved { person, .. } | JournalistLeft { person, .. } | JournalistHired { person, .. } => v.push(person),

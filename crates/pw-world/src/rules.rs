@@ -139,7 +139,15 @@ pub fn profile(w: &World, nation: NationId) -> RuleProfile {
     }
     let n = &w.nations[nation];
     let i = w.data.rules.profile_for(&n.code, n.confed.code());
-    w.data.rules.get(i)
+    let mut p = w.data.rules.get(i);
+    // Rules the nation's federation has since changed (see `evolution`).
+    if let Some(v) = w.evolution.current(nation, crate::evolution::RuleKey::RedBan) {
+        p.red_ban_straight = v.clamp(0, 20) as u8;
+    }
+    if let Some(v) = w.evolution.current(nation, crate::evolution::RuleKey::HomegrownMin) {
+        p.homegrown_min = v.clamp(0, 25) as u8;
+    }
+    p
 }
 
 fn bloc(w: &World, nation: NationId) -> Option<String> {
