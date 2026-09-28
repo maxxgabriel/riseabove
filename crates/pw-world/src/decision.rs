@@ -47,6 +47,10 @@ pub enum DecisionKind {
     Treatment { surgery_days: u16, rehab_days: u16 },
     /// A brand offers an endorsement.
     Endorsement { brand: u32, fee_year: Money, years: u8, days: u8 },
+    /// Something happened that is yours to deal with (options are responses).
+    Incident { incident: u32 },
+    /// You are asked (or may ask) something about an incident.
+    IncidentAsk { incident: u32, ask: crate::incident::Ask },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -60,6 +64,8 @@ pub enum Choice {
     Respond(Tone),
     /// Refuse to take part.
     Decline,
+    /// Deal with an incident in this way.
+    Handle(crate::incident::Response),
 }
 
 impl Choice {
@@ -83,6 +89,9 @@ impl DecisionKind {
             DecisionKind::NationChoice { .. } => "International allegiance",
             DecisionKind::Treatment { .. } => "Treatment",
             DecisionKind::Endorsement { .. } => "Endorsement offer",
+            DecisionKind::Incident { .. } => "Something to deal with",
+            DecisionKind::IncidentAsk { ask: crate::incident::Ask::RequestLeave, .. } => "Ask for time away?",
+            DecisionKind::IncidentAsk { ask: crate::incident::Ask::Apologise, .. } => "Apologise?",
         }
     }
 

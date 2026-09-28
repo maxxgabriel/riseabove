@@ -269,7 +269,7 @@ fn subject_person(w: &World, kind: &InfoKind) -> PersonId {
         InfoKind::Interest { player, .. } | InfoKind::Bid { player, .. } => w.players.cold[player].person,
         InfoKind::DressingRoom { club, .. } => manager_person(w, club),
         InfoKind::Private { person, .. } => person,
-        InfoKind::Incident { .. } => PersonId::NONE,
+        InfoKind::Incident { incident } => w.incidents.get(incident).and_then(|i| i.parties.first().copied()).unwrap_or(PersonId::NONE),
     }
 }
 
@@ -280,7 +280,9 @@ fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &Inf
     let ambition = consider::hid(w, teller, pw_core::Hidden::Ambition) / 20.0;
     let subject = subject_person(w, kind);
     let loyalty = if subject.is_some() && subject != teller { consider::affinity(w, teller, subject).max(0.0) } else { 0.0 };
-    let discretion = (0.5 * prof + 0.3 * (1.0 - loose) + 0.3 * loyalty).clamp(0.0, 1.0);
+    // Told to keep it quiet by someone in authority.
+    let hushed = matches!(kind, InfoKind::Incident { incident } if w.incidents.get(*incident).is_some_and(|i| i.hushed));
+    let discretion = (0.5 * prof + 0.3 * (1.0 - loose) + 0.3 * loyalty + if hushed { 0.25 } else { 0.0 }).clamp(0.0, 1.0);
     let juicy = 0.5 + f32::from(sensitivity) / 100.0;
     let closeness = (0.3 + consider::affinity(w, teller, to).max(0.0) + consider::trust(w, to, teller) * 0.3).min(1.2);
     let (base, motive) = match role {
@@ -471,6 +473,7 @@ fn react(w: &mut World, who: PersonId, info: u32) {
                 }
             }
         }
+        InfoKind::Incident { incident } => crate::responses::on_learn(w, who, incident),
         _ => {}
     }
 }

@@ -20,7 +20,7 @@ fn describe(w: &World, kind: &InfoKind, f: Fidelity) -> String {
     let vague = matches!(f, Fidelity::Partial | Fidelity::Garbled);
     let loud = matches!(f, Fidelity::Exaggerated | Fidelity::Planted);
     match *kind {
-        InfoKind::Incident { .. } => "that something happened at the club".into(),
+        InfoKind::Incident { incident } => crate::incidents::summary(w, incident, vague, loud),
         InfoKind::Interest { club: c, player: p } => {
             if vague {
                 format!("that a club has been asking about {}", player(w, p))

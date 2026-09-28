@@ -19,6 +19,7 @@ pub mod grapevine;
 pub mod growth;
 pub mod health;
 pub mod honours;
+pub mod incidents;
 pub mod hungarian;
 pub mod intents;
 pub mod interpret;
@@ -37,6 +38,7 @@ pub mod perception;
 pub mod planning;
 pub mod press;
 pub mod renown;
+pub mod responses;
 pub mod reputation;
 pub mod save;
 pub mod schedule;
@@ -124,6 +126,7 @@ impl Sim {
             honours::monthly(w);
             renown::monthly(w);
             grapevine::compact(w);
+            incidents::monthly(w);
             affairs::monthly(w);
             commerce::monthly(w);
             if today.month() == 6 {
@@ -164,6 +167,9 @@ impl Sim {
         decisions::resolve_due(w);
         talk::daily(w);
 
+        // 7b. Incidents: postponements, travel, births, deferred decisions.
+        incidents::daily(w);
+
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
         matchday::play_today(w);
@@ -178,6 +184,7 @@ impl Sim {
             development::weekly(w);
             medical::weekly(w);
             grapevine::feelings(w);
+            incidents::weekly(w);
             dressing::weekly(w);
             perception::weekly(w);
             social::weekly(w);

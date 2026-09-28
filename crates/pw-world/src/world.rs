@@ -130,6 +130,8 @@ pub struct World {
     pub culture: crate::culture::Culture,
     /// Information items: who knows what, how they learned it, who told whom.
     pub grapevine: crate::info::Grapevine,
+    /// Incidents, unresolved tension, leave, deferred decisions.
+    pub incidents: crate::incident::Incidents,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -184,6 +186,7 @@ impl World {
             commerce: Default::default(),
             culture: Default::default(),
             grapevine: Default::default(),
+            incidents: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             playthrough: 0,

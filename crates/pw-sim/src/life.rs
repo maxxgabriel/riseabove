@@ -363,15 +363,8 @@ fn relationship(w: &mut World, who: PersonId, rng: &mut Rng) {
         let recent = life.household.youngest_born.days_until(today) < 540 && kids > 0;
         let want = (bond as f32 / 100.0) * if (24.0..=38.0).contains(&age) { 1.0 } else { 0.2 } / (1.0 + f32::from(kids) * 0.8);
         if !recent && rng.chance(0.012 * want) {
-            for x in [who, pt.person] {
-                let h = &mut w.lives[x].household;
-                h.children += 1;
-                h.youngest_born = today;
-            }
-            w.events.push(today, Visibility::Public, EventKind::Life { person: who, kind: LifeEventKind::ChildBorn });
-            let l = &mut w.lives[who];
-            l.fulfilment = l.fulfilment.saturating_add(15).min(100);
-            l.sleep = l.sleep.saturating_sub(20);
+            // Expecting: the birth comes in about nine months (incidents).
+            crate::incidents::conceive(w, who, pt.person);
         }
     }
 }
