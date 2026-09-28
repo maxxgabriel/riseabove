@@ -279,7 +279,7 @@ pub fn rivalries() -> Grid {
                 Col::new("b", "Against", Fmt::Text, 160, &[G]).left(),
                 Col::new("kind", "Why", Fmt::Text, 220, &[G]).left(),
                 Col::new("intensity", "Intensity", Fmt::Int, 90, &[G]).help("0 to 100."),
-                Col::new("record", "Won-drawn-lost", Fmt::Text, 110, &[G]).nosort(),
+                Col::new("record", "Record", Fmt::Text, 110, &[G]).nosort().help("Won, drawn and lost by the first side."),
                 Col::new("since", "Since", Fmt::Date, 100, &[G]),
                 Col::new("last", "Last met", Fmt::Date, 100, &[G]),
             ]
@@ -302,8 +302,8 @@ pub fn rivalries() -> Grid {
                         .text("kind", kinds)
                         .num("intensity", f64::from(r.intensity))
                         .text("record", format!("{}-{}-{}", r.h2h.0, r.h2h.1, r.h2h.2))
-                        .date("since", r.since)
-                        .date("last", r.last_meeting);
+                        .date("since", r.since);
+                    row = if r.last_meeting.0 > 0 { row.date("last", r.last_meeting) } else { row.cell("last", Cell::empty(), Key::None) };
                     if let Some(x) = ar {
                         row = row.open(x);
                     }
@@ -382,7 +382,7 @@ impl Source for Posts {
                 let cell = Cell::text(a.display.clone()).with_sub(format!("@{}", a.handle));
                 if a.person.is_some() { cell.with_ref(Ref::person(a.person)) } else { cell }
             }
-            "text" => Cell::text(pw_narrate::social::post(c.w, p)),
+            "text" => Cell::text(c.post_text(p)),
             "about" => person_cell(c, p.about),
             "likes" => Cell::num(f64::from(p.likes)),
             "reposts" => Cell::num(f64::from(p.reposts)),
@@ -592,7 +592,7 @@ impl Source for Quotes {
             "speaker" => person_cell(c, q.speaker),
             "stance" => Cell::text(pw_narrate::press::stance_label(q.stance)),
             "about" => person_cell(c, q.about),
-            "headline" => c.w.media.stories.get(q.story).map_or_else(Cell::empty, |s| Cell::text(pw_narrate::press::headline(c.w, s))),
+            "headline" => c.w.media.stories.get(q.story).map_or_else(Cell::empty, |s| Cell::text(c.headline(s))),
             _ => Cell::empty(),
         }
     }

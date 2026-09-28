@@ -72,7 +72,7 @@ impl Source for Stories {
             .iter_enumerated()
             .filter(|(_, s)| person.is_none_or(|p| s.person == p))
             .filter(|(_, s)| club.is_none_or(|x| s.club == x || s.other_club == x))
-            .filter(|(_, s)| q.as_ref().is_none_or(|q| pw_narrate::press::headline(c.w, s).to_lowercase().contains(q.as_str())))
+            .filter(|(_, s)| q.as_ref().is_none_or(|q| c.headline(s).to_lowercase().contains(q.as_str())))
             .map(|(id, _)| id.0)
             .collect()
     }
@@ -82,7 +82,7 @@ impl Source for Stories {
         match col {
             "date" => Key::Num(f64::from(s.date.0) * 1_000_000.0 + f64::from(id)),
             "outlet" => Key::text(pw_narrate::press::outlet_name(c.w, s)),
-            "headline" => Key::text(pw_narrate::press::headline(c.w, s)),
+            "headline" => Key::text(c.headline(s)),
             "kind" => Key::text(kind_word(s.kind)),
             "grounded" => Key::Num(if s.grounded { 1.0 } else { 0.0 }),
             _ => Key::None,
@@ -94,7 +94,7 @@ impl Source for Stories {
         match col {
             "date" => Cell::num(f64::from(s.date.0)),
             "outlet" => Cell::text(pw_narrate::press::outlet_name(c.w, s)),
-            "headline" => Cell::text(pw_narrate::press::headline(c.w, s)),
+            "headline" => Cell::text(c.headline(s)),
             "kind" => Cell::text(kind_word(s.kind)),
             "grounded" => {
                 if s.grounded {

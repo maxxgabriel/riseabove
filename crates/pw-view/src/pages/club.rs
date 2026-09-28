@@ -374,6 +374,8 @@ pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
         .filter(|r| r.a == Side::Club(id) || r.b == Side::Club(id))
         .map(|r| {
             let other = if r.a == Side::Club(id) { r.b } else { r.a };
+            // Stored from the first side's point of view: wins, draws, losses for this club.
+            let record = if r.a == Side::Club(id) { [r.h2h.0, r.h2h.1, r.h2h.2] } else { [r.h2h.2, r.h2h.1, r.h2h.0] };
             let (name, target) = match other {
                 Side::Club(x) => (c.club_name(x), Some(Ref::club(x))),
                 Side::Nation(n) => (c.nation_name(n), Some(Ref::nation(n))),
@@ -381,7 +383,8 @@ pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
             };
             json!({
                 "with": target.map_or_else(|| Value::String(name.clone()), |t| named(t, name.clone())), "intensity": r.intensity,
-                "why": r.kinds.iter().map(|k| rivalry_word(*k)).collect::<Vec<_>>(), "record": [r.h2h.0, r.h2h.1, r.h2h.2], "since": r.since.0, "last_met": r.last_meeting.0,
+                "why": r.kinds.iter().map(|k| rivalry_word(*k)).collect::<Vec<_>>(), "record": record, "since": r.since.0,
+                "last_met": if r.last_meeting.0 > 0 { json!(r.last_meeting.0) } else { Value::Null },
             })
         })
         .collect();

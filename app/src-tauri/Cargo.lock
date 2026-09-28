@@ -2454,6 +2454,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pw-career"
+version = "0.1.0"
+dependencies = [
+ "pw-core",
+ "pw-data",
+ "pw-match",
+ "pw-narrate",
+ "pw-sim",
+ "pw-world",
+ "serde",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "pw-core"
 version = "0.1.0"
 dependencies = [
@@ -2500,6 +2514,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pw-narrate"
+version = "0.1.0"
+dependencies = [
+ "pw-core",
+ "pw-data",
+ "pw-world",
+]
+
+[[package]]
 name = "pw-sim"
 version = "0.1.0"
 dependencies = [
@@ -2520,10 +2543,12 @@ dependencies = [
 name = "pw-view"
 version = "0.1.0"
 dependencies = [
+ "pw-career",
  "pw-core",
  "pw-data",
  "pw-import",
  "pw-match",
+ "pw-narrate",
  "pw-sim",
  "pw-world",
  "rustc-hash",

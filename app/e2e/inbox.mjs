@@ -41,6 +41,10 @@ await page.waitForSelector(".msglist, .empty", { timeout: 10000 });
 await page.waitForTimeout(400);
 const threads = await page.locator(".msglist > li").count();
 check(threads > 0, `the inbox lists conversations (${threads})`);
+// the tab strip belongs right under the heading; a page grid with too few rows once pushed it to the middle of the window
+const tabsTop = await page.locator(".inbox-page .tabs").evaluate((el) => el.getBoundingClientRect().top);
+const headBottom = await page.locator(".inbox-page h1").evaluate((el) => el.getBoundingClientRect().bottom);
+check(tabsTop - headBottom < 90, `the tabs sit under the heading (${Math.round(tabsTop - headBottom)}px apart)`);
 
 // open the one that needs an answer, else the first
 const urgent = page.locator(".msglist a.msg.urgent").first();

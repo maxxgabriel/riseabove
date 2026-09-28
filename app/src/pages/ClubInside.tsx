@@ -45,7 +45,7 @@ export interface Systems {
     influential: { who: Named; influence: number; standing: string | null }[];
   };
   sponsors: { brand: string; slot: string; until: number; fee: number | null }[];
-  rivalries: { with: Named | string; intensity: number; why: string[]; record: [number, number, number]; since: number; last_met: number }[];
+  rivalries: { with: Named | string; intensity: number; why: string[]; record: [number, number, number]; since: number; last_met: number | null }[];
   supporters: { kind: string; size: number; manager: number; board: number; team: number; voice: number; last_acted: number }[];
   culture: null | {
     identity: { youth: number; local: number; flair: number; grit: number; underdog: number; glamour: number };
@@ -324,7 +324,10 @@ export function FansTab({ club, s }: { club: number; s: Systems }) {
                     <span className="grow">
                       <strong>{typeof r.with === "string" ? r.with : <EntityLink r={r.with}>{r.with.name}</EntityLink>}</strong>
                       <span className="muted"> · {r.why.length ? r.why.join(", ") : "no particular reason"}</span>
-                      <span className="hint block">Since <Dt d={r.since} year />; last met <Dt d={r.last_met} year />; record {r.record[0]}-{r.record[1]}-{r.record[2]}</span>
+                      <span className="hint block">
+                        Since <Dt d={r.since} year />
+                        {r.last_met == null ? "; they have not played each other yet" : <>; last met <Dt d={r.last_met} year />; won {r.record[0]}, drawn {r.record[1]}, lost {r.record[2]}</>}
+                      </span>
                     </span>
                     <Meter value={r.intensity} tone={r.intensity > 66 ? "neg" : "warn"} label={r.intensity > 66 ? "Bitter" : r.intensity > 33 ? "Heated" : "Mild"} />
                   </li>

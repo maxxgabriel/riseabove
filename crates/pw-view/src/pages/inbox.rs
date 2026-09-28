@@ -559,7 +559,7 @@ pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let meeting = if let E::Meeting { meeting, .. } = e.kind { meeting_json(c, &w.meetings.list[meeting]) } else { Value::Null };
         let story = if let E::Published { story } = e.kind {
             let s = &w.media.stories[story];
-            json!({"outlet": pw_narrate::press::outlet_name(w, s), "headline": pw_narrate::press::headline(w, s), "body": pw_narrate::press::body(w, s), "date": s.date.0})
+            json!({"outlet": pw_narrate::press::outlet_name(w, s), "headline": c.headline(s), "body": c.story_body(s), "date": s.date.0})
         } else {
             Value::Null
         };

@@ -4,6 +4,8 @@
 
 use pw_core::{Attr, ClubId, CompId, NationId, PersonId, PlayerId, TeamId};
 use pw_world::knowledge::{Observer, field, perceive, sigma};
+use pw_world::media::{Story, StoryLink};
+use pw_world::socialnet::{Frame, Post};
 use pw_world::{PlayerStatus, World};
 
 use crate::model::Ref;
@@ -174,6 +176,37 @@ impl<'a> Ctx<'a> {
             return Vec::new();
         }
         self.w.fixtures.iter().map(|(_, f)| f).filter(|f| self.s.meta.concealed.contains(&f.uid) && f.score.is_some()).collect()
+    }
+
+    /// A match report that would give away a result the viewer has not revealed yet.
+    pub fn story_spoils(&self, s: &Story) -> bool {
+        !self.s.meta.concealed.is_empty() && matches!(self.w.media.links.get(&s.id), Some(StoryLink::Fixture { uid, .. }) if self.s.meta.concealed.contains(uid))
+    }
+
+    /// A post about a result the viewer has not revealed yet.
+    pub fn post_spoils(&self, p: &Post) -> bool {
+        if self.s.meta.concealed.is_empty() {
+            return false;
+        }
+        match p.frame {
+            Frame::Result { uid } | Frame::LateWinner { uid, .. } | Frame::HatTrick { uid, .. } | Frame::RedCard { uid, .. } => self.s.meta.concealed.contains(&uid),
+            Frame::Story { story } => self.w.media.stories.get(story).is_some_and(|s| self.story_spoils(s)),
+            _ => false,
+        }
+    }
+
+    /// The headline of a story, unless it names a result the viewer is keeping unseen.
+    pub fn headline(&self, s: &Story) -> String {
+        if self.story_spoils(s) { "A match report, held back until you reveal the result".to_string() } else { pw_narrate::press::headline(self.w, s) }
+    }
+
+    pub fn story_body(&self, s: &Story) -> String {
+        if self.story_spoils(s) { String::new() } else { pw_narrate::press::body(self.w, s) }
+    }
+
+    /// The words of a post, unless it talks about a result the viewer is keeping unseen.
+    pub fn post_text(&self, p: &Post) -> String {
+        if self.post_spoils(p) { "Talking about a result you have not revealed yet".to_string() } else { pw_narrate::social::post(self.w, p) }
     }
 
     pub fn is_concealed(&self, uid: u64) -> bool {

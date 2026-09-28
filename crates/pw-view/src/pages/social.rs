@@ -42,7 +42,7 @@ pub fn post_json(c: &Ctx, p: &Post, depth: u8) -> Value {
     json!({
         "id": p.id, "date": p.date.0,
         "author": {"handle": a.handle, "display": a.display, "kind": kind_label(a.kind), "followers": a.followers, "person": author_person, "you": Some(a.person) == c.me()},
-        "text": pw_narrate::social::post(w, p),
+        "text": c.post_text(p),
         "about": about, "likes": p.likes, "reposts": p.reposts, "replies": p.replies,
         "reply_to": if p.reply_to != NO_POST { json!(p.reply_to) } else { Value::Null },
         "quote_of": if p.quote_of != NO_POST { json!(p.quote_of) } else { Value::Null },

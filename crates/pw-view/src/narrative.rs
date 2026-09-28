@@ -269,6 +269,9 @@ fn spoils(c: &Ctx, e: &Event) -> bool {
     if c.s.meta.concealed.is_empty() {
         return false;
     }
+    if let E::Published { story } = e.kind {
+        return c.w.media.stories.get(story).is_some_and(|s| c.story_spoils(s));
+    }
     let team_of_event = match e.kind {
         E::Debut { team, .. } | E::FirstGoal { team, .. } => Some(team),
         E::Injured { player, .. } | E::Suspended { player, .. } => Some(c.w.players.hot[player].team).filter(|t| t.is_some()),

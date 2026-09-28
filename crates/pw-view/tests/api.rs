@@ -219,6 +219,73 @@ fn results_stay_hidden_until_revealed() {
     assert!(shown["score"].is_object());
 }
 
+/// Every sentence the viewer can read about a club, with where it was found.
+fn everything_readable(api: &Api, club: u64) -> Vec<(&'static str, String)> {
+    fn words(v: &Value, place: &'static str, out: &mut Vec<(&'static str, String)>) {
+        match v {
+            Value::String(s) => out.push((place, s.clone())),
+            Value::Array(a) => a.iter().for_each(|x| words(x, place, out)),
+            Value::Object(o) => o.values().for_each(|x| words(x, place, out)),
+            _ => {}
+        }
+    }
+    let mut all = Vec::new();
+    for table in ["stories", "posts", "events"] {
+        if let Ok(v) = api.call("table.query", json!({"table": table, "filters": {"club": club}, "limit": 200})) {
+            words(&v, table, &mut all);
+        }
+    }
+    for method in ["me.today", "me.feed", "me.inbox", "me.press"] {
+        if let Ok(v) = api.call(method, json!({})) {
+            words(&v, method, &mut all);
+        }
+    }
+    all
+}
+
+/// Is `score` (like "1-2") written out as a scoreline, and not part of a longer run of digits and dashes?
+fn shows_scoreline(text: &str, score: &str) -> bool {
+    let bytes = text.as_bytes();
+    text.match_indices(score).any(|(i, _)| {
+        let before = i == 0 || !(bytes[i - 1].is_ascii_digit() || bytes[i - 1] == b'-');
+        let after = i + score.len() >= bytes.len() || !(bytes[i + score.len()].is_ascii_digit() || bytes[i + score.len()] == b'-');
+        before && after
+    })
+}
+
+#[test]
+fn a_concealed_result_is_not_given_away_by_the_press_or_the_crowd() {
+    let api = api();
+    let me = inhabit_one(&api);
+    let club_name = api.call("world.status", json!({})).unwrap()["perspective"]["club"].as_str().unwrap().to_string();
+    let club = table(&api, "clubs", json!({"q": club_name}), 1)["rows"][0]["id"].as_u64().unwrap();
+    let mut seen_after_reveal = 0;
+    for _ in 0..12 {
+        api.call("advance.start", json!({"mode": "until_match"})).unwrap();
+        if wait_job(&api)["stop"]["kind"] != "match" {
+            continue;
+        }
+        let f = api.call("table.query", json!({"table": "fixtures", "filters": {"mine": true, "played": true}, "limit": 5, "sort": {"key": "date", "desc": true}})).unwrap();
+        let uid = f["rows"][0]["open"]["id"].as_u64().unwrap();
+        let watched = api.call("match.watch", json!({"uid": uid})).unwrap();
+        let score = watched["score"]["text"].as_str().unwrap().to_string();
+        let teams = [watched["home"]["short"].as_str().unwrap().to_string(), watched["away"]["short"].as_str().unwrap().to_string()];
+        // Give the press and supporters a day to write about it.
+        advance(&api, 2);
+        let plain = score.replace('\u{2013}', "-");
+        // A sentence gives the result away when it names both sides and writes out the score.
+        let printed = |text: &str| teams.iter().all(|t| text.contains(t.as_str())) && (shows_scoreline(text, &score) || shows_scoreline(text, &plain));
+        for (place, text) in everything_readable(&api, club) {
+            assert!(!printed(&text), "the result leaked into {place} while it was unrevealed (person {me}): {text}");
+        }
+        api.call("match.reveal", json!({"uid": uid})).unwrap();
+        if everything_readable(&api, club).iter().any(|(_, text)| printed(text)) {
+            seen_after_reveal += 1;
+        }
+    }
+    assert!(seen_after_reveal > 0, "the check never met a scoreline in print, so it proved nothing");
+}
+
 #[test]
 fn save_and_load_round_trip() {
     let api = api();

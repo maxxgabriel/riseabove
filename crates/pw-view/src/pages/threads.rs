@@ -124,8 +124,8 @@ fn line(c: &Ctx, m: &Message) -> String {
             None => format!("{} told you something.", c.person_name(from)),
         },
         MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).and_then(|e| pw_narrate::events::line(w, e, me)).unwrap_or_default(),
-        MsgSource::Story { story } => pw_narrate::press::headline(w, &w.media.stories[story]),
-        MsgSource::Mention { post } => w.net.post(post).map_or_else(String::new, |p| format!("{}: {}", w.net.accounts[p.author as usize].display, pw_narrate::social::post(w, p))),
+        MsgSource::Story { story } => c.headline(&w.media.stories[story]),
+        MsgSource::Mention { post } => w.net.post(post).map_or_else(String::new, |p| format!("{}: {}", w.net.accounts[p.author as usize].display, c.post_text(p))),
         MsgSource::Question { conference, question } => pw_narrate::press::question(w, conference, question),
     }
 }
@@ -188,7 +188,7 @@ fn message_json(c: &Ctx, m: &Message) -> Value {
         }
         MsgSource::Story { story } => {
             let s = &w.media.stories[story];
-            v["story"] = json!({"id": story.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": pw_narrate::press::headline(w, s), "body": pw_narrate::press::body(w, s), "date": s.date.0});
+            v["story"] = json!({"id": story.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": c.headline(s), "body": c.story_body(s), "date": s.date.0});
         }
         MsgSource::Mention { post } => {
             if let Some(p) = w.net.post(post) {
@@ -206,11 +206,11 @@ fn thread_title(c: &Ctx, t: &Thread) -> (String, Option<Value>, &'static str) {
     match t.key {
         ThreadKey::With(p) => (c.person_name(p), Some(named(Ref::person(p), c.person_name(p))), "person"),
         ThreadKey::Press(id) => {
-            let title = w.media.threads.get(id as usize).and_then(|th| th.stories.last()).map_or_else(|| "In the press".to_string(), |&s| pw_narrate::press::headline(w, &w.media.stories[s]));
+            let title = w.media.threads.get(id as usize).and_then(|th| th.stories.last()).map_or_else(|| "In the press".to_string(), |&s| c.headline(&w.media.stories[s]));
             (short(&title, 70), None, "press")
         }
         ThreadKey::Post(root) => {
-            let text = w.net.post(root).map_or_else(String::new, |p| pw_narrate::social::post(w, p));
+            let text = w.net.post(root).map_or_else(String::new, |p| c.post_text(p));
             (if text.is_empty() { "Online".to_string() } else { format!("Online: {}", short(&text, 50)) }, None, "post")
         }
         ThreadKey::Club(cl) => (c.club_name(cl), Some(named(Ref::club(cl), c.club_name(cl))), "club"),

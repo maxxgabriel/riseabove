@@ -251,7 +251,7 @@ pub fn rumours(c: &Ctx) -> ApiResult<Value> {
                 let s = &w.media.stories[story];
                 rows.push(json!({
                     "kind": "rumour", "date": b.date.0, "via": pw_narrate::press::outlet_name(w, s), "confidence": b.confidence,
-                    "text": pw_narrate::press::headline(w, s),
+                    "text": c.headline(s),
                 }));
             }
             _ => {}
@@ -274,7 +274,7 @@ pub fn press(c: &Ctx) -> ApiResult<Value> {
         .take(30)
         .map(|s| {
             json!({
-                "id": s.id.0, "date": s.date.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": pw_narrate::press::headline(w, s),
+                "id": s.id.0, "date": s.date.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": c.headline(s),
                 "about_you": s.person == me,
             })
         })
@@ -324,8 +324,8 @@ pub fn story(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let w = c.w;
     let s = w.media.stories.get(sid).ok_or_else(|| ApiError::NotFound("story".into()))?;
     Ok(json!({
-        "id": id, "date": s.date.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": pw_narrate::press::headline(w, s),
-        "body": pw_narrate::press::body(w, s),
+        "id": id, "date": s.date.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": c.headline(s),
+        "body": c.story_body(s),
     }))
 }
 
