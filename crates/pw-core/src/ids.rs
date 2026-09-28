@@ -77,4 +77,9 @@ define_ids!(
     DecisionId,
     CultureId,
     TalkId,
+    EventId,
+    AgentId,
+    OutletId,
+    StoryId,
+    MeetingId,
 );

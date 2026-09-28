@@ -21,6 +21,14 @@ pub mod stream {
     pub const MEDIA: u64 = 0x0f;
     pub const MIND: u64 = 0x10;
     pub const BOARD: u64 = 0x11;
+    pub const SOCIAL: u64 = 0x12;
+    pub const TALK: u64 = 0x13;
+    pub const AGENT: u64 = 0x14;
+    pub const FAMILY: u64 = 0x15;
+    pub const INTENT: u64 = 0x16;
+    pub const PLAYTHROUGH: u64 = 0x17;
+    pub const NEGOTIATION: u64 = 0x18;
+    pub const NARRATION: u64 = 0x19;
 }
 
 #[inline]

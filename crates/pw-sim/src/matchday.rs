@@ -175,6 +175,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
             h.condition = line.condition_end;
             h.sharpness = (f32::from(h.sharpness) + f32::from(line.minutes) / 90.0 * 14.0).min(100.0) as u8;
             h.minutes_4w = h.minutes_4w.saturating_add(u16::from(line.minutes));
+            h.minutes_week = h.minutes_week.saturating_add(u16::from(line.minutes));
             h.push_rating(line.rating);
             h.last_match = today;
             let load = f32::from(line.minutes) * 9.0;

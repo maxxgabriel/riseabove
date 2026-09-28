@@ -1,22 +1,27 @@
-//! Minds and the DecisionPort (01 §5). Every offer to a player goes through
-//! `propose`: AI minds answer now; external minds receive a decision request
-//! whose default is what their own AI mind would have chosen (P1).
+//! Minds and the DecisionPort (01 §5, S5–S6). Every request to a person goes
+//! through here: AI minds answer now; external minds receive a decision whose
+//! options were generated from state and whose default is what their own AI
+//! mind would have chosen (P1). Contract talks and conversations have their
+//! own resolvers (`negotiation`, `talk`); this module routes answers to them.
 
-use pw_core::rng::{hash_key, noise, stream};
-use pw_core::{ClubId, Hidden, Money, PlayerId};
-use pw_world::decision::{Decision, DecisionKind};
-use pw_world::event::{EventKind, Visibility};
+use pw_core::rng::{Rng, hash_key, noise, stream};
+use pw_core::{ClubId, Hidden, Money, PersonId, PlayerId};
+use pw_world::decision::{Choice, Decision, DecisionKind};
+use pw_world::event::{Cause, Causes, EventKind, Visibility};
+use pw_world::negotiation::TalkKind;
 use pw_world::world::PendingDeal;
-use pw_world::{Contract, Loan, MindKind, TeamKind, World};
+use pw_world::{Loan, MemoryKind, MindKind, PartnerAsk, TeamKind, World};
 
-use crate::{contracts, market};
+use crate::{consider, market, negotiation};
 
 #[derive(Clone, Debug)]
 pub enum Proposal {
-    Transfer { buyer: ClubId, seller: ClubId, fee: Money, contract: Contract },
-    Renewal { contract: Contract },
+    /// Clubs agreed a fee; personal terms follow in talks.
+    Transfer { buyer: ClubId, seller: ClubId, fee: Money },
+    /// The club wants to extend the player's deal.
+    Renewal,
     Loan { loan: Loan },
-    FreeAgent { club: ClubId, contract: Contract },
+    FreeAgent { club: ClubId },
 }
 
 /// Share of first-team minutes a player of ability `ca` could expect at `club`.
@@ -32,10 +37,13 @@ pub fn expected_share(w: &World, club: ClubId, ca: u8, exclude: PlayerId) -> f32
 }
 
 /// Player-side utility of moving to `club` for `wage` vs staying put (08 §4, 17 §6).
+/// Weighs level, minutes, money, trophies, loyalty, the household's ties and
+/// how things stand with the current manager.
 pub fn move_utility(w: &World, p: PlayerId, club: ClubId, wage: Money) -> f32 {
     let h = &w.players.hot[p];
     let c = &w.players.cold[p];
-    let person = &w.people[c.person];
+    let who = c.person;
+    let person = &w.people[who];
     let hid = |x: Hidden| person.hidden.f(x);
     let cur = h.club;
     let rep = |cl: ClubId| if cl.is_some() { f32::from(w.clubs[cl].reputation) / 10_000.0 } else { 0.0 };
@@ -45,10 +53,13 @@ pub fn move_utility(w: &World, p: PlayerId, club: ClubId, wage: Money) -> f32 {
     let money = (pw_core::math::ln((wage as f32 + 50.0) / (cur_wage as f32 + 50.0)) / 2.0).clamp(-1.0, 1.0);
     let years_here = if cur.is_some() { (c.joined.days_until(w.date) as f32 / 365.0).min(10.0) } else { 0.0 };
     let loyalty = years_here * hid(Hidden::Loyalty) / 20.0 * 0.08;
-    let home_nation = person.nation;
-    let abroad = |cl: ClubId| cl.is_some() && w.clubs[cl].nation != home_nation;
-    let life_cost = |cl: ClubId| if abroad(cl) { (1.0 - hid(Hidden::Adaptability) / 20.0) * 0.3 } else { 0.0 };
-    let life = life_cost(cur) - life_cost(club);
+    let to_nation = w.clubs[club].nation;
+    let life = -consider::household_move_cost(w, who, to_nation);
+    // Unhappiness with the current manager or fans makes leaving more attractive.
+    let push = match w.manager_of_player(p) {
+        Some(m) if cur.is_some() => consider::grievance(w, who, m) * 0.15 + consider::minutes_grievance(w, p) * 0.2,
+        _ => 0.0,
+    } + if w.market.has_requested(p) { 0.2 } else { 0.0 };
 
     let (wl, wp, wm, wt, wy, wf) = if hid(Hidden::Ambition) >= 15.0 {
         (0.30, 0.20, 0.15, 0.20, 0.05, 0.10)
@@ -61,134 +72,184 @@ pub fn move_utility(w: &World, p: PlayerId, club: ClubId, wage: Money) -> f32 {
     } else {
         (0.22, 0.22, 0.2, 0.12, 0.1, 0.14)
     };
-    wl * level * 3.0 + wp * pt * 2.0 + wm * money + wt * level * 2.0 - wy * loyalty * 3.0 + wf * life * 2.0
+    wl * level * 3.0 + wp * pt * 2.0 + wm * money + wt * level * 2.0 - wy * loyalty * 3.0 + wf * life * 2.0 + push
 }
 
-/// What this player's own AI mind would do with an offer.
-pub fn ai_accepts(w: &World, p: PlayerId, prop: &Proposal) -> bool {
+/// What this player's own AI mind would do with a loan proposal.
+fn ai_accepts_loan(w: &World, p: PlayerId, loan: &Loan) -> bool {
     let jitter = 0.05 * noise(&[w.seed, stream::MIND, u64::from(p.0), w.date.0 as u64]);
     let c = &w.players.cold[p];
-    let person = &w.people[c.person];
-    match prop {
-        Proposal::Transfer { buyer, contract, .. } => move_utility(w, p, *buyer, contract.wage) + jitter > 0.04,
-        Proposal::FreeAgent { club, contract } => move_utility(w, p, *club, contract.wage) + jitter > -0.35,
-        Proposal::Loan { loan } => {
-            let gain = expected_share(w, loan.club, c.ca, p) - expected_share(w, loan.parent, c.ca, p);
-            gain + jitter > 0.1
-        }
-        Proposal::Renewal { contract } => {
-            let demand = market::wage_demand(w, p, contract.club) as f32;
-            let loyal = person.hidden.f(Hidden::Loyalty) / 100.0;
-            let age = person.age(w.date);
-            contract.wage as f32 >= demand * (0.92 - loyal) + jitter * demand || age >= 32
-        }
-    }
+    let gain = expected_share(w, loan.club, c.ca, p) - expected_share(w, loan.parent, c.ca, p);
+    let cost = consider::household_move_cost(w, c.person, w.clubs[loan.club].nation) * 0.3;
+    gain - cost + jitter > 0.1
 }
 
 /// Put an offer to a player. Returns `Some(accepted)` when resolved now, `None` when pending.
 pub fn propose(w: &mut World, p: PlayerId, prop: Proposal) -> Option<bool> {
-    let accept = ai_accepts(w, p, &prop);
-    let person_id = w.players.cold[p].person;
-    if w.people[person_id].mind != MindKind::External {
-        if accept {
-            apply(w, p, &prop);
-        } else {
-            reject(w, p, &prop);
-        }
-        return Some(accept);
-    }
     let today = w.date;
-    let kind = match &prop {
-        Proposal::Transfer { buyer, contract, .. } => DecisionKind::ContractOffer { club: *buyer, contract: contract.clone(), renewal: false },
-        Proposal::Renewal { contract } => DecisionKind::ContractOffer { club: contract.club, contract: contract.clone(), renewal: true },
-        Proposal::Loan { loan } => DecisionKind::LoanOffer { loan: loan.clone() },
-        Proposal::FreeAgent { club, contract } => DecisionKind::FreeAgentOffer { club: *club, contract: contract.clone() },
-    };
-    let deadline_days = match &prop {
-        Proposal::Renewal { .. } => 14,
-        _ => 5,
-    };
-    let id = w.decisions.push(Decision {
-        person: person_id,
-        player: p,
+    match prop {
+        Proposal::Transfer { buyer, seller, fee } => {
+            let causes: Causes = pw_world::causes![Cause::Fact(pw_world::Fact::Tracking { club: buyer, player: p, minutes: consider::club_tracking(w, buyer, p) })];
+            negotiation::open(w, p, buyer, TalkKind::Transfer, seller, fee, None, causes).map(|_| true)
+        }
+        Proposal::FreeAgent { club } => {
+            let causes: Causes = pw_world::causes![Cause::Fact(pw_world::Fact::SquadNeed { club })];
+            negotiation::open(w, p, club, TalkKind::FreeAgent, ClubId::NONE, 0, None, causes).map(|_| true)
+        }
+        Proposal::Renewal => {
+            let club = w.players.hot[p].club;
+            let causes: Causes = pw_world::causes![Cause::Fact(pw_world::Fact::ContractRunningDown { player: p, days: consider::contract_days_left(w, p).max(0) as u16 })];
+            negotiation::open_renewal(w, p, club, causes).map(|_| true)
+        }
+        Proposal::Loan { loan } => {
+            let accept = ai_accepts_loan(w, p, &loan);
+            let person = w.players.cold[p].person;
+            if w.people[person].mind != MindKind::External {
+                if accept {
+                    market::execute_loan(w, p, loan);
+                } else {
+                    refuse_loan(w, p, &loan);
+                }
+                return Some(accept);
+            }
+            let kind = DecisionKind::LoanOffer { loan: loan.clone() };
+            let options = kind.simple_options();
+            let id = w.decisions.push(Decision {
+                person,
+                player: p,
+                kind,
+                options,
+                created: today,
+                deadline: today.add_days(5),
+                default: if accept { 0 } else { 1 },
+                answer: None,
+                resolved: false,
+            });
+            let (buyer, seller) = (loan.club, loan.parent);
+            w.market.pending.push(PendingDeal { player: p, buyer, seller, fee: loan.fee, contract: w.players.cold[p].contract.clone(), loan: Some(loan), decision: id });
+            None
+        }
+    }
+}
+
+fn refuse_loan(w: &mut World, p: PlayerId, loan: &Loan) {
+    let today = w.date;
+    w.market.cooldown.insert((loan.club, p), today.add_days(90));
+    // The parent club's manager remembers being turned down.
+    if let Some(m) = w.clubs[loan.parent].manager.get().map(|m| w.staff[m].person) {
+        let who = w.players.cold[p].person;
+        let compat = consider::compat(w, m, who);
+        let ev = w.events.push(today, Visibility::Club(loan.parent), EventKind::Interest { player: p, club: loan.club });
+        w.social.remember(m, who, MemoryKind::RefusedLoan, today, ev, false, 0.8, compat);
+    }
+}
+
+/// A partner raises the next step (or the end). `who` answers with their mind.
+pub fn partner_asks(w: &mut World, who: PersonId, partner: PersonId, ask: PartnerAsk) {
+    let today = w.date;
+    let accept = ai_partner_answer(w, who, partner, ask);
+    if w.people[who].mind != MindKind::External {
+        apply_partner_answer(w, who, partner, ask, accept);
+        return;
+    }
+    let kind = DecisionKind::Partner { partner, ask };
+    let options = kind.simple_options();
+    let player = w.people[who].player;
+    w.decisions.push(Decision {
+        person: who,
+        player,
         kind,
+        options,
         created: today,
-        deadline: today.add_days(deadline_days),
+        deadline: today.add_days(10),
         default: if accept { 0 } else { 1 },
         answer: None,
         resolved: false,
     });
-    match prop {
-        Proposal::Transfer { buyer, seller, fee, contract } => {
-            w.market.pending.push(PendingDeal { player: p, buyer, seller, fee, contract, loan: None, decision: id });
-            w.events.push(today, Visibility::Person(person_id), EventKind::Interest { player: p, club: buyer });
-        }
-        Proposal::Loan { loan } => {
-            let (buyer, seller) = (loan.club, loan.parent);
-            w.market.pending.push(PendingDeal { player: p, buyer, seller, fee: loan.fee, contract: w.players.cold[p].contract.clone(), loan: Some(loan), decision: id });
-        }
-        _ => {}
-    }
-    None
 }
 
-fn apply(w: &mut World, p: PlayerId, prop: &Proposal) {
-    match prop {
-        Proposal::Transfer { buyer, seller, fee, contract } => market::execute_transfer(w, p, *buyer, *seller, *fee, contract.clone()),
-        Proposal::Renewal { contract } => contracts::renew(w, p, contract.clone()),
-        Proposal::Loan { loan } => market::execute_loan(w, p, loan.clone()),
-        Proposal::FreeAgent { club, contract } => market::execute_transfer(w, p, *club, ClubId::NONE, 0, contract.clone()),
+fn ai_partner_answer(w: &World, who: PersonId, partner: PersonId, ask: PartnerAsk) -> bool {
+    let bond = w.lives[who].partner().filter(|p| p.person == partner).map_or(0, |p| p.bond);
+    let loyal = w.people[who].hidden.f(Hidden::Loyalty) / 20.0;
+    let age = consider::age(w, who);
+    let r = (hash_key(&[w.seed, stream::FAMILY, u64::from(who.0), w.date.0 as u64]) % 1000) as f32 / 1000.0;
+    match ask {
+        PartnerAsk::MoveIn => f32::from(bond) / 100.0 + loyal * 0.2 > 0.7 + r * 0.2,
+        PartnerAsk::Marry => f32::from(bond) / 100.0 + loyal * 0.3 + if age > 26.0 { 0.1 } else { -0.1 } > 0.85 + r * 0.2,
+        PartnerAsk::Separate => bond < 40,
     }
 }
 
-fn reject(w: &mut World, p: PlayerId, prop: &Proposal) {
-    let until = w.date.add_days(90);
-    let club = match prop {
-        Proposal::Transfer { buyer, .. } | Proposal::FreeAgent { club: buyer, .. } => *buyer,
-        Proposal::Loan { loan } => loan.club,
-        Proposal::Renewal { contract } => contract.club,
-    };
-    w.market.cooldown.insert((club, p), until);
+pub fn apply_partner_answer(w: &mut World, who: PersonId, partner: PersonId, ask: PartnerAsk, accept: bool) {
+    let today = w.date;
+    if w.lives[who].partner().is_none_or(|p| p.person != partner) {
+        return;
+    }
+    if accept {
+        crate::life::advance_relationship(w, who, partner, ask);
+    } else if ask != PartnerAsk::Separate {
+        let compat = consider::compat(w, partner, who);
+        w.social.remember(partner, who, MemoryKind::Refused, today, pw_core::EventId::NONE, false, 1.0, compat);
+        if let Some(p) = w.lives[who].household.partner.as_mut() {
+            p.bond = p.bond.saturating_sub(8);
+        }
+        if let Some(p) = w.lives[partner].household.partner.as_mut() {
+            p.bond = p.bond.saturating_sub(8);
+        }
+    }
 }
 
 /// Apply every answered or expired decision (01 §5: defaults at deadlines).
 pub fn resolve_due(w: &mut World) {
     for id in w.decisions.due(w.date) {
-        let (p, kind, choice) = {
-            let d = &mut w.decisions.all[id];
-            d.resolved = true;
-            (d.player, d.kind.clone(), d.answer.unwrap_or(d.default))
+        let (p, person, kind, choice) = {
+            let d = &w.decisions.all[id];
+            (d.player, d.person, d.kind.clone(), d.chosen())
         };
-        let accepted = choice == 0;
-        let pending_idx = w.market.pending.iter().position(|d| d.decision == id);
-        let deal = pending_idx.map(|i| w.market.pending.remove(i));
-        let prop = match (kind, deal) {
-            (DecisionKind::ContractOffer { renewal: true, contract, .. }, _) => Proposal::Renewal { contract },
-            (DecisionKind::ContractOffer { .. }, Some(d)) => Proposal::Transfer { buyer: d.buyer, seller: d.seller, fee: d.fee, contract: d.contract },
-            (DecisionKind::LoanOffer { loan }, _) => Proposal::Loan { loan },
-            (DecisionKind::FreeAgentOffer { club, contract }, _) => Proposal::FreeAgent { club, contract },
-            _ => continue,
-        };
-        if accepted && still_valid(w, p, &prop) {
-            apply(w, p, &prop);
-        } else {
-            reject(w, p, &prop);
+        w.decisions.resolve(id);
+        match kind {
+            DecisionKind::Negotiation { talk } => negotiation::answer(w, talk, choice),
+            DecisionKind::Meeting { meeting } => {
+                let tone = match choice {
+                    Choice::Respond(t) => t,
+                    _ => pw_world::Tone::Calm,
+                };
+                crate::talk::respond(w, meeting, tone);
+            }
+            DecisionKind::Partner { partner, ask } => apply_partner_answer(w, person, partner, ask, choice == Choice::Accept),
+            DecisionKind::LoanOffer { loan } => {
+                let pending_idx = w.market.pending.iter().position(|d| d.decision == id);
+                if let Some(i) = pending_idx {
+                    w.market.pending.remove(i);
+                }
+                let valid = w.players.hot[p].club == loan.parent && w.players.cold[p].loan.is_none();
+                if choice == Choice::Accept && valid {
+                    market::execute_loan(w, p, loan);
+                } else {
+                    refuse_loan(w, p, &loan);
+                }
+            }
+            DecisionKind::ContractOffer { contract, renewal, .. } => {
+                if choice == Choice::Accept && renewal && w.players.hot[p].club == contract.club {
+                    crate::contracts::renew(w, p, contract);
+                }
+            }
+            DecisionKind::FreeAgentOffer { club, contract } => {
+                if choice == Choice::Accept && w.players.hot[p].status == pw_world::PlayerStatus::FreeAgent {
+                    market::execute_transfer(w, p, club, ClubId::NONE, 0, contract);
+                }
+            }
+            DecisionKind::TransferTalks { .. } => {}
         }
-    }
-}
-
-/// The world may have moved on while a decision was pending.
-fn still_valid(w: &World, p: PlayerId, prop: &Proposal) -> bool {
-    let h = &w.players.hot[p];
-    match prop {
-        Proposal::Transfer { seller, .. } => h.club == *seller && h.status != pw_world::PlayerStatus::Retired,
-        Proposal::Renewal { contract } => h.club == contract.club,
-        Proposal::Loan { loan } => h.club == loan.parent && w.players.cold[p].loan.is_none(),
-        Proposal::FreeAgent { .. } => h.status == pw_world::PlayerStatus::FreeAgent,
     }
 }
 
 /// Stable per-(player, key) coin for AI choices that aren't utility-driven.
 pub fn coin(w: &World, p: PlayerId, key: u64) -> f32 {
     (hash_key(&[w.seed, stream::MIND, u64::from(p.0), key]) % 10_000) as f32 / 10_000.0
+}
+
+/// Mind-seeded RNG for a person's own choices this day.
+pub fn mind_rng(w: &World, person: PersonId, key: u64) -> Rng {
+    Rng::keyed(&[w.seed, stream::MIND, u64::from(person.0), w.date.0 as u64, key])
 }

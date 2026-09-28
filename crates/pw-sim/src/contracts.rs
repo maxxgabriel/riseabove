@@ -1,7 +1,6 @@
 //! Contracts (08 §5): expiry, loan ends, renewals, release.
 
 use pw_core::PlayerId;
-use pw_world::decision::DecisionKind;
 use pw_world::event::{EventKind, Visibility};
 use pw_world::{Contract, PlayerStatus, SquadStatus, World};
 
@@ -92,7 +91,7 @@ pub fn weekly(w: &mut World) {
         if !wanted || w.market.on_cooldown(h.club, p, today) {
             continue;
         }
-        if w.decisions.has_open(p, |k| matches!(k, DecisionKind::ContractOffer { renewal: true, .. })) {
+        if crate::negotiation::in_talks(w, p) {
             continue;
         }
         // Stagger: each player is looked at once a month.
@@ -101,13 +100,8 @@ pub fn weekly(w: &mut World) {
         }
         offers.push((p, h.club));
     }
-    for (p, club) in offers {
-        let mut contract = market::new_contract(w, p, club, 1.0);
-        let current = w.players.cold[p].contract.current_wage(today);
-        contract.wage = contract.wage.max(current);
-        contract.start = today;
-        if decisions::propose(w, p, Proposal::Renewal { contract }) == Some(false) {
-            w.market.cooldown.insert((club, p), today.add_days(120));
-        }
+    for (p, _club) in offers {
+        // Talks open; a breakdown puts the club on cooldown inside the talks system.
+        decisions::propose(w, p, Proposal::Renewal);
     }
 }

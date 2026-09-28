@@ -1,7 +1,16 @@
-use pw_core::{ClubId, Date, DecisionId, IdVec, Money, PersonId, PlayerId};
-use serde::{Deserialize, Serialize};
+//! The DecisionPort (01 §5, S5–S6). A decision is something the world needs a
+//! person to answer: an offer, a summons, a counter in contract talks. The
+//! option set is generated from the current state; the person's own AI mind
+//! evaluates the same options and its choice becomes the default applied at
+//! the deadline. AI minds answer immediately; `External` minds (a human)
+//! answer through the client. The simulation never asks who is behind a mind.
 
-use crate::contract::{Contract, Loan};
+use pw_core::{ClubId, Date, DecisionId, IdVec, MeetingId, Money, PersonId, PlayerId, TalkId};
+use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
+
+use crate::contract::{Contract, Loan, SquadStatus};
+use crate::interaction::Tone;
 
 /// Who makes a person's choices. The simulation never asks *who* is behind an
 /// `External` mind; it only routes the request out and applies the default at
@@ -17,23 +26,40 @@ pub enum MindKind {
 pub enum DecisionKind {
     /// A club wants to talk about a transfer; accept means "open to talks".
     TransferTalks { club: ClubId, fee: Money },
-    /// Personal terms on the table (new club or renewal at the current club).
+    /// Personal terms on the table outside structured talks (legacy/simple offers).
     ContractOffer { club: ClubId, contract: Contract, renewal: bool },
     /// Parent club proposes a loan.
     LoanOffer { loan: Loan },
-    /// A club offers a trial or a contract to an unattached player.
+    /// A club offers a contract to an unattached player.
     FreeAgentOffer { club: ClubId, contract: Contract },
+    /// Your turn in contract talks.
+    Negotiation { talk: TalkId },
+    /// Someone has called a meeting with you, or answered yours.
+    Meeting { meeting: MeetingId },
+    /// A partner has proposed something that needs an answer.
+    Partner { partner: PersonId, ask: crate::intent::PartnerAsk },
+}
+
+/// One available answer. Choices are semantic; the client renders them.
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+pub enum Choice {
+    Accept,
+    Reject,
+    /// Counter-offer in talks.
+    Counter { wage: Money, years: u8, status: Option<SquadStatus>, release_clause: Money },
+    /// Answer a conversation in a tone.
+    Respond(Tone),
+    /// Refuse to take part.
+    Decline,
+}
+
+impl Choice {
+    pub fn is_positive(&self) -> bool {
+        matches!(self, Choice::Accept | Choice::Counter { .. } | Choice::Respond(_))
+    }
 }
 
 impl DecisionKind {
-    pub fn options(&self) -> &'static [&'static str] {
-        match self {
-            DecisionKind::TransferTalks { .. } => &["Open to talks", "Not interested"],
-            DecisionKind::ContractOffer { .. } | DecisionKind::FreeAgentOffer { .. } => &["Accept", "Reject"],
-            DecisionKind::LoanOffer { .. } => &["Accept loan", "Refuse"],
-        }
-    }
-
     pub fn title(&self) -> &'static str {
         match self {
             DecisionKind::TransferTalks { .. } => "Transfer approach",
@@ -41,7 +67,18 @@ impl DecisionKind {
             DecisionKind::ContractOffer { .. } => "Contract offer",
             DecisionKind::LoanOffer { .. } => "Loan proposal",
             DecisionKind::FreeAgentOffer { .. } => "Contract offer",
+            DecisionKind::Negotiation { .. } => "Contract talks",
+            DecisionKind::Meeting { .. } => "Meeting",
+            DecisionKind::Partner { .. } => "Your partner",
         }
+    }
+
+    /// The fixed two-way option set for simple offers.
+    pub fn simple_options(&self) -> SmallVec<[Choice; 5]> {
+        let mut v = SmallVec::new();
+        v.push(Choice::Accept);
+        v.push(Choice::Reject);
+        v
     }
 }
 
@@ -50,17 +87,28 @@ pub struct Decision {
     pub person: PersonId,
     pub player: PlayerId,
     pub kind: DecisionKind,
+    /// Options generated from state when the decision was raised.
+    pub options: SmallVec<[Choice; 5]>,
     pub created: Date,
     pub deadline: Date,
-    /// What this person's own AI mind would choose; applied at the deadline.
+    /// Index of what this person's own AI mind would choose; applied at the deadline.
     pub default: u8,
     pub answer: Option<u8>,
     pub resolved: bool,
 }
 
+impl Decision {
+    pub fn chosen(&self) -> Choice {
+        let i = usize::from(self.answer.unwrap_or(self.default));
+        self.options.get(i).copied().unwrap_or(Choice::Reject)
+    }
+}
+
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Decisions {
     pub all: IdVec<DecisionId, Decision>,
+    /// First unresolved decision (everything before is resolved) — keeps scans short.
+    pub cursor: u32,
 }
 
 impl Decisions {
@@ -68,13 +116,17 @@ impl Decisions {
         self.all.push(d)
     }
 
+    fn open(&self) -> impl Iterator<Item = (DecisionId, &Decision)> {
+        self.all.iter_enumerated().skip(self.cursor as usize).filter(|(_, d)| !d.resolved)
+    }
+
     pub fn pending_for(&self, person: PersonId) -> impl Iterator<Item = (DecisionId, &Decision)> {
-        self.all.iter_enumerated().filter(move |(_, d)| d.person == person && !d.resolved)
+        self.open().filter(move |(_, d)| d.person == person)
     }
 
     pub fn answer(&mut self, id: DecisionId, choice: u8) -> bool {
         match self.all.get_mut(id) {
-            Some(d) if !d.resolved && usize::from(choice) < d.kind.options().len() => {
+            Some(d) if !d.resolved && usize::from(choice) < d.options.len() => {
                 d.answer = Some(choice);
                 true
             }
@@ -84,14 +136,17 @@ impl Decisions {
 
     /// Decisions ready to apply today: answered, or past their deadline.
     pub fn due(&self, today: Date) -> Vec<DecisionId> {
-        self.all
-            .iter_enumerated()
-            .filter(|(_, d)| !d.resolved && (d.answer.is_some() || today >= d.deadline))
-            .map(|(id, _)| id)
-            .collect()
+        self.open().filter(|(_, d)| d.answer.is_some() || today >= d.deadline).map(|(id, _)| id).collect()
+    }
+
+    pub fn resolve(&mut self, id: DecisionId) {
+        self.all[id].resolved = true;
+        while (self.cursor as usize) < self.all.len() && self.all[DecisionId(self.cursor)].resolved {
+            self.cursor += 1;
+        }
     }
 
     pub fn has_open(&self, player: PlayerId, pred: impl Fn(&DecisionKind) -> bool) -> bool {
-        self.all.iter().any(|d| !d.resolved && d.player == player && pred(&d.kind))
+        self.open().any(|(_, d)| d.player == player && pred(&d.kind))
     }
 }

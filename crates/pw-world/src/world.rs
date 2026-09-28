@@ -3,7 +3,13 @@ use pw_data::DataPack;
 use pw_match::MatchResult;
 use serde::{Deserialize, Serialize};
 
+use crate::agent::Agents;
+use crate::beliefs::Beliefs;
 use crate::club::{Club, Team, TeamKind};
+use crate::intent::Intents;
+use crate::interaction::Meetings;
+use crate::life::Life;
+use crate::media::Media;
 use crate::comp::{Competition, Fixtures};
 use crate::contract::{Contract, Loan};
 use crate::decision::{Decisions, MindKind};
@@ -37,6 +43,14 @@ pub struct MarketBook {
     /// (buyer, player) → earliest date the buyer may approach again.
     pub cooldown: FxHashMap<(ClubId, PlayerId), Date>,
     pub pending: Vec<PendingDeal>,
+    /// Players who have handed in a transfer request, and when.
+    pub requests: FxHashMap<PlayerId, Date>,
+    /// Players their club has explicitly made available for transfer, and when.
+    pub listed: FxHashMap<PlayerId, Date>,
+    /// Players their club has agreed to loan out, and when.
+    pub loan_listed: FxHashMap<PlayerId, Date>,
+    /// Players currently in contract talks (one set of talks at a time).
+    pub talking: FxHashMap<PlayerId, pw_core::TalkId>,
 }
 
 impl MarketBook {
@@ -46,6 +60,10 @@ impl MarketBook {
 
     pub fn is_pending(&self, p: PlayerId) -> bool {
         self.pending.iter().any(|d| d.player == p)
+    }
+
+    pub fn has_requested(&self, p: PlayerId) -> bool {
+        self.requests.contains_key(&p)
     }
 }
 
@@ -71,9 +89,20 @@ pub struct World {
     pub market: MarketBook,
     pub social: Social,
     pub talks: IdVec<pw_core::TalkId, Negotiation>,
+    /// What individual people believe (S15).
+    pub beliefs: Beliefs,
+    /// Life off the pitch, one per person (aligned with `people`).
+    pub lives: IdVec<PersonId, Life>,
+    pub agents: Agents,
+    pub media: Media,
+    pub meetings: Meetings,
+    pub intents: Intents,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
+    /// Mixed into the seed when a playthrough begins, so two playthroughs of
+    /// the same starting world diverge while one save replays exactly (S22).
+    pub playthrough: u64,
 }
 
 impl World {
@@ -99,9 +128,83 @@ impl World {
             market: MarketBook::default(),
             social: Social::default(),
             talks: IdVec::new(),
+            beliefs: Beliefs::default(),
+            lives: IdVec::new(),
+            agents: Agents::default(),
+            media: Media::default(),
+            meetings: Meetings::default(),
+            intents: Intents::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
+            playthrough: 0,
         }
+    }
+
+    /// Inhabit a person: from now on their decisions come from outside the
+    /// simulation. Nothing else about the world changes (S4).
+    pub fn take_control(&mut self, person: PersonId) -> bool {
+        match self.people.get_mut(person) {
+            Some(p) => {
+                p.mind = MindKind::External;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Hand a person back to their own AI mind, which carries on from their
+    /// personality, values and memories (S4).
+    pub fn release_control(&mut self, person: PersonId) {
+        if let Some(p) = self.people.get_mut(person) {
+            p.mind = MindKind::Ai;
+        }
+    }
+
+    /// Start a new playthrough: future randomness diverges from any other
+    /// playthrough of the same world, while this one stays reproducible (S22).
+    pub fn begin_playthrough(&mut self, salt: u64) {
+        self.playthrough = pw_core::rng::hash_key(&[self.playthrough, salt]);
+        self.seed = pw_core::rng::hash_key(&[self.seed, pw_core::rng::stream::PLAYTHROUGH, self.playthrough]);
+    }
+
+    #[inline]
+    pub fn life(&self, person: PersonId) -> &Life {
+        &self.lives[person]
+    }
+
+    #[inline]
+    pub fn life_mut(&mut self, person: PersonId) -> &mut Life {
+        &mut self.lives[person]
+    }
+
+    /// The club a person currently works or plays for, if any.
+    pub fn club_of_person(&self, person: PersonId) -> ClubId {
+        let p = &self.people[person];
+        if p.player.is_some() {
+            let h = &self.players.hot[p.player];
+            if h.status == PlayerStatus::Active {
+                return h.club;
+            }
+        }
+        if p.staff.is_some() && self.staff[p.staff].employed() {
+            return self.staff[p.staff].club;
+        }
+        ClubId::NONE
+    }
+
+    /// The team a player currently plays for (loan club during a loan).
+    pub fn playing_club(&self, p: PlayerId) -> ClubId {
+        let t = self.players.hot[p].team;
+        if t.is_some() { self.teams[t].club } else { ClubId::NONE }
+    }
+
+    /// The manager (as a person) of the club a player trains with.
+    pub fn manager_of_player(&self, p: PlayerId) -> Option<PersonId> {
+        let club = self.playing_club(p);
+        if club.is_none() {
+            return None;
+        }
+        self.clubs[club].manager.get().map(|m| self.staff[m].person)
     }
 
     #[inline]

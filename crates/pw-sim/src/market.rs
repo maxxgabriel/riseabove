@@ -8,10 +8,11 @@ use pw_world::club::Need;
 use pw_world::contract::{ContractKind, Loan};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::rules::{can_sign, max_contract_years};
-use pw_world::{Contract, PlayerStatus, SquadStatus, TeamKind, World};
+use pw_world::{Contract, MemoryKind, PlayerStatus, SquadStatus, TeamKind, World};
 use rayon::prelude::*;
 use smallvec::SmallVec;
 
+use crate::consider;
 use crate::decisions::{self, Proposal};
 use crate::finance;
 use crate::perception::club_view;
@@ -98,19 +99,36 @@ pub fn monthly(w: &mut World) {
     }
 }
 
-/// Squad status from standing in the first-team pecking order (03 §9).
+/// Squad status from the manager's own view of the pecking order (03 §9):
+/// perceived ability, adjusted by how much he trusts and rates each player.
 fn assign_statuses(w: &mut World, club: ClubId) {
     let Some(team) = w.club_team(club, TeamKind::First) else { return };
-    let mut squad = w.teams[team].squad.clone();
-    squad.sort_by(|&a, &b| w.players.cold[b].ca.cmp(&w.players.cold[a].ca).then(a.cmp(&b)));
-    let n = squad.len();
-    for (rank, p) in squad.into_iter().enumerate() {
+    let today = w.date;
+    let manager = w.clubs[club].manager.get().map(|m| w.staff[m].person);
+    let mut ranked: Vec<(PlayerId, f32)> = w.teams[team]
+        .squad
+        .iter()
+        .map(|&p| {
+            let (ca, _, _, _) = club_view(w, club, p);
+            let who = w.players.cold[p].person;
+            let opinion = manager.map_or(0.0, |m| {
+                (consider::trust(w, m, who) - 0.5) * 12.0
+                    + w.social.get(m, who).map_or(0.0, |r| (f32::from(r.respect) - 50.0) * 0.15)
+                    - consider::memory(w, m, who, MemoryKind::PoorAttitude) * 4.0
+            });
+            (p, ca + opinion)
+        })
+        .collect();
+    ranked.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
+    let n = ranked.len();
+    for (rank, (p, _)) in ranked.into_iter().enumerate() {
         let age = w.age(p);
         let c = &mut w.players.cold[p];
         if let Some(promised) = c.contract.promised_status {
             c.status = promised;
             continue;
         }
+        let before = c.status;
         c.status = match rank {
             0..=1 => SquadStatus::Star,
             2..=5 => SquadStatus::Important,
@@ -121,6 +139,15 @@ fn assign_statuses(w: &mut World, club: ClubId) {
             _ if rank + 2 >= n => SquadStatus::NotNeeded,
             _ => SquadStatus::Fringe,
         };
+        let after = c.status;
+        let big = (before as i32 - after as i32).abs() >= 2 || matches!(after, SquadStatus::Star | SquadStatus::NotNeeded) != matches!(before, SquadStatus::Star | SquadStatus::NotNeeded);
+        if before != after && big && before != SquadStatus::Youngster {
+            let mut causes = pw_world::Causes::new();
+            if let Some(m) = manager {
+                causes.push(pw_world::Cause::Fact(pw_world::Fact::LowTrust { from: m, about: w.players.cold[p].person, trust: (consider::trust(w, m, w.players.cold[p].person) * 100.0) as u8 }));
+            }
+            w.events.push_caused(today, Visibility::Club(club), EventKind::StatusChanged { player: p, club, from: before, to: after }, causes);
+        }
     }
 }
 
@@ -159,8 +186,14 @@ fn plan_squad(w: &mut World, club: ClubId) {
     }
     needs.sort_by_key(|n| std::cmp::Reverse(n.urgency));
     w.clubs[club].market.needs = needs;
-    // Surplus goes on the list, and agents make sure other clubs hear about it.
-    let listed: Vec<PlayerId> = w.teams[team].squad.iter().copied().filter(|&p| w.players.cold[p].status == SquadStatus::NotNeeded).collect();
+    // Surplus goes on the list, along with anyone the club has made available
+    // or who has asked to leave; agents make sure other clubs hear about it.
+    let listed: Vec<PlayerId> = w.clubs[club]
+        .teams
+        .iter()
+        .flat_map(|&t| w.teams[t].squad.iter().copied())
+        .filter(|&p| w.players.cold[p].status == SquadStatus::NotNeeded || w.market.listed.contains_key(&p) || w.market.requests.contains_key(&p))
+        .collect();
     w.clubs[club].market.listed = listed;
 }
 
@@ -211,7 +244,7 @@ fn search(w: &mut World, club: ClubId) {
             if c.best_pos.group() != need.group && c.familiarity[need.pos.idx()] < 15 {
                 continue;
             }
-            if w.age(p) > u32::from(need.max_age) || w.market.on_cooldown(club, p, today) || w.market.is_pending(p) {
+            if w.age(p) > u32::from(need.max_age) || w.market.on_cooldown(club, p, today) || w.market.is_pending(p) || crate::negotiation::in_talks(w, p) {
                 continue;
             }
             let (ca, _, pa, _) = club_view(w, club, p);
@@ -224,7 +257,9 @@ fn search(w: &mut World, club: ClubId) {
             }
             let youth = if w.age(p) <= 23 { (pa - ca).max(0.0) * 0.3 } else { 0.0 };
             let cost = (fee as f32 / 1e6).sqrt() * 0.8;
-            let score = ca + youth - cost;
+            // Players known to be available are easier to get.
+            let available = if w.market.requests.contains_key(&p) || w.market.listed.contains_key(&p) { 3.0 } else { 0.0 };
+            let score = ca + youth - cost + available;
             if best.as_ref().is_none_or(|b| score > b.score) {
                 best = Some(Target { player: p, score, fee });
             }
@@ -250,7 +285,8 @@ pub fn asking_price(w: &World, p: PlayerId) -> Money {
     };
     let years = c.contract.days_left(w.date) as f32 / 365.0;
     let expiring = if years < 1.0 { 0.7 } else { 1.0 };
-    let v = (c.value as f32 * stance * expiring) as Money;
+    let unsettled = if w.market.requests.contains_key(&p) || w.market.listed.contains_key(&p) { 0.75 } else { 1.0 };
+    let v = (c.value as f32 * stance * expiring * unsettled) as Money;
     if c.contract.release_clause > 0 { v.min(c.contract.release_clause) } else { v }
 }
 
@@ -274,8 +310,7 @@ fn approach(w: &mut World, buyer: ClubId, p: PlayerId, asking: Money) {
     if seller.is_some() {
         w.events.push(today, Visibility::Club(seller), EventKind::BidAccepted { player: p, club: buyer, fee });
     }
-    let contract = new_contract(w, p, buyer, rng.range_f32(1.0, 1.2));
-    let prop = if seller.is_none() { Proposal::FreeAgent { club: buyer, contract } } else { Proposal::Transfer { buyer, seller, fee, contract } };
+    let prop = if seller.is_none() { Proposal::FreeAgent { club: buyer } } else { Proposal::Transfer { buyer, seller, fee } };
     decisions::propose(w, p, prop);
 }
 
@@ -332,9 +367,16 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
         w.clubs[seller].market.listed.retain(|&x| x != p);
         w.events.push(today, Visibility::Public, EventKind::Transfer { player: p, from: seller, to: buyer, fee });
     }
-    w.events.push(today, Visibility::Public, EventKind::ContractSigned { player: p, club: buyer, wage: contract.wage, until: contract.end, renewal: false });
+    let ev = w.events.push(today, Visibility::Public, EventKind::ContractSigned { player: p, club: buyer, wage: contract.wage, until: contract.end, renewal: false });
     w.history.start_spell(p, buyer, today, false, fee);
     w.knowledge.observe(buyer, p, 300, today);
+    w.market.requests.remove(&p);
+    w.market.listed.remove(&p);
+    w.market.loan_listed.remove(&p);
+    let who = w.players.cold[p].person;
+    let nation = w.clubs[buyer].nation;
+    crate::life::relocate(w, who, nation, pw_world::Cause::Event(ev));
+    crate::media::on_move(w, p, seller, buyer, ev);
 }
 
 pub fn execute_loan(w: &mut World, p: PlayerId, loan: Loan) {
@@ -344,10 +386,14 @@ pub fn execute_loan(w: &mut World, p: PlayerId, loan: Loan) {
     w.teams[team].squad.push(p);
     w.players.hot[p].team = team;
     finance::pay_fee(w, loan.club, loan.parent, loan.fee);
-    w.events.push(today, Visibility::Public, EventKind::LoanMove { player: p, from: loan.parent, to: loan.club, until: loan.end });
+    let dest_nation = w.clubs[loan.club].nation;
+    let ev = w.events.push(today, Visibility::Public, EventKind::LoanMove { player: p, from: loan.parent, to: loan.club, until: loan.end });
     w.history.start_spell(p, loan.club, today, true, loan.fee);
     w.knowledge.observe(loan.club, p, 300, today);
+    w.market.loan_listed.remove(&p);
     w.players.cold[p].loan = Some(loan);
+    let who = w.players.cold[p].person;
+    crate::life::relocate(w, who, dest_nation, pw_world::Cause::Event(ev));
 }
 
 /// Loanee goes back to the parent club.
@@ -358,8 +404,11 @@ pub fn end_loan(w: &mut World, p: PlayerId) {
     let team = landing_team(w, p, loan.parent);
     w.teams[team].squad.push(p);
     w.players.hot[p].team = team;
-    w.events.push(today, Visibility::Public, EventKind::LoanReturn { player: p, to: loan.parent });
+    let ev = w.events.push(today, Visibility::Public, EventKind::LoanReturn { player: p, to: loan.parent });
     w.history.start_spell(p, loan.parent, today, false, 0);
+    let who = w.players.cold[p].person;
+    let nation = w.clubs[loan.parent].nation;
+    crate::life::relocate(w, who, nation, pw_world::Cause::Event(ev));
 }
 
 /// Development loans for surplus youngsters (07 §7), weekly during windows.
@@ -380,12 +429,13 @@ pub fn weekly_loans(w: &mut World) {
                 let c = &w.players.cold[p];
                 let h = &w.players.hot[p];
                 let age = w.age(p);
-                (18..=21).contains(&age)
+                let agreed = w.market.loan_listed.contains_key(&p);
+                (agreed || ((18..=21).contains(&age) && h.minutes_4w < 120 && f32::from(c.pa) >= ideal_ca(parent_rep) - 10.0))
+                    && age >= 17
                     && c.loan.is_none()
                     && h.available()
-                    && h.minutes_4w < 120
-                    && f32::from(c.pa) >= ideal_ca(parent_rep) - 10.0
                     && !w.market.is_pending(p)
+                    && !crate::negotiation::in_talks(w, p)
                     && !w.market.on_cooldown(ClubId::NONE, p, today)
             })
             .max_by_key(|&p| (w.players.cold[p].pa, std::cmp::Reverse(p)));
@@ -434,6 +484,7 @@ pub fn free_agent_sweep(w: &mut World) {
                     && w.age(p) <= u32::from(need.max_age) + 3
                     && !w.market.on_cooldown(club, p, today)
                     && !w.market.is_pending(p)
+                    && !crate::negotiation::in_talks(w, p)
             })
             .max_by_key(|&p| (w.players.cold[p].ca, std::cmp::Reverse(p)));
         if let Some(p) = pick {

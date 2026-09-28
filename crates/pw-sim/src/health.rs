@@ -128,6 +128,7 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
     }).collect();
     let injuries = &w.data.injuries;
     let people = &w.people;
+    let lives = &w.lives;
     let cold: &[pw_world::PlayerCold] = &w.players.cold;
 
     let outcomes: Vec<Outcome> = w
@@ -165,8 +166,18 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
                 return Some(out);
             }
 
-            // Load and fitness.
-            let load = kind.load() * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
+            // Load and fitness: the club's day, shaped by the player's own plan
+            // (intensity, extra sessions, recovery work) and their week off the pitch.
+            let plan = c.plan;
+            let training_day = matches!(kind, DayKind::Training | DayKind::BeforeMatch);
+            let own = if training_day {
+                plan.intensity.load_mult() + f32::from(plan.extra) * 0.06 - f32::from(plan.recovery) * 0.03
+            } else {
+                1.0
+            };
+            let load = kind.load() * own * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
+            let routine = lives.get(c.person).map(|l| l.routine).unwrap_or_default();
+            let sleep = lives.get(c.person).map_or(70.0, |l| f32::from(l.sleep));
             h.acute = pw_core::math::ewma(h.acute, load, 0.25);
             h.chronic = pw_core::math::ewma(h.chronic, load, 0.069);
             let capacity = 380.0 + nf * 12.0;
@@ -174,7 +185,8 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             h.fatigue = debt.clamp(0.0, 100.0) as u8;
 
             let age_rec = if age > 30.0 { 1.0 - 0.025 * (age - 30.0) } else { 1.0 };
-            let recover = tuning.condition_recovery * (0.7 + nf / 40.0) * age_rec * kind.recovery() * (0.9 + 0.2 * f32::from(h.wellbeing) / 100.0);
+            let habits = 1.0 + f32::from(plan.recovery) * 0.03 + (f32::from(routine.rest + routine.recovery) - 16.0) * 0.004 - f32::from(routine.nightlife) * 0.008 + (sleep - 70.0) * 0.002;
+            let recover = tuning.condition_recovery * (0.7 + nf / 40.0) * age_rec * kind.recovery() * (0.9 + 0.2 * f32::from(h.wellbeing) / 100.0) * habits.clamp(0.8, 1.15);
             let cap = 100.0 - f32::from(h.fatigue) * 0.3;
             let cond = (f32::from(h.condition) + recover - load / 60.0).min(cap);
             h.condition = cond.clamp(10.0, 100.0) as u8;
@@ -192,9 +204,16 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             if matches!(kind, DayKind::Training | DayKind::BeforeMatch) {
                 let prof = person.hidden.f(Hidden::Professionalism);
                 let det = c.attrs.get(Attr::Determination);
+                let effort = match plan.intensity {
+                    pw_world::Intensity::Light => -0.25,
+                    pw_world::Intensity::Normal => 0.0,
+                    pw_world::Intensity::High => 0.2,
+                } + f32::from(plan.extra) * 0.06;
                 let base = 5.8 + 0.06 * (prof - 10.0) + 0.05 * (det - 10.0) + 0.012 * (f32::from(c.ca) - 100.0).clamp(-40.0, 60.0)
                     + 0.3 * (f32::from(h.wellbeing) - 60.0) / 40.0
                     + 0.4 * (f32::from(h.condition) - 85.0) / 15.0
+                    + effort
+                    - f32::from(routine.nightlife) * 0.03
                     + rng.normal() * 0.55;
                 let r = (base.clamp(4.0, 10.0) * 10.0).round();
                 h.training = (f32::from(h.training) * 0.8 + r * 0.2).round() as u8;

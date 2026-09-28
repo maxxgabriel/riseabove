@@ -129,6 +129,7 @@ fn candidates(w: &World, team: TeamId, slots: &[Slot; 11], phil: &Philosophy, da
     let (judging, _) = w.club_manager_judging(club);
     let t = &w.data.tuning.perception;
     let famous = t.famous_reputation;
+    let manager = crate::social::team_manager(w, team);
     pool(w, team)
         .into_iter()
         .map(|p| {
@@ -155,7 +156,13 @@ fn candidates(w: &World, team: TeamId, slots: &[Slot; 11], phil: &Philosophy, da
                     fitness: (f32::from(h.condition) / 100.0 * (0.7 + 0.3 * f32::from(h.sharpness) / 100.0)).clamp(0.0, 1.0)
                         - if h.condition < 70 { 0.25 } else { 0.0 },
                     role: 0.0,
-                    trust: status_trust(c.status) + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
+                    // Status says what the club expects; the manager's own trust,
+                    // built from memories of training, promises and rows, moves it.
+                    trust: manager.map_or(status_trust(c.status), |m| {
+                        0.55 * status_trust(c.status) + 0.45 * crate::consider::trust(w, m, c.person)
+                            - 0.05 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::PoorAttitude)
+                            + 0.04 * crate::consider::memory(w, m, c.person, pw_world::MemoryKind::ExtraWork)
+                    }) + rng.normal() * 0.02 * (1.3 - consistency / 20.0),
                     youth: if age <= 21.5 { f32::from(phil.youth_trust) / 100.0 * (1.0 - ((age - 17.0) / 5.0).clamp(0.0, 1.0)) } else { 0.0 },
                     rotation: if rested <= 3 { 1.0 } else { 0.0 },
                 },

@@ -1,9 +1,8 @@
 //! The flow of people: youth intakes (regens), retirements, players who
 //! become coaches.
 
-use pw_core::math::interp;
 use pw_core::rng::{Rng, stream};
-use pw_core::{Attr, ClubId, Date, Foot, Hidden, NationId, PersonId, PlayerId, Pos, StaffAttr, StaffAttrs};
+use pw_core::{Attr, ClubId, Date, Foot, Hidden, NationId, PersonId, PlayerId, Pos, StaffAttr, StaffAttrs, StaffId};
 use pw_world::contract::ContractKind;
 use pw_world::event::{EventKind, Visibility};
 use pw_world::player::Reputation;
@@ -135,6 +134,18 @@ pub fn daily(w: &mut World) {
     }
 }
 
+/// Potential of a youngster coming through a club's academy: the world's own
+/// distribution, used for every intake and for anyone newly created into the
+/// world (a human's new person is drawn from exactly this).
+pub fn intake_pa(youth_facilities: f32, nation_youth_rating: f32, club_rep: f32, rng: &mut Rng) -> f32 {
+    let mean_pa = 58.0 + 2.2 * youth_facilities + 1.6 * nation_youth_rating + club_rep / 250.0;
+    let mut pa = rng.normal_ms(mean_pa, 21.0);
+    if rng.chance(0.004) {
+        pa += rng.range_f32(25.0, 60.0);
+    }
+    pa.clamp(35.0, 200.0)
+}
+
 /// Annual academy intake (04 §6, 07 §6).
 fn youth_intake(w: &mut World, n: NationId) {
     let today = w.date;
@@ -156,12 +167,7 @@ fn youth_intake(w: &mut World, n: NationId) {
             let nation = if foreign { pw_core::NationId(rng.below(w.nations.len() as u32)) } else { n };
             let age_days = rng.range_i32(15 * 365 + 30, 16 * 365 + 200);
             let dob = today.add_days(-age_days);
-            let mean_pa = 58.0 + 2.2 * youth_fac + 1.6 * youth_rating + rep / 250.0;
-            let mut pa = rng.normal_ms(mean_pa, 21.0);
-            if rng.chance(0.004) {
-                pa += rng.range_f32(25.0, 60.0);
-            }
-            let pa = pa.clamp(35.0, 200.0);
+            let pa = intake_pa(youth_fac, youth_rating, rep, &mut rng);
             let age = age_days as f32 / 365.25;
             let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
             let contract = Contract {
@@ -179,25 +185,10 @@ fn youth_intake(w: &mut World, n: NationId) {
     }
 }
 
-fn retire_chance(age: u32, ca: u8, free_agent: bool, keeper: bool, long_injury: bool) -> f32 {
-    let base = interp(&[(31.0, 0.0), (32.0, 0.03), (33.0, 0.08), (34.0, 0.18), (35.0, 0.32), (36.0, 0.5), (37.0, 0.68), (38.0, 0.8), (40.0, 0.95)], age as f32);
-    let mut p = base;
-    if ca >= 140 {
-        p *= 0.6;
-    }
-    if free_agent {
-        p = (p * 2.0).max(if age >= 30 { 0.25 } else { 0.0 });
-    }
-    if keeper {
-        p *= 0.7;
-    }
-    if long_injury {
-        p *= 1.5;
-    }
-    p.min(0.98)
-}
-
-/// Season-end retirements for AI minds. External minds only retire by choice.
+/// Season's end: every AI-minded player weighs whether to carry on
+/// (`mind::retirement_choice`). An external mind retires when its human
+/// decides to, through the same `Retire` intent — the choice is the only
+/// difference, never the rules.
 fn retirements(w: &mut World) {
     let today = w.date;
     let mut retiring = Vec::new();
@@ -206,18 +197,12 @@ fn retirements(w: &mut World) {
         if h.status == PlayerStatus::Retired {
             continue;
         }
-        let c = &w.players.cold[p];
-        let person = &w.people[c.person];
-        if person.mind == MindKind::External {
-            continue;
-        }
-        let age = person.age(today);
-        if age < 30 && h.status != PlayerStatus::FreeAgent {
+        let person = &w.people[w.players.cold[p].person];
+        if person.mind != MindKind::Ai {
             continue;
         }
         let mut rng = Rng::keyed(&[w.seed, stream::RETIREMENT, u64::from(p.0), today.year() as u64]);
-        let chance = retire_chance(age, c.ca, h.status == PlayerStatus::FreeAgent, c.best_pos == Pos::GK, h.injury_days > 120);
-        if rng.chance(chance) {
+        if crate::mind::retirement_choice(w, p, &mut rng) {
             retiring.push(p);
         }
     }
@@ -238,19 +223,35 @@ pub fn retire(w: &mut World, p: PlayerId) {
     w.knowledge.clear_player(p);
     let person = w.players.cold[p].person;
     w.events.push(today, Visibility::Public, EventKind::Retired { person });
-    maybe_become_coach(w, p, person);
+    if let Some(a) = w.agents.of_player.remove(&p) {
+        w.agents.list[a.agent].clients.retain(|&x| x != p);
+    }
+    w.market.requests.remove(&p);
+    w.market.listed.remove(&p);
 }
 
-/// Some retiring players take their badges and join the staff pool (07 §12).
-fn maybe_become_coach(w: &mut World, p: PlayerId, person: PersonId) {
+/// A person (retired player or anyone) enters the staff job market with
+/// attributes grown from their playing career. Clubs hire from this pool.
+pub fn enter_staff_pool(w: &mut World, person: PersonId, role: StaffRole) -> Option<StaffId> {
+    if w.people[person].staff.is_some() {
+        let s = w.people[person].staff;
+        w.staff[s].role = role;
+        w.staff[s].retired = false;
+        return Some(s);
+    }
+    let p = w.people[person].player;
+    if p.is_none() {
+        return None;
+    }
+    Some(maybe_become_coach(w, p, person, role))
+}
+
+/// Staff attributes grown from a playing career (07 §12).
+fn maybe_become_coach(w: &mut World, p: PlayerId, person: PersonId, role: StaffRole) -> StaffId {
     let c = &w.players.cold[p];
     let leadership = c.attrs.get(Attr::Leadership);
     let det = c.attrs.get(Attr::Determination);
-    let age = w.people[person].age(w.date);
     let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(p.0)]);
-    if age > 40 || leadership + det < 24.0 || !rng.chance(0.35) {
-        return;
-    }
     let a = |x: Attr| c.attrs.get(x);
     let mut attrs = StaffAttrs::default();
     let noisy = |v: f32, rng: &mut Rng| (v * 0.75 + rng.normal() * 2.0).round().clamp(1.0, 20.0) as u8;
@@ -268,9 +269,10 @@ fn maybe_become_coach(w: &mut World, p: PlayerId, person: PersonId) {
     attrs.set(StaffAttr::JudgingPotential, noisy(a(Attr::Vision), &mut rng));
     attrs.set(StaffAttr::Youngsters, noisy(a(Attr::Teamwork), &mut rng));
     let rep = c.rep.current / 3;
+    let _ = (leadership, det);
     let staff = w.staff.push(Staff {
         person,
-        role: if leadership >= 15.0 { StaffRole::Manager } else { StaffRole::Coach },
+        role,
         club: ClubId::NONE,
         attrs,
         wage: 0,
@@ -282,4 +284,5 @@ fn maybe_become_coach(w: &mut World, p: PlayerId, person: PersonId) {
         retired: false,
     });
     w.people[person].staff = staff;
+    staff
 }
