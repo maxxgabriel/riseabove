@@ -54,7 +54,7 @@ pub fn open(w: &mut World, p: PlayerId, club: ClubId, kind: TalkKind, seller: Cl
         let current = w.players.cold[p].contract.current_wage(today);
         first.wage = first.wage.max(current);
     }
-    let years = market::contract_years(w.age(p));
+    let years = market::contract_years(w.age(p)).min(pw_world::rules::max_contract_years_for(w, w.clubs[club].nation, w.age(p)));
     let offer = Terms { signing_fee: first.wage * 2, ..Terms::from_contract(&first, years) };
     let limit = club_limit(w, club, p, &offer);
     let (agent, _) = agent_skill(w, p);
@@ -309,6 +309,25 @@ fn still_valid(w: &World, id: TalkId) -> bool {
 fn complete(w: &mut World, id: TalkId) {
     let today = w.date;
     let t = w.talks[id].clone();
+    // Registration, work permit, quota and minors rules can still sink a deal.
+    let check = match t.kind {
+        TalkKind::Transfer | TalkKind::FreeAgent => Some(pw_world::rules::can_sign(w, t.club, t.player, today)),
+        TalkKind::Loan => Some(pw_world::rules::can_loan(w, t.club, t.seller, t.player, today)),
+        _ => None,
+    };
+    if let Some(o) = check {
+        if let Some(&reason) = o.reasons.first() {
+            w.talks[id].log.push((today, TalkLine::ClubWalkedAway));
+            let person = w.players.cold[t.player].person;
+            let causes: Causes = pw_world::causes![Cause::Event(t.event), Cause::Fact(pw_world::Fact::Rule { reason })];
+            w.events.push_caused(today, Visibility::Person(person), EventKind::TalksCollapsed { talk: id, player: t.player, club: t.club }, causes);
+            let x = &mut w.talks[id];
+            x.state = TalkState::Collapsed;
+            x.end = Some(TalkEnd::Blocked);
+            w.market.talking.remove(&t.player);
+            return;
+        }
+    }
     let kind = if w.age(t.player) < 17 { ContractKind::Youth } else { ContractKind::Professional };
     let contract = t.offer.to_contract(t.club, kind, today);
     match t.kind {

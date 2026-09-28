@@ -110,6 +110,8 @@ pub enum TalkEnd {
     ClubWalkedAway,
     TimedOut,
     Overtaken,
+    /// The deal broke a registration, labour or eligibility rule.
+    Blocked,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]

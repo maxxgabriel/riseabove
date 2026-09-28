@@ -447,6 +447,7 @@ pub fn weekly_loans(w: &mut World) {
             .iter_enumerated()
             .filter(|(id, c)| *id != parent && c.nation == nation && c.reputation + 500 < parent_rep && c.reputation * 3 > parent_rep)
             .filter(|(_, c)| c.market.needs.iter().any(|n| n.group == group && n.min_ability <= ca + 5))
+            .filter(|(id, _)| pw_world::rules::can_loan(w, *id, parent, p, today).allowed())
             .max_by_key(|(id, c)| (c.reputation, std::cmp::Reverse(*id)))
             .map(|(id, _)| id);
         let Some(dest) = dest else { continue };

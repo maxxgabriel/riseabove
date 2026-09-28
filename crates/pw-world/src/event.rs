@@ -65,6 +65,8 @@ pub enum Fact {
     LowTrust { from: PersonId, about: PersonId, trust: u8 },
     ContractRunningDown { player: PlayerId, days: u16 },
     PublicCriticism { story: StoryId },
+    /// A football rule stood in the way.
+    Rule { reason: crate::rules::Reason },
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]

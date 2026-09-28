@@ -164,6 +164,7 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::LowTrust { from, about, trust } => format!("{} trusts {} little ({trust}/100)", person(w, from), person(w, about)),
         Fact::ContractRunningDown { player: p, days } => format!("{} contract has {days} days left", who(p)),
         Fact::PublicCriticism { story } => format!("criticism in the press: {}", crate::press::headline(w, &w.media.stories[story])),
+        Fact::Rule { reason } => reason.text(),
     }
 }
 
