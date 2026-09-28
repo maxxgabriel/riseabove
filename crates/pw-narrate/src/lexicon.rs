@@ -42,10 +42,73 @@ pub enum AgeBand {
     Older,
 }
 
+/// Standard lexical differences within a language ("pitch"/"field",
+/// "nil"/"zero"). Chosen from where someone lives; it changes vocabulary,
+/// never attitude or intelligence, and never imitates an accent.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum Dialect {
+    International,
+    British,
+    Irish,
+    American,
+    Australian,
+}
+
+impl Dialect {
+    /// From a nation's code (as imported).
+    pub fn for_code(code: &str) -> Dialect {
+        match code {
+            "ENG" | "SCO" | "WAL" | "NIR" | "GBR" => Dialect::British,
+            "IRL" => Dialect::Irish,
+            "USA" | "CAN" => Dialect::American,
+            "AUS" | "NZL" => Dialect::Australian,
+            _ => Dialect::International,
+        }
+    }
+}
+
+/// When the words are from: football vocabulary changes with the years
+/// (and with the tactics in fashion — see `grammar`).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
+pub enum Era {
+    /// Before 2000.
+    Classic,
+    /// 2000–2015.
+    Modern,
+    /// 2016–2030: the analytics era.
+    Analytics,
+    /// After 2030.
+    Later,
+}
+
+impl Era {
+    pub fn of_year(y: i32) -> Era {
+        match y {
+            ..=1999 => Era::Classic,
+            2000..=2015 => Era::Modern,
+            2016..=2030 => Era::Analytics,
+            _ => Era::Later,
+        }
+    }
+}
+
+/// Where the words appear.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum Platform {
+    Social,
+    Forum,
+    Newspaper,
+    Broadcast,
+    Official,
+}
+
 /// Everything word choice depends on.
 #[derive(Clone, Copy, Debug)]
 pub struct Voice {
     pub locale: Locale,
+    pub dialect: Dialect,
+    pub era: Era,
+    pub platform: Platform,
     pub register: Register,
     pub age: AgeBand,
     /// Uses emoji (only in casual registers).
@@ -58,7 +121,7 @@ pub struct Voice {
 
 impl Voice {
     pub const fn neutral() -> Self {
-        Voice { locale: Locale::En, register: Register::Neutral, age: AgeBand::Middle, emoji: false, humour: 20, hedging: 40 }
+        Voice { locale: Locale::En, dialect: Dialect::International, era: Era::Analytics, platform: Platform::Newspaper, register: Register::Neutral, age: AgeBand::Middle, emoji: false, humour: 20, hedging: 40 }
     }
 }
 
@@ -94,10 +157,25 @@ pub enum Slot {
 
 type Words = &'static [&'static str];
 
-fn en(register: Register, age: AgeBand, slot: Slot) -> Words {
+fn en(register: Register, age: AgeBand, era: Era, slot: Slot) -> Words {
     use Register::*;
     use Slot::*;
     let young = age == AgeBand::Young;
+    // Slang belongs to its time: each generation's young supporters had
+    // their own words.
+    if young && matches!(register, Casual | Terrace) {
+        let dated: Option<Words> = match (slot, era) {
+            (PraiseAdj, Era::Classic) => Some(&["magic", "top class", "quality", "the business"]),
+            (PraiseAdj, Era::Modern) => Some(&["class", "different class", "quality", "top drawer"]),
+            (Celebrate, Era::Classic) => Some(&["get in there", "what a day", "magic"]),
+            (Celebrate, Era::Modern) => Some(&["get in", "scenes", "what a result"]),
+            (CriticAdj, Era::Classic | Era::Modern) => Some(&["rubbish", "shocking", "useless"]),
+            _ => None,
+        };
+        if let Some(d) = dated {
+            return d;
+        }
+    }
     match (slot, register) {
         (PraiseAdj, Formal | Neutral | Analytical) => &["excellent", "impressive", "outstanding", "assured", "influential"],
         (PraiseAdj, Tabloid) => &["sensational", "stunning", "magnificent", "unstoppable"],
@@ -164,7 +242,7 @@ fn en(register: Register, age: AgeBand, slot: Slot) -> Words {
 /// The words available for a slot in a voice.
 pub fn words(v: &Voice, slot: Slot) -> Words {
     match v.locale {
-        Locale::En => en(v.register, v.age, slot),
+        Locale::En => en(v.register, v.age, v.era, slot),
     }
 }
 

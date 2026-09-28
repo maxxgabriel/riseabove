@@ -275,29 +275,15 @@ pub fn school_name(w: &World, s: &School) -> String {
     format!("the {surname} school")
 }
 
-/// Its principles in football words, from its numbers.
+/// Its principles in the football words of the year it was born.
 pub fn school_style(s: &School) -> String {
-    let press = match s.press {
-        0..=35 => "a deep, patient block",
-        36..=65 => "a measured press",
-        _ => "relentless pressing",
-    };
-    let tempo = match s.tempo {
-        0..=35 => "slow, controlled possession",
-        36..=65 => "a balanced tempo",
-        _ => "a high tempo",
-    };
-    let direct = match s.direct {
-        0..=35 => "short passing through the lines",
-        36..=65 => "a mix of short and long",
-        _ => "direct balls in behind",
-    };
-    format!("{press}, {tempo} and {direct}")
+    let v = crate::lexicon::Voice { era: crate::lexicon::Era::of_year(s.born.year()), ..crate::lexicon::Voice::neutral() };
+    crate::grammar::style(&v, s.press, s.tempo, s.direct, u64::from(s.id))
 }
 
 pub fn school_founded(w: &World, s: &School) -> String {
     format!(
-        "{} has become a school of thought: {} built on {}.",
+        "{} has become a school of thought: {}, built on {}.",
         crate::fmt::person(w, s.founder),
         school_name(w, s),
         school_style(s)

@@ -10,6 +10,7 @@
 pub mod choices;
 pub mod events;
 pub mod fmt;
+pub mod grammar;
 pub mod grapevine;
 pub mod history;
 pub mod inbox;

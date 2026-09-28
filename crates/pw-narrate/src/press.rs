@@ -171,7 +171,13 @@ pub fn voice(w: &World, s: &Story) -> crate::lexicon::Voice {
     } else {
         Register::Neutral
     };
-    Voice { locale: Locale::En, register, age: AgeBand::Middle, emoji: false, humour: 20, hedging: 40 }
+    let (dialect, platform) = if s.outlet.is_some() {
+        let o = &w.media.outlets[s.outlet];
+        (crate::lexicon::Dialect::for_code(&w.nations[o.nation].code), if o.kind == OutletKind::FanChannel { crate::lexicon::Platform::Social } else { crate::lexicon::Platform::Newspaper })
+    } else {
+        (crate::lexicon::Dialect::International, crate::lexicon::Platform::Newspaper)
+    };
+    Voice { locale: Locale::En, dialect, era: crate::lexicon::Era::of_year(s.date.year()), platform, register, age: AgeBand::Middle, emoji: false, humour: 20, hedging: 40 }
 }
 
 /// A short article body: who says it, what it rests on (as the paper frames it).
