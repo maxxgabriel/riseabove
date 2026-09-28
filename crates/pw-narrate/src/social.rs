@@ -67,7 +67,15 @@ fn frame_words(w: &World, v: &Voice, f: Frame, about_club: pw_core::ClubId) -> S
         Frame::Milestone { player: p } => format!("{}'s milestone", player(w, p)),
         Frame::Record { player: p } => format!("{}'s record", player(w, p)),
         Frame::Injury { player: p } => format!("{}'s injury", player(w, p)),
-        Frame::Incident { incident } => if w.incidents.get(incident).is_some() { crate::incidents::summary(w, incident, false, false) } else { String::new() },
+        Frame::Incident { incident } => {
+            // A post says the thing, not "that" the thing.
+            if w.incidents.get(incident).is_some() {
+                let t = crate::incidents::summary(w, incident, false, false);
+                t.strip_prefix("that ").map_or(t.clone(), str::to_string)
+            } else {
+                String::new()
+            }
+        }
         Frame::Controversy { controversy } => w.officials.controversies.get(controversy as usize).map_or_else(String::new, |c| crate::officiating::call(w, c)),
         Frame::Post { .. } => {
             if about_club.is_some() {

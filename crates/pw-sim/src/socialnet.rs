@@ -510,6 +510,7 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
 
 fn create_post(w: &mut World, author: AccountId, frame: Frame, c: Concept, about: PersonId, about2: PersonId, club: ClubId, intensity: u8, claim: ClaimType, reply_to: u32, quote_of: u32, refs: SmallVec<[u32; 2]>, knew: Knew, minute: u16) -> u32 {
     let today = w.date;
+    w.net.sync_index();
     let id = w.net.next_post_id();
     let prior = w.net.opinion(author, about).map_or(0, |o| o.score);
     let depth = w.net.post(reply_to).map_or(0, |p| p.depth + 1);
@@ -536,6 +537,7 @@ fn create_post(w: &mut World, author: AccountId, frame: Frame, c: Concept, about
         knew,
         prior,
     });
+    w.net.sync_index();
     if let Some(parent) = w.net.post_mut(reply_to) {
         parent.replies = parent.replies.saturating_add(1);
     }
@@ -945,9 +947,18 @@ pub fn monthly(w: &mut World) {
             t.stories.iter().map(move |&s| (s.0, right))
         })
         .collect();
+    // Who relayed each story: one pass over the window, not one per story.
+    let mut relayed: FxHashMap<u32, Vec<AccountId>> = FxHashMap::default();
+    if !resolved.is_empty() {
+        for p in w.net.posts.iter().filter(|p| p.concept == Concept::Relay) {
+            if let Frame::Story { story } = p.frame {
+                relayed.entry(story.0).or_default().push(p.author);
+            }
+        }
+    }
     for (sid, right) in resolved {
         let outlet = w.media.stories[pw_core::StoryId(sid)].outlet;
-        let relayers: Vec<AccountId> = w.net.posts.iter().filter(|p| p.concept == Concept::Relay && matches!(p.frame, Frame::Story { story } if story.0 == sid)).map(|p| p.author).collect();
+        let relayers: Vec<AccountId> = relayed.get(&sid).cloned().unwrap_or_default();
         for a in relayers {
             let t = w.net.outlet_trust.entry((a, outlet.0)).or_insert(0);
             *t = (*t + if right { 8 } else { -12 }).clamp(-60, 60);
@@ -967,6 +978,7 @@ fn compact(w: &mut World) {
     let referenced: Vec<u32> = w.net.posts[cut..].iter().flat_map(|p| p.refs.iter().copied().chain([p.reply_to, p.quote_of])).filter(|&r| r != NO_POST).collect();
     let old: Vec<Post> = w.net.posts.drain(..cut).collect();
     w.net.post_base += cut as u32;
+    w.net.trim_index();
     for p in old {
         if referenced.contains(&p.id) || p.reposts >= 400 {
             w.net.kept.insert(p.id, p);

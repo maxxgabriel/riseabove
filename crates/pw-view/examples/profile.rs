@@ -125,6 +125,16 @@ fn main() {
             sim.step();
         }
         println!("{n} days in {:.2}s", t.elapsed().as_secs_f32());
+        if args.iter().any(|a| a == "--hash") {
+            // A fingerprint of the whole world, to check that a speed-up changed nothing.
+            use std::hash::{Hash, Hasher};
+            let path = std::env::temp_dir().join("pw-profile-hash.pws");
+            pw_sim::save::save(&sim.world, &path).expect("save");
+            let bytes = std::fs::read(&path).expect("read");
+            let mut h = std::collections::hash_map::DefaultHasher::new();
+            bytes.hash(&mut h);
+            println!("world fingerprint {:016x} ({} bytes)", h.finish(), bytes.len());
+        }
         return;
     }
     let save_at = flag("--save");

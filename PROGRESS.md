@@ -253,7 +253,21 @@ See `docs/MEDIA_SOCIAL_HISTORY_SYSTEMS.md`. Eleven commits (3d013fa…adf8e58):
 - A generic record engine with holder histories.
 - Voted awards with ballots, halls of fame at every scope, and a chronicle of firsts.
 
-### 3.10 `app/` — desktop client — ⬜ not started (the terminal client comes first)
+### 3.10 `app/`, `crates/pw-view`, `crates/pw-serve` — desktop client — 🟡 built and tested in a browser, on synthetic worlds only
+
+Tauri 2 shell and a React/TypeScript interface over one JSON endpoint (`pw_view::Api::call`); `pw-serve` exposes the same
+endpoint over local HTTP for development and browser tests. See `app/README.md`.
+
+- **Observer**: overview, people, clubs (squad, staff, fixtures, finances, board, fans, dressing room, history), competitions,
+  nations, fixtures and results, match pages, transfers, events, history and awards, and 23 lists for the wider world
+  (posts, chants, rivalries, incidents, press conferences, referees, records, halls of fame, tactical schools, lower football).
+- **Inhabiting a player**: today, messages (world inbox with replies that become intents, every decision kind), calendar,
+  football, contract, life, people and promises, press and fans, social feed, journal, agent, and the actions the world accepts.
+- **Not there**: anything the simulation has no screen-level route for. Managers, chairmen and heads of youth cannot be
+  inhabited, so incident handling, press answers and appeals are decided by AI; Help → "What the simulation covers" says so.
+- **Checked**: `cargo test --workspace --exclude ofm-engine`, `npm test`, and two browser scripts (`app/e2e/smoke.mjs` visits
+  every route on a fresh world; `app/e2e/inbox.mjs` answers a decision and replies to a conversation). Imported (non-synthetic)
+  worlds have only been tried on tiny hand-made data.
 
 ---
 
@@ -407,6 +421,9 @@ crates/pw-import           FM-export CSV import + synthetic test fixture
 crates/pw-cli              headless runner (`pathway-sim`)
 crates/pw-career           protagonist layer (being rebuilt at full depth)
 vendor/ofm-engine          OpenFootManager match engine (GPL-3, unmodified source)
-app/                       Tauri + React client (not started)
+crates/pw-narrate          every sentence shown to a person, rendered from state
+crates/pw-view             the API the client calls: pages, table queries, actions, inbox
+crates/pw-serve            that API over local HTTP (development and browser tests)
+app/                       Tauri 2 + React client (see app/README.md)
 plan/, foundation/         original design documents
 ```

@@ -273,19 +273,52 @@ fn subject_person(w: &World, kind: &InfoKind) -> PersonId {
     }
 }
 
-/// How likely `teller` is to tell `to` today, and why.
-fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32, agent_by_person: &FxHashMap<PersonId, AgentId>) -> (f32, Motive) {
-    let prof = consider::hid(w, teller, pw_core::Hidden::Professionalism) / 20.0;
-    let loose = consider::hid(w, teller, pw_core::Hidden::Controversy) / 20.0;
-    let ambition = consider::hid(w, teller, pw_core::Hidden::Ambition) / 20.0;
-    let subject = subject_person(w, kind);
-    let loyalty = if subject.is_some() && subject != teller { consider::affinity(w, teller, subject).max(0.0) } else { 0.0 };
-    // Told to keep it quiet by someone in authority.
+/// What stays true of one teller through the day: who they might tell, and how they are made.
+struct Teller {
+    contacts: SmallVec<[(PersonId, Role); 16]>,
+    prof: f32,
+    loose: f32,
+    ambition: f32,
+}
+
+impl Teller {
+    fn new(w: &World, who: PersonId, sources_of: &FxHashMap<PersonId, SmallVec<[PersonId; 2]>>, agent_by_person: &FxHashMap<PersonId, AgentId>) -> Self {
+        Self {
+            contacts: contacts(w, who, sources_of, agent_by_person),
+            prof: consider::hid(w, who, pw_core::Hidden::Professionalism) / 20.0,
+            loose: consider::hid(w, who, pw_core::Hidden::Controversy) / 20.0,
+            ambition: consider::hid(w, who, pw_core::Hidden::Ambition) / 20.0,
+        }
+    }
+}
+
+/// What one item is, for anyone who might pass it on.
+struct Gist {
+    subject: PersonId,
+    juicy: f32,
+}
+
+impl Gist {
+    fn new(w: &World, kind: &InfoKind, sensitivity: u8) -> Self {
+        Self {
+            subject: subject_person(w, kind),
+            juicy: 0.5 + f32::from(sensitivity) / 100.0,
+        }
+    }
+}
+
+/// How discreet `teller` is about this item, whoever they might tell.
+fn discretion(w: &World, teller: PersonId, t: &Teller, g: &Gist, kind: &InfoKind) -> f32 {
+    // Told to keep it quiet by someone in authority (which can happen while it is going round).
     let hushed = matches!(kind, InfoKind::Incident { incident } if w.incidents.get(*incident).is_some_and(|i| i.hushed));
-    let discretion = (0.5 * prof + 0.3 * (1.0 - loose) + 0.3 * loyalty + if hushed { 0.25 } else { 0.0 }).clamp(0.0, 1.0);
-    let juicy = 0.5 + f32::from(sensitivity) / 100.0;
-    let closeness = (0.3 + consider::affinity(w, teller, to).max(0.0) + consider::trust(w, to, teller) * 0.3).min(1.2);
-    let (base, motive) = match role {
+    let loyalty = if g.subject.is_some() && g.subject != teller { consider::affinity(w, teller, g.subject).max(0.0) } else { 0.0 };
+    (0.5 * t.prof + 0.3 * (1.0 - t.loose) + 0.3 * loyalty + if hushed { 0.25 } else { 0.0 }).clamp(0.0, 1.0)
+}
+
+/// How readily a role passes on this kind of thing, before temperament and closeness. Journalists
+/// depend on why the teller would talk to the press, so they have no fixed figure.
+fn role_base(w: &World, role: Role, kind: &InfoKind, to: PersonId) -> Option<(f32, Motive)> {
+    Some(match role {
         Role::Partner => (0.22, Motive::Confiding),
         Role::OwnAgent => match kind {
             InfoKind::Interest { .. } | InfoKind::Bid { .. } | InfoKind::Unhappy { .. } | InfoKind::ContractTalks { .. } | InfoKind::Discipline { .. } => (0.35, Motive::PlayerStrategy),
@@ -305,7 +338,18 @@ fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &Inf
             InfoKind::DressingRoom { .. } | InfoKind::Incident { .. } | InfoKind::Bid { .. } => (0.15, Motive::Duty),
             _ => (0.02, Motive::Duty),
         },
-        Role::Journalist => {
+        Role::Journalist => return None,
+    })
+}
+
+/// How likely `teller` is to tell `to` today, and why.
+fn inclination(w: &World, teller: PersonId, t: &Teller, to: PersonId, role: Role, kind: &InfoKind, g: &Gist, freshness: f32, agent_by_person: &FxHashMap<PersonId, AgentId>) -> (f32, Motive) {
+    let (prof, loose, ambition, subject, juicy) = (t.prof, t.loose, t.ambition, g.subject, g.juicy);
+    let discretion = discretion(w, teller, t, g, kind);
+    let closeness = (0.3 + consider::affinity(w, teller, to).max(0.0) + consider::trust(w, to, teller) * 0.3).min(1.2);
+    let (base, motive) = match role_base(w, role, kind, to) {
+        Some(b) => b,
+        None => {
             // Why would someone talk to the press?
             let grudge = if subject.is_some() { consider::grievance(w, teller, subject) } else { 0.0 };
             let is_agent = agent_by_person.contains_key(&teller);
@@ -353,7 +397,9 @@ fn spread(w: &mut World) {
         }
     }
     let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+    let day = period::day(today);
     let active = w.grapevine.active.clone();
+    let mut tellers: FxHashMap<PersonId, Teller> = FxHashMap::default();
     for info in active {
         let (kind, sensitivity, date, closed) = {
             let it = w.grapevine.get(info);
@@ -367,18 +413,30 @@ fn spread(w: &mut World) {
         if freshness <= 0.0 {
             continue;
         }
+        let gist = Gist::new(w, &kind, sensitivity);
+        // Only those who knew at the start of the day can pass it on today.
         let holders: Vec<pw_world::info::Knower> = w.grapevine.get(info).holders.to_vec();
         for k in holders {
             if k.told >= 6 || k.person.is_none() {
                 continue;
             }
             let teller = k.person;
-            for (to, role) in contacts(w, teller, &sources_of, &agent_by_person) {
+            let t = tellers.entry(teller).or_insert_with(|| Teller::new(w, teller, &sources_of, &agent_by_person));
+            // The same key `w.roll(GRAPEVINE, [info, teller, to, day])` would hash, with the part that
+            // does not change from one contact to the next worked out once.
+            let key = pw_core::rng::hash_key(&[w.seed, stream::GRAPEVINE, u64::from(info), u64::from(teller.0)]);
+            for &(to, role) in &t.contacts {
                 if to.is_none() || w.grapevine.get(info).knows(to) {
                     continue;
                 }
-                let (p, motive) = inclination(w, teller, to, role, &kind, sensitivity, freshness, &agent_by_person);
-                let roll = w.roll(stream::GRAPEVINE, &[u64::from(info), u64::from(teller.0), u64::from(to.0), period::day(today)]);
+                let roll = pw_core::Rng::new(pw_core::rng::hash2(pw_core::rng::hash2(key, u64::from(to.0)), day)).f32();
+                // Most rolls are nowhere near: bound the odds from above before working them out exactly.
+                if let Some((base, _)) = role_base(w, role, &kind, to) {
+                    if roll >= base * gist.juicy * freshness * 1.25 * 1.2 {
+                        continue;
+                    }
+                }
+                let (p, motive) = inclination(w, teller, t, to, role, &kind, &gist, freshness, &agent_by_person);
                 if roll >= p {
                     continue;
                 }
