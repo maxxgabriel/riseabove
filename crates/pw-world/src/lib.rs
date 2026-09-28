@@ -31,6 +31,7 @@ pub mod life;
 pub mod matchfacts;
 pub mod media;
 pub mod medical;
+pub mod minor;
 pub mod names;
 pub mod negotiation;
 pub mod nation;

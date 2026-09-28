@@ -225,6 +225,15 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JournalistMoved { person: x, from, to } => format!("{} left {} for {}.", me(x), w.media.outlets[from].name, w.media.outlets[to].name),
         JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
         JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
+        EnrolledUniversity { person: x, institution } => format!("{} enrolled at {}.", me(x), crate::history::institution(w, institution)),
+        Graduated { person: x, institution, early } => {
+            if early {
+                format!("{} left {} to turn professional.", me(x), crate::history::institution(w, institution))
+            } else {
+                format!("{} graduated from {}.", me(x), crate::history::institution(w, institution))
+            }
+        }
+        MinorTitle { history } => w.minor.history.get(history as usize).map_or_else(String::new, |s| crate::history::season_line(w, s)),
         SupporterAction { club: c, group, action } => crate::social::group_action(w, c, group, action),
         ManagerOfSeason { staff, comp, season } => format!("{} was named Manager of the Season in the {} ({season}).", w.staff_name(staff), w.comps[comp].name),
     })

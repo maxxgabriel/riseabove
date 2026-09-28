@@ -282,6 +282,11 @@ pub enum EventKind {
     JournalistMoved { person: PersonId, from: pw_core::OutletId, to: pw_core::OutletId },
     JournalistLeft { person: PersonId, outlet: pw_core::OutletId },
     JournalistHired { person: PersonId, outlet: pw_core::OutletId },
+    EnrolledUniversity { person: PersonId, institution: u32 },
+    /// Left university (`early`: to turn professional).
+    Graduated { person: PersonId, institution: u32, early: bool },
+    /// A minor competition's season finished (`World::minor.history` index).
+    MinorTitle { history: u32 },
     /// A supporter group acted together (see `World::net.groups`).
     SupporterAction { club: ClubId, group: u32, action: crate::socialnet::GroupAction },
 }
@@ -451,7 +456,9 @@ impl EventKind {
             | SponsorClash { person, .. }
             | NewCareer { person, .. }
             | CareerEnded { person, .. }
-            | Investment { person, .. } => v.push(person),
+            | Investment { person, .. }
+            | EnrolledUniversity { person, .. }
+            | Graduated { person, .. } => v.push(person),
             BoardQuery { manager, .. } => v.push(manager),
             IncidentResponse { by, .. } => v.push(by),
             JournalistMoved { person, .. } | JournalistLeft { person, .. } | JournalistHired { person, .. } => v.push(person),

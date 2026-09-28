@@ -32,6 +32,7 @@ pub mod market;
 pub mod matchday;
 pub mod media;
 pub mod medical;
+pub mod minor;
 pub mod mind;
 pub mod morale;
 pub mod negotiation;
@@ -137,6 +138,7 @@ impl Sim {
             commerce::monthly(w);
             socialnet::monthly(w);
             if today.month() == 6 {
+                minor::season_end(w);
                 youth::reviews(w);
             }
             if today.month() == 9 {
@@ -206,6 +208,7 @@ impl Sim {
             talk::manager_summons(w);
             mind::weekly(w);
             youth::weekly(w);
+            minor::weekly(w);
             agents::weekly(w);
             media::weekly(w);
             reputation::weekly(w);
@@ -254,6 +257,7 @@ pub fn prepare(w: &mut World) {
     managers::ensure(w);
     scouting::ensure(w);
     youth::ensure(w);
+    minor::ensure(w);
     intl::ensure(w);
     commerce::ensure(w);
     culture::ensure(w);

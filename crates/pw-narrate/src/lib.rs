@@ -11,6 +11,7 @@ pub mod choices;
 pub mod events;
 pub mod fmt;
 pub mod grapevine;
+pub mod history;
 pub mod inbox;
 pub mod incidents;
 pub mod lexicon;
