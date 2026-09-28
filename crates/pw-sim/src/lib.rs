@@ -6,6 +6,7 @@ pub mod board;
 pub mod commerce;
 pub mod consider;
 pub mod contracts;
+pub mod culture;
 pub mod deals;
 pub mod decisions;
 pub mod development;
@@ -89,6 +90,8 @@ impl Sim {
             managers::yearly(w);
             commerce::ensure(w);
             commerce::yearly(w);
+            culture::ensure(w);
+            culture::yearly(w);
         }
         season::daily(w);
         contracts::daily(w);
@@ -226,6 +229,7 @@ pub fn prepare(w: &mut World) {
     youth::ensure(w);
     intl::ensure(w);
     commerce::ensure(w);
+    culture::ensure(w);
     let weights = w.data.weights.clone();
     w.players.cold.par_iter_mut().for_each(|c| c.refresh_ca(&weights));
     for t in w.teams.ids() {

@@ -10,6 +10,7 @@ pub mod club;
 pub mod commerce;
 pub mod comp;
 pub mod contract;
+pub mod culture;
 pub mod deals;
 pub mod dressing;
 pub mod decision;

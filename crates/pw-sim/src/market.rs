@@ -406,6 +406,9 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
     let who = w.players.cold[p].person;
     let nation = w.clubs[buyer].nation;
     crate::life::relocate(w, who, nation, pw_world::Cause::Event(ev));
+    if seller.is_some() {
+        crate::culture::on_transfer(w, p, seller, buyer, ev);
+    }
     crate::media::on_move(w, p, seller, buyer, ev);
 }
 
