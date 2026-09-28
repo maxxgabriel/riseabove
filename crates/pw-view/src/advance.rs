@@ -139,7 +139,7 @@ fn run(sh: Arc<Shared>, req: AdvanceReq, max_days: u32) {
         };
         let before = s.today();
         let t0 = Instant::now();
-        let stats = s.sim.step();
+        let stats = s.game.step();
         matches += stats.matches as u64;
         s.timings.push((before.0, t0.elapsed().as_micros().min(u128::from(u32::MAX)) as u32));
         if s.timings.len() > 400 {
@@ -264,6 +264,7 @@ fn major_event(s: &Session, since: Date, player: Option<PlayerId>) -> Option<Str
             Visibility::Public => true,
             Visibility::Club(c) => c == club,
             Visibility::Person(pp) => Some(pp) == s.my_person(),
+            Visibility::Between(a, b) => Some(a) == s.my_person() || Some(b) == s.my_person(),
         };
         if !mine_vis {
             continue;

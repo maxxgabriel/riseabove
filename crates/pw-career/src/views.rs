@@ -448,7 +448,7 @@ pub fn social(w: &World, me: PersonId, n: usize) -> Vec<String> {
     let mine: Vec<(ClubId, &pw_world::media::FanStanding)> = w.media.fans.iter().filter(|((_, p), _)| *p == me).map(|((c, _), f)| (*c, f)).collect();
     for (c, f) in mine {
         let why: Vec<&str> = f.reasons.iter().map(|r| r.0.label()).collect();
-        v.push(format!("{} fans see you as: {} ({})", club(w, c), f.label(), why.join(", ")));
+        v.push(format!("{} fans see you as: {} ({})", pw_narrate::fmt::club(w, c), f.label(), why.join(", ")));
     }
     if let Some(&img) = w.media.image.get(&me) {
         v.push(format!("Public image: {}", if img > 100 { "positive" } else if img < -100 { "negative" } else { "neutral" }));

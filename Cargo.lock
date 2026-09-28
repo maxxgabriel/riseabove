@@ -192,10 +192,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pathway-app"
-version = "0.1.0"
-
-[[package]]
 name = "proc-macro2"
 version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -211,6 +207,7 @@ dependencies = [
  "pw-core",
  "pw-data",
  "pw-match",
+ "pw-narrate",
  "pw-sim",
  "pw-world",
  "serde",
@@ -221,10 +218,12 @@ dependencies = [
 name = "pw-cli"
 version = "0.1.0"
 dependencies = [
+ "pw-career",
  "pw-core",
  "pw-data",
  "pw-import",
  "pw-match",
+ "pw-narrate",
  "pw-sim",
  "pw-world",
 ]
@@ -276,6 +275,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pw-narrate"
+version = "0.1.0"
+dependencies = [
+ "pw-core",
+ "pw-data",
+ "pw-world",
+]
+
+[[package]]
 name = "pw-serve"
 version = "0.1.0"
 dependencies = [
@@ -305,10 +313,12 @@ dependencies = [
 name = "pw-view"
 version = "0.1.0"
 dependencies = [
+ "pw-career",
  "pw-core",
  "pw-data",
  "pw-import",
  "pw-match",
+ "pw-narrate",
  "pw-sim",
  "pw-world",
  "rustc-hash",

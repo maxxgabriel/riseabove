@@ -106,7 +106,8 @@ pub fn ensure(w: &mut World) {
         let owner_p = new_person(w, club, (40, 75), &mut rng);
         let rep = f32::from(w.clubs[club].reputation) / 10_000.0;
         let kind = w.clubs[club].ownership;
-        let owner = owner_for(kind, rep, &mut rng, owner_p, w.date.add_days(-rng.range_i32(0, 7300)));
+        let since = w.date.add_days(-rng.range_i32(0, 7300));
+        let owner = owner_for(kind, rep, &mut rng, owner_p, since);
         let chairman = if kind == Ownership::MemberOwned { new_person(w, club, (45, 70), &mut rng) } else { owner_p };
         let policy = policy_for(&owner, rep, &mut rng);
         w.clubs[club].board.patience = owner.patience;

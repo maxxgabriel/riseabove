@@ -229,3 +229,27 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "personality": if c.sees_internal_state() { json!(person.hidden.personality_label()) } else { Value::Null },
     }))
 }
+
+/// Bring a new person into the world with the world's own generator, then step into them.
+/// Talent is never chosen: potential comes from the club's own intake and stays hidden.
+pub fn create(s: &mut crate::session::Session, args: &Value) -> ApiResult<Value> {
+    let first = args.get("first").and_then(Value::as_str).unwrap_or("").trim().to_string();
+    let last = args.get("last").and_then(Value::as_str).unwrap_or("").trim().to_string();
+    if first.is_empty() || last.is_empty() {
+        return Err(ApiError::Bad("Give them a first and a last name.".into()));
+    }
+    let age = args.get("age").and_then(Value::as_u64).unwrap_or(17).clamp(8, 40) as u8;
+    let pos = args.get("pos").and_then(Value::as_str).and_then(pw_core::Pos::from_code).ok_or_else(|| ApiError::Bad("Choose a position.".into()))?;
+    let club = args.get("club").and_then(Value::as_u64).map_or(pw_core::ClubId::NONE, |n| pw_core::ClubId(n as u32));
+    if club.is_some() && club.0 as usize >= s.w().clubs.len() {
+        return Err(ApiError::NotFound(format!("club {}", club.0)));
+    }
+    let nation = args.get("nation").and_then(Value::as_u64).map_or(pw_core::NationId::NONE, |n| pw_core::NationId(n as u32));
+    if nation.is_some() && nation.0 as usize >= s.w().nations.len() {
+        return Err(ApiError::NotFound(format!("nation {}", nation.0)));
+    }
+    let salt = s.w().seed ^ u64::from(s.today().0 as u32).rotate_left(21) ^ s.w().people.len() as u64;
+    let (person, _) = pw_career::create_person(&mut s.game.sim.world, pw_career::NewPerson { first, last, nation, club, age, pos, salt });
+    s.inhabit(person, salt)?;
+    Ok(json!({"person": person.0}))
+}

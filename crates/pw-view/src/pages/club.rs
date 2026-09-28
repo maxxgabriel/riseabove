@@ -37,7 +37,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         .map(|&t| {
             let team = &w.teams[t];
             json!({
-                "team": t.0, "kind": team.kind.label(), "kind_key": match team.kind { TeamKind::First => "first", TeamKind::Reserve => "reserve", TeamKind::U21 => "u21", TeamKind::U19 => "u19", TeamKind::U18 => "u18" },
+                "team": t.0, "kind": team.kind.label(), "kind_key": match team.kind { TeamKind::First => "first", TeamKind::Reserve => "reserve", TeamKind::U21 => "u21", TeamKind::U19 => "u19", TeamKind::U18 => "u18", TeamKind::U16 => "u16", TeamKind::U14 => "u14", TeamKind::U12 => "u12" },
                 "squad": team.squad.len(),
                 "comp": w.league_of(t).map(|l| named(Ref::comp(l), c.comp_short(l))),
                 "captain": if team.captain.is_some() { Some(named(c.player_ref(team.captain), c.player_name(team.captain))) } else { None },
@@ -82,7 +82,7 @@ pub fn follow(c: &mut crate::session::Session, args: &Value) -> ApiResult<Value>
         return Err(ApiError::NotFound(format!("club {}", id.0)));
     }
     let teams: Vec<_> = c.w().clubs[id].teams.iter().copied().collect();
-    let followed = &mut c.sim.world.followed;
+    let followed = &mut c.game.sim.world.followed;
     for t in teams {
         followed.retain(|x| *x != t);
         if on {

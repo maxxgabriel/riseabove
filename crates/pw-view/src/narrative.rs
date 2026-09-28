@@ -1,7 +1,7 @@
 //! Turning world events into sentences the viewer is allowed to read.
 
 use pw_core::{ClubId, CompId, PlayerId};
-use pw_world::event::{AwardKind, Event, EventKind as E, Visibility};
+use pw_world::event::{Event, EventKind as E, Visibility};
 
 use crate::ctx::Ctx;
 use crate::model::{Part, Ref};
@@ -13,6 +13,10 @@ pub enum Group {
     Health,
     Club,
     Competition,
+    Life,
+    Media,
+    Board,
+    International,
 }
 
 impl Group {
@@ -23,6 +27,10 @@ impl Group {
             "health" => Group::Health,
             "club" => Group::Club,
             "competition" => Group::Competition,
+            "life" => Group::Life,
+            "media" => Group::Media,
+            "board" => Group::Board,
+            "international" => Group::International,
             _ => return None,
         })
     }
@@ -35,7 +43,15 @@ pub fn group_of(k: &E) -> Group {
         Retired { .. } | Debut { .. } | FirstGoal { .. } | Award { .. } | CallUp { .. } => Group::Career,
         Injured { .. } | Recovered { .. } | Suspended { .. } => Group::Health,
         ManagerSacked { .. } | ManagerAppointed { .. } | YouthIntake { .. } => Group::Club,
-        Champion { .. } | Promoted { .. } | Relegated { .. } => Group::Competition,
+        Champion { .. } | Promoted { .. } | Relegated { .. } | ManagerOfSeason { .. } => Group::Competition,
+        TransferRequested { .. } | TransferRequestWithdrawn { .. } | TalksOpened { .. } | TalksCollapsed { .. } | AgentHired { .. } | AgentLeft { .. } | AgentPitch { .. } | DealCollapsed { .. } | PreContractSigned { .. } | TrialStarted { .. } | TrialEnded { .. } | LoanRecalled { .. } | OptionExercised { .. } | AddOnPaid { .. } | SellOnPaid { .. } => Group::Transfers,
+        Diagnosed { .. } | InjurySetback { .. } | RushedBack { .. } | ChronicCondition { .. } => Group::Health,
+        Life { .. } | ExamsSat { .. } | EnrolledCourse { .. } | Qualified { .. } | MovedHome { .. } | HiredHelper { .. } | GaveBack { .. } | Investment { .. } | NewCareer { .. } | CareerEnded { .. } | JoinedStaff { .. } | CameOutOfRetirement { .. } => Group::Life,
+        Published { .. } | Endorsed { .. } | EndorsementEnded { .. } | SponsorClash { .. } | ClubSponsor { .. } => Group::Media,
+        Takeover { .. } | Administration { .. } | PointsDeducted { .. } | Austerity { .. } | OwnerInvestment { .. } | ProjectStarted { .. } | ProjectCompleted { .. } | BroadcastDeal { .. } | ManagerResigned { .. } | ManagerPoached { .. } | TacticalChange { .. } | StaffFollowed { .. } | StaffLeft { .. } => Group::Board,
+        NationalSquad { .. } | InternationalDebut { .. } | InternationalResult { .. } | TournamentWon { .. } | ChoseNation { .. } | RetiredFromInternational { .. } | NationalManagerAppointed { .. } | NationalManagerLeft { .. } | WithdrewFromSquad { .. } => Group::International,
+        Milestone { .. } | RecordBroken { .. } | BecameLegend { .. } | InductedHallOfFame { .. } | AcademyJoined { .. } | AcademyReleased { .. } | ScholarshipOffered { .. } | JoinedLocalClub { .. } | AcademyTrialStarted { .. } | Stagnated { .. } | CharacterChanged { .. } => Group::Career,
+        _ => Group::Club,
     }
 }
 
@@ -65,18 +81,81 @@ pub fn label(k: &E) -> &'static str {
         TransferListed { .. } => "Listing",
         Award { .. } => "Award",
         CallUp { .. } => "Call-up",
+        Meeting { .. } => "Meeting",
+        PromiseMade { .. } => "Promise",
+        PromiseKept { .. } => "Promise kept",
+        PromiseBroken { .. } => "Promise broken",
+        TransferRequested { .. } => "Transfer request",
+        TransferRequestWithdrawn { .. } => "Request withdrawn",
+        Fined { .. } => "Fine",
+        Unrest { .. } => "Unrest",
+        TalksOpened { .. } => "Talks",
+        TalksCollapsed { .. } => "Talks ended",
+        Published { .. } => "Press",
+        AgentHired { .. } | AgentLeft { .. } | AgentPitch { .. } => "Agent",
+        Life { .. } => "Life",
+        JoinedStaff { .. } => "New job",
+        CameOutOfRetirement { .. } => "Comeback",
+        CoachNote { .. } => "Coach's note",
+        StatusChanged { .. } => "Squad status",
+        Captaincy { .. } => "Captaincy",
+        Takeover { .. } => "Takeover",
+        Administration { .. } => "Administration",
+        PointsDeducted { .. } => "Points deducted",
+        Austerity { .. } => "Austerity",
+        OwnerInvestment { .. } => "Investment",
+        ProjectStarted { .. } | ProjectCompleted { .. } => "Project",
+        BroadcastDeal { .. } => "Broadcast deal",
+        ManagerResigned { .. } => "Resignation",
+        ManagerPoached { .. } => "Poached",
+        TacticalChange { .. } => "Tactics",
+        StaffFollowed { .. } | StaffLeft { .. } => "Staff",
+        DealCollapsed { .. } => "Deal collapsed",
+        PreContractSigned { .. } => "Pre-contract",
+        TrialStarted { .. } | TrialEnded { .. } => "Trial",
+        LoanRecalled { .. } => "Loan recalled",
+        OptionExercised { .. } => "Option",
+        AddOnPaid { .. } | SellOnPaid { .. } => "Clause paid",
+        AcademyJoined { .. } | AcademyReleased { .. } | ScholarshipOffered { .. } | AcademyTrialStarted { .. } => "Academy",
+        JoinedLocalClub { .. } => "Local club",
+        ExamsSat { .. } => "Exams",
+        NationalSquad { .. } => "Squad named",
+        InternationalDebut { .. } => "International debut",
+        InternationalResult { .. } => "International result",
+        TournamentWon { .. } => "Tournament",
+        ChoseNation { .. } => "Allegiance",
+        RetiredFromInternational { .. } => "International retirement",
+        NationalManagerAppointed { .. } | NationalManagerLeft { .. } => "National manager",
+        WithdrewFromSquad { .. } => "Withdrew",
+        Diagnosed { .. } => "Diagnosis",
+        InjurySetback { .. } => "Setback",
+        RushedBack { .. } => "Rushed back",
+        ChronicCondition { .. } => "Chronic condition",
+        PlayerSettled { .. } => "Settled",
+        DressingRoomSplit { .. } => "Dressing room",
+        LeaderEmerged { .. } => "Leader",
+        TookUnderWing { .. } => "Mentoring",
+        CharacterChanged { .. } => "Character",
+        Stagnated { .. } => "Stagnation",
+        Milestone { .. } => "Milestone",
+        RecordBroken { .. } => "Record",
+        BecameLegend { .. } => "Legend",
+        InductedHallOfFame { .. } => "Hall of fame",
+        ManagerOfSeason { .. } => "Manager of the season",
+        EnrolledCourse { .. } | Qualified { .. } => "Study",
+        MovedHome { .. } => "Home",
+        HiredHelper { .. } => "Help",
+        GaveBack { .. } => "Giving back",
+        Endorsed { .. } | EndorsementEnded { .. } => "Endorsement",
+        SponsorClash { .. } => "Sponsor clash",
+        ClubSponsor { .. } => "Sponsorship",
+        NewCareer { .. } | CareerEnded { .. } => "Career",
+        Investment { .. } => "Investment",
     }
 }
 
 pub fn clubs_of(k: &E) -> Vec<ClubId> {
-    use E::*;
-    match *k {
-        Transfer { from, to, .. } | LoanMove { from, to, .. } => vec![from, to],
-        LoanReturn { to, .. } => vec![to],
-        ContractSigned { club, .. } | Released { club, .. } | Interest { club, .. } | BidRejected { club, .. } | BidAccepted { club, .. } | TransferListed { club, .. } => vec![club],
-        ManagerSacked { club, .. } | ManagerAppointed { club, .. } | YouthIntake { club, .. } => vec![club],
-        _ => vec![],
-    }
+    k.clubs().into_iter().collect()
 }
 
 pub fn comp_of(k: &E) -> Option<CompId> {
@@ -92,6 +171,7 @@ pub fn visible(c: &Ctx, e: &Event) -> bool {
         Visibility::Public => true,
         Visibility::Club(cl) => c.observer() || c.same_club(cl),
         Visibility::Person(p) => c.observer() || Some(p) == c.me(),
+        Visibility::Between(a, b) => c.observer() || Some(a) == c.me() || Some(b) == c.me(),
     };
     vis && !spoils(c, e)
 }
@@ -132,16 +212,22 @@ pub fn primary(c: &Ctx, k: &E) -> Option<Ref> {
         return Some(c.player_ref(p));
     }
     match *k {
-        E::Retired { person } => Some(Ref::person(person)),
-        E::ManagerSacked { staff, .. } | E::ManagerAppointed { staff, .. } => Some(Ref::person(c.w.staff[staff].person)),
-        E::YouthIntake { club, .. } => Some(Ref::club(club)),
-        E::Champion { team, .. } | E::Promoted { team, .. } | E::Relegated { team, .. } => Some(c.team_ref(team)),
-        _ => None,
+        E::Retired { person } => return Some(Ref::person(person)),
+        E::ManagerSacked { staff, .. } | E::ManagerAppointed { staff, .. } => return Some(Ref::person(c.w.staff[staff].person)),
+        E::Champion { team, .. } | E::Promoted { team, .. } | E::Relegated { team, .. } => return Some(c.team_ref(team)),
+        _ => {}
     }
+    if let Some(&p) = k.people().first() {
+        return Some(Ref::person(p));
+    }
+    k.clubs().first().map(|&x| Ref::club(x))
 }
 
-pub fn describe(c: &Ctx, k: &E) -> Vec<Part> {
+/// The sentence for an event, as parts that link to what it names. Older kinds are built here with
+/// links; everything else is the narration crate's line, so text always comes from recorded state.
+pub fn describe(c: &Ctx, e: &Event) -> Vec<Part> {
     use E::*;
+    let k = &e.kind;
     match *k {
         Transfer { player, from, to, fee } => {
             let mut v = vec![pl(c, player), t(" joined "), cl(c, to)];
@@ -197,15 +283,97 @@ pub fn describe(c: &Ctx, k: &E) -> Vec<Part> {
         BidAccepted { player, club, fee } => vec![cl(c, club), t(" had a bid of "), Part::money(fee), t(" for "), pl(c, player), t(" accepted")],
         TransferListed { player, club } => vec![cl(c, club), t(" listed "), pl(c, player), t(" for transfer")],
         Award { player, comp, award, season } => {
-            let a = match award {
-                AwardKind::PlayerOfSeason => "Player of the Season",
-                AwardKind::YoungPlayerOfSeason => "Young Player of the Season",
-                AwardKind::TopScorer => "top scorer",
-                AwardKind::TeamOfSeason => "the Team of the Season",
-                AwardKind::PlayerOfMonth => "Player of the Month",
-            };
-            vec![pl(c, player), t(&format!(" won {a} in ")), cp(c, comp), t(&format!(" ({})", c.season_label(comp, season)))]
+            vec![pl(c, player), t(&format!(" won {} in ", award.label())), cp(c, comp), t(&format!(" ({})", c.season_label(comp, season)))]
         }
         CallUp { player } => vec![pl(c, player), t(" was called up by the national team")],
+        _ => {
+            let viewer = c.me().unwrap_or(pw_core::PersonId::NONE);
+            match pw_narrate::events::line(c.w, e, viewer) {
+                Some(line) => linkify(&line, &entities(c, k)),
+                None => vec![Part::t(label(k))],
+            }
+        }
+    }
+}
+
+/// The people, players and clubs an event names, with the exact text the narration prints for them.
+fn entities(c: &Ctx, k: &E) -> Vec<(String, Ref)> {
+    let mut v: Vec<(String, Ref)> = Vec::new();
+    for p in k.people() {
+        v.push((c.person_name(p), Ref::person(p)));
+    }
+    if let Some(p) = k.player() {
+        v.push((c.player_name(p), c.player_ref(p)));
+    }
+    for x in k.clubs() {
+        if x.is_some() {
+            v.push((c.club_name(x), Ref::club(x)));
+        }
+    }
+    v
+}
+
+/// Split narrated text into plain runs and links, wherever a known name appears as a whole word.
+pub fn linkify(text: &str, ents: &[(String, Ref)]) -> Vec<Part> {
+    let mut out: Vec<Part> = Vec::new();
+    let mut rest = text;
+    loop {
+        let mut best: Option<(usize, usize, Ref)> = None;
+        for (name, r) in ents {
+            if name.chars().count() < 3 {
+                continue;
+            }
+            let mut from = 0;
+            while let Some(i) = rest[from..].find(name.as_str()) {
+                let at = from + i;
+                let end = at + name.len();
+                let before = rest[..at].chars().next_back().is_none_or(|ch| !ch.is_alphanumeric());
+                let after = rest[end..].chars().next().is_none_or(|ch| !ch.is_alphanumeric());
+                if before && after {
+                    if best.is_none_or(|(b, l, _)| at < b || (at == b && name.len() > l)) {
+                        best = Some((at, name.len(), *r));
+                    }
+                    break;
+                }
+                from = at + 1;
+                if from >= rest.len() {
+                    break;
+                }
+            }
+        }
+        match best {
+            None => {
+                if !rest.is_empty() {
+                    out.push(Part::t(rest));
+                }
+                break;
+            }
+            Some((at, len, r)) => {
+                if at > 0 {
+                    out.push(Part::t(&rest[..at]));
+                }
+                out.push(Part::l(r, &rest[at..at + len]));
+                rest = &rest[at + len..];
+            }
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn links_whole_names_only() {
+        let ents = vec![("Ann Lee".to_string(), Ref { k: "person", id: 1 }), ("Ann".to_string(), Ref { k: "person", id: 2 })];
+        let parts = linkify("Ann Lee signed. Joanna met Ann.", &ents);
+        let flat: Vec<(&str, Option<u32>)> = parts.iter().map(|p| (p.t.as_str(), p.r.map(|r| r.id))).collect();
+        assert_eq!(flat, vec![("Ann Lee", Some(1)), (" signed. Joanna met ", None), ("Ann", Some(2)), (".", None)]);
+    }
+
+    #[test]
+    fn plain_text_is_kept() {
+        assert_eq!(linkify("Nothing to link.", &[]).len(), 1);
     }
 }

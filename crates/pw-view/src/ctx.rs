@@ -30,7 +30,7 @@ impl<'a> Ctx<'a> {
 
     #[inline]
     pub fn observer(&self) -> bool {
-        self.s.meta.persp.person().is_none()
+        self.s.my_person().is_none()
     }
 
     pub fn me(&self) -> Option<PersonId> {
@@ -197,6 +197,7 @@ impl<'a> Ctx<'a> {
             PlayerStatus::Active => "Active",
             PlayerStatus::FreeAgent => "Free agent",
             PlayerStatus::Retired => "Retired",
+            PlayerStatus::Amateur => "Amateur",
         }
     }
 }

@@ -1,9 +1,8 @@
 //! Pages that exist only while inhabiting someone: Today, Messages, Calendar,
 //! Football and the contract. Each is built from what that person can know.
 
-use pw_core::{Date, DecisionId, PlayerId};
+use pw_core::{Date, PlayerId};
 use pw_sim::health::{self, DayKind};
-use pw_world::decision::{Decision, DecisionKind};
 use pw_world::event::EventKind as E;
 use pw_world::{Contract, Focus, Intensity, PlayerStatus};
 use serde_json::{Value, json};
@@ -14,11 +13,11 @@ use crate::narrative;
 use crate::session::Session;
 use crate::tables::{round_text, score_text};
 
-fn named(r: Ref, n: String) -> Value {
+pub(crate) fn named(r: Ref, n: String) -> Value {
     serde_json::to_value(Named::new(r, n)).unwrap_or(Value::Null)
 }
 
-fn need_me(c: &Ctx) -> ApiResult<PlayerId> {
+pub(crate) fn need_me(c: &Ctx) -> ApiResult<PlayerId> {
     c.my_player().ok_or_else(|| ApiError::State("You are observing the world. Inhabit a player to use this page.".into()))
 }
 
@@ -83,40 +82,7 @@ fn my_fixtures<'a>(c: &Ctx<'a>, from: Date, to: Date) -> Vec<&'a pw_world::Fixtu
     c.w.fixtures.between(from, to).map(|id| c.w.fixtures.get(id)).filter(|f| f.involves(my)).collect()
 }
 
-pub fn decision_summary(c: &Ctx, id: DecisionId, d: &Decision) -> (String, Vec<pw_world::Contract>) {
-    let _ = (c, id);
-    match &d.kind {
-        DecisionKind::ContractOffer { club, contract, renewal } => (
-            format!("{} {} you a contract.", c.club_name(*club), if *renewal { "have offered" } else { "would like to sign" }),
-            vec![contract.clone()],
-        ),
-        DecisionKind::FreeAgentOffer { club, contract } => (format!("{} have offered you a contract.", c.club_name(*club)), vec![contract.clone()]),
-        DecisionKind::LoanOffer { loan } => (
-            format!("{} would like to borrow you from {} until {}.", c.club_name(loan.club), c.club_name(loan.parent), crate::fmt::date(loan.end)),
-            vec![],
-        ),
-        DecisionKind::TransferTalks { club, .. } => (format!("{} would like to talk to you.", c.club_name(*club)), vec![]),
-    }
-}
-
-fn decision_club(d: &Decision) -> pw_core::ClubId {
-    match &d.kind {
-        DecisionKind::ContractOffer { club, .. } | DecisionKind::FreeAgentOffer { club, .. } | DecisionKind::TransferTalks { club, .. } => *club,
-        DecisionKind::LoanOffer { loan } => loan.club,
-    }
-}
-
-fn state_of(d: &Decision) -> &'static str {
-    if d.resolved {
-        if d.answer.is_some() { "settled" } else { "expired" }
-    } else if d.answer.is_some() {
-        "answered"
-    } else {
-        "awaiting"
-    }
-}
-
-fn contract_rows(c: &Ctx, k: &Contract) -> Value {
+pub(crate) fn contract_rows(c: &Ctx, k: &Contract) -> Value {
     json!([
         {"label": "Wage per week", "money": k.current_wage(c.w.date).max(k.wage)},
         {"label": "Runs until", "date": k.end.0},
@@ -177,28 +143,45 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
     }
 
     // Decisions waiting.
-    let decisions: Vec<Value> = w
-        .decisions
-        .pending_for(me)
-        .filter(|(_, d)| d.answer.is_none())
-        .map(|(id, d)| {
-            let (summary, _) = decision_summary(c, id, d);
-            json!({"id": format!("d{}", id.0), "title": d.kind.title(), "summary": summary, "deadline": d.deadline.0, "from": named(Ref::club(decision_club(d)), c.club_name(decision_club(d)))})
-        })
-        .collect();
+    let decisions = super::inbox::waiting(c);
 
-    // What changed since the viewer last looked.
+    // What reached the viewer since they last looked.
     let since = Date(c.s.meta.last_viewed.max(date.0 - 60));
     let mut changes: Vec<Value> = Vec::new();
     for e in w.events.since(since).iter().rev() {
-        if !narrative::visible(c, e) || !relevant(c, p, &e.kind) {
+        if !pw_career::feed::concerns(w, me, e) || !narrative::visible(c, e) {
             continue;
         }
-        changes.push(json!({"date": e.date.0, "kind": narrative::label(&e.kind), "parts": narrative::describe(c, &e.kind)}));
+        changes.push(json!({
+            "id": format!("e{}", e.id.0), "date": e.date.0, "kind": narrative::label(&e.kind), "parts": narrative::describe(c, e),
+            "important": pw_career::feed::is_important(w, me, e),
+        }));
         if changes.len() >= 12 {
             break;
         }
     }
+
+    // What is on the person's mind, in their own words, with the world's recorded reasons.
+    let life = &w.lives[me];
+    let mut mind: Vec<(pw_world::life::MoodFactor, i8)> = life.morale_why.iter().copied().collect();
+    mind.sort_by_key(|(_, x)| std::cmp::Reverse(x.unsigned_abs()));
+    let mind: Vec<Value> = mind
+        .iter()
+        .take(4)
+        .filter(|(_, x)| x.unsigned_abs() >= 2)
+        .map(|(f, x)| json!({"text": format!("{} {}", pw_narrate::fmt::feeling(*x), f.label()), "value": x}))
+        .collect();
+
+    // Things the person has set in motion that the world has not yet acted on.
+    let mut waiting_on: Vec<Value> = Vec::new();
+    for pi in w.intents.queue.iter().filter(|pi| pi.person == me) {
+        waiting_on.push(json!({"kind": "intent", "text": super::act::intent_text(c, &pi.intent), "since": pi.date.0}));
+    }
+    for (_, m) in w.meetings.pending().filter(|(_, m)| m.initiator == me) {
+        waiting_on.push(json!({"kind": "meeting", "text": format!("You asked {} to talk about {}", c.person_name(m.with), m.topic.label()), "since": m.requested.0, "date": m.date.0, "ref": Ref::person(m.with)}));
+    }
+    let open_promises = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).count();
+    let next_due = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).map(|pr| pr.due.0).min();
 
     let contract = if h.club.is_some() {
         json!({"club": named(Ref::club(cold.contract.club), c.club_name(cold.contract.club)), "end": cold.contract.end.0, "days_left": cold.contract.days_left(date), "status": cold.status.label(), "wage": cold.contract.current_wage(date)})
@@ -222,7 +205,9 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on,
+        "promises": {"open": open_promises, "next_due": next_due},
+        "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,
         "condition": condition_words(h),
         "availability": {
@@ -231,161 +216,15 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         "contract": contract, "league": position_in_league,
         "form": h.form.iter().filter(|&&r| r > 0).map(|&r| f64::from(r) / 10.0).collect::<Vec<_>>(),
         "minutes_4w": h.minutes_4w,
-        "plan": plan_json(&cold.plan),
+        "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
         "last_viewed": c.s.meta.last_viewed,
         "conceal_mine": c.s.meta.conceal_mine,
     }))
 }
 
-fn relevant(c: &Ctx, p: PlayerId, k: &E) -> bool {
-    let club = c.w.players.hot[p].club;
-    if k.player() == Some(p) {
-        return true;
-    }
-    match *k {
-        E::Retired { person } => Some(person) == c.me(),
-        E::ManagerSacked { club: x, .. } | E::ManagerAppointed { club: x, .. } | E::YouthIntake { club: x, .. } => x == club,
-        E::Champion { team, .. } | E::Promoted { team, .. } | E::Relegated { team, .. } => c.w.teams[team].club == club,
-        _ => false,
-    }
-}
-
 pub fn mark_viewed(s: &mut Session) -> ApiResult<Value> {
     s.meta.last_viewed = s.today().0;
-    Ok(json!({"ok": true}))
-}
-
-// ---- messages ---------------------------------------------------------------------------------
-
-pub fn messages(c: &Ctx) -> ApiResult<Value> {
-    let p = need_me(c)?;
-    let me = c.me().expect("inhabiting");
-    let w = c.w;
-    let mut out: Vec<Value> = Vec::new();
-
-    for (id, d) in w.decisions.all.iter_enumerated().filter(|(_, d)| d.person == me) {
-        let (summary, _) = decision_summary(c, id, d);
-        let state = state_of(d);
-        let club = decision_club(d);
-        out.push(json!({
-            "id": format!("d{}", id.0), "kind": "decision", "date": d.created.0, "subject": d.kind.title(), "preview": summary,
-            "from": named(Ref::club(club), c.club_name(club)), "state": state, "deadline": d.deadline.0,
-            "folder": match (&d.kind, state) { (_, "awaiting") => "awaiting", (DecisionKind::LoanOffer { .. }, _) => "work", _ => "contracts" },
-            "needs_action": state == "awaiting",
-        }));
-    }
-    let since = w.date.add_days(-180);
-    for (i, e) in w.events.all().iter().enumerate().rev() {
-        if e.date < since {
-            break;
-        }
-        if !narrative::visible(c, e) || !relevant(c, p, &e.kind) {
-            continue;
-        }
-        let club = w.players.hot[p].club;
-        let folder = match e.kind {
-            E::ContractSigned { .. } | E::Transfer { .. } | E::Released { .. } | E::LoanMove { .. } | E::Interest { .. } | E::BidAccepted { .. } | E::BidRejected { .. } | E::TransferListed { .. } => "contracts",
-            E::CallUp { .. } => "invitations",
-            _ => "work",
-        };
-        out.push(json!({
-            "id": format!("e{i}"), "kind": "event", "date": e.date.0, "subject": narrative::label(&e.kind),
-            "preview": Value::Null, "parts": narrative::describe(c, &e.kind),
-            "from": if club.is_some() { named(Ref::club(club), c.club_name(club)) } else { Value::Null },
-            "state": "info", "folder": folder, "needs_action": false, "deadline": Value::Null,
-        }));
-        if out.len() > 400 {
-            break;
-        }
-    }
-    out.sort_by(|a, b| b["date"].as_i64().cmp(&a["date"].as_i64()));
-    let awaiting = out.iter().filter(|m| m["needs_action"] == true).count();
-    Ok(json!({"messages": out, "awaiting": awaiting}))
-}
-
-pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    need_me(c)?;
-    let id = args.get("id").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing message id".into()))?;
-    let me = c.me().expect("inhabiting");
-    let w = c.w;
-    if let Some(n) = id.strip_prefix('d').and_then(|s| s.parse::<u32>().ok()) {
-        let did = DecisionId(n);
-        let d = w.decisions.all.get(did).filter(|d| d.person == me).ok_or_else(|| ApiError::NotFound("message".into()))?;
-        let (summary, contracts) = decision_summary(c, did, d);
-        let options: Vec<Value> = d.kind.options().iter().enumerate().map(|(i, l)| json!({"i": i, "label": l})).collect();
-        let pending = w.market.pending.iter().find(|x| x.decision == did);
-        let cold = &w.players.cold[c.my_player().expect("me")];
-        let state = state_of(d);
-        // Once an offer is settled, "your current contract" and "what accepting means" describe a world that has moved on.
-        let live = matches!(state, "awaiting" | "answered");
-        let mut paragraphs: Vec<String> = vec![summary];
-        let mut consequences: Vec<String> = Vec::new();
-        let default_label = d.kind.options()[usize::from(d.default).min(d.kind.options().len() - 1)];
-        match &d.kind {
-            DecisionKind::ContractOffer { renewal: true, .. } => {
-                if live {
-                    paragraphs.push(format!("Your current contract runs until {}.", crate::fmt::date(cold.contract.end)));
-                }
-                consequences.push("Accepting replaces your current contract with the terms shown.".into());
-                consequences.push("Declining leaves your current contract unchanged. The club may approach you again later.".into());
-            }
-            DecisionKind::ContractOffer { club, .. } => {
-                if let Some(deal) = pending {
-                    paragraphs.push(format!("{} have agreed a fee with {} for you.", c.club_name(*club), c.club_name(deal.seller)));
-                    paragraphs.push("The move happens only if you agree personal terms.".into());
-                }
-                consequences.push(format!("Accepting means moving to {} once the registration is completed.", c.club_name(*club)));
-                consequences.push("Declining ends this approach; the club will not come back for you for a while.".into());
-            }
-            DecisionKind::FreeAgentOffer { club, .. } => {
-                consequences.push(format!("Accepting means signing for {}.", c.club_name(*club)));
-                consequences.push("Declining leaves you free to consider other offers.".into());
-            }
-            DecisionKind::LoanOffer { loan } => {
-                paragraphs.push(format!("The loan would run until {}. You would remain a {} player.", crate::fmt::date(loan.end), c.club_name(loan.parent)));
-                if loan.buy_option > 0 {
-                    paragraphs.push("The borrowing club has an option to buy you at the end of the loan.".into());
-                }
-                consequences.push("Accepting sends you to the borrowing club for the period shown.".into());
-                consequences.push("Declining keeps you where you are.".into());
-            }
-            DecisionKind::TransferTalks { .. } => consequences.push("Agreeing only opens talks.".into()),
-        }
-        if !live {
-            consequences.clear();
-        }
-        let outcome = match (state, d.answer) {
-            ("settled", Some(a)) | ("answered", Some(a)) => Some(format!("You chose: {}", d.kind.options()[usize::from(a).min(d.kind.options().len() - 1)])),
-            ("expired", _) => Some(format!("No response was given. The default was applied: {default_label}.")),
-            _ => None,
-        };
-        let terms: Vec<Value> = contracts.iter().map(|k| contract_rows(c, k)).collect();
-        let current = if live && matches!(d.kind, DecisionKind::ContractOffer { renewal: true, .. }) { contract_rows(c, &cold.contract) } else { Value::Null };
-        let club = decision_club(d);
-        return Ok(json!({
-            "id": id, "kind": "decision", "title": d.kind.title(), "from": named(Ref::club(club), c.club_name(club)),
-            "created": d.created.0, "deadline": d.deadline.0, "state": state,
-            "paragraphs": paragraphs, "options": options, "answer": d.answer,
-            "default": {"i": d.default, "label": default_label},
-            "without_response": if state != "awaiting" { Value::Null } else { json!(format!("If you do not respond by {}, the response your own judgement would give is applied: {}.", crate::fmt::date(d.deadline), default_label.to_lowercase())) },
-            "consequences": consequences, "terms": terms.first().cloned().unwrap_or(Value::Null), "current_terms": current,
-            "outcome": outcome,
-        }));
-    }
-    if let Some(i) = id.strip_prefix('e').and_then(|s| s.parse::<usize>().ok()) {
-        let e = w.events.all().get(i).filter(|e| narrative::visible(c, e)).ok_or_else(|| ApiError::NotFound("message".into()))?;
-        return Ok(json!({
-            "id": id, "kind": "event", "title": narrative::label(&e.kind), "date": e.date.0,
-            "parts": narrative::describe(c, &e.kind), "primary": narrative::primary(c, &e.kind),
-        }));
-    }
-    Err(ApiError::NotFound("message".into()))
-}
-
-pub fn answer(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let id = args.get("id").and_then(Value::as_str).and_then(|s| s.strip_prefix('d')).and_then(|s| s.parse::<u32>().ok()).ok_or_else(|| ApiError::Bad("missing decision".into()))?;
-    let choice = args.get("choice").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing choice".into()))? as u8;
-    s.answer(DecisionId(id), choice)?;
+    s.game.session.seen = s.game.sim.world.events.last_id();
     Ok(json!({"ok": true}))
 }
 
@@ -455,6 +294,15 @@ pub fn calendar(c: &Ctx, args: &Value) -> ApiResult<Value> {
 
 // ---- football: squad place, training, contract -------------------------------------------------------
 
+/// The training plan the person has asked for that the world has not applied yet.
+fn plan_pending(c: &Ctx) -> Value {
+    let Some(me) = c.me() else { return Value::Null };
+    c.w.intents.queue.iter().rev().find_map(|pi| match pi.intent {
+        pw_world::Intent::SetTraining(plan) if pi.person == me => Some(plan_json(&plan)),
+        _ => None,
+    }).unwrap_or(Value::Null)
+}
+
 fn plan_json(plan: &pw_world::TrainingPlan) -> Value {
     let (fk, fv): (&str, Value) = match plan.focus {
         Focus::General => ("general", Value::Null),
@@ -513,7 +361,7 @@ pub fn football(c: &Ctx) -> ApiResult<Value> {
         "usage": usage, "rivals": rivals,
         "season": {"apps": apps.0, "starts": apps.1, "minutes": apps.2},
         "minutes_4w": h.minutes_4w,
-        "plan": plan_json(&cold.plan),
+        "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
         "options": {
             "attributes": pw_core::Attr::ALL.iter().filter(|a| !a.is_goalkeeping() || cold.best_pos == pw_core::Pos::GK).map(|a| json!({"key": a.key(), "label": a.label(), "group": format!("{:?}", a.group())})).collect::<Vec<_>>(),
             "positions": pw_core::Pos::ALL.iter().map(|p| json!({"code": p.code()})).collect::<Vec<_>>(),
@@ -558,9 +406,8 @@ pub fn set_plan(s: &mut Session, args: &Value) -> ApiResult<Value> {
             _ => return Err(ApiError::Bad("Unknown focus.".into())),
         };
     }
-    s.sim.world.players.cold[p].plan = plan;
-    s.revision += 1;
-    Ok(plan_json(&plan))
+    s.act(pw_world::Intent::SetTraining(plan))?;
+    Ok(json!({"plan": plan_json(&plan), "applies": "tomorrow"}))
 }
 
 pub fn contract(c: &Ctx) -> ApiResult<Value> {
@@ -586,7 +433,7 @@ pub fn contract(c: &Ctx) -> ApiResult<Value> {
         .filter(|e| matches!(e.kind, E::ContractSigned { player, .. } if player == p) && narrative::visible(c, e))
         .rev()
         .take(6)
-        .map(|e| json!({"date": e.date.0, "parts": narrative::describe(c, &e.kind)}))
+        .map(|e| json!({"date": e.date.0, "parts": narrative::describe(c, e)}))
         .collect();
     Ok(json!({
         "has_contract": true,

@@ -91,7 +91,7 @@ impl Source for Events {
         match col {
             "date" => Cell::num(f64::from(e.date.0)),
             "kind" => Cell::text(narrative::label(&e.kind)),
-            "what" => Cell::empty().with_parts(narrative::describe(c, &e.kind)),
+            "what" => Cell::empty().with_parts(narrative::describe(c, e)),
             _ => Cell::empty(),
         }
     }
@@ -327,13 +327,19 @@ impl Source for Awards {
     }
 }
 
-pub fn award_text(k: AwardKind) -> &'static str {
+pub fn award_text(k: AwardKind) -> String {
     match k {
-        AwardKind::PlayerOfSeason => "Player of the Season",
-        AwardKind::YoungPlayerOfSeason => "Young Player of the Season",
-        AwardKind::TopScorer => "Top scorer",
-        AwardKind::TeamOfSeason => "Team of the Season",
-        AwardKind::PlayerOfMonth => "Player of the Month",
+        AwardKind::PlayerOfSeason => "Player of the Season".into(),
+        AwardKind::YoungPlayerOfSeason => "Young Player of the Season".into(),
+        AwardKind::TopScorer => "Top scorer".into(),
+        AwardKind::TeamOfSeason => "Team of the Season".into(),
+        AwardKind::PlayerOfMonth => "Player of the Month".into(),
+        AwardKind::Playmaker => "Playmaker".into(),
+        AwardKind::GoldenGlove => "Golden Glove".into(),
+        AwardKind::WorldPlayer { rank: 1 } => "World Player of the Year".into(),
+        AwardKind::WorldPlayer { rank } => format!("World Player of the Year, {}", pw_world::event::ordinal(rank)),
+        AwardKind::WorldYoungPlayer => "World Young Player of the Year".into(),
+        AwardKind::ContinentalPlayer(c) => format!("{} Player of the Year", c.code()),
     }
 }
 

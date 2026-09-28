@@ -69,6 +69,7 @@ pub fn avail_cell(c: &Ctx, p: PlayerId) -> (Cell, Key) {
     match h.status {
         PlayerStatus::Retired => (Cell::text("Retired").tone(Tone::Muted), Key::Num(-1.0)),
         PlayerStatus::FreeAgent => (Cell::text("Free agent").tone(Tone::Muted), Key::Num(0.5)),
+        PlayerStatus::Amateur => (Cell::text("Amateur").tone(Tone::Muted), Key::Num(0.25)),
         PlayerStatus::Active => {
             if h.injury != 0 {
                 let name = health::injury_name(c.w, h.injury);

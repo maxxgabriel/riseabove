@@ -6,14 +6,13 @@ use serde_json::{Value, json};
 use crate::ctx::Ctx;
 use crate::model::{ApiResult, Named, Ref};
 use crate::narrative;
-use crate::session::Persp;
 
 fn named(r: Ref, n: String) -> Value {
     serde_json::to_value(Named::new(r, n)).unwrap_or(Value::Null)
 }
 
-fn parts_json(c: &Ctx, k: &E) -> Value {
-    serde_json::to_value(narrative::describe(c, k)).unwrap_or(Value::Null)
+fn parts_json(c: &Ctx, e: &pw_world::event::Event) -> Value {
+    serde_json::to_value(narrative::describe(c, e)).unwrap_or(Value::Null)
 }
 
 /// The observer's landing page, also shown as "World" while inhabiting.
@@ -68,7 +67,7 @@ pub fn overview(c: &Ctx) -> ApiResult<Value> {
         if !interesting {
             continue;
         }
-        recent.push(json!({"date": e.date.0, "kind": narrative::label(&e.kind), "parts": parts_json(c, &e.kind)}));
+        recent.push(json!({"date": e.date.0, "kind": narrative::label(&e.kind), "parts": parts_json(c, e)}));
         if recent.len() >= 14 {
             break;
         }
@@ -205,7 +204,7 @@ pub fn diagnostics(c: &Ctx) -> ApiResult<Value> {
         },
         "timings": {"samples": t.len(), "avg_ms": avg, "worst_ms": worst, "recent": t.iter().rev().take(60).rev().map(|x| json!([x.0, f64::from(x.1) / 1000.0])).collect::<Vec<_>>()},
         "revision": c.s.revision,
-        "perspective": match c.s.meta.persp { Persp::Observer => "observer", Persp::Inhabit { .. } => "inhabit" },
+        "perspective": if c.observer() { "observer" } else { "inhabit" },
         "capabilities": capabilities(),
     }))
 }

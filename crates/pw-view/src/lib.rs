@@ -27,7 +27,7 @@ use serde_json::{Value, json};
 pub use model::{ApiError, ApiResult};
 use advance::{AdvanceReq, Job};
 use ctx::Ctx;
-use session::{Persp, Session};
+use session::Session;
 
 pub struct Shared {
     session: Mutex<Option<Session>>,
@@ -171,9 +171,14 @@ impl Api {
                 self.not_while_advancing()?;
                 let id = args.get("person").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing person".into()))?;
                 self.with_mut(|s| {
-                    s.inhabit(pw_core::PersonId(id as u32))?;
+                    let salt = s.w().seed ^ (u64::from(s.today().0 as u32) << 20) ^ id;
+                    s.inhabit(pw_core::PersonId(id as u32), salt)?;
                     Ok(json!({"ok": true}))
                 })
+            }
+            "person.create" => {
+                self.not_while_advancing()?;
+                self.with_mut(|s| pages::person::create(s, &args))
             }
 
             "table.query" => {
@@ -198,9 +203,24 @@ impl Api {
 
             "me.today" => self.with(pages::me::today),
             "me.viewed" => self.with_mut(pages::me::mark_viewed),
-            "me.messages" => self.with(pages::me::messages),
-            "me.message" => self.with(|c| pages::me::message(c, &args)),
-            "me.answer" => self.with_mut(|s| pages::me::answer(s, &args)),
+            "me.messages" => self.with(|c| pages::inbox::inbox(c, &args)),
+            "me.message" => self.with(|c| pages::inbox::message(c, &args)),
+            "me.answer" => self.with_mut(|s| pages::inbox::answer(s, &args)),
+            "me.act" => self.with_mut(|s| pages::act::act(s, &args)),
+            "me.options" => self.with(pages::act::options),
+            "me.self" => self.with(pages::life::self_view),
+            "me.life" => self.with(pages::life::life),
+            "me.people" => self.with(pages::life::people),
+            "me.promises" => self.with(pages::life::promises),
+            "me.rumours" => self.with(pages::life::rumours),
+            "me.press" => self.with(pages::life::press),
+            "me.story" => self.with(|c| pages::life::story(c, &args)),
+            "me.agent" => self.with(pages::life::agent),
+            "me.journal" => self.with(pages::life::journal),
+            "me.goal" => self.with_mut(|s| pages::life::add_goal(s, &args)),
+            "me.goal_done" => self.with_mut(|s| pages::life::goal_done(s, &args)),
+            "me.note" => self.with_mut(|s| pages::life::add_note(s, &args)),
+            "me.note_remove" => self.with_mut(|s| pages::life::remove_note(s, &args)),
             "me.calendar" => self.with(|c| pages::me::calendar(c, &args)),
             "me.football" => self.with(pages::me::football),
             "me.plan" => self.with_mut(|s| pages::me::set_plan(s, &args)),
@@ -223,8 +243,8 @@ impl Api {
                 let awaiting = me.map_or(0, |m| s.w().decisions.pending_for(m).filter(|(_, d)| d.answer.is_none()).count());
                 json!({
                     "open": true, "name": s.meta.name, "date": s.today().0, "revision": s.revision,
-                    "perspective": match s.meta.persp { Persp::Observer => json!({"mode": "observer"}), Persp::Inhabit { person } => json!({
-                        "mode": "inhabit", "person": person, "name": c.person_name(pw_core::PersonId(person)),
+                    "perspective": match me { None => json!({"mode": "observer"}), Some(person) => json!({
+                        "mode": "inhabit", "person": person.0, "name": c.person_name(person),
                         "club": c.my_club().get().map(|cl| c.club_name(cl)),
                     }) },
                     "job": job, "task": task,
