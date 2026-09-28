@@ -205,7 +205,39 @@ person in the world**, whether or not anyone is inhabited; the only reads of `Pe
 - **Text client** (`pathway` binary): `pathway new synth small --warmup 365`, then `find`, `become <id>`, `next event`,
   `decisions`, `answer`, `meet manager minutes calm`, `train`, `routine`, `why <event>` and more (`help`).
 
-### 3.9 `app/` — desktop client — ⬜ not started (the terminal client comes first)
+### 3.9 Breadth pass — ⚠️ written 2026-09-28, never compiled
+Ten segmented commits (`2d4fc60` … `2df1756`, ≈ 11k lines). Full catalogue, consequence chains, assumptions and
+risks: **`docs/WORLD_SYSTEMS.md`**.
+- **Rules** (`rules.toml`, profiles per confederation/nation): work permits (points), homegrown and foreigner quotas,
+  loan limits, contract length caps, cup-tying, match eligibility; selection and signing honour them.
+- **Economy & governance**: nation economies (growth, inflation, broadcast deals, league strength), owners with
+  temperaments and transfer styles, board concerns, austerity, administration and points deductions, takeovers,
+  stadium/training/academy projects.
+- **Manager careers**: archetypes and media styles, job histories, entourages that follow, favourite players,
+  tactical changes, resignations, poaching, retirement.
+- **Scouting network**: assignments by brief (nation, competition, youth, player, need), scout biases and
+  familiarity, capacity, reports and verdicts, analysts and recommendations; clubs see the world through them.
+- **Squad planning & deals**: multi-season plans and needs, shortlists, enquiries, gazumping, medicals, add-ons,
+  sell-ons, buy-backs, payables, pre-contracts, trials, loan terms (options, obligations, recalls).
+- **Youth pipeline**: local grassroots clubs, academies with styles and reach, age-group sides, trials,
+  scholarships, releases, school and exams, amateur football for those who don't make it.
+- **National teams**: federations and managers, squads from imperfect views, windows, friendlies, qualifying,
+  continental finals and a world tournament, caps and allegiance, club-vs-country friction.
+- **Medical, growth, dressing rooms, performance**: injury cases with diagnosis uncertainty, treatment choices,
+  setbacks, rushed returns, fragility and chronic conditions; mentoring, character drift, stagnation, learned
+  traits; dressing-room hierarchy, groups, integration and influence; per-appearance records read differently by
+  managers, fans, media, analysts and scouts.
+- **Renown, press, honours**: local/continental/fame/followers; interviews and press conferences with real
+  consequences, match reports, features, wonderkid lists, season reviews, retrospectives; playmaker/golden
+  glove/team and manager of the season, player of the month, world and continental awards by votes, records,
+  milestones, club legends, hall of fame.
+- **Affairs & commerce**: coaching badges and courses (licence gates for jobs), homes and cost of living, personal
+  staff, giving and foundations, investments; post-playing careers embodied in real systems (pundits and
+  journalists at real outlets with real sources, agents as agencies, coaches/scouts/analysts/directors in the
+  staff pool, ambassadors, business); brands, club sponsorship, endorsements with image rights, clashes and
+  morality clauses.
+
+### 3.10 `app/` — desktop client — ⬜ not started (the terminal client comes first)
 
 ---
 
@@ -258,10 +290,9 @@ person in the world**, whether or not anyone is inhabited; the only reads of `Pe
 12. Milestones, records and career goals you pin — tracked from real stats; no scripted chapters.
 
 ### Step 3 — World gaps
-- **National teams:** squads picked by national coaches from perception, international windows, qualifiers,
-  tournaments, youth national teams, eligibility and one-time switches. (Not implemented yet — big item.)
-- Registration quotas (homegrown, foreigners), work permits, discipline carry-over across competitions,
-  sustainability rules, club takeovers/bankruptcy, stadium/facility investment.
+- National teams, registration quotas/work permits, takeovers/administration and facility projects are now written
+  (§3.9, unverified). Still missing: youth international tournaments, discipline carry-over across competitions,
+  sustainability (spending) rules.
 - Injury rate calibration (target 1.2–1.8 time-loss injuries per player-season), goals 2.35 → 2.6–2.9 on real data.
 
 ### Step 4 — Client (Tauri 2 + React/TypeScript) — professional, dense, keyboard-first
@@ -286,7 +317,7 @@ Last verified points:
 - `pw-match`: tests passed; calibration run as recorded above.
 - `pw-world`, `pw-sim`, `pw-import`, `pw-cli`: compiled with zero warnings; one 400-day synthetic run (before §3.8).
 
-**Everything in §3.8 was written without compiling** (your instruction: write code now, build later). Expect a
+**Everything in §3.8 and §3.9 was written without compiling** (your instruction: write code now, build later). Expect a
 round of compile fixes. Suggested order when you ask:
 ```
 cargo check -p pw-world
@@ -300,11 +331,12 @@ cargo run --release -p pw-cli --bin pathway -- new synth small --warmup 180  # p
 Then: balance passes on meeting frequency, promise outcomes, rumour volume, relationship formation, agent
 coverage and life events using headless runs (checklist §3 in `docs/ANTI_LINEAR_DESIGN_CHECKLIST.md`).
 
-Known gaps, next in line:
-- Grassroots/academy football below ~15 does not exist yet, so a very young person has no age-group football to
-  play; `create` places them in the youngest side the club has.
-- National teams and international careers.
-- Press conferences and interviews (quotes as a conversation with a journalist).
+Known gaps, next in line (see `docs/WORLD_SYSTEMS.md` §5–§6 for risks and shallow areas):
+- Client commands for the new intents and decisions (courses, homes, helpers, giving, careers, press, allegiance,
+  treatment, endorsements) — the world supports them; `pathway` doesn't expose them yet.
+- Humans cannot yet inhabit a *role* such as national manager, board or owner (the person can be inhabited; the
+  role's choices are AI).
+- Event-log compaction, per-nation eligibility and fame indices for 300k-player scale.
 - Automated checks from the checklist (mind-read allowlist, swap test, takeover-changes-nothing test).
 
 ---
@@ -330,8 +362,8 @@ Tips:
 - Start small if you like (one nation, two tiers) to test, then grow.
 
 ### 6.2 Decisions still open
-- **Post-career** (you chose "decide later"): when the time comes — coach/manager/pundit as a personal career,
-  or full FM-style club management.
+- **Post-career**: world-side paths now exist (coach, pundit, journalist, agent, analyst, scout, director,
+  ambassador, business). Open: whether a human in a manager's job gets FM-style club-management screens.
 - **Which nations/leagues are active** at launch (affects performance; everything scales, but 300k players with youth
   sides is the upper target).
 - **Distribution intent:** personal only (GPL engine is fine) or public someday (native engine must be finished first).
