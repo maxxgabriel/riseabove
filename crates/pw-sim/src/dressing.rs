@@ -37,11 +37,14 @@ fn influence(w: &World, p: PlayerId) -> u8 {
 /// Weekly: newcomers settle (or don't).
 pub fn weekly(w: &mut World) {
     let today = w.date;
-    let clubs: Vec<ClubId> = w.rooms.clubs.keys().copied().collect();
+    // Fixed order: settling emits events, and a map's iteration order changes when a world is reloaded.
+    let mut clubs: Vec<ClubId> = w.rooms.clubs.keys().copied().collect();
+    clubs.sort();
     for club in clubs {
         let players = squad(w, club);
         let home = w.clubs[club].nation;
-        let arrivals: Vec<PlayerId> = w.rooms.clubs[&club].integration.keys().copied().collect();
+        let mut arrivals: Vec<PlayerId> = w.rooms.clubs[&club].integration.keys().copied().collect();
+        arrivals.sort();
         for p in arrivals {
             if !players.contains(&p) {
                 w.rooms.clubs.get_mut(&club).expect("room").integration.remove(&p);

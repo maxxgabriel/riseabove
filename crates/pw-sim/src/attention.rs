@@ -262,7 +262,11 @@ fn folklore(w: &mut World) {
             e.3 += u32::from(w.net.accounts[a as usize].persona.nostalgia >= 60);
         }
     }
-    for (&(about, moment), &(n, event, knowing, nostalgic)) in &counts {
+    // `counts` is a std HashMap (a fresh random order every run): visit it in a fixed order, or the order in which myths are born (and
+    // which of them make the cap) differs between two runs of one seed, and between a world and the same world reloaded.
+    let mut ordered: Vec<_> = counts.into_iter().collect();
+    ordered.sort_by_key(|&((about, moment), _)| (about.0, moment as u8));
+    for ((about, moment), (n, event, knowing, nostalgic)) in ordered {
         match w.net.myths.iter().position(|m| m.about == about && m.moment == moment) {
             Some(i) => {
                 // Retold in proportion to how many carry it, checked in proportion to how many of them know better.

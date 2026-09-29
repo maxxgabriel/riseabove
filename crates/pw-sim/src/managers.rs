@@ -215,7 +215,9 @@ pub fn on_appointment(w: &mut World, m: StaffId, club: ClubId) {
     let entourage = w.careers.managers[&m].entourage.clone();
     for s in entourage {
         let st = &w.staff[s];
-        if st.retired || st.club == club {
+        // A follower who has since been promoted to run a club of his own stays where he is (a poaching chain can promote an assistant
+        // of the very manager being poached, who would otherwise be dragged away from his new chair).
+        if st.retired || st.club == club || st.role == StaffRole::Manager {
             continue;
         }
         let old = st.club;
@@ -355,11 +357,12 @@ pub fn monthly(w: &mut World) {
             let mut rng = Rng::keyed(&[w.seed, stream::STAFF, u64::from(s.0), today.year() as u64, 0x77]);
             if rng.chance(0.3) {
                 let club = w.staff[s].club;
+                // Retired first: the search for a successor must not find him among the unemployed and give him the job back.
+                w.staff[s].retired = true;
                 if club.is_some() && w.clubs[club].manager == s {
                     depart(w, s, club, JobEnd::Retired);
                     crate::board::appoint(w, club);
                 }
-                w.staff[s].retired = true;
             }
         }
     }
@@ -446,6 +449,9 @@ pub fn try_poach(w: &mut World, club: ClubId, rival_fit: f32) -> Option<StaffId>
     crate::finance::pay_fee(w, club, old, compensation);
     w.events.push(today, Visibility::Public, EventKind::ManagerPoached { staff: m, from: old, to: club, compensation });
     depart(w, m, old, JobEnd::Poached);
+    // He is now spoken for. Without this the old club's search below saw an unemployed manager, picked its own departed manager again, and
+    // he then also took the new job: one man running two (or three, in a chain of poachings) clubs.
+    w.staff[m].club = club;
     // The old club's supporters and players feel it; the old club must replace him.
     crate::board::appoint(w, old);
     Some(m)

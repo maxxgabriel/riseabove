@@ -277,7 +277,9 @@ pub fn hold(w: &World, p: PlayerId) -> f32 {
 /// Weekly: everyone still settling moves on, faster or slower for how his football goes and how hard he is being used.
 pub fn weekly(w: &mut World) {
     let today = w.date;
-    let ids: Vec<PlayerId> = w.adaptation.current.keys().copied().collect();
+    // Fixed order: a map's iteration order changes when a world is reloaded, and settling emits events and moves fatigue.
+    let mut ids: Vec<PlayerId> = w.adaptation.current.keys().copied().collect();
+    ids.sort();
     for p in ids {
         let Some(mut a) = w.adaptation.current.remove(&p) else { continue };
         let h = &w.players.hot[p];

@@ -757,7 +757,16 @@ fn the_competition_overview_reads_recorded_state() {
             for s in list.as_array().unwrap() {
                 let rows = s["rows"].as_array().unwrap();
                 assert!(!rows.is_empty() && rows.len() <= 3, "{}", s["title"]);
-                let vals: Vec<f64> = rows.iter().filter_map(|r| r["value"].as_str().and_then(|v| v.split('-').next()).and_then(|v| v.parse().ok())).collect();
+                // "Biggest Win" is ranked by margin ("8-4" is a smaller win than "6-0"), every other value by its leading number.
+                let by_margin = s["title"] == "Biggest Win";
+                let vals: Vec<f64> = rows
+                    .iter()
+                    .filter_map(|r| {
+                        let mut parts = r["value"].as_str()?.split('-');
+                        let first: f64 = parts.next()?.parse().ok()?;
+                        if by_margin { Some(first - parts.next()?.parse::<f64>().ok()?) } else { Some(first) }
+                    })
+                    .collect();
                 let asc = s["title"] == "Fewest Goals Conceded";
                 assert!(vals.windows(2).all(|w| if asc { w[0] <= w[1] } else { w[0] >= w[1] }), "{} is out of order: {vals:?}", s["title"]);
             }

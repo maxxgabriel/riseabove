@@ -105,7 +105,21 @@ pub fn problems(w: &World) -> Vec<String> {
         }
     }
 
+    let mut chairs = pw_world::FxHashMap::<pw_core::StaffId, pw_core::ClubId>::default();
     for (id, c) in w.clubs.iter_enumerated() {
+        // A club's manager works for that club, is not retired, and runs no other club.
+        if c.manager.is_some() && (c.manager.0 as usize) < n_staff {
+            let s = &w.staff[c.manager];
+            if s.club != id {
+                bad(format!("club {id:?}'s manager {:?} works for {:?}", c.manager, s.club));
+            }
+            if s.retired {
+                bad(format!("club {id:?}'s manager {:?} is retired", c.manager));
+            }
+            if let Some(other) = chairs.insert(c.manager, id) {
+                bad(format!("manager {:?} runs both {other:?} and {id:?}", c.manager));
+            }
+        }
         if c.nation.is_some() && c.nation.0 as usize >= n_nations {
             bad(format!("club {id:?} is in an unknown nation"));
         }
