@@ -231,7 +231,7 @@ fn select_squad(w: &World, state: RegionId, india: NationId, year: i32, fill: bo
         }
         let c = &w.players.cold[p];
         let form = h.form_avg().map_or(0.0, |f| (f - 6.6) * 3.0);
-        let est = perceive(f32::from(c.ca), sigma * 2.0, Observer::Person(2_000_000 + state.0), p, 6000 + year as u64) + form;
+        let est = perceive(f32::from(c.ca), sigma * 2.0, Observer::Person(2_000_000 + state.0), p, 6000 + year as u64) + form; // truth-ok: a selector's noisy reading, with an observer-specific bias
         seen.push((est, p, c.familiarity[Pos::GK.idx()] >= 15));
     }
     seen.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));

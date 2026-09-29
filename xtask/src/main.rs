@@ -159,7 +159,7 @@ fn smoke(args: &[String]) -> bool {
 
 fn full() -> bool {
     let tests = if has_nextest() {
-        step("FULL: all workspace tests (nextest)", cargo(&["nextest", "run", "--workspace"], &[]))
+        step("FULL: all workspace tests (nextest)", cargo(&["nextest", "run", "--workspace", "--no-fail-fast"], &[]))
     } else {
         println!("(cargo-nextest not installed: running `cargo test`; see docs/DEV_WORKFLOW.md)");
         step("FULL: all workspace tests", cargo(&["test", "--workspace", "--no-fail-fast"], &[]))

@@ -433,14 +433,14 @@ fn district_selection(w: &mut World) {
             .collect();
         cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
         let picked: Vec<PlayerId> = cands.iter().take(16).map(|&(_, p)| p).collect();
-        let mean = if picked.is_empty() { 0.0 } else { picked.iter().map(|&p| f32::from(w.players.cold[p].ca)).sum::<f32>() / picked.len() as f32 };
+        let mean = if picked.is_empty() { 0.0 } else { picked.iter().map(|&p| f32::from(w.players.cold[p].ca)).sum::<f32>() / picked.len() as f32 }; // truth-ok: match performance simulates reality
         let cov = w.ext.ecosystem.regions[r].scouting_coverage / 100.0;
         for &p in &picked {
             note(w, p, StageKind::District, r.0);
             // The district tournament is the right level for a district side: four games of real evidence.
             for g in 0..4u64 {
                 let mut rng = pw_core::Rng::keyed(&[w.seed, stream::YOUTH, u64::from(p.0), year as u64, 0xd1a + g]);
-                let rating = (6.6 + (f32::from(w.players.cold[p].ca) - mean) / 12.0 + rng.normal() * 0.6).clamp(4.5, 9.5);
+                let rating = (6.6 + (f32::from(w.players.cold[p].ca) - mean) / 12.0 + rng.normal() * 0.6).clamp(4.5, 9.5); // truth-ok: match performance simulates reality
                 crate::recognition::credit(w, p, pw_world::ecosystem::Tier::District, rating, 1.0);
             }
             // The district side is played in front of academy people who can get there, if any come, and
@@ -464,7 +464,7 @@ fn district_selection(w: &mut World) {
 }
 
 fn perceive_ca(w: &World, p: PlayerId, sigma: f32, observer: u32, field: u64) -> f32 {
-    pw_world::knowledge::perceive(f32::from(w.players.cold[p].ca), sigma, pw_world::knowledge::Observer::Person(observer), p, field)
+    pw_world::knowledge::perceive(f32::from(w.players.cold[p].ca), sigma, pw_world::knowledge::Observer::Person(observer), p, field) // truth-ok: a scout's noisy reading, with an observer-specific bias
 }
 
 /// School term: academy people watch the school football of the districts near them.
@@ -582,7 +582,8 @@ fn export_reputation(w: &mut World) {
         if h.status == PlayerStatus::Retired || h.club.is_none() || w.clubs[h.club].nation == home || w.people[w.players.cold[p].person].nation != home {
             continue;
         }
-        good += ((f32::from(w.players.cold[p].ca) - 90.0) / 40.0).max(0.0);
+        // How good the players who left look to the world: the market's reading of them, not their hidden ability.
+        good += ((crate::market::public_view(w, p).0 - 90.0) / 40.0).max(0.0);
     }
     let target = 10.0 + 65.0 * (1.0 - (-good / 8.0).exp());
     let e = &mut w.ext.ecosystem.export;
@@ -666,7 +667,7 @@ pub fn metrics(w: &World) -> DevMetrics {
         academy_coverage: districts.iter().filter(|r| r.academy_access >= 50.0).count() as f32 / n,
         university_players: w.minor.member_of.iter().filter(|(_, i)| w.minor.institutions[**i as usize].kind == pw_world::minor::InstKind::University).count(),
         scholarships_held: e.scholarship.len(),
-        national_pool_depth: nation.map_or(0, |nt| w.players.hot.iter_enumerated().filter(|(p, h)| h.status != PlayerStatus::Retired && w.people[w.players.cold[*p].person].nation == nt && (17..=30).contains(&w.age(*p)) && w.players.cold[*p].ca >= 70).count()),
+        national_pool_depth: nation.map_or(0, |nt| w.players.hot.iter_enumerated().filter(|(p, h)| h.status != PlayerStatus::Retired && w.people[w.players.cold[*p].person].nation == nt && (17..=30).contains(&w.age(*p)) && w.players.cold[*p].ca >= 70).count()), // truth-ok: diagnostic report, read by no decision
         camp_called: e.camp.len(),
         state_titles: e.tournament_titles.len(),
     }

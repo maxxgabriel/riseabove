@@ -83,8 +83,8 @@ pub fn recruit(w: &mut World) {
             // What the coaches make of him: a reading, not the truth.
             let sigma = 3.0 + (20.0 - f32::from(inst.coaching)) * 0.4;
             let c = &w.players.cold[p];
-            let est_ca = perceive(f32::from(c.ca), sigma * 2.0, Observer::Person(1_000_000 + u), p, 5000);
-            let est_pa = perceive(f32::from(c.pa), sigma * 4.0, Observer::Person(1_000_000 + u), p, 5001).max(est_ca);
+            let est_ca = perceive(f32::from(c.ca), sigma * 2.0, Observer::Person(1_000_000 + u), p, 5000); // truth-ok: a scout's noisy reading, with an observer-specific bias
+            let est_pa = perceive(f32::from(c.pa), sigma * 4.0, Observer::Person(1_000_000 + u), p, 5001).max(est_ca); // truth-ok: a scout's noisy reading, with an observer-specific bias
             let score = 0.55 * est_ca + 0.45 * est_pa * (w.age(p) as f32 / 22.0).min(1.0).max(0.6);
             if score >= bar {
                 seen.push((score, p));
@@ -128,7 +128,8 @@ fn choose(w: &mut World, p: PlayerId, offers: &[(u32, u8, f32)], year: u64) {
     };
     let best = offers.iter().copied().max_by(|a, b| score(a).total_cmp(&score(b)).then(b.0.cmp(&a.0))).unwrap();
     // What else he could do: the better he is, the more the professional route tempts, more so if he is ambitious.
-    let ca = f32::from(w.players.cold[p].ca);
+    // How good he thinks he is, not how good he is.
+    let ca = crate::consider::self_view(w, p);
     let alternative = (0.15 + 0.6 * ((ca - 55.0) / 60.0).clamp(0.0, 1.0)) * (0.7 + 0.6 * ambition);
     let noise = (w.roll(stream::MINOR, &[u64::from(p.0), year, 0x5c0]) - 0.5) * 0.1;
     if score(&best) + noise <= alternative {
