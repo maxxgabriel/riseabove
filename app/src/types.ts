@@ -132,6 +132,8 @@ export interface SaveInfo {
   modified: number | null;
   info: { name?: string; date?: number; players?: number; clubs?: number; perspective?: string; version?: string } | null;
   has_backup: boolean;
+  /** Which save format the file is in and whether this build opens it. */
+  format?: { schema: number | null; state: "current" | "upgradable" | "too_new" | "unsupported" | "unreadable"; note: string };
 }
 
 export interface SearchItem extends Ref {

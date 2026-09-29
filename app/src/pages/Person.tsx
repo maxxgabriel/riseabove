@@ -33,6 +33,8 @@ interface PersonResp {
   roles: { label: string; org: Named | null }[];
   player: PlayerInfo | null;
   staff: StaffInfo | null;
+  /** Observer only: where an imported record came from and which of its facts were filled in. */
+  provenance?: { source: string | null; id: string; snapshot: number | null; facts: { group: string; origin: string }[] } | null;
 }
 interface PlayerInfo {
   player_id: number;
@@ -323,8 +325,27 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
             </div>
           </Section>
         )}
+        {p.provenance && <DataSource prov={p.provenance} />}
       </aside>
     </div>
+  );
+}
+
+/** Imported data stays distinguishable: each group of facts says whether it was read, estimated, generated or is unknown. */
+function DataSource({ prov }: { prov: NonNullable<PersonResp["provenance"]> }) {
+  const tone = (o: string) => (o === "imported" ? "pos" : o.startsWith("estimated") ? "warn" : "muted");
+  return (
+    <Section title="Data source" aside={<Badge tone="info">Observer only</Badge>}>
+      <div className="card">
+        <KeyVal
+          rows={[
+            { k: "Record", v: <span className="num">{prov.source ?? "unknown"} · {prov.id}</span> },
+            ...(prov.snapshot != null ? [{ k: "Data as of", v: <Dt d={prov.snapshot} /> }] : []),
+            ...prov.facts.map((f) => ({ k: f.group, v: <Badge tone={tone(f.origin)}>{f.origin}</Badge> })),
+          ]}
+        />
+      </div>
+    </Section>
   );
 }
 

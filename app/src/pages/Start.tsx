@@ -15,8 +15,9 @@ interface SavesResp {
 interface Inspect {
   ok: boolean;
   files: { name: string; size: number }[];
-  counts?: { nations: number; competitions: number; clubs: number; players: number; staff: number };
+  counts?: { nations: number; competitions: number; clubs: number; players: number; staff: number; unresolved?: number };
   warnings?: string[];
+  findings?: { code: string; count: number }[];
   error?: string;
 }
 
@@ -209,6 +210,13 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
                       <div className="num muted">
                         {inspect.counts.nations} nations · {inspect.counts.competitions} competitions · {inspect.counts.clubs} clubs · {inspect.counts.players.toLocaleString()} players · {inspect.counts.staff.toLocaleString()} staff
                       </div>
+                      {!!inspect.counts.unresolved && <div className="muted">{inspect.counts.unresolved.toLocaleString()} source rows cannot be placed safely and are left out (they are listed, never guessed).</div>}
+                      {!!inspect.findings?.length && (
+                        <details>
+                          <summary>What the importer found</summary>
+                          <ul>{inspect.findings.map((f) => <li key={f.code}><span className="num">{f.count.toLocaleString()}</span> {f.code.replace(/_/g, " ")}</li>)}</ul>
+                        </details>
+                      )}
                       {!!inspect.warnings?.length && (
                         <details>
                           <summary>{inspect.warnings.length} warnings</summary>
@@ -251,8 +259,9 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
                       {s.info?.perspective ?? ""}{s.info?.players ? ` · ${s.info.players.toLocaleString()} people` : ""} · {bytes(s.size)}
                       {s.modified ? ` · ${timeAgo(s.modified)}` : ""}
                     </div>
+                    {s.format && s.format.state !== "current" && <div className="hint">{s.format.note}</div>}
                   </div>
-                  <Button size="sm" disabled={working} onClick={() => begin("world.load", { file: s.file })}>Load</Button>
+                  <Button size="sm" disabled={working || s.format?.state === "too_new" || s.format?.state === "unsupported" || s.format?.state === "unreadable"} title={s.format?.note || undefined} onClick={() => begin("world.load", { file: s.file })}>Load</Button>
                   {s.has_backup && <Button size="sm" variant="ghost" disabled={working} title="Load the previous save" onClick={() => begin("world.load", { file: s.file, backup: true })}>Previous save</Button>}
                   <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(s)}>Delete</Button>
                 </li>

@@ -1,6 +1,6 @@
 # Local integration status
 
-Local-only branch `local/pathway-integration`. **Never pushed.** No remote tracking is configured.
+Integration branch `local/pathway-integration`. It was local-only until the user asked (2026-09-29) for it to be pushed to a **new** remote branch, `integration/pathway-data-import`. No existing remote branch is touched, nothing is force-pushed.
 
 ## Starting SHAs (recorded 2026-09-29)
 
@@ -17,3 +17,5 @@ Local-only inputs present in the working tree (git-ignored, never committed): `f
 
 | Date | Frontend SHA merged | Merge commit | Notes |
 | --- | --- | --- | --- |
+| 2026-09-29 | `ad70ad2` | `7c8c238` | First merge (clean; frontend already contained the backend). |
+| 2026-09-29 | `1ce15316197d249a79c459647e3a545e88f41d72` | see `git log --merges` | Insights, FM-style overview screens. Two overlapping files (`pw-view/src/lib.rs`, `pages/person.rs`) merged automatically; both sides' behaviour verified by `cargo test -p pw-view` (21 frontend + 5 imported-world tests). Wired: provenance card on the person page, importer findings on the start page, save-format warnings in the saves list. |
