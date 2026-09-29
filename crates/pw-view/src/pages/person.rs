@@ -178,7 +178,21 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "status": status, "roles": roles, "player": player_json, "staff": staff_json,
         "is_me": is_me, "can_inhabit": can_inhabit,
         "perspective": if c.observer() { "observer" } else { "inhabit" },
+        "provenance": if c.observer() { provenance(c, id) } else { Value::Null },
     }))
+}
+
+/// Where an imported person's record came from and which of its facts the importer had to fill in. This describes the data,
+/// not the person, so only an observer sees it. People the game made itself have none.
+fn provenance(c: &Ctx, id: PersonId) -> Value {
+    let book = &c.w.origins;
+    let Some(o) = book.person(id) else { return Value::Null };
+    json!({
+        "source": book.sources.get(usize::from(o.src.source)).map(|s| s.name.clone()),
+        "id": o.src.id,
+        "snapshot": book.sources.get(usize::from(o.src.source)).and_then(|s| s.snapshot).map(|d| d.0),
+        "facts": pw_world::origin::Facet::ALL.iter().map(|f| json!({"group": f.label(), "origin": o.get(*f).label()})).collect::<Vec<_>>(),
+    })
 }
 
 fn attr_json(c: &Ctx, p: PlayerId, a: Attr) -> Value {

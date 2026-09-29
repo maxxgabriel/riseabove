@@ -11,6 +11,7 @@
 mod assemble;
 pub mod builder;
 mod csv_pack;
+pub mod fixture;
 pub mod geo;
 pub mod infer;
 pub mod model;
