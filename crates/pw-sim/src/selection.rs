@@ -233,21 +233,34 @@ struct Candidate {
     id: PlayerId,
     /// Perceived ability per slot, CA scale.
     ability: [f32; 11],
+    /// How well the manager believes his attributes suit the slot's role, 0..1.
+    role: [f32; 11],
     f: Factors,
     keeper: bool,
     leadership: f32,
 }
 
-/// What the manager remembers of disciplining a player and what the player's name says of him, 0..1.
-fn indiscipline(w: &World, manager: Option<PersonId>, p: PlayerId) -> f32 {
+/// Indiscipline as the manager can know it: what he believes of the player's reputation for trouble (a personality trait he can
+/// only read through evidence, so uncertain), bookings on record, and what he remembers of disciplining him. 0..1.
+fn indiscipline(w: &World, manager: Option<PersonId>, p: PlayerId, believed_repute: f32) -> f32 {
     let c = &w.players.cold[p];
-    let hid = &w.people[c.person].hidden;
-    let repute = (hid.f(Hidden::Controversy) + hid.f(Hidden::Dirtiness)) / 40.0;
+    let bookings = (f32::from(w.players.hot[p].yellows) / 8.0).min(1.0);
     let recalled = manager.map_or(0.0, |m| {
         (crate::consider::memory(w, m, c.person, pw_world::MemoryKind::Fined) + crate::consider::memory(w, m, c.person, pw_world::MemoryKind::Dropped) + crate::consider::memory(w, m, c.person, pw_world::MemoryKind::PoorAttitude))
             .min(1.0)
     });
-    (0.5 * repute + 0.5 * recalled).clamp(0.0, 1.0)
+    (0.35 * believed_repute + 0.25 * bookings + 0.4 * recalled).clamp(0.0, 1.0)
+}
+
+/// Injury exposure as medical staff can see it: workload, fatigue, injuries on record, a managed condition and low condition.
+/// Not proneness or body wear, which are hidden.
+fn observed_risk(w: &World, p: PlayerId) -> f32 {
+    let (h, c) = (&w.players.hot[p], &w.players.cold[p]);
+    let t = &w.data.tuning.health;
+    let overload = (h.acwr() - t.acwr_safe_high).max(0.0) / 0.6;
+    let history = f32::from(c.injuries_career.min(10)) / 10.0 * 0.5;
+    let managed = if w.medical.needs_managing(p) { 0.3 } else { 0.0 };
+    (0.5 * overload + 0.4 * f32::from(h.fatigue) / 100.0 + history + managed + (80.0 - f32::from(h.condition)).max(0.0) / 100.0).clamp(0.0, 1.0)
 }
 
 /// How pressing a promise the manager made to this player is: 1 when he is behind on minutes he promised, less when on track.
@@ -292,13 +305,23 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
             let consistency = person.hidden.f(Hidden::Consistency);
             let mut rng = Rng::keyed(&[noise_key, u64::from(p.0)]);
             let rested = h.last_match.days_until(date);
-            let risk = ((crate::health::hazard_mult(w, p) - 1.0) / 1.5).clamp(0.0, 1.0) * 0.7 + if w.medical.needs_managing(p) { 0.3 } else { 0.0 } + (80.0 - f32::from(h.condition)).max(0.0) / 100.0;
+            // What the club's staff believe of things they cannot read: the truth seen through their evidence on him. Attributes
+            // are read with the club's own uncertainty; personality traits are harder to read than skills.
+            let believe = |truth: f32, spread: f32, field: u64| perceive(truth, sig * spread, Observer::Club(club), p, field);
+            let mut role = [0.0f32; 11];
+            for (i, s) in slots.iter().enumerate() {
+                role[i] = (believe(c.attrs.weighted(s.role.key_attrs()), 1.0, 3000 + i as u64) / 20.0).clamp(0.0, 1.0);
+            }
+            let trait_of = |h: Hidden, field: u64| (believe(person.hidden.f(h), 1.6, field) / 20.0).clamp(0.0, 1.0);
+            let repute = 0.5 * (trait_of(Hidden::Controversy, 4001) + trait_of(Hidden::Dirtiness, 4002));
             // A bigger match soon: stars and players who just played are rested first.
             let rest_need = ctx.next.filter(|&(_, imp)| imp > ctx.importance + 0.05).map_or(0.0, |(d, imp)| (imp - ctx.importance) * (1.0 - (d as f32 - 1.0).clamp(0.0, 3.0) / 4.0) * (0.35 + 0.65 * status_trust(c.status)));
-            let a = |x: Attr| c.attrs.get(x);
+            let a = |x: Attr, field: u64| believe(c.attrs.get(x), 1.0, 5000 + field);
+            let leadership = a(Attr::Leadership, 1);
             Candidate {
                 id: p,
                 ability,
+                role,
                 f: Factors {
                     ability: 0.0,
                     form: ((form - 5.5) / 3.0).clamp(0.0, 1.0),
@@ -314,22 +337,22 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
                     youth: if age <= 21.5 { f32::from(phil.youth_trust) / 100.0 * (1.0 - ((age - 17.0) / 5.0).clamp(0.0, 1.0)) } else { 0.0 },
                     // Players with a managed condition need longer between games.
                     rotation: if rested <= 3 || (rested <= 5 && w.medical.needs_managing(p)) { 1.0 } else { 0.0 },
-                    risk: risk.clamp(0.0, 1.0),
-                    indiscipline: indiscipline(w, manager, p),
+                    risk: observed_risk(w, p),
+                    indiscipline: indiscipline(w, manager, p, repute),
                     promise: promise_pressure(w, manager, p),
-                    big_match: (0.6 * person.hidden.f(Hidden::ImportantMatches) + 0.4 * person.hidden.f(Hidden::Pressure)) / 20.0 - 0.5,
-                    edge: (a(Attr::Concentration) + a(Attr::Composure) + a(Attr::Bravery)) / 60.0,
-                    leadership: a(Attr::Leadership) / 20.0,
+                    big_match: 0.6 * trait_of(Hidden::ImportantMatches, 4003) + 0.4 * trait_of(Hidden::Pressure, 4004) - 0.5,
+                    edge: ((a(Attr::Concentration, 2) + a(Attr::Composure, 3) + a(Attr::Bravery, 4)) / 60.0).clamp(0.0, 1.0),
+                    leadership: (leadership / 20.0).clamp(0.0, 1.0),
                     rest_need,
                 },
                 keeper: c.familiarity[Pos::GK.idx()] >= 12,
-                leadership: c.attrs.get(Attr::Leadership),
+                leadership,
             }
         })
         .collect()
 }
 
-fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, st: &Style, ctx: &Context, attrs: &pw_core::Attrs) -> f32 {
+fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, st: &Style, ctx: &Context) -> f32 {
     let keeper_slot = s.pos == Pos::GK;
     if keeper_slot != c.keeper && (keeper_slot || s.pos.group() != PosGroup::Gk) {
         if keeper_slot {
@@ -339,7 +362,7 @@ fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, st: &Style, ct
     }
     let (wt, f, imp) = (&st.w, &c.f, ctx.importance);
     let ability = c.ability[i] / max_ability.max(1.0);
-    let role = attrs.weighted(s.role.key_attrs()) / 20.0;
+    let role = c.role[i];
     let rotation = f.rotation * (1.0 - imp);
     let (stronger, weaker) = (ctx.opposition.max(0.0), (-ctx.opposition).max(0.0));
     wt.ability * ability + wt.form * f.form + wt.fitness * f.fitness + wt.role * role + wt.trust * f.trust
@@ -394,10 +417,7 @@ pub fn select_ctx(w: &World, team: TeamId, comp: CompId, date: Date, ctx: &Conte
             return None;
         }
         let max_ability = cands.iter().flat_map(|c| c.ability).fold(1.0f32, f32::max);
-        let score = |r: usize, col: usize| {
-            let p = cands[col].id;
-            slot_score(&cands[col], r, slots[r], max_ability, &wt, ctx, &w.players.cold[p].attrs)
-        };
+        let score = |r: usize, col: usize| slot_score(&cands[col], r, slots[r], max_ability, &wt, ctx);
         let assign = hungarian::maximise(11, cands.len(), score);
         let total: f32 = assign.iter().enumerate().map(|(r, &c)| score(r, c)).filter(|s| s.is_finite()).sum();
         if best.as_ref().is_none_or(|b| total > b.0 + 0.02) {
@@ -413,7 +433,7 @@ pub fn select_ctx(w: &World, team: TeamId, comp: CompId, date: Date, ctx: &Conte
         .iter()
         .filter(|c| !xi.contains(&c.id))
         .map(|c| {
-            let best_slot = (0..11).map(|r| slot_score(c, r, slots[r], max_ability, &wt, ctx, &w.players.cold[c.id].attrs)).filter(|s| s.is_finite()).fold(-9.0f32, f32::max);
+            let best_slot = (0..11).map(|r| slot_score(c, r, slots[r], max_ability, &wt, ctx)).filter(|s| s.is_finite()).fold(-9.0f32, f32::max);
             (best_slot, c)
         })
         .collect();
@@ -498,7 +518,7 @@ pub fn player_sheet(w: &World, p: PlayerId) -> PlayerSheet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pw_core::{Attrs, Role};
+    use pw_core::Role;
 
     fn slot() -> Slot {
         Slot { pos: Pos::MC, role: Role::CentralMidfielder }
@@ -510,7 +530,7 @@ mod tests {
 
     /// A candidate whose factors are neutral except where a test changes them.
     fn cand(f: Factors) -> Candidate {
-        Candidate { id: PlayerId(0), ability: [100.0; 11], f, keeper: false, leadership: 10.0 }
+        Candidate { id: PlayerId(0), ability: [100.0; 11], role: [0.6; 11], f, keeper: false, leadership: 10.0 }
     }
 
     fn neutral() -> Factors {
@@ -518,7 +538,7 @@ mod tests {
     }
 
     fn score(c: &Candidate, st: &Style, ctx: &Context) -> f32 {
-        slot_score(c, 0, slot(), 100.0, st, ctx, &Attrs::splat(1200))
+        slot_score(c, 0, slot(), 100.0, st, ctx)
     }
 
     fn ctx(importance: f32) -> Context {
@@ -599,6 +619,6 @@ mod tests {
     fn a_missing_goalkeeper_can_never_be_fielded_outfield_or_vice_versa() {
         let outfield = cand(neutral());
         let keeper_slot = Slot { pos: Pos::GK, role: Role::Goalkeeper };
-        assert_eq!(slot_score(&outfield, 0, keeper_slot, 100.0, &base_style(), &ctx(0.5), &Attrs::splat(1200)), f32::NEG_INFINITY);
+        assert_eq!(slot_score(&outfield, 0, keeper_slot, 100.0, &base_style(), &ctx(0.5)), f32::NEG_INFINITY);
     }
 }
