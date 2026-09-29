@@ -446,6 +446,8 @@ pub fn try_poach(w: &mut World, club: ClubId, rival_fit: f32) -> Option<StaffId>
     crate::finance::pay_fee(w, club, old, compensation);
     w.events.push(today, Visibility::Public, EventKind::ManagerPoached { staff: m, from: old, to: club, compensation });
     depart(w, m, old, JobEnd::Poached);
+    // He now belongs to the poaching club, so the old club's search for a replacement cannot pick him again.
+    w.staff[m].club = club;
     // The old club's supporters and players feel it; the old club must replace him.
     crate::board::appoint(w, old);
     Some(m)
