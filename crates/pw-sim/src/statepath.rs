@@ -368,6 +368,8 @@ fn play(w: &mut World) {
             h.minutes_4w = h.minutes_4w.saturating_add(u16::from(line.minutes));
             h.push_rating(line.rating);
             h.sharpness = (f32::from(h.sharpness) + f32::from(line.minutes) / 90.0 * 12.0).min(100.0) as u8;
+            // State football is the level that carries a name: it is real evidence, and it is watched.
+            crate::recognition::credit(w, p, pw_world::ecosystem::Tier::State, line.rating, 1.0);
             if line.goals > 0
                 && let Some(t) = w.ext.ecosystem.tournament.as_mut()
             {
@@ -421,7 +423,9 @@ pub(crate) fn notice(w: &mut World, p: PlayerId, minutes: u8) {
     });
     for c in clubs {
         let scouts = w.clubs[c].staff.iter().filter(|&&s| w.staff[s].role == pw_world::StaffRole::Scout).count() as f32;
-        let prob = (0.10 + 0.05 * scouts).min(0.5);
+        // Standing out once at state level counts for less than doing it across a tournament.
+        let sample = crate::recognition::games(w, p, pw_world::ecosystem::Tier::State);
+        let prob = ((0.10 + 0.05 * scouts).min(0.5)) * (0.45 + 0.55 * sample / (sample + 2.0));
         if (hash_key(&[w.seed, u64::from(c.0), u64::from(p.0), today.0 as u64, 0x5a2]) % 1000) as f32 / 1000.0 < prob {
             w.knowledge.observe(c, p, u16::from(minutes), today);
         }

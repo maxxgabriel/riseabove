@@ -231,6 +231,71 @@ pub struct Tournament {
     pub scorers: FxHashMap<PlayerId, u16>,
 }
 
+/// The level a piece of football was played at, which decides how far it can carry a name.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Tier {
+    /// Neighbourhood and Blue Cubs football: enormous numbers, almost nobody watching.
+    Grassroots,
+    School,
+    /// District selection sides and their tournaments.
+    District,
+    /// Adult amateur, university and state-league football.
+    Adult,
+    /// Academy age-group leagues.
+    Academy,
+    /// State teams, the state championship.
+    State,
+}
+
+pub const TIERS: usize = 6;
+
+impl Tier {
+    pub const fn ix(self) -> usize {
+        self as usize
+    }
+
+    /// What a performance at this level is worth to people deciding who to look at next.
+    /// A hat-trick in a park counts for little; the same in a state side counts for a lot.
+    pub const fn weight(self) -> f32 {
+        match self {
+            Tier::Grassroots => 0.10,
+            Tier::School => 0.28,
+            Tier::District => 0.55,
+            Tier::Adult => 0.50,
+            Tier::Academy => 0.70,
+            Tier::State => 1.0,
+        }
+    }
+}
+
+/// Evidence at one level: how well, over how many games, and how steadily.
+#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize)]
+pub struct Evidence {
+    /// Running level of credited performance (0 = par for the level).
+    pub steady: f32,
+    /// Running spread of that performance (steady players are trusted more).
+    pub spread: f32,
+    /// Effective games behind it; fades when the player is not seen playing.
+    pub games: f32,
+    /// Best single game credited (kept to tell a spike from a habit).
+    pub peak: f32,
+}
+
+/// What people who might move a player on have to go on. Nothing here is a rating of ability.
+#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize)]
+pub struct Repute {
+    pub at: [Evidence; TIERS],
+    /// Times a watcher has actually seen them play (not the same as being judged good).
+    pub sightings: u16,
+    /// Distinct calendar years someone was watching.
+    pub sight_years: u8,
+    pub last_sight: Date,
+    /// One-off big games that did not amount to a pattern.
+    pub spikes: u8,
+    /// A coach, teacher or selector who vouches for them (0 none).
+    pub sponsor: u8,
+}
+
 /// Owned by `pw_sim::ecosystem`. Empty unless a nation has been given an ecosystem.
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Ecosystem {
@@ -252,6 +317,8 @@ pub struct Ecosystem {
     pub club_region: FxHashMap<ClubId, RegionId>,
     /// National identification camps: (year, deepest stage reached 1–3).
     pub camp: FxHashMap<PlayerId, (i32, u8)>,
+    /// What is known of each young player's football, level by level (see `pw_sim::recognition`).
+    pub repute: FxHashMap<PlayerId, Repute>,
     /// The state-team championship of the current year, while it runs.
     pub tournament: Option<Tournament>,
     /// Winners of the state championship so far: (state, year).

@@ -66,6 +66,7 @@ pub mod perception;
 pub mod planning;
 pub mod press;
 pub mod pressroom;
+pub mod recognition;
 pub mod records;
 pub mod renown;
 pub mod reputation;

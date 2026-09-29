@@ -118,6 +118,7 @@ pub fn yearly(w: &mut World) {
     if !first {
         associations(w, year);
         regions(w, year);
+        crate::recognition::yearly(w);
     }
     pools(w, year, first);
     if first {
@@ -364,25 +365,49 @@ fn district_selection(w: &mut World) {
     };
     for r in districts {
         let state = w.ext.ecosystem.state_of(r);
-        let scouting = w.ext.ecosystem.assoc.get(&state).map_or(40.0, |a| a.scouting);
+        let (scouting, reach, access) = w.ext.ecosystem.assoc.get(&state).map_or((40.0, 40.0, 50.0), |a| (a.scouting, a.grassroots_reach, a.admin));
+        let econ = w.ext.ecosystem.regions[r].economic_access / 100.0;
         let sigma = (14.0 - scouting / 10.0).max(3.0);
+        // Selectors hold open trials. Who turns up depends on knowing about them, being able to get there and
+        // afford it, and whether anyone (a coach, a teacher) told the child to go: most talented children never do.
         let mut cands: Vec<(f32, PlayerId)> = by_district[&r]
             .iter()
-            .map(|&p| {
-                let h = &w.players.hot[p];
-                let form = h.form_avg().map_or(0.0, |f| (f - 6.6) * 3.0);
-                (perceive_ca(w, p, sigma * 2.0, 3_000_000 + r.0, 8000 + year as u64) + form, p)
+            .filter_map(|&p| {
+                let sponsor = w.ext.ecosystem.repute.get(&p).map_or(0.0, |x| f32::from(x.sponsor.min(3)));
+                let attends = 0.06 + 0.40 * (reach / 100.0) * (0.4 + 0.6 * econ) + 0.12 * sponsor + 0.05 * (access / 100.0);
+                if w.roll(stream::YOUTH, &[u64::from(p.0), u64::from(r.0), year as u64, 0xa77]) >= attends.min(0.85) {
+                    return None;
+                }
+                // On the day, selectors weigh what they see against what the child has shown over a season,
+                // and are swayed by who looks big for their age.
+                let a = crate::recognition::aspects(w, p);
+                let evidence = 18.0 * crate::recognition::proof(w, p, pw_world::ecosystem::Tier::Grassroots) + 26.0 * crate::recognition::proof(w, p, pw_world::ecosystem::Tier::School);
+                let day = perceive_ca(w, p, sigma * 2.0, 3_000_000 + r.0, 8000 + year as u64);
+                Some((day + evidence + 8.0 * a.maturity + 3.0 * a.sponsor, p))
             })
             .collect();
         cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-        for &(_, p) in cands.iter().take(16) {
+        let picked: Vec<PlayerId> = cands.iter().take(16).map(|&(_, p)| p).collect();
+        let mean = if picked.is_empty() { 0.0 } else { picked.iter().map(|&p| f32::from(w.players.cold[p].ca)).sum::<f32>() / picked.len() as f32 };
+        let cov = w.ext.ecosystem.regions[r].scouting_coverage / 100.0;
+        for &p in &picked {
             note(w, p, StageKind::District, r.0);
-            // The district side is played in front of academy people who can get there.
+            // The district tournament is the right level for a district side: four games of real evidence.
+            for g in 0..4u64 {
+                let mut rng = pw_core::Rng::keyed(&[w.seed, stream::YOUTH, u64::from(p.0), year as u64, 0xd1a + g]);
+                let rating = (6.6 + (f32::from(w.players.cold[p].ca) - mean) / 12.0 + rng.normal() * 0.6).clamp(4.5, 9.5);
+                crate::recognition::credit(w, p, pw_world::ecosystem::Tier::District, rating, 1.0);
+            }
+            // The district side is played in front of academy people who can get there, if any come, and
+            // those who do watch the players who stand out in it.
+            let attn = crate::recognition::attention(w, p, pw_world::ecosystem::Tier::District);
             for &club in &academies {
                 let ar = w.ext.ecosystem.region_of_club(club);
                 let near = w.ext.ecosystem.travel_burden(ar, r) < 0.3 || matches!(w.youth.academies[&club].reach, pw_world::youth::Reach::National | pw_world::youth::Reach::International);
-                if near && w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(p.0), year as u64, 0xd15]) < 0.35 {
-                    w.knowledge.observe(club, p, 120, w.date);
+                let p_look = (0.05 + 0.30 * cov) * (0.4 + 1.2 * attn);
+                if near && w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(p.0), year as u64, 0xd15]) < p_look {
+                    w.knowledge.observe(club, p, 60, w.date);
+                    crate::recognition::sighted(w, p);
                     if let Some(s) = scout_of(w, club) {
                         let finder = w.staff[s].person;
                         note_found(w, p, finder, club);
@@ -415,18 +440,34 @@ fn school_scouting(w: &mut World) {
             let region = w.ext.ecosystem.inst[&i].region;
             let cov = w.ext.ecosystem.regions[region].scouting_coverage / 100.0;
             let near = (1.0 - 1.5 * w.ext.ecosystem.travel_burden(ar, region)).max(0.0);
-            let p_visit = 0.02 + 0.10 * cov * near;
+            let p_visit = 0.01 + 0.06 * cov * near;
             if w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(i), month, w.date.year() as u64, 0x5c0]) >= p_visit {
                 continue;
             }
-            let mut kids: Vec<(u8, PlayerId)> = w.minor.institutions[i as usize].members.iter().copied().filter(|&p| (12..=18).contains(&w.age(p))).map(|p| (w.players.hot[p].form[0], p)).collect();
-            kids.sort_by(|a, b| b.cmp(a));
-            for (_, p) in kids.into_iter().take(3) {
-                w.knowledge.observe(club, p, 70, today);
+            // A visitor watches a game or two: the boys who draw the eye are those with a season of school
+            // football behind them, not whoever had the best last week.
+            let mut kids: Vec<(f32, PlayerId)> = w
+                .minor
+                .institutions[i as usize]
+                .members
+                .iter()
+                .copied()
+                .filter(|&p| (12..=18).contains(&w.age(p)))
+                .map(|p| (crate::recognition::attention(w, p, pw_world::ecosystem::Tier::School), p))
+                .collect();
+            kids.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
+            for (a, p) in kids.into_iter().take(2) {
+                if w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(p.0), month, w.date.year() as u64, 0x5c1]) >= a {
+                    continue;
+                }
+                crate::recognition::sighted(w, p);
+                w.knowledge.observe(club, p, 30, today);
                 let r = crate::scouting::judge(w, scout, club, p, 300);
                 w.scouting.file(club, p, r);
-                let finder = w.staff[scout].person;
-                note_found(w, p, finder, club);
+                if w.ext.ecosystem.repute.get(&p).is_some_and(|x| x.sightings >= 2) {
+                    let finder = w.staff[scout].person;
+                    note_found(w, p, finder, club);
+                }
             }
         }
     }
@@ -438,7 +479,7 @@ fn university_scouting(w: &mut World) {
         .minor
         .lines
         .iter()
-        .filter(|(_, l)| l.apps >= 4 && l.rating / u32::from(l.apps) >= 71 && matches!(l.entrant, pw_world::minor::Entrant::Inst(i) if w.minor.institutions[i as usize].kind == pw_world::minor::InstKind::University))
+        .filter(|(_, l)| l.apps >= 8 && l.rating / u32::from(l.apps) >= 71 && matches!(l.entrant, pw_world::minor::Entrant::Inst(i) if w.minor.institutions[i as usize].kind == pw_world::minor::InstKind::University))
         .map(|((p, _), _)| *p)
         .collect();
     seen.sort();
@@ -462,7 +503,9 @@ fn camps(w: &mut World) {
         let Some(s) = w.ext.ecosystem.story.get(&p) else { continue };
         // Visible through an academy or youth league; less through a school or district side.
         let vis = if h.club.is_some() { 0.9 } else { 0.35 + 0.4 * w.ext.ecosystem.regions[s.dev].scouting_coverage / 100.0 };
-        let seen_p = (0.10 + 0.6 * scouting / 100.0) * vis;
+        // Selectors call whom they have heard of: a sighting, a state or district game, an academy place.
+        let on_radar = h.club.is_some() || crate::recognition::best_tier(w, p).is_some_and(|t| t != pw_world::ecosystem::Tier::Grassroots) || w.ext.ecosystem.repute.get(&p).is_some_and(|r| r.sightings >= 1);
+        let seen_p = (0.10 + 0.6 * scouting / 100.0) * vis * if on_radar { 0.4 + 1.2 * crate::recognition::standing(w, p) } else { 0.05 };
         if w.roll(stream::INTL, &[u64::from(p.0), year as u64, 0xca3]) >= seen_p {
             continue;
         }

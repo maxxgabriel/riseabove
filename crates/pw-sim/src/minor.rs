@@ -370,6 +370,7 @@ fn play(w: &mut World, comp: u32, a: Entrant, b: Entrant, key: u64) -> (u8, u8) 
         gb = 0;
     }
     let season = w.minor.season;
+    let mut pending: Vec<(PlayerId, pw_world::ecosystem::Tier, f32, f32)> = Vec::new();
     for (sq, e, goals, conceded) in [(&sa, a, ga, gb), (&sb, b, gb, ga)] {
         // Scorers: weighted by attacking ability.
         let weights: SmallVec<[f32; 16]> = sq
@@ -400,7 +401,17 @@ fn play(w: &mut World, comp: u32, a: Entrant, b: Entrant, key: u64) -> (u8, u8) 
             l.apps += 1;
             l.goals += scored[i];
             l.rating += rating;
+            let tier = match kind {
+                MinorKind::SchoolLeague | MinorKind::SchoolCup => pw_world::ecosystem::Tier::School,
+                MinorKind::GrassrootsCup => pw_world::ecosystem::Tier::Grassroots,
+                _ => pw_world::ecosystem::Tier::Adult,
+            };
+            let strength = if e == a { 1.0 + (xb - xa) / 120.0 } else { 1.0 + (xa - xb) / 120.0 };
+            pending.push((p, tier, rating as f32 / 10.0 + 0.6, strength));
         }
+    }
+    for (p, tier, rating, strength) in pending {
+        crate::recognition::credit(w, p, tier, rating, strength);
     }
     let margin = (i32::from(ga) - i32::from(gb)).unsigned_abs();
     if margin >= 3 {
