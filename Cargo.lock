@@ -439,6 +439,7 @@ dependencies = [
 name = "pw-world"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "pw-core",
  "pw-data",
  "pw-match",
