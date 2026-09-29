@@ -168,20 +168,30 @@ fn a_human_posts_and_replies_through_the_same_systems() {
 
 #[test]
 fn referees_are_not_biased_even_when_supporters_think_so() {
-    let s = ran(Scale::SMALL, 17, 700);
-    let w = &s.world;
-    // Correctness must not depend on which side a call went against.
+    // Correctness must not depend on which side a call went against. Every
+    // disputed call over two seasons in three worlds, compared with a
+    // binomial tolerance (four standard errors).
     let (mut home, mut away) = ((0u32, 0u32), (0u32, 0u32));
-    for c in &w.officials.controversies {
-        let Some(m) = w.recent_matches.by_uid(c.uid) else { continue };
-        let slot = if c.against == m.home { &mut home } else { &mut away };
-        slot.0 += 1;
-        slot.1 += u32::from(c.correct);
+    let mut believed_total = 0;
+    for seed in [17u64, 18, 19] {
+        let s = ran(Scale::SMALL, seed, 700);
+        for c in &s.world.officials.controversies {
+            let slot = if c.against_home { &mut home } else { &mut away };
+            slot.0 += 1;
+            slot.1 += u32::from(c.correct);
+        }
+        // Supporters may believe otherwise; that is allowed and recorded.
+        let believed = s.world.officials.grievance.values().filter(|&&g| g >= 400).count();
+        println!("seed {seed}: grievances amounting to perceived bias: {believed}");
+        believed_total += believed;
     }
-    if home.0 >= 30 && away.0 >= 30 {
-        let (rh, ra) = (home.1 as f32 / home.0 as f32, away.1 as f32 / away.0 as f32);
-        assert!((rh - ra).abs() < 0.15, "correct-call rate home {rh:.2} vs away {ra:.2}");
-    }
+    assert!(believed_total > 0, "supporters never came to believe in a biased referee");
+    let (rh, ra) = (home.1 as f64 / home.0.max(1) as f64, away.1 as f64 / away.0.max(1) as f64);
+    let p = (home.1 + away.1) as f64 / (home.0 + away.0).max(1) as f64;
+    let se = (p * (1.0 - p) * (1.0 / home.0.max(1) as f64 + 1.0 / away.0.max(1) as f64)).sqrt();
+    println!("calls against home {} ({rh:.3} correct), against away {} ({ra:.3} correct)", home.0, away.0);
+    assert!(home.0 >= 100 && away.0 >= 100, "enough calls to judge");
+    assert!((rh - ra).abs() <= 4.0 * se, "correct-call rate home {rh:.3} vs away {ra:.3} (se {se:.3})");
 }
 
 #[test]
@@ -378,4 +388,51 @@ fn twenty_seasons_small() {
 #[ignore = "long run"]
 fn fifty_seasons_tiny() {
     long_run(Scale::TINY, 103, 50);
+}
+
+/// A report of the causal chains a world produced (run with --ignored --nocapture).
+#[test]
+#[ignore = "report"]
+fn causal_chain_report() {
+    use pw_world::EventKind as E;
+    use pw_world::event::{Cause, Fact};
+    for seed in [301u64, 302, 303] {
+        let s = ran(Scale::SMALL, seed, 730);
+        let w = &s.world;
+        let mut n: std::collections::BTreeMap<&str, usize> = Default::default();
+        for e in w.events.since(pw_core::Date(0)) {
+            let k = match e.kind {
+                E::LeakSuspected { .. } => "leak suspected",
+                E::BoardQuery { .. } => "board asks manager to explain",
+                E::AgentExploring { .. } => "agent explores the market",
+                E::CaptainMediated { .. } => "captain mediates",
+                E::IncidentResponse { .. } => "incident responses",
+                E::AppealDecided { .. } => "appeals decided",
+                E::Charged { .. } => "charges",
+                E::SupporterAction { .. } => "supporter actions",
+                E::Record { .. } => "records (all levels)",
+                E::HallInduction { .. } | E::InductedHallOfFame { .. } => "hall inductions",
+                E::Chronicle { .. } => "chronicle entries",
+                E::SchoolFounded { .. } => "tactical schools",
+                E::RuleChanged { .. } => "rule changes",
+                _ => continue,
+            };
+            *n.entry(k).or_default() += 1;
+        }
+        let leaks = w.media.stories.iter().filter(|s| matches!(s.source, Cause::Fact(Fact::Heard { .. }))).count();
+        let viral = w.media.stories.iter().filter(|s| matches!(s.source, Cause::Fact(Fact::Viral { .. }))).count();
+        let denials = w.media.stories.iter().filter(|s| s.kind == pw_world::StoryKind::Denial).count();
+        let callouts = w.net.posts.iter().chain(w.net.kept.values()).filter(|p| p.concept == pw_world::socialnet::Concept::CallOut).count();
+        let concede = w
+            .net
+            .posts
+            .iter()
+            .chain(w.net.kept.values())
+            .filter(|p| matches!(p.concept, pw_world::socialnet::Concept::ConcedeWrong | pw_world::socialnet::Concept::DoubleDown | pw_world::socialnet::Concept::ReluctantPraise))
+            .count();
+        let threads_closed = w.media.threads.iter().filter(|t| t.state != pw_world::media::ThreadState::Open).count();
+        println!(
+            "seed {seed}: {n:?}\n  stories from sources {leaks}, from viral posts {viral}, denials {denials}, closed threads {threads_closed}, call-outs {callouts}, changed/doubled-down opinions {concede}"
+        );
+    }
 }

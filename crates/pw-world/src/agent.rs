@@ -58,6 +58,8 @@ pub struct Representation {
     pub last_pitch: Date,
     /// How satisfied the client is with the agent, 0–100.
     pub satisfaction: u8,
+    /// When the agent last began quietly sounding out clubs for the client.
+    pub explored: Date,
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]

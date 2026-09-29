@@ -71,10 +71,7 @@ pub fn team_minutes_4w(w: &World, team: TeamId) -> u32 {
         return 0;
     }
     let from = w.date.add_days(-28);
-    let n = w.fixtures.between(from, w.date).filter(|&f| {
-        let fx = w.fixtures.get(f);
-        fx.score.is_some() && fx.involves(team)
-    });
+    let n = w.fixtures.of_team_between(team, from, w.date).filter(|&f| w.fixtures.get(f).score.is_some());
     n.count() as u32 * 90
 }
 
@@ -103,7 +100,7 @@ pub fn fixtures_ahead(w: &World, team: TeamId, days: i32) -> u8 {
     if team.is_none() {
         return 0;
     }
-    w.fixtures.between(w.date, w.date.add_days(days)).filter(|&f| w.fixtures.get(f).involves(team)).count() as u8
+    w.fixtures.of_team_between(team, w.date, w.date.add_days(days)).count() as u8
 }
 
 pub fn contract_days_left(w: &World, p: PlayerId) -> i32 {

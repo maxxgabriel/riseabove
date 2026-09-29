@@ -238,6 +238,9 @@ impl Fixture {
 pub struct Fixtures {
     list: IdVec<FixtureId, Fixture>,
     by_date: BTreeMap<Date, Vec<FixtureId>>,
+    /// Each team's fixtures (so per-team questions cost that team's
+    /// schedule, not the world's).
+    by_team: crate::FxHashMap<TeamId, Vec<FixtureId>>,
     next_uid: u64,
 }
 
@@ -245,10 +248,20 @@ impl Fixtures {
     pub fn add(&mut self, mut f: Fixture) -> FixtureId {
         f.uid = self.next_uid;
         self.next_uid += 1;
-        let date = f.date;
+        let (date, home, away) = (f.date, f.home, f.away);
         let id = self.list.push(f);
         self.by_date.entry(date).or_default().push(id);
+        self.by_team.entry(home).or_default().push(id);
+        self.by_team.entry(away).or_default().push(id);
         id
+    }
+
+    /// A team's fixtures between two dates (inclusive), in no particular order.
+    pub fn of_team_between(&self, team: TeamId, from: Date, to: Date) -> impl Iterator<Item = FixtureId> + '_ {
+        self.by_team.get(&team).into_iter().flatten().copied().filter(move |&id| {
+            let d = self.list[id].date;
+            d >= from && d <= to
+        })
     }
 
     #[inline]
@@ -292,10 +305,7 @@ impl Fixtures {
     }
 
     pub fn next_for(&self, team: TeamId, from: Date, horizon: i32) -> Option<FixtureId> {
-        self.between(from, from.add_days(horizon)).find(|&id| {
-            let f = &self.list[id];
-            f.score.is_none() && f.involves(team)
-        })
+        self.of_team_between(team, from, from.add_days(horizon)).filter(|&id| self.list[id].score.is_none()).min_by_key(|&id| (self.list[id].date, id))
     }
 
     /// Drop played fixtures older than `before`. Invalidates `FixtureId`s;
@@ -303,11 +313,14 @@ impl Fixtures {
     pub fn compact(&mut self, before: Date) {
         let kept: Vec<Fixture> = std::mem::take(&mut self.list).into_vec().into_iter().filter(|f| f.date >= before || f.score.is_none()).collect();
         self.by_date.clear();
+        self.by_team.clear();
         self.list = IdVec::with_capacity(kept.len());
         for f in kept {
-            let d = f.date;
+            let (d, home, away) = (f.date, f.home, f.away);
             let id = self.list.push(f);
             self.by_date.entry(d).or_default().push(id);
+            self.by_team.entry(home).or_default().push(id);
+            self.by_team.entry(away).or_default().push(id);
         }
     }
 }

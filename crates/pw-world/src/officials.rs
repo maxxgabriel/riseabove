@@ -73,6 +73,8 @@ pub struct Controversy {
     pub minute: u8,
     /// Hidden truth: was the call correct?
     pub correct: bool,
+    /// Whether the call went against the home side.
+    pub against_home: bool,
     /// How wronged the losing side's supporters feel, 0–100.
     pub grievance: u8,
     pub appeal: Option<u32>,
