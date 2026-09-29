@@ -22,6 +22,9 @@ pub struct Snapshot {
     pub in_youth_sides: usize,
     /// Players aged 22+ who are not in a first team (still in reserve or youth sides).
     pub adults_below_first_team: usize,
+    /// Mean and largest first-team squad.
+    pub squad_mean: f32,
+    pub squad_max: usize,
     pub mean_age: f32,
     pub mean_ca: f32,
     pub p99_ca: f32,
@@ -33,6 +36,7 @@ pub struct Snapshot {
     pub balance_median: f64,
     pub balance_p90: f64,
     pub clubs_in_debt: usize,
+    pub revenue_median: f64,
     pub wage_to_revenue_median: f32,
     pub wage_to_revenue_p90: f32,
     pub player_wage_median: f64,
@@ -53,6 +57,8 @@ pub struct Snapshot {
     // people
     pub managers_employed: usize,
     pub managers_unemployed: usize,
+    /// Clubs with nobody in the manager's chair at the snapshot.
+    pub clubs_without_manager: usize,
     pub sackings: u32,
     pub staff_total: usize,
     pub staff_unemployed: usize,
@@ -107,6 +113,9 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
             _ => {}
         }
     }
+    let sizes: Vec<usize> = w.teams.iter().filter(|t| t.kind == pw_world::TeamKind::First).map(|t| t.squad.len()).collect();
+    s.squad_mean = sizes.iter().sum::<usize>() as f32 / sizes.len().max(1) as f32;
+    s.squad_max = sizes.iter().copied().max().unwrap_or(0);
     let mean = |v: &[f32]| if v.is_empty() { 0.0 } else { v.iter().sum::<f32>() / v.len() as f32 };
     s.mean_age = mean(&ages);
     s.mean_ca = mean(&cas);
@@ -117,7 +126,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.fame_p99 = pct(&mut fame.clone(), 0.99).unwrap_or(0.0);
     s.fame_saturated = fame.iter().filter(|&&f| f >= 9_000.0).count() as f32 / fame.len().max(1) as f32;
     // Clubs.
-    let (mut balances, mut ratios, mut reps): (Vec<f64>, Vec<f32>, Vec<f32>) = (vec![], vec![], vec![]);
+    let (mut balances, mut ratios, mut reps, mut revenues): (Vec<f64>, Vec<f32>, Vec<f32>, Vec<f64>) = (vec![], vec![], vec![], vec![]);
     for c in w.clubs.ids() {
         let f = &w.clubs[c].finance;
         balances.push(f.balance as f64);
@@ -125,6 +134,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
             s.clubs_in_debt += 1;
         }
         let revenue = crate::finance::season_revenue(w, c).max(1) as f32;
+        revenues.push(revenue as f64);
         ratios.push(f.wage_bill as f32 * 52.0 / revenue);
         reps.push(f32::from(w.clubs[c].reputation));
     }
@@ -132,10 +142,12 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.balance_p10 = pct(&mut balances.clone(), 0.1).unwrap_or(0.0);
     s.balance_median = pct(&mut balances.clone(), 0.5).unwrap_or(0.0);
     s.balance_p90 = pct(&mut balances, 0.9).unwrap_or(0.0);
+    s.revenue_median = pct(&mut revenues, 0.5).unwrap_or(0.0);
     s.wage_to_revenue_median = pct(&mut ratios.clone(), 0.5).unwrap_or(0.0);
     s.wage_to_revenue_p90 = pct(&mut ratios, 0.9).unwrap_or(0.0);
     s.club_rep_p90 = pct(&mut reps.clone(), 0.9).unwrap_or(0.0);
     s.club_rep_saturated = reps.iter().filter(|&&r| r >= 9_500.0).count() as f32 / reps.len().max(1) as f32;
+    s.clubs_without_manager = w.clubs.iter().filter(|c| c.manager.is_none()).count();
     // Staff.
     for st in w.staff.iter() {
         if st.retired {
@@ -226,7 +238,10 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     if run.len() < 4 {
         return out;
     }
-    let series = |f: &dyn Fn(&Snapshot) -> f64| run.iter().map(f).collect::<Vec<f64>>();
+    // A young world fills up first (fame accrues, children grow into the amateur game), so trends are read after a warm-up of a third of
+    // the run; `yearly_growth` skips the first element, so each series starts one year early.
+    let warm = ((run.len() - 1) / 3).max(1);
+    let series = |f: &dyn Fn(&Snapshot) -> f64| run[warm - 1..].iter().map(f).collect::<Vec<f64>>();
     let mut flag = |level: Level, name: &'static str, msg: String| out.push(Finding { level, series: name, message: msg });
     let last = run.last().expect("non-empty");
 
@@ -272,7 +287,7 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
         flag(Level::Warn, "club reputation", format!("{:.0}% of clubs sit at the reputation ceiling", last.club_rep_saturated * 100.0));
     }
     // Ability drift.
-    let drift = last.mean_ca - run[1].mean_ca;
+    let drift = last.mean_ca - run[warm].mean_ca;
     if drift.abs() > 8.0 {
         flag(Level::Problem, "ability", format!("mean ability moved {drift:+.1} over the run: the population is inflating or deflating"));
     } else if drift.abs() > 4.0 {
@@ -291,6 +306,9 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     }
     if last.managers_employed > 0 && last.managers_unemployed as f64 > last.managers_employed as f64 * 3.0 {
         flag(Level::Warn, "managers", format!("{} unemployed managers for {} jobs: the pool is filling up", last.managers_unemployed, last.managers_employed));
+    }
+    if last.clubs_without_manager * 10 > last.clubs {
+        flag(Level::Problem, "managers", format!("{} of {} clubs have no manager", last.clubs_without_manager, last.clubs));
     }
     if run[1].managers_unemployed > 0 && last.managers_unemployed == 0 && last.sackings > 0 {
         flag(Level::Problem, "managers", "the pool of unemployed managers ran dry".to_string());
@@ -330,20 +348,24 @@ fn money(v: f64) -> String {
 /// A plain-text table of the run, one row per year.
 pub fn render(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  active  first  resv  youth  adult<1st  amat  age  meanCA  balMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
+    s.push_str("year  active  first  resv  youth  adult<1st  free  amat  sqd  sqdMax  age  meanCA  balMed   revMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>4.1} {:>7.1} {:>7} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
+            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>5} {:>5.1} {:>6} {:>4.1} {:>7.1} {:>7} {:>8} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
             r.year,
             r.active_players,
             r.in_first_teams,
             r.in_reserves,
             r.in_youth_sides,
             r.adults_below_first_team,
+            r.free_agents,
             r.amateurs,
+            r.squad_mean,
+            r.squad_max,
             r.mean_age,
             r.mean_ca,
             money(r.balance_median),
+            money(r.revenue_median),
             r.clubs_in_debt,
             r.wage_to_revenue_median,
             money(r.player_wage_median),

@@ -123,6 +123,42 @@ pub fn daily(w: &mut World) {
         retirements(w);
         age_out(w);
     }
+    if today.day() == 1 {
+        trim_squads(w);
+    }
+}
+
+/// Monthly: a first team over the squad limit sheds the players the club values least, from its own reading of them (never their hidden
+/// ability): a young one moves down to a side that will take him, anyone else is let go. Nothing else stops squads growing without bound.
+fn trim_squads(w: &mut World) {
+    let max = usize::from(w.data.tuning.squad.first_team_max);
+    for club in w.clubs.ids().collect::<Vec<_>>() {
+        let first = w.clubs[club].first_team();
+        while w.teams[first].squad.len() > max {
+            let worst = w.teams[first]
+                .squad
+                .iter()
+                .copied()
+                .filter(|&p| w.people[w.players.cold[p].person].mind == MindKind::Ai && w.players.cold[p].loan.is_none() && w.players.hot[p].club == club)
+                .map(|p| {
+                    let (ca, _, pa, _) = crate::scouting::view(w, club, p);
+                    let growth = if w.age(p) < 23 { 0.4 * (pa - ca).max(0.0) } else { 0.0 };
+                    (p, ca + growth)
+                })
+                .min_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
+            let Some((p, _)) = worst else { break };
+            let age = w.age(p);
+            let lower = [TeamKind::Reserve, TeamKind::U21, TeamKind::U19, TeamKind::U18].iter().find_map(|&k| w.club_team(club, k).filter(|_| w.teams[first].kind != k && TeamKind::max_age(k).is_none_or(|m| age <= m)));
+            match lower {
+                Some(t) => {
+                    w.teams[first].squad.retain(|&x| x != p);
+                    w.teams[t].squad.push(p);
+                    w.players.hot[p].team = t;
+                }
+                None => contracts::release(w, p),
+            }
+        }
+    }
 }
 
 /// July 1: players who have outgrown the side they play in step up or are let go. The club decides from its own reading of him (never

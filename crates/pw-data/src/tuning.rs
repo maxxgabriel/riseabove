@@ -168,11 +168,15 @@ pub struct Finance {
     pub wage_share: f32,
     pub ticket_price_top: f32,
     pub prize_pool_share: f32,
+    /// Share of revenue spent on running the club other than player and staff wages (ground, matchday, administration, academy).
+    pub operating_share: f32,
+    /// Cash a club keeps in reserve, in years of revenue; owners take, or put back into the club, what lies above it.
+    pub reserve_years: f32,
 }
 
 impl Default for Finance {
     fn default() -> Self {
-        Self { revenue_top: 650_000_000.0, wage_share: 0.62, ticket_price_top: 75.0, prize_pool_share: 0.25 }
+        Self { revenue_top: 650_000_000.0, wage_share: 0.62, ticket_price_top: 75.0, prize_pool_share: 0.25, operating_share: 0.17, reserve_years: 0.75 }
     }
 }
 

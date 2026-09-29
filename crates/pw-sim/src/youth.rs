@@ -546,7 +546,20 @@ fn move_team(w: &mut World, p: PlayerId, to: TeamId) {
 fn scholarship(w: &mut World, club: ClubId, p: PlayerId) {
     let today = w.date;
     let dob = w.people[w.players.cold[p].person].dob;
-    let team = [TeamKind::U18, TeamKind::U19, TeamKind::U21, TeamKind::Reserve].iter().find_map(|&k| w.club_team(club, k)).unwrap_or(w.clubs[club].first_team());
+    let lower = [TeamKind::U18, TeamKind::U19, TeamKind::U21, TeamKind::Reserve].iter().find_map(|&k| w.club_team(club, k));
+    let team = match lower {
+        Some(t) => t,
+        None => {
+            // No side of his own to join: only straight into the first team, and only if the club reads him as good enough and has the room.
+            let first = w.clubs[club].first_team();
+            let room = w.teams[first].squad.len() < usize::from(w.data.tuning.squad.first_team_target);
+            if !(room && judged_potential(w, club, p) >= bar(w, club)) {
+                release(w, club, p);
+                return;
+            }
+            first
+        }
+    };
     move_team(w, p, team);
     let c = &mut w.players.cold[p];
     c.contract = Contract { club, kind: ContractKind::Youth, wage: 90, start: today, end: dob.add_months(18 * 12 + 11), ..Default::default() };

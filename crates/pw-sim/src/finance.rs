@@ -1,6 +1,7 @@
 //! Club finances (07 §9): seasonal budgets, weekly income and wages.
 
 use pw_core::{ClubId, Money, NationId};
+use pw_world::club::Ownership;
 use pw_world::{PlayerStatus, World};
 
 /// Season revenue from broadcast, commercial and sponsorship (gate is per match).
@@ -56,13 +57,28 @@ pub fn weekly(w: &mut World) {
         }
     }
     for club in w.clubs.ids() {
-        let income = season_revenue(w, club) / 52;
+        let revenue = season_revenue(w, club);
+        let income = revenue / 52;
+        let t = &w.data.tuning.finance;
+        let running = (revenue as f64 * f64::from(t.operating_share) / 52.0) as Money;
+        // What lies above the reserve leaves the club: dividends where owners take profit, investment in ground and facilities where they
+        // put it back. Nothing else drains a profitable club, and money would be created without end.
+        let reserve = (revenue as f64 * f64::from(t.reserve_years)) as Money;
+        let payout = match w.clubs[club].ownership {
+            Ownership::Private => 0.60,
+            Ownership::InvestmentGroup => 0.80,
+            Ownership::MemberOwned => 0.30,
+            Ownership::Benefactor => 0.20,
+            Ownership::StateBacked => 0.15,
+        };
         let f = &mut w.clubs[club].finance;
         let bill = wages[club.0 as usize];
         f.wage_bill = bill;
-        f.balance += income - bill;
+        let excess = (f.balance - reserve).max(0);
+        let out = (excess as f64 * payout / 52.0) as Money;
+        f.balance += income - bill - running - out;
         f.season_income += income;
-        f.season_spend += bill;
+        f.season_spend += bill + running;
         if f.balance < 0 {
             f.debt = -f.balance;
         } else {

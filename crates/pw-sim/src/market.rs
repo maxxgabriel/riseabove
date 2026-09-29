@@ -73,14 +73,26 @@ fn wage_curve(ca: f32) -> f32 {
     400.0 * exp(0.048 * (ca - 60.0))
 }
 
-/// How a club's means scale the wage curve: the board allows `wage_share` of revenue for wages, spread over a typical squad at the
-/// club's own standard, so a richer club pays more for the same ability and wages keep pace with revenue as both inflate.
+/// How a club's means scale the wage curve: the board allows `wage_share` of revenue for wages, and the scale is what makes the wage
+/// curve, applied to the players the market reads in the club's own first team, add up to exactly that. A richer club pays more for the
+/// same ability and wages keep pace with revenue as both inflate, whatever the squad's size or spread.
 pub fn wage_pool_scale(w: &World, club: ClubId) -> f32 {
     let revenue = crate::finance::season_revenue(w, club) as f32;
     let pool = revenue * w.data.tuning.finance.wage_share / 52.0;
-    let ideal = ideal_ca(w.clubs[club].reputation);
-    let typical_squad = 24.0 * wage_curve(ideal - 6.0) * 1.2;
-    (pool / typical_squad).max(0.02)
+    let first = w.clubs[club].first_team();
+    let mut demand: f32 = w.teams[first]
+        .squad
+        .iter()
+        .map(|&p| {
+            let fame = 1.0 + 0.5 * f32::from(w.players.cold[p].rep.world) / 10_000.0;
+            wage_curve(public_view(w, p).0) * fame
+        })
+        .sum();
+    if demand <= 0.0 {
+        // No squad to read: a typical one at the club's own standard.
+        demand = 24.0 * wage_curve(ideal_ca(w.clubs[club].reputation) - 6.0) * 1.2;
+    }
+    (pool / demand).max(0.02)
 }
 
 /// Weekly wage a player expects at `club`.
