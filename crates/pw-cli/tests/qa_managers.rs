@@ -91,8 +91,40 @@ fn a_manager_let_go_is_not_appointed_back_the_same_day() {
             }
         }
     }
-    assert!(departures >= 4, "the sample includes managers being let go: {departures}");
     assert!(rehired.is_empty(), "{} of {departures} managers were appointed straight back: {:?}", rehired.len(), &rehired[..rehired.len().min(4)]);
+    eprintln!("qa_managers: {departures} managers let go over the natural runs, none appointed back");
+}
+
+/// The same, made to happen on purpose to every club of several worlds, exactly as `board::weekly` sacks a manager: the club looks for a
+/// successor at once and must not choose the man it has just sacked.
+#[test]
+fn a_club_that_sacks_its_manager_does_not_choose_him_again() {
+    use pw_core::{ClubId, StaffId};
+    let (mut n, mut back) = (0, Vec::new());
+    for seed in 1..=4u64 {
+        for scale in [Scale::MICRO, Scale::TINY] {
+            let s = ran(scale, seed, 120);
+            for club in s.world.clubs.ids().collect::<Vec<_>>() {
+                let mut w = s.world.clone();
+                let Some(m) = w.clubs[club].manager.get() else { continue };
+                w.staff[m].club = ClubId::NONE;
+                w.staff[m].record.sackings += 1;
+                w.clubs[club].staff.retain(|&x| x != m);
+                w.clubs[club].manager = StaffId::NONE;
+                pw_sim::managers::on_departure(&mut w, m, club, pw_world::careers::JobEnd::Sacked);
+                pw_sim::board::appoint(&mut w, club);
+                n += 1;
+                if w.clubs[club].manager == m {
+                    back.push(format!("seed {seed}: {m:?} sacked by {club:?} and chosen again"));
+                }
+                pw_sim::life::sync(&mut w); // a newly created manager gets a life the same day, inside `Sim::step`
+                let p = pw_sim::validate::problems(&w);
+                assert!(p.is_empty(), "after sacking and replacing at {club:?}: {:?}", &p[..p.len().min(3)]);
+            }
+        }
+    }
+    assert!(n >= 20, "the sample is meaningful: {n}");
+    assert!(back.is_empty(), "{} of {n} sacked managers were chosen again: {:?}", back.len(), &back[..back.len().min(4)]);
 }
 
 /// Heavier: the small world (64 clubs, many poachings) for six years. `--ignored`.
