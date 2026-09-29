@@ -679,7 +679,9 @@ fn insights_only_use_what_the_viewer_could_know() {
 fn insights_leave_out_results_the_viewer_has_not_revealed() {
     let api = api();
     let me = inhabit_one(&api);
-    let club = api.call("person", json!({"id": me})).unwrap()["roles"][0]["org"]["id"].as_u64().unwrap();
+    // The club he plays for: a loanee plays for the borrowing club, not the parent named in his role.
+    let person = api.call("person", json!({"id": me})).unwrap();
+    let club = person["player"]["loan"]["club"]["id"].as_u64().unwrap_or_else(|| person["roles"][0]["org"]["id"].as_u64().unwrap());
     let mut held_once = false;
     for _ in 0..8 {
         api.call("advance.start", json!({"mode": "until_match"})).unwrap();

@@ -162,7 +162,7 @@ fn full() -> bool {
         step("FULL: all workspace tests (nextest)", cargo(&["nextest", "run", "--workspace"], &[]))
     } else {
         println!("(cargo-nextest not installed: running `cargo test`; see docs/DEV_WORKFLOW.md)");
-        step("FULL: all workspace tests", cargo(&["test", "--workspace"], &[]))
+        step("FULL: all workspace tests", cargo(&["test", "--workspace", "--no-fail-fast"], &[]))
     };
     tests
         && step("FULL: type-check every target", cargo(&["check", "--workspace", "--all-targets"], &[]))
