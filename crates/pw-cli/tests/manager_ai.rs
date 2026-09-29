@@ -66,3 +66,83 @@ fn two_managers_with_different_traits_weigh_the_same_squad_differently() {
     assert!(strict.strictness > lax.strictness && strict.caution > lax.caution, "traits move the weights: {strict:?} vs {lax:?}");
     let _ = (a, b);
 }
+
+// ---- the market prices from beliefs (locked design §3.5, §3.25) ----------------------------------------------------------
+
+use pw_core::PosGroup;
+use pw_sim::market;
+
+fn world_after(days: u32, seed: u64) -> Sim {
+    let mut sim = Sim::new(synthetic::build(DataPack::builtin(), seed, Scale::SMALL));
+    sim.run(days);
+    sim
+}
+
+#[test]
+fn the_public_value_tracks_the_true_worth_without_being_it() {
+    let sim = world_after(40, 31);
+    let w = &sim.world;
+    let (mut public, mut truth) = (vec![], vec![]);
+    for p in w.players.ids().filter(|&p| w.players.hot[p].status == pw_world::PlayerStatus::Active) {
+        public.push((market::value_of(w, p) as f32).ln());
+        truth.push((market::true_worth(w, p) as f32).ln());
+    }
+    let exact = public.iter().zip(&truth).filter(|(a, b)| (**a - **b).abs() < 1e-3).count();
+    assert!(exact * 5 < public.len(), "{exact} of {} public values equal the true worth: the market is reading hidden ability", public.len());
+    let c = corr(&public, &truth);
+    assert!(c > 0.85, "public estimates still follow real quality: r = {c:.2}");
+    // The stored value players carry is the public estimate.
+    let stored: Vec<f32> = w.players.ids().filter(|&p| w.players.hot[p].status == pw_world::PlayerStatus::Active).map(|p| (w.players.cold[p].value.max(1) as f32).ln()).collect();
+    assert!(corr(&stored, &public) > 0.98);
+}
+
+#[test]
+fn two_clubs_value_the_same_player_differently_and_neither_uses_the_public_number() {
+    let sim = world_after(40, 32);
+    let w = &sim.world;
+    let clubs: Vec<_> = w.clubs.ids().take(6).collect();
+    let mut differing = 0;
+    let mut total = 0;
+    for p in w.players.ids().filter(|&p| w.players.hot[p].status == pw_world::PlayerStatus::Active).take(300) {
+        let vals: Vec<i64> = clubs.iter().filter(|&&c| w.players.hot[p].club != c).map(|&c| market::fair_value(w, c, p)).collect();
+        total += 1;
+        if vals.iter().any(|v| *v != vals[0]) {
+            differing += 1;
+        }
+    }
+    assert!(differing * 10 > total * 8, "clubs read a player differently: {differing} of {total}");
+}
+
+#[test]
+fn a_seller_asks_more_for_a_player_it_cannot_replace() {
+    let mut sim = world_after(40, 33);
+    let w = &mut sim.world;
+    // A first-team outfield player at a club with cover in his group.
+    let (p, seller) = w
+        .players
+        .ids()
+        .filter(|&p| w.players.hot[p].status == pw_world::PlayerStatus::Active && w.players.cold[p].best_pos.group() == PosGroup::Mid)
+        .map(|p| (p, w.players.hot[p].club))
+        .find(|&(p, c)| c.is_some() && w.teams[w.clubs[c].first_team()].squad.contains(&p))
+        .expect("a midfielder in a first team");
+    let with_cover = market::seller_reservation(w, seller, p);
+    // Take away everyone who could replace him.
+    let team = w.clubs[seller].first_team();
+    for q in w.teams[team].squad.clone() {
+        if q != p && w.players.cold[q].best_pos.group() == PosGroup::Mid {
+            w.players.hot[q].injury = 1;
+            w.players.hot[q].injury_days = 90;
+        }
+    }
+    let without = market::seller_reservation(w, seller, p);
+    assert!(without as f64 >= with_cover as f64 * 1.10, "irreplaceable: {without} vs replaceable {with_cover}");
+}
+
+#[test]
+fn transfers_still_happen_and_chains_form_when_valuations_come_from_beliefs() {
+    let mut sim = world_after(0, 34);
+    sim.run(400);
+    let w = &sim.world;
+    let moves = w.events.since(pw_core::Date(0)).iter().filter(|e| matches!(e.kind, pw_world::EventKind::Transfer { .. })).count();
+    assert!(moves >= 10, "{moves} transfers in a season: the market has stalled");
+}

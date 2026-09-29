@@ -340,7 +340,7 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
                 minutes: p.minutes_12m.map(|m| (m, if max_minutes > 0 { m as f32 / max_minutes as f32 } else { 0.0 })),
                 caps: p.caps.unwrap_or(0),
                 club_level,
-            });
+            }, &w.data.tuning.market);
             let ca = rng.normal_ms(est.ca_mean, est.ca_sd).clamp(20.0, 195.0);
             let pa = rng.normal_ms(est.pa_mean, est.pa_sd).clamp(ca, 200.0);
             let origin = if est.informed { Origin::Inferred } else { Origin::Generated };

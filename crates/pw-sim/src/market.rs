@@ -4,6 +4,7 @@
 use pw_core::math::{exp, interp};
 use pw_core::rng::{Rng, stream};
 use pw_core::{ClubId, Money, PlayerId, Pos, PosGroup, TeamId};
+use pw_world::knowledge::{Observer, field, perceive};
 use pw_world::club::Need;
 use pw_world::contract::{ContractKind, Loan};
 use pw_world::event::{EventKind, Visibility};
@@ -19,14 +20,25 @@ use crate::perception::club_view;
 
 // ---------------------------------------------------------------- valuation
 
-pub fn value_of(w: &World, p: PlayerId) -> Money {
+/// What the market believes a player's ability is: a shared reading of what is public (his standing, minutes, level of football),
+/// stable from one day to the next and never the true ability. Fame narrows it; an obscure player's is uncertain (locked design §3.25).
+pub fn public_view(w: &World, p: PlayerId) -> (f32, f32) {
+    let c = &w.players.cold[p];
+    let fame = f32::from(c.rep.world) / 10_000.0;
+    let sigma = w.data.tuning.perception.sigma0 * (0.75 - 0.6 * fame).max(0.15);
+    let ca = perceive(f32::from(c.ca), sigma * 3.0, Observer::Public, p, field::CA).clamp(1.0, 200.0);
+    let pa = perceive(f32::from(c.pa), sigma * 3.0 + 4.0, Observer::Public, p, field::PA).clamp(ca, 200.0);
+    (ca, pa)
+}
+
+/// The price formula for a player read as `(ca, pa)`. Whose reading goes in decides whose price comes out.
+fn price_formula(w: &World, p: PlayerId, ca: f32, pa: f32) -> Money {
     let c = &w.players.cold[p];
     let h = &w.players.hot[p];
     let t = &w.data.tuning.market;
     let age = w.age_years(p);
-    let ca = f32::from(c.ca);
     let youth = interp(&[(21.0, 1.0), (27.0, 0.0)], age);
-    let potential = 1.0 + (f32::from(c.pa) - ca).max(0.0) / 100.0 * youth * 1.5;
+    let potential = 1.0 + (pa - ca).max(0.0) / 100.0 * youth * 1.5;
     let age_mult = interp(&[(16.0, 0.55), (19.0, 1.0), (24.0, 1.1), (28.0, 1.0), (31.0, 0.7), (33.0, 0.45), (36.0, 0.2)], age);
     let years = if h.club.is_some() { c.contract.days_left(w.date) as f32 / 365.0 } else { 0.0 };
     let contract = if h.status == PlayerStatus::FreeAgent { 0.3 } else { 0.35 + 0.65 * (years / 3.0).min(1.0) };
@@ -38,10 +50,29 @@ pub fn value_of(w: &World, p: PlayerId) -> Money {
     (v.max(5_000.0) as Money / 5_000) * 5_000
 }
 
+/// The public market estimate: what the market at large thinks he is worth. Context for everyone, an anchor for nobody.
+pub fn value_of(w: &World, p: PlayerId) -> Money {
+    let (ca, pa) = public_view(w, p);
+    price_formula(w, p, ca, pa)
+}
+
+/// The price formula on the true ability: what an omniscient observer would call his worth. For audits and debugging only; nothing
+/// inside the world may use it (locked design §1.15).
+pub fn true_worth(w: &World, p: PlayerId) -> Money {
+    price_formula(w, p, f32::from(w.players.cold[p].ca), f32::from(w.players.cold[p].pa))
+}
+
+/// What a club believes a player is worth, from its own reading of him (its scouts' reports, its own coaches' eyes).
+pub fn fair_value(w: &World, club: ClubId, p: PlayerId) -> Money {
+    let (ca, _, pa, _) = crate::scouting::view(w, club, p);
+    price_formula(w, p, ca, pa)
+}
+
 /// Weekly wage a player expects at `club`.
 pub fn wage_demand(w: &World, p: PlayerId, club: ClubId) -> Money {
     let c = &w.players.cold[p];
-    let ca = f32::from(c.ca);
+    // The wage a player and his agent ask for follows how the market reads him, not his hidden ability.
+    let ca = public_view(w, p).0;
     let (econ, rep) = if club.is_some() {
         let cl = &w.clubs[club];
         (w.nations[cl.nation].economy, f32::from(cl.reputation) / 10_000.0)
@@ -286,8 +317,9 @@ fn search(w: &mut World, club: ClubId) {
     }
 }
 
-/// What the selling club would accept (seller stance × contract situation).
-pub fn asking_price(w: &World, p: PlayerId) -> Money {
+/// How the selling club's situation scales a price: the player's standing there, contract length, whether he is already unsettled,
+/// and the board's stance.
+pub fn asking_factor(w: &World, p: PlayerId) -> f32 {
     let c = &w.players.cold[p];
     let stance = match c.status {
         SquadStatus::Star => 2.0,
@@ -301,7 +333,36 @@ pub fn asking_price(w: &World, p: PlayerId) -> Money {
     let unsettled = if w.market.requests.contains_key(&p) || w.market.listed.contains_key(&p) { 0.75 } else { 1.0 };
     let club = w.players.hot[p].club;
     let board = if club.is_some() { crate::governance::selling_stance(w, club) } else { 1.0 };
-    let v = (c.value as f32 * stance * expiring * unsettled * board) as Money;
+    stance * expiring * unsettled * board
+}
+
+/// What a buyer expects a player to cost: the public estimate scaled by what it can see of the seller's situation. An expectation
+/// for shortlists and affordability checks only; the price is found in negotiation and can land far from it (locked design §3.25).
+pub fn asking_price(w: &World, p: PlayerId) -> Money {
+    let c = &w.players.cold[p];
+    let v = (c.value as f32 * asking_factor(w, p)) as Money;
+    if c.contract.release_clause > 0 { v.min(c.contract.release_clause) } else { v }
+}
+
+/// The lowest fee the selling club will take today, from its own valuation and its circumstances: how he is rated at the club,
+/// how easily he is replaced (by the club's own reading of the squad), cash need, contract and the board's stance. The buyer's
+/// budget and eagerness are not in it: the seller does not know them.
+pub fn seller_reservation(w: &World, seller: ClubId, p: PlayerId) -> Money {
+    let c = &w.players.cold[p];
+    let internal = fair_value(w, seller, p) as f32;
+    let belief = crate::scouting::view(w, seller, p).0;
+    let group = c.best_pos.group();
+    let team = w.clubs[seller].first_team();
+    let cover = w.teams[team].squad.iter().filter(|&&q| q != p && w.players.cold[q].best_pos.group() == group && w.players.hot[q].available() && crate::scouting::view(w, seller, q).0 >= belief - 6.0).count();
+    let replacement = match cover {
+        0 => 1.25,
+        1 => 1.08,
+        2 => 1.0,
+        _ => 0.93,
+    };
+    let fin = &w.clubs[seller].finance;
+    let cash = if fin.balance < 0 { 0.92 } else if fin.debt > 0 { 0.96 } else { 1.0 };
+    let v = (internal * asking_factor(w, p) * replacement * cash) as Money;
     if c.contract.release_clause > 0 { v.min(c.contract.release_clause) } else { v }
 }
 

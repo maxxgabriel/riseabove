@@ -148,7 +148,8 @@ pub fn enquire(w: &mut World, buyer: ClubId, p: PlayerId, need: Option<PosGroup>
     let causes: Causes = pw_world::causes![Cause::Fact(Fact::Tracking { club: buyer, player: p, minutes: consider::club_tracking(w, buyer, p) })];
     let ev = w.events.push_caused(today, Visibility::Club(seller), EventKind::Interest { player: p, club: buyer }, causes);
     let urg = urgency(w, buyer, need);
-    let value = w.players.cold[p].value;
+    // The buyer opens from its own reading of the player, not from the public estimate.
+    let value = market::fair_value(w, buyer, p);
     let budget = w.clubs[buyer].finance.transfer_budget;
     let mut rng = Rng::keyed(&[w.seed, stream::MARKET, u64::from(buyer.0), u64::from(p.0), today.0 as u64]);
     let opening = ((value as f32 * rng.range_f32(0.75, 0.95)).min(budget as f32 * 1.1)) as Money;
@@ -224,9 +225,9 @@ fn answer_enquiry(w: &mut World, i: usize) {
     log(w, i, DealLine::Bid(bid));
 }
 
-/// What the selling club needs to see.
+/// What the selling club needs to see: its own reservation for the player, moved by who is asking and how close the deadline is.
 fn valuation(w: &World, d: &ClubDeal) -> f64 {
-    let mut v = market::asking_price(w, d.player) as f64;
+    let mut v = market::seller_reservation(w, d.seller, d.player) as f64;
     // A rival pays a premium.
     if w.media.rivalry(d.seller, d.buyer) >= 50 {
         v *= 1.4;
@@ -293,10 +294,14 @@ fn buyer_turn(w: &mut World, i: usize) {
     let today = w.date;
     let Some(ask) = d.ask.clone() else { return };
     let urg = urgency(w, d.buyer, d.need);
-    let value = w.players.cold[d.player].value as f64;
+    // The ceiling comes from the buyer's own valuation, its urgency and what else it could do: a buyer with other strong targets
+    // can walk away, one whose alternatives are gone pays more (locked design §3.9, §3.12).
+    let value = market::fair_value(w, d.buyer, d.player) as f64;
+    let alternatives = d.need.and_then(|g| w.deals.shortlists.get(&(d.buyer, g))).map_or(0, |s| s.targets.iter().filter(|(q, _)| *q != d.player && !w.market.on_cooldown(d.buyer, *q, today)).count());
+    let leverage = 1.0 - 0.05 * alternatives.min(3) as f64;
     let fee_band = d.need.and_then(|g| planning::need_detail(w, d.buyer, g)).map_or(w.clubs[d.buyer].finance.transfer_budget, |n| n.fee_band);
     let budget = w.clubs[d.buyer].finance.transfer_budget.max(fee_band) as f64;
-    let willing = (value * (1.0 + 0.35 * f64::from(urg)).min(1.6)).min(budget * 1.1);
+    let willing = (value * (1.0 + 0.35 * f64::from(urg)).min(1.6) * leverage).min(budget * 1.1);
     if ask.value() <= willing {
         let x = &mut w.deals.deals[i];
         x.terms = ask.clone();

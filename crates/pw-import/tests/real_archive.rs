@@ -119,3 +119,32 @@ fn imported_ability_is_calibrated_by_cohort_and_not_a_function_of_price() {
     assert!(cheap_good > 0 && dear_weak > 0, "value must not decide ability outright");
     assert!(min >= 20.0 && max <= 195.0);
 }
+
+/// The imported values are the launchpad; once the world runs, its own formula prices players. The two should agree at population level.
+#[test]
+#[ignore = "reads the real local archive; run explicitly"]
+fn the_worlds_own_prices_stay_near_the_imported_ones_after_the_first_month() {
+    let Some(dir) = archive() else {
+        eprintln!("no archive folder; skipped");
+        return;
+    };
+    let (w, _) = load_dir_with(&dir, DataPack::builtin(), Some(1), LoadOptions::default()).expect("loads");
+    let imported: Vec<(pw_core::PlayerId, i64)> = w.players.cold.iter_enumerated().filter(|(_, c)| c.value > 0).map(|(p, c)| (p, c.value)).collect();
+    let mut sim = pw_sim::Sim::new(w);
+    sim.run(35);
+    let w = &sim.world;
+    let mut ratios: Vec<f32> = imported.iter().map(|&(p, v)| (w.players.cold[p].value.max(1) as f32) / v as f32).collect();
+    ratios.sort_by(|a, b| a.total_cmp(b));
+    let q = |f: f32| ratios[((ratios.len() - 1) as f32 * f) as usize];
+    println!("new value / imported value: p10 {:.2}  p25 {:.2}  median {:.2}  p75 {:.2}  p90 {:.2}", q(0.1), q(0.25), q(0.5), q(0.75), q(0.9));
+    let by_band = |lo: f64, hi: f64| {
+        let mut r: Vec<f32> = imported.iter().filter(|&&(_, v)| (v as f64) >= lo && (v as f64) < hi).map(|&(p, v)| (w.players.cold[p].value.max(1) as f32) / v as f32).collect();
+        r.sort_by(|a, b| a.total_cmp(b));
+        (r.len(), r.get(r.len() / 2).copied().unwrap_or(0.0))
+    };
+    for (name, lo, hi) in [("< 300k", 0.0, 3e5), ("300k-2m", 3e5, 2e6), ("2m-10m", 2e6, 1e7), ("10m-40m", 1e7, 4e7), ("40m+", 4e7, 1e12)] {
+        let (n, m) = by_band(lo, hi);
+        println!("  {name:<10} n={n:<6} median ratio {m:.2}");
+    }
+    assert!((0.6..1.7).contains(&q(0.5)), "the median price moved by a factor of {:.2} in a month", q(0.5));
+}

@@ -16,38 +16,21 @@
 //! inferred from any of this (§11.10).
 
 use pw_core::math::interp;
+use pw_data::Market;
 use pw_sim::generate::ca_share_at;
-
-/// (market value in EUR, ability at prime age on the 1–200 scale).
-const VALUE_TO_PEAK: [(f32, f32); 14] = [
-    (25_000.0, 45.0),
-    (50_000.0, 55.0),
-    (100_000.0, 66.0),
-    (250_000.0, 80.0),
-    (500_000.0, 92.0),
-    (1_000_000.0, 103.0),
-    (2_500_000.0, 116.0),
-    (5_000_000.0, 126.0),
-    (10_000_000.0, 136.0),
-    (20_000_000.0, 148.0),
-    (40_000_000.0, 161.0),
-    (80_000_000.0, 173.0),
-    (150_000_000.0, 184.0),
-    (250_000_000.0, 192.0),
-];
 
 /// How much of the growth still to come is already priced into a young player's value.
 const VALUE_ANTICIPATION: f32 = 0.35;
 
-/// Ability at prime age that a market value pays for.
-pub fn peak_from_value(value: f64) -> f32 {
-    let pts: Vec<(f32, f32)> = VALUE_TO_PEAK.iter().map(|&(v, c)| (v.ln(), c)).collect();
-    interp(&pts, (value.max(1.0) as f32).ln())
+/// Ability at prime age that a market value pays for: the exact inverse of the world's own price curve, so that reading a price into
+/// ability and pricing that ability again lands where it started (up to the age, contract and reputation factors).
+pub fn peak_from_value(value: f64, m: &Market) -> f32 {
+    (100.0 + ((value.max(1.0) as f32) / m.value_base).ln() / m.value_exp).clamp(35.0, 195.0)
 }
 
 /// Current ability and potential a value implies on its own at an age: the single-signal reading, used as one input only.
-pub fn value_signal(value: f64, age: f32) -> (f32, f32) {
-    let peak = peak_from_value(value);
+pub fn value_signal(value: f64, age: f32, m: &Market) -> (f32, f32) {
+    let peak = peak_from_value(value, m);
     let share = ca_share_at(age);
     let young = share + (1.0 - share) * VALUE_ANTICIPATION;
     let old = interp(&[(29.0, 1.0), (31.0, 1.02), (33.0, 1.05), (36.0, 1.10), (40.0, 1.16)], age);
@@ -88,7 +71,7 @@ pub struct Estimate {
 const PRIOR_WEIGHT: f32 = 0.30;
 const PRIOR_SD: f32 = 16.0;
 
-pub fn estimate(e: &Evidence) -> Estimate {
+pub fn estimate(e: &Evidence, m: &Market) -> Estimate {
     let mu0 = e.club_level;
     let mut sum = PRIOR_WEIGHT * mu0;
     let mut weight = PRIOR_WEIGHT;
@@ -113,9 +96,9 @@ pub fn estimate(e: &Evidence) -> Estimate {
     }
     let mut value_pa = None;
     if let Some(v) = e.value {
-        let (ca, _) = value_signal(v, e.age);
+        let (ca, _) = value_signal(v, e.age, m);
         add(ca, 0.25);
-        value_pa = Some(peak_from_value(v));
+        value_pa = Some(peak_from_value(v, m));
         informed = true;
     }
     let ca_mean = (sum / weight).clamp(20.0, 195.0);
@@ -142,20 +125,32 @@ mod tests {
     fn value_alone_is_monotone_and_bounded() {
         let mut last = 0.0;
         for v in [10_000.0, 100_000.0, 350_000.0, 1e6, 5e6, 3e7, 2e8, 9e8] {
-            let p = peak_from_value(v);
+            let p = peak_from_value(v, &Market::default());
             assert!(p >= last, "{v}: {p} < {last}");
-            assert!((45.0..=192.0).contains(&p));
+            assert!((35.0..=195.0).contains(&p));
             last = p;
+        }
+    }
+
+    #[test]
+    fn reading_a_price_into_ability_inverts_the_worlds_own_price_curve() {
+        // The importer reads prices into ability with a table; the world prices ability with a formula. If they drift apart, every
+        // imported value jumps at the first monthly revaluation. Prime age, mid-contract, neutral reputation.
+        let m = Market::default();
+        for ca in [50.0f32, 70.0, 90.0, 110.0, 130.0, 150.0, 170.0, 185.0] {
+            let price = f64::from(m.value_base * (m.value_exp * (ca - 100.0)).exp());
+            let back = peak_from_value(price, &m);
+            assert!((back - ca).abs() < 0.5, "ability {ca} is priced {price:.0} but reads back as {back:.0}");
         }
     }
 
     #[test]
     fn a_single_signal_reads_young_players_below_their_peak_and_old_ones_above() {
         let v = 20_000_000.0;
-        let (c18, p18) = value_signal(v, 18.0);
-        let (c25, _) = value_signal(v, 25.0);
-        let (c28, p28) = value_signal(v, 28.0);
-        let (c35, _) = value_signal(v, 35.0);
+        let (c18, p18) = value_signal(v, 18.0, &Market::default());
+        let (c25, _) = value_signal(v, 25.0, &Market::default());
+        let (c28, p28) = value_signal(v, 28.0, &Market::default());
+        let (c35, _) = value_signal(v, 35.0, &Market::default());
         assert!(c18 < c25 && c25 < c28, "{c18} {c25} {c28}");
         assert!(p18 >= c18 && (p18 - p28).abs() < 1e-3);
         assert!(c35 > c28);
@@ -163,7 +158,7 @@ mod tests {
 
     #[test]
     fn with_no_player_specific_evidence_the_estimate_is_the_club_prior_and_says_so() {
-        let e = estimate(&base());
+        let e = estimate(&base(), &Market::default());
         assert!(!e.informed);
         assert!((e.ca_mean - 110.0).abs() < 1e-3);
         assert!((e.ca_sd - PRIOR_SD).abs() < 1e-3, "no evidence: the widest spread");
@@ -171,9 +166,9 @@ mod tests {
 
     #[test]
     fn evidence_narrows_the_estimate_and_moves_it_the_right_way() {
-        let blind = estimate(&base());
-        let star = estimate(&Evidence { value: Some(60e6), value_rank_in_club: Some(1.0), minutes: Some((2800, 1.0)), caps: 40, ..base() });
-        let squad = estimate(&Evidence { value: Some(400_000.0), value_rank_in_club: Some(0.1), minutes: Some((300, 0.1)), ..base() });
+        let blind = estimate(&base(), &Market::default());
+        let star = estimate(&Evidence { value: Some(60e6), value_rank_in_club: Some(1.0), minutes: Some((2800, 1.0)), caps: 40, ..base() }, &Market::default());
+        let squad = estimate(&Evidence { value: Some(400_000.0), value_rank_in_club: Some(0.1), minutes: Some((300, 0.1)), ..base() }, &Market::default());
         assert!(star.informed && squad.informed);
         assert!(star.ca_mean > blind.ca_mean && blind.ca_mean > squad.ca_mean, "{} {} {}", star.ca_mean, blind.ca_mean, squad.ca_mean);
         assert!(star.ca_sd < blind.ca_sd, "more evidence, less uncertainty");
@@ -182,19 +177,19 @@ mod tests {
     #[test]
     fn price_alone_cannot_decide_ability_the_club_and_the_minutes_pull_against_it() {
         // Two players with the same value: one is a regular at a strong club, the other never plays at a weak one.
-        let regular = estimate(&Evidence { value: Some(5e6), value_rank_in_club: Some(0.7), minutes: Some((2600, 0.95)), club_level: 125.0, ..base() });
-        let unused = estimate(&Evidence { value: Some(5e6), value_rank_in_club: Some(0.7), minutes: Some((150, 0.05)), club_level: 95.0, ..base() });
+        let regular = estimate(&Evidence { value: Some(5e6), value_rank_in_club: Some(0.7), minutes: Some((2600, 0.95)), club_level: 125.0, ..base() }, &Market::default());
+        let unused = estimate(&Evidence { value: Some(5e6), value_rank_in_club: Some(0.7), minutes: Some((150, 0.05)), club_level: 95.0, ..base() }, &Market::default());
         assert!(regular.ca_mean > unused.ca_mean + 15.0, "{} vs {}", regular.ca_mean, unused.ca_mean);
         // Whatever the price, the estimate stays within reach of the club's standard rather than tracking the price.
-        let cheap = estimate(&Evidence { value: Some(100_000.0), club_level: 125.0, ..base() });
-        let dear = estimate(&Evidence { value: Some(80e6), club_level: 125.0, ..base() });
-        assert!((dear.ca_mean - cheap.ca_mean) < (peak_from_value(80e6) - peak_from_value(100_000.0)) * 0.5, "value moves the estimate, but not one for one");
+        let cheap = estimate(&Evidence { value: Some(100_000.0), club_level: 125.0, ..base() }, &Market::default());
+        let dear = estimate(&Evidence { value: Some(80e6), club_level: 125.0, ..base() }, &Market::default());
+        assert!((dear.ca_mean - cheap.ca_mean) < (peak_from_value(80e6, &Market::default()) - peak_from_value(100_000.0, &Market::default())) * 0.5, "value moves the estimate, but not one for one");
     }
 
     #[test]
     fn young_players_carry_headroom_and_the_market_view_of_them_raises_it() {
-        let young = estimate(&Evidence { age: 18.0, value: Some(15e6), ..base() });
-        let old = estimate(&Evidence { age: 31.0, value: Some(15e6), ..base() });
+        let young = estimate(&Evidence { age: 18.0, value: Some(15e6), ..base() }, &Market::default());
+        let old = estimate(&Evidence { age: 31.0, value: Some(15e6), ..base() }, &Market::default());
         assert!(young.pa_mean > young.ca_mean + 10.0, "{} {}", young.pa_mean, young.ca_mean);
         assert!((old.pa_mean - old.ca_mean).abs() < 1e-3, "a veteran has no headroom");
         assert!(young.pa_sd > old.pa_sd, "potential is the more uncertain of the two");
@@ -202,8 +197,8 @@ mod tests {
 
     #[test]
     fn a_few_minutes_carry_little_weight() {
-        let brief = estimate(&Evidence { minutes: Some((60, 1.0)), ..base() });
-        let season = estimate(&Evidence { minutes: Some((2700, 1.0)), ..base() });
+        let brief = estimate(&Evidence { minutes: Some((60, 1.0)), ..base() }, &Market::default());
+        let season = estimate(&Evidence { minutes: Some((2700, 1.0)), ..base() }, &Market::default());
         assert!(season.ca_mean - base().club_level > 4.0 * (brief.ca_mean - base().club_level).max(0.1), "{} vs {}", season.ca_mean, brief.ca_mean);
     }
 }

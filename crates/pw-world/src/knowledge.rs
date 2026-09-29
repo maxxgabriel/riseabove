@@ -66,6 +66,8 @@ impl Knowledge {
 pub enum Observer {
     Club(ClubId),
     Person(u32),
+    /// The market at large: a shared, stable reading of a player from what is public.
+    Public,
 }
 
 impl Observer {
@@ -74,6 +76,7 @@ impl Observer {
         match self {
             Observer::Club(c) => u64::from(c.0),
             Observer::Person(p) => (1 << 40) | u64::from(p),
+            Observer::Public => 2 << 40,
         }
     }
 }

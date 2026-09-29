@@ -129,8 +129,10 @@ pub struct Market {
 impl Default for Market {
     fn default() -> Self {
         Self {
-            value_base: 1_000_000.0,
-            value_exp: 0.042,
+            // Calibrated to the price scale of the imported data (a prime, mid-contract player of ability 100 is worth about 0.6m and
+            // each ten points of ability multiplies the price by about 2.0); `pw-import` checks the round trip.
+            value_base: 620_000.0,
+            value_exp: 0.068,
             max_transfers_per_club_window: 4,
             rebid_cooldown_days: 10,
             search_interval_days: 4,
