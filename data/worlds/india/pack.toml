@@ -1111,3 +1111,12 @@ start = 10.0
 key = "East Asia"
 nations = ["JPN", "KOR"]
 start = 14.0
+
+# Who may play for a nation's national sides (federation rules), by nation code. A nation not listed uses the built-in defaults, which are
+# the same values. bases, in order: nationality, birth, parent, residence.
+[[national_rules]]
+nation = "IND"
+bases = ["nationality", "parent", "residence"]
+residence_years = 5
+switch_max_caps = 0
+switch_wait_years = 3

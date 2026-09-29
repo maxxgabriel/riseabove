@@ -53,6 +53,16 @@ struct Pack {
     calendar: Vec<CalRow>,
     #[serde(default)]
     market: Vec<MarketRow>,
+    /// Eligibility for national sides, per nation code.
+    #[serde(default)]
+    national_rules: Vec<NationalRow>,
+}
+
+#[derive(Deserialize)]
+struct NationalRow {
+    nation: String,
+    #[serde(flatten)]
+    rules: pw_world::scenario::NationalRules,
 }
 
 #[derive(Deserialize)]
@@ -226,6 +236,8 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         if !data.calendar.is_empty() {
             sc.calendar = data.calendar.iter().map(|c| CalRule { event: CalEvent::parse(&c.event).unwrap_or_else(|| panic!("india pack: unknown calendar event {}", c.event)), months: c.months.clone(), day: c.day }).collect();
         }
+        sc.national = data.national_rules.iter().map(|r| (r.nation.clone(), r.rules.clone())).collect();
+        sc.national.sort_by(|a, b| a.0.cmp(&b.0));
         sc.markets = data.market.iter().map(|m| MarketDef { key: m.key.clone(), nations: m.nations.clone(), start: m.start }).collect();
     }
     let eco = &mut w.ext.ecosystem;

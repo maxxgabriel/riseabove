@@ -183,6 +183,27 @@ impl DataOrigin {
     }
 }
 
+/// Who may play for a nation's national sides, as a federation's rules (data: the pack names them per nation code). They live here, in
+/// the versioned extension state, rather than in the pack data copied into every save, so a save never depends on this shape.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct NationalRules {
+    /// Grounds on which a player may play for the nation's sides, tried in order: `nationality`, `birth`, `parent`, `residence`.
+    pub bases: Vec<String>,
+    /// Years lived in the country before residence qualifies.
+    pub residence_years: u8,
+    /// Competitive senior caps for another nation a player may hold and still switch here; 0 = one competitive cap ties a player.
+    pub switch_max_caps: u8,
+    /// Years since his last cap for the other nation before he may switch (only where switching is allowed).
+    pub switch_wait_years: u8,
+}
+
+impl Default for NationalRules {
+    fn default() -> Self {
+        Self { bases: vec!["nationality".into(), "parent".into(), "residence".into()], residence_years: 5, switch_max_caps: 0, switch_wait_years: 3 }
+    }
+}
+
 /// The tuning and calendar a scenario runs under, and where they came from.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scenario {
@@ -194,11 +215,21 @@ pub struct Scenario {
     pub source: String,
     /// Where each club's starting data came from. A club with no entry (a save that predates this) is of unknown origin, not generated.
     pub club_origin: FxHashMap<ClubId, DataOrigin>,
+    /// National-side eligibility by nation code; a nation not listed uses `NationalRules::default()`. A sorted list (not a map) so a
+    /// saved scenario is byte-stable.
+    pub national: Vec<(String, NationalRules)>,
+}
+
+impl Scenario {
+    /// The eligibility rules of a nation's national sides.
+    pub fn national_rules(&self, code: &str) -> NationalRules {
+        self.national.iter().find(|(c, _)| c == code).map(|(_, r)| r.clone()).unwrap_or_default()
+    }
 }
 
 impl Default for Scenario {
     fn default() -> Self {
-        Self { recognition: RecognitionTuning::default(), scouting: ScoutingTuning::default(), calendar: default_calendar(), markets: Vec::new(), source: String::new(), club_origin: FxHashMap::default() }
+        Self { recognition: RecognitionTuning::default(), scouting: ScoutingTuning::default(), calendar: default_calendar(), markets: Vec::new(), source: String::new(), club_origin: FxHashMap::default(), national: Vec::new() }
     }
 }
 

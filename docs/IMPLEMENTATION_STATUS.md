@@ -152,21 +152,28 @@ Provenance on the person page is omniscient-view only.
 | View types, not world types (§9.4) | **PARTIAL** | the typed payloads are view types; the untyped pages still assemble JSON from `Ctx` (see §8) |
 | Contract tests cover major surfaces (§9.9) | **PARTIAL** | the surfaces above; no request validation schema for commands yet (`me.act` still parses `Value` by hand) |
 
-## 10. Saves — PARTIAL
+## 10. Saves — PARTIAL (framework implemented, one real layout migration)
 
-Current schema is **4**, and `OLDEST_SUPPORTED` is 4: schemas 1-3 were development formats (the world model changed between them without
-migration steps), so they are refused with a plain message, untouched (tested: `fixture.rs::an_older_development_schema_is_refused...`, unit
-tests in `save.rs`). From 4 on every serialised change bumps the number and registers a `Step`.
+Current schema is **5** and `OLDEST_SUPPORTED` is 5: schemas 1-3 were development formats and 4 was a one-day development format (the
+world model changed between them without steps), so they are refused with a plain message, untouched (tested: `fixture.rs`, unit tests in
+`save.rs`). From 5 on every serialised change bumps the number and registers a `Step`.
 **IMPLEMENTED**: explicit schema version, sequential migration steps (`pw-sim::save::Step`), backup before upgrade, atomic write,
-checksum, metadata (created schema, migration history, seed, provenance), clear too-new / unsupported errors, listing shows compatibility,
-`stable_seed` for migrations, post-load validation and census (`validate.rs`); unit tests for the framework.
-**Golden fixture**: `crates/pw-cli/tests/fixtures/golden_micro.pws` (schema 4, micro world, 90 days, 430 KB) with
-`crates/pw-cli/tests/fixture.rs`: it must load (or upgrade), validate, simulate 30 days audit-clean, save and reload with the same
-identities and continue exactly as the original (compared semantically: a reloaded map iterates in another order, so compressed bytes differ).
-The test fails when the schema moves without a migration for the fixture; regenerate only for a deliberate break (`WRITE_GOLDEN=1`).
-**Missing**: no real migration exists yet (nothing has changed since 4); a census check that no id moves *during simulation* is not
-possible (people who leave the game are removed, 532 -> 525 in 30 days on the fixture), so ID preservation is checked across save/load
-and migration only; the app's saves folder from before this bump lists as unsupported.
+checksum, metadata, clear too-new / unsupported errors, compatibility in the listing, `stable_seed`, post-load validation (`validate.rs`).
+**Extension envelope** (`pw-world/src/ext.rs`): `World::ext` is written as `(EXT_VERSION, bytes)` with its own isolated steps, so a new
+domain never needs a schema step. Current layout **2** adds `scenario` (tuning, calendar, markets, club data origin), `recog`
+(organisation knowledge, recommendations, referral records, market regard, watches) and `pathway` (why each step, how each player was
+created). Rules are at the top of `ext.rs`: append fields, register a step, never invent history. Anything that needs the rest of the world
+(a present baseline) is `pw-sim/src/legacy.rs::finish`, run once after load when the envelope reports an older layout: deterministic,
+derived from existing state only, marked legacy wherever provenance exists (a sponsor count becomes a `Legacy` recommendation, the old
+export number becomes `legacy` regard, an old story becomes an `Unrecorded` creation record with unknown age and institution).
+Tested: `ext.rs` unit tests (a real layout-1 byte stream opens at layout 2, refuses newer or missing, unbroken step chain),
+`india_ecosystem.rs::an_older_layout_gets_a_deterministic_present_baseline_and_no_invented_history`, and the golden fixture
+(`golden_micro.pws`, schema 5, ext layout 1) which now passes through the 1 to 2 step on every run.
+**Trap found the hard way**: `World::data` (the whole `DataPack`, including `RuleProfile`) is part of the positional save, so adding a field to a pack
+struct (not only to `World`) changes the bytes and breaks every save. New per-scenario rules go in `Scenario` (versioned ext state), as national-side
+eligibility does (`Scenario::national`); the golden fixture test is what catches a slip.
+**Missing**: save size still grows without bound over long runs (tiny world ~40% a year; retention checkpoint `60cc389` is unverified
+against a 3-year archive); a census check that no id moves *during simulation* is not possible (people who leave the game are removed).
 
 ## 11. Imported data — IMPLEMENTED (with stated limits)
 
@@ -205,3 +212,42 @@ there is no general audit that every consequence has a cause.
 
 Run `cargo test -p pw-import -p pw-sim -p pw-view -p pw-cli` for the fast suites. Long and data-dependent runs are `#[ignore]`d:
 `cargo test --release -p pw-import --test real_archive -- --ignored --nocapture` needs the local `archive/` folder.
+
+## 14. India ecosystem: recognition, pathway, export — PARTIAL (core implemented)
+
+Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,youth,legacy}.rs`, world types in
+`pw-world/src/{scenario,recog,pathway,eligibility}.rs`, tuning in `data/worlds/india/pack.toml`. Tested in `crates/pw-cli/tests/india_ecosystem.rs`
+(20 tests) plus the older `recognition.rs`.
+
+* **Tuning is data** (IMPLEMENTED, tested): tier weights, sample sizes, attention, academy need, gates, vouch trust, scouting reach,
+  camp sizes, foreign parameters are `Scenario::{recognition,scouting}`, read from the pack's `[recognition]` and `[scouting]`. The defaults
+  are the numbers the code always used. They are initial values, not football truths.
+* **Calendar is data** (IMPLEMENTED, tested): `[[calendar]]` (district selection, school and university scouting, camps, state
+  championship day, university review). `ecosystem::monthly` and `statepath::daily` ask `Scenario::due*`, never the month.
+* **Organisation-specific knowledge** (IMPLEMENTED, tested): `Recog::acquaint[(Org, player)]`, one entry per club, institution, state panel,
+  federation or foreign market that has actually looked. `recognised_by(club, p)` reads that club's own looks, not a global count.
+  State selectors pick from their own league, their district and championship acquaintances, and a small chance of report.
+* **Causal recommendations** (IMPLEMENTED, tested): yearly, a coach (school, local club or district selectors) recommends a child who is in
+  the top quarter of the group they coach and has real evidence. It records the cause (`Trained{months}` / `Watched{games}`), strength (rank
+  in the group), credibility (coaching quality, record). Each organisation decides its own trust (`vouch_weight`), moved by referral outcomes
+  recorded at trial decisions and when university places end. No random roll.
+* **Physical maturity is not quality** (IMPLEMENTED, not separately tested): attention and scout readings of young players lean on build
+  (`scouting::judge`, `recognition::aspects`), fading to nothing by nineteen, scaled by the scout's physical bias.
+* **Talk only sends people to look** (IMPLEMENTED, tested): a spectacular game can start `Recog::watching`; each game credited is one game
+  watched; only when they are done does a scout form a judgement, from the play. Buzz never enters the judgement.
+* **Export regard is contextual** (IMPLEMENTED, tested): `Recog::export[(market, segment)]` for youth, senior, league and university
+  football, per market (`[[market]]`); nations in no market never look; seeds are labelled, earned regard follows exports and successes.
+* **Eligibility as data** (IMPLEMENTED, tested): `Judgement{body, rule, evidence, outcome, reason}` for state and national sides.
+* **Pathway remembers why** (IMPLEMENTED, tested): `PathwayExt::why` records the reason at every `note`/`note_why` call site, transfers and
+  promotions; `created` records how every ecosystem player came to exist (age, region, provider, first environment, first finder, why drawn).
+  Steps and players from an older save say `Unrecorded`, never a guess.
+* **Records** (IMPLEMENTED, tested): every stat has a provenance; top speed and distance are estimates and are never announced.
+* **Club data origin** (IMPLEMENTED, tested): `Scenario::club_origin` (Imported / ScenarioSeed / Generated). Nothing in the pack is a
+  verified import yet; no invented achievements are attached to any name.
+* **Rivalries** start empty and grow from state championship meetings, weighted by neighbourliness (IMPLEMENTED, tested).
+* **Region output** is measured by quality (top tier, internationals, senior appearances, value): `ecosystem::region_output` (tested).
+* **UI** (IMPLEMENTED, typed contract, contract test): `Development` page (regions, abroad, scenario) and a pathway panel on player pages
+  (`pathway.player`, `ecosystem.regions|export|scenario`); recognition internals are omniscient-view only. Not visually reviewed in a browser.
+* **Not done**: university recruiting competition between institutions beyond offers and choice; women's football and referee
+  pathways (deliberately later); the loader does not yet read `data/worlds/india/**` reference folders (Agent B's data).
+* **Not validated**: long-run balance of the new discovery rates on the full India world (calibration soak pending, see the report).

@@ -126,10 +126,10 @@ fn person_of(w: &World, p: PlayerId) -> pw_core::PersonId {
 
 /// Whether a competitive senior cap for another nation still lets him play for `nation` under its federation's rules.
 fn may_switch(w: &World, p: PlayerId, nation: NationId, tied_to: NationId) -> bool {
-    let prof = pw_world::rules::profile(w, nation);
+    let prof = w.ext.scenario.national_rules(&w.nations[nation].code);
     let Some(cap) = w.intl.caps.get(&p).and_then(|v| v.iter().find(|c| c.nation == tied_to && c.level == pw_world::intl::Level::Senior)) else { return false };
     let years_since = cap.last.days_until(w.date) / 365;
-    cap.competitive <= u16::from(prof.national_switch_max_caps) && years_since >= i32::from(prof.national_switch_wait_years)
+    cap.competitive <= u16::from(prof.switch_max_caps) && years_since >= i32::from(prof.switch_wait_years)
 }
 
 /// May this player be picked by this nation's national sides, and on what ground.
@@ -155,9 +155,9 @@ pub fn judge_national(w: &World, p: PlayerId, nation: NationId) -> Judgement {
     }
     let who = person_of(w, p);
     let person = &w.people[who];
-    let prof = pw_world::rules::profile(w, nation);
+    let prof = w.ext.scenario.national_rules(&w.nations[nation].code);
     let mut first: Option<Rule> = None;
-    for b in &prof.national_bases {
+    for b in &prof.bases {
         let (rule, holds, detail) = match b.as_str() {
             "nationality" => (Rule::Nationality, person.nation == nation || person.nation2 == nation, 0),
             "birth" => {
@@ -167,7 +167,7 @@ pub fn judge_national(w: &World, p: PlayerId, nation: NationId) -> Judgement {
             "parent" => (Rule::Parent, w.lives.get(who).is_some_and(|l| l.household.parents.nation == nation), 0),
             "residence" => {
                 let years = w.lives.get(who).filter(|l| l.home == nation).map_or(0, |l| l.years_here(w.date) as i32);
-                (Rule::Residence, years >= i32::from(prof.national_residence_years), years)
+                (Rule::Residence, years >= i32::from(prof.residence_years), years)
             }
             _ => continue,
         };
