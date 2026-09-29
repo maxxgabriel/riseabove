@@ -138,8 +138,10 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
     let mut country_by_code: FxHashMap<String, Key> = FxHashMap::default();
     let mut t = open(dir, "countries.csv", true)?.expect("required");
     let mut rows = Vec::new();
-    t.for_each(|row, r| rows.push((row, r.s("country_name").to_string(), r.s("country_code").to_string(), geo::confed_from_tm(&r.s("confederation")))))?;
-    for (row, name, code, tm_confed) in rows {
+    t.for_each(|row, r| rows.push((row, r.s("country_name").to_string(), r.s("country_code").to_string(), geo::confed_from_tm(&r.s("confederation")), r.num::<u32>("total_clubs"))))?;
+    // Clubs the source says each country's league has, kept as evidence for leagues the competition file lacks.
+    let mut declared_clubs: FxHashMap<Key, u32> = FxHashMap::default();
+    for (row, name, code, tm_confed, total) in rows {
         let Some(g) = geo::lookup(&name) else {
             set.issues.add(Severity::Warning, "unknown_country", "countries.csv", row, &name, "country name is not in the country table; skipped");
             continue;
@@ -158,6 +160,9 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
         }
         let confed = Some(confed);
         nations.insert(key.clone(), ImpNation { source: src, key: key.clone(), code: g.code.to_string(), name: g.name.to_string(), confed, minor: false, ..Default::default() });
+        if let Some(t) = total {
+            declared_clubs.insert(key.clone(), t);
+        }
         if !code.is_empty() {
             country_by_code.insert(code, key);
         }
@@ -271,12 +276,33 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
             ..Default::default()
         });
     }
-    // A league the clubs name but the competition file lacks: created from the clubs, its country taken from the
-    // country whose league code equals the competition id (`COL1` ↔ Colombia), never from a club's name.
+    // A league the clubs name but the competition file lacks: created from the clubs. Its country needs evidence, never a
+    // club's name: the country whose league code equals the id, or else the country most of the clubs' players are citizens
+    // of when that country also declares exactly this many league clubs (two independent pieces of evidence).
     let mut missing: Vec<(String, u16)> = league_clubs.iter().filter(|(k, _)| !comp_keys.contains(*k)).map(|(k, n)| (k.clone(), *n)).collect();
     missing.sort();
+    let mut citizens: FxHashMap<String, FxHashMap<Key, u32>> = FxHashMap::default();
+    if !missing.is_empty()
+        && let Some(mut pt) = open(dir, "players.csv", false)?
+    {
+        let missing_ids: FxHashSet<&str> = missing.iter().map(|(k, _)| k.as_str()).collect();
+        let league_of_club: FxHashMap<&str, &str> = raw.iter().filter(|c| c.last == newest && missing_ids.contains(c.comp.as_str())).map(|c| (c.id.as_str(), c.comp.as_str())).collect();
+        pt.for_each(|_, r| {
+            if r.num::<i32>("last_season") != Some(newest) {
+                return;
+            }
+            if let (Some(league), Some(g)) = (league_of_club.get(r.s("current_club_id").as_ref()), geo::lookup(&r.s("country_of_citizenship"))) {
+                *citizens.entry((*league).to_string()).or_default().entry(nation_key(g)).or_default() += 1;
+            }
+        })?;
+    }
     for (id, n) in missing {
-        match country_by_code.get(&id) {
+        let by_citizens = citizens.get(&id).and_then(|m| {
+            let total: u32 = m.values().sum();
+            let (top, count) = m.iter().max_by(|a, b| a.1.cmp(b.1).then(b.0.cmp(a.0)))?;
+            (total > 0 && *count * 2 > total && declared_clubs.get(top) == Some(&u32::from(n))).then(|| top.clone())
+        });
+        match country_by_code.get(&id).cloned().or(by_citizens) {
             Some(nation) => {
                 let mut c = ImpComp::new(id.clone(), format!("{nation} First Division"), CompKind::League);
                 c.source = src;

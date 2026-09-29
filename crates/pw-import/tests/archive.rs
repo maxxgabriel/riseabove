@@ -287,6 +287,43 @@ fn a_league_missing_from_the_competition_file_is_derived_from_the_country_code()
 }
 
 #[test]
+fn a_missing_league_is_placed_by_citizenship_only_when_the_declared_club_count_agrees() {
+    let build = |declared: &str| {
+        let mut a = Archive::standard();
+        // Argentina's country code does not match the league id, so the code cannot place it.
+        a.countries[2] = q(&["3", "Argentina", "ARZZ", "amerika", declared, "0", "25", "u"]);
+        a.clubs.push(q(&["300", "club-300", "Argentine Club", "AR9", "", "22", "25", "5", "20", "3", "G", "20000", "", "", "2025", "", "u"]));
+        for k in 0..20 {
+            a.players.push(player_row(&format!("30{k:03}"), "300", "1995-01-01", |c| c[9] = "Argentina".into()));
+        }
+        a
+    };
+    // One club names the league and Argentina declares one club, and its players are Argentine.
+    let set = parse_dir(&build("1").write("cit-ok"), LoadOptions::default()).unwrap();
+    let lg = set.comps.iter().find(|c| c.key == "AR9").expect("league derived");
+    assert_eq!((lg.nation.as_deref(), lg.derived), (Some("Argentina"), true));
+    // The declared count disagrees: one piece of evidence is not enough, and the league (and its club) is left out.
+    let set = parse_dir(&build("18").write("cit-no"), LoadOptions::default()).unwrap();
+    assert!(set.comps.iter().all(|c| c.key != "AR9"));
+    assert!(set.clubs.iter().all(|c| c.key != "300"));
+    assert_eq!(set.issues.count("unknown_league"), 2);
+}
+
+#[test]
+fn nobody_in_the_world_is_left_without_a_nation() {
+    let a = Archive::standard();
+    let dir = a.write("nonation");
+    let head = "\"Name\";\"Nation\";\"Team\";\"Job\";\"Age\";\"Wage\";\"Def. Tact.\";\"Def. Tech.\";\"Att. Tact.\";\"Att. Tech.\";\"Poss. Tact.\";\"Poss. Tech.\";\"Strength\";\"Quickness\";\"GK Shot Stopping\";\"GK Handling\";\"Best Rating\"\n";
+    let row = |name: &str, nation: &str| format!("\"{name}\";\"{nation}\";\"-\";\"Scout\";\"44\";\"0\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"57% (3.0)\";\"61% (M)\"\n");
+    std::fs::write(dir.join("Staff list.csv"), format!("{head}{}{}", row("Known, Kim", "France"), row("Lost, Lee", "Vietnam du Sud"))).unwrap();
+    let (w, _) = load_dir_with(&dir, DataPack::builtin(), Some(7), LoadOptions::default()).unwrap();
+    assert!(w.people.iter().all(|p| p.nation.is_some()), "every person has a nation");
+    let names: Vec<String> = w.staff.iter().map(|s| w.people[s.person].display_name(&w.names).to_string()).collect();
+    assert!(names.contains(&"Kim Known".to_string()) && !names.contains(&"Lee Lost".to_string()));
+    assert!(w.origins.unresolved.iter().any(|u| u.id == "row2" && u.reason.contains("nationality")));
+}
+
+#[test]
 fn a_league_no_file_describes_drops_its_clubs_and_says_so() {
     let mut a = Archive::standard();
     a.clubs.push(q(&["301", "club-301", "Lost Club", "ZZ9", "", "22", "25", "5", "20", "3", "G", "20000", "", "", "2025", "", "u"]));

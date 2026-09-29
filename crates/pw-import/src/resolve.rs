@@ -184,6 +184,11 @@ pub fn resolve(set: &mut ImportSet) {
             p.loan_from = None;
             p.loan_end = None;
         }
+        if p.nationality.is_none() && p.club.is_none() {
+            set.issues.add(Severity::Error, "no_nationality", "players", p.row, &p.key, "a free agent with no readable nationality has none to inherit");
+            drop_row(set, p.source, &p.key, "player", "no readable nationality and no club to take one from");
+            continue;
+        }
         if p.positions.is_empty() && p.position_group.is_none() {
             set.issues.add(Severity::Warning, "no_position", "players", p.row, &p.key, "no position; an assumed midfielder role is used");
         }
@@ -351,6 +356,17 @@ pub fn link_staff(set: &mut ImportSet, club_keys: &FxHashSet<String>) {
         s.club_link = Some(Link::Stated);
         set.staff.push(s);
     }
+    // A person needs a nation. Staff at a club inherit the club's (labelled as inferred); an unemployed person whose nation the
+    // source does not give in a form we can read is reported and left out, not given someone else's.
+    let staff = std::mem::take(&mut set.staff);
+    for s in staff {
+        if s.club.is_none() && s.nationality.is_none() {
+            set.issues.add(Severity::Warning, "no_nationality", "staff", s.row, &s.key, "no readable nationality and no club to take one from; left out");
+            drop_row(set, s.source, &s.key, "staff", "no readable nationality and no club to take one from");
+        } else {
+            set.staff.push(s);
+        }
+    }
     // One manager per club: a second staff-list manager linked to the same club is demoted to unresolved.
     let mut seen: FxHashSet<String> = FxHashSet::default();
     let staff = std::mem::take(&mut set.staff);
@@ -486,6 +502,7 @@ mod tests {
         s.last = name.1.into();
         s.role = Some(role);
         s.team_text = team.map(Into::into);
+        s.nationality = Some("AAA".into());
         s
     }
 
