@@ -42,6 +42,27 @@ pub fn yearly(w: &mut World) {
             rec.by_line[l] += 1.0;
         }
     }
+    review_spending(w);
+}
+
+/// Clubs learn whether the academy pays: a board that sees graduates reaching the first team spends more,
+/// one that sees few spends less. It reads the record, never a target.
+pub fn review_spending(w: &mut World) {
+    let mut clubs: Vec<ClubId> = w.ext.academy.pathway.keys().copied().collect();
+    clubs.sort();
+    for club in clubs {
+        let rec = w.ext.academy.pathway[&club];
+        if rec.total < 6.0 {
+            continue;
+        }
+        let Some(g) = w.governance.get_mut(&club) else { continue };
+        let rate = rec.made / rec.total;
+        if rate > 0.30 {
+            g.policy.youth_investment = (g.policy.youth_investment + 3).min(80);
+        } else if rate < 0.12 {
+            g.policy.youth_investment = g.policy.youth_investment.saturating_sub(4).max(5);
+        }
+    }
 }
 
 /// What a family makes of one academy, for one child: standing, record of producing first-team players,

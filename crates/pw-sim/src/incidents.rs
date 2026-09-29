@@ -432,6 +432,13 @@ pub fn daily(w: &mut World) {
         if weather {
             p = (p * 25.0).min(0.35);
         }
+        // Where the monsoon breaks over a home ground, matches are called off more often.
+        if w.ext.ecosystem.is_configured() {
+            let r = w.ext.ecosystem.region_of_club(club);
+            if r.is_some() && w.ext.ecosystem.regions[r].climate == pw_world::ecosystem::Climate::HeavyMonsoon && (6..=9).contains(&today.month()) {
+                p = (p * 6.0).min(0.3);
+            }
+        }
         if pitch {
             p = (p * 40.0).min(0.6);
         }

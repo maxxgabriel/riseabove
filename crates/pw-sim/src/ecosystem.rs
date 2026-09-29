@@ -649,3 +649,41 @@ pub fn begin(w: &mut World, start: Start, region: RegionId, salt: u64) -> Option
     crate::life::sync(w);
     Some(p)
 }
+
+// ---------------------------------------------------------------------------
+// Distance and climate
+// ---------------------------------------------------------------------------
+
+/// Coarse adaptation cost of playing in another climate (0 = none).
+fn climate_gap(a: pw_world::ecosystem::Climate, b: pw_world::ecosystem::Climate) -> f32 {
+    use pw_world::ecosystem::Climate::*;
+    if a == b {
+        return 0.0;
+    }
+    match (a, b) {
+        (HighAltitude, _) | (_, HighAltitude) => 1.0,
+        (HumidCoastal, HotDry) | (HotDry, HumidCoastal) => 0.5,
+        (HeavyMonsoon, HotDry) | (HotDry, HeavyMonsoon) => 0.6,
+        (NorthEast, HotDry) | (HotDry, NorthEast) => 0.6,
+        _ => 0.35,
+    }
+}
+
+/// A long journey and a different climate tire the visitors before the match starts (recorded in
+/// their condition, so fatigue, recovery and injury risk all follow from it).
+pub fn travel_effects(w: &World, home: pw_core::TeamId, away: pw_core::TeamId, input: &mut pw_match::MatchInput) {
+    let eco = &w.ext.ecosystem;
+    if !eco.is_configured() {
+        return;
+    }
+    let (hr, ar) = (eco.region_of_club(w.teams[home].club), eco.region_of_club(w.teams[away].club));
+    if hr.is_none() || ar.is_none() {
+        return;
+    }
+    let travel = eco.travel_burden(hr, ar);
+    let climate = climate_gap(eco.regions[hr].climate, eco.regions[ar].climate);
+    let hit = 9.0 * travel + 3.0 * climate;
+    for p in input.away.xi.iter_mut().chain(input.away.bench.iter_mut()) {
+        p.condition = (p.condition - hit).max(30.0);
+    }
+}

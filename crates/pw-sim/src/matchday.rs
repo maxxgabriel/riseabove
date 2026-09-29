@@ -91,6 +91,8 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         lod,
         tuning: &w.data.tuning.matches,
     };
+    let mut input = input;
+    crate::ecosystem::travel_effects(w, fx.home, fx.away, &mut input);
     let result = Box::new(simulate(&input));
     Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result }
 }
