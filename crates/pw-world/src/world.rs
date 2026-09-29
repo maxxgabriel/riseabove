@@ -157,6 +157,8 @@ pub struct World {
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
+    /// Teams whose matches are recorded at full detail on request (recording only, never outcomes).
+    pub followed: Vec<TeamId>,
     /// Whether the one-time preparation (`pw_sim::prepare`) has run. A saved
     /// world is prepared; preparing it again would advance it.
     pub prepared: bool,
@@ -225,6 +227,7 @@ impl World {
             backfill: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
+            followed: Vec::new(),
             prepared: false,
             playthrough: 0,
         }
@@ -376,7 +379,13 @@ impl World {
     /// Teams whose matches are recorded at full detail: those with an
     /// externally-minded player, plus their opponents' view comes for free.
     pub fn watched_teams(&self) -> FxHashSet<TeamId> {
-        self.people.iter().filter(|p| p.mind == MindKind::External && p.player.is_some()).map(|p| self.players.hot[p.player].team).filter(|t| t.is_some()).collect()
+        self.people
+            .iter()
+            .filter(|p| p.mind == MindKind::External && p.player.is_some())
+            .map(|p| self.players.hot[p.player].team)
+            .filter(|t| t.is_some())
+            .chain(self.followed.iter().copied())
+            .collect()
     }
 
     pub fn external_players(&self) -> impl Iterator<Item = PlayerId> + '_ {

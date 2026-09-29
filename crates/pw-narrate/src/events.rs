@@ -10,6 +10,18 @@ use crate::pick;
 /// One line describing an event, told from `viewer`'s side where it matters
 /// ("you" for the viewer). `None` when the event has nothing to say to text.
 pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
+    raw_line(w, e, viewer).map(agree)
+}
+
+/// Verb agreement when the viewer is the subject: "You was injured" reads as "You were injured".
+fn agree(s: String) -> String {
+    if !s.contains("You ") {
+        return s;
+    }
+    s.replace("You is ", "You are ").replace("You was ", "You were ").replace("You has ", "You have ")
+}
+
+fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
     let me = |p: PersonId| if p == viewer { "You".to_string() } else { person(w, p) };
     let me_lc = |p: PersonId| if p == viewer { "you".to_string() } else { person(w, p) };
     let pl = |p: pw_core::PlayerId| {

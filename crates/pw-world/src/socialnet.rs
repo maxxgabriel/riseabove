@@ -442,6 +442,13 @@ pub struct SocialNet {
     /// What each account has learned about each outlet (account, outlet
     /// id) → −60..60: trust is contextual, earned story by story.
     pub outlet_trust: FxHashMap<(AccountId, u32), i8>,
+    /// Ids of each account's posts in the window, oldest first. A lookup aid built from `posts`, so
+    /// it is not saved; `sync_index` brings it up to date.
+    #[serde(skip)]
+    pub by_author: FxHashMap<AccountId, Vec<u32>>,
+    /// Every post with an id below this is in `by_author`.
+    #[serde(skip)]
+    pub indexed_to: u32,
 }
 
 impl SocialNet {
@@ -471,8 +478,40 @@ impl SocialNet {
         self.by_person.get(&p).copied()
     }
 
-    pub fn posts_by(&self, a: AccountId) -> impl DoubleEndedIterator<Item = &Post> + '_ {
-        self.posts.iter().filter(move |p| p.author == a)
+    /// Adds any posts the author index has not seen yet (all of them, after a load).
+    pub fn sync_index(&mut self) {
+        let next = self.next_post_id();
+        if self.indexed_to == next {
+            return;
+        }
+        let from = self.indexed_to.max(self.post_base);
+        for p in &self.posts[(from - self.post_base) as usize..] {
+            self.by_author.entry(p.author).or_default().push(p.id);
+        }
+        self.indexed_to = next;
+    }
+
+    /// Drops index entries for posts that have left the window.
+    pub fn trim_index(&mut self) {
+        let base = self.post_base;
+        for ids in self.by_author.values_mut() {
+            let old = ids.partition_point(|&i| i < base);
+            if old > 0 {
+                ids.drain(..old);
+            }
+        }
+    }
+
+    /// One account's posts still in the window, oldest first.
+    pub fn posts_by(&self, a: AccountId) -> Box<dyn DoubleEndedIterator<Item = &Post> + '_> {
+        if self.indexed_to != self.next_post_id() {
+            // The index is behind (just loaded, say): the slow way is still right.
+            return Box::new(self.posts.iter().filter(move |p| p.author == a));
+        }
+        let base = self.post_base;
+        let ids: &[u32] = self.by_author.get(&a).map_or(&[], Vec::as_slice);
+        let first = ids.partition_point(|&i| i < base);
+        Box::new(ids[first..].iter().map(move |&i| &self.posts[(i - base) as usize]))
     }
 
     pub fn is_muted(&self, viewer: AccountId, author: AccountId) -> bool {

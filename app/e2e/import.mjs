@@ -1,0 +1,24 @@
+import { launch, api, waitIdle, shot, BASE } from "./lib.mjs";
+const DIR = process.argv[2];
+await api("world.close");
+const { browser, page, errors } = await launch();
+await page.goto(`${BASE}/`);
+await page.waitForTimeout(600);
+await page.getByRole("tab", { name: "Import a dataset" }).click().catch(async () => { await page.getByText("Import a dataset").click(); });
+await page.getByPlaceholder("/path/to/dataset").fill("/tmp/emptyimp");
+await page.getByRole("button", { name: "Check folder" }).click();
+await page.waitForTimeout(500);
+await shot(page, "import-bad");
+await page.getByPlaceholder("/path/to/dataset").fill(DIR);
+await page.getByRole("button", { name: "Check folder" }).click();
+await page.waitForTimeout(600);
+await shot(page, "import-ok");
+await page.getByRole("button", { name: "Import", exact: true }).click();
+await page.waitForTimeout(300);
+await shot(page, "import-working");
+for (let i = 0; i < 100; i++) { await page.waitForTimeout(300); if (page.url().includes("overview")) break; }
+await page.waitForTimeout(700);
+await shot(page, "import-done");
+console.log(page.url());
+console.log(errors.length ? errors : "no console errors");
+await browser.close();

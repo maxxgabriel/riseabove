@@ -255,7 +255,7 @@ See `docs/MEDIA_SOCIAL_HISTORY_SYSTEMS.md`. Eleven commits (3d013fa…adf8e58):
 
 ### 3.9c Integration — ✅ compiled, formatted, lint-clean, tested (2026-09-29)
 
-The whole workspace (except the unstarted `app/`) compiles with zero warnings and is clippy-clean.
+The whole workspace (the Rust crates; the desktop client is §3.10) compiles with zero warnings and is clippy-clean.
 Formatting is enforced by a width-200 `rustfmt.toml`.
 
 - **Tests:** 39 pass. There are 7 ignored runs: the long runs of 5, 20 and 50 seasons and a causal-chain
@@ -265,7 +265,28 @@ Formatting is enforced by a width-200 `rustfmt.toml`.
 
 See `docs/INTEGRATION_REPORT.md`.
 
-### 3.10 `app/` — desktop client — ⬜ not started (the terminal client comes first)
+### 3.10 `app/`, `crates/pw-view`, `crates/pw-serve` — desktop client — 🟡 built and tested in a browser, on synthetic worlds only
+
+Tauri 2 shell and a React/TypeScript interface over one JSON endpoint (`pw_view::Api::call`); `pw-serve` exposes the same
+endpoint over local HTTP for development and browser tests. See `app/README.md`.
+
+- **Observer**: overview, people, clubs (squad, staff, fixtures, finances, board, fans, dressing room, history), competitions,
+  nations, fixtures and results, match pages, transfers, events, history and awards, and 23 lists for the wider world
+  (posts, chants, rivalries, incidents, press conferences, referees, records, halls of fame, tactical schools, lower football).
+- **Inhabiting a player**: today, messages (world inbox with replies that become intents, every decision kind), calendar,
+  football, contract, life, people and promises, press and fans, social feed, journal, agent, and the actions the world accepts.
+- **Not there**: anything the simulation has no screen-level route for. Managers, chairmen and heads of youth cannot be
+  inhabited, so incident handling, press answers and appeals are decided by AI; Help → "What the simulation covers" says so.
+- **Checked**: `cargo test --workspace --exclude ofm-engine`, `npm test`, and two browser scripts (`app/e2e/smoke.mjs` visits
+  every route on a fresh world; `app/e2e/inbox.mjs` answers a decision and replies to a conversation). Imported (non-synthetic)
+  worlds have only been tried on tiny hand-made data.
+- **Unrevealed results**: while one of your matches is unrevealed, its scoreline is kept out of tables, match pages, Today,
+  match-report stories, the events feed and posts about it (`crates/pw-view/tests/api.rs`, `a_concealed_result_is_not_given_away_…`).
+  It covers what the API renders; anything a future system prints about a match must go through `Ctx::headline` / `Ctx::post_text`.
+- **Speed** (release, small synthetic world, four simulated years, measured after merging the simulation branch of 2026-09-28):
+  about 23 s in all; an ordinary day costs 17 ms in year 1 and 34 ms in year 4, a Monday about 220 ms and the worst day about
+  340 ms, from the weekly systems (morale, media, agents, youth, manager summons). `cargo run --release -p pw-view --example
+  profile -- small 4 [--hash]` prints this and a fingerprint of the world, which is how speedups here were shown to change nothing.
 
 ---
 
@@ -419,6 +440,9 @@ crates/pw-import           FM-export CSV import + synthetic test fixture
 crates/pw-cli              headless runner (`pathway-sim`)
 crates/pw-career           protagonist layer (being rebuilt at full depth)
 vendor/ofm-engine          OpenFootManager match engine (GPL-3, unmodified source)
-app/                       Tauri + React client (not started)
+crates/pw-narrate          every sentence shown to a person, rendered from state
+crates/pw-view             the API the client calls: pages, table queries, actions, inbox
+crates/pw-serve            that API over local HTTP (development and browser tests)
+app/                       Tauri 2 + React client (see app/README.md)
 plan/, foundation/         original design documents
 ```
