@@ -52,6 +52,7 @@ pub mod scouting;
 pub mod social;
 pub mod socialnet;
 pub mod staff;
+pub mod training;
 pub mod stats;
 pub mod world;
 pub mod youth;

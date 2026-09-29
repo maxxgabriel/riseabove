@@ -77,6 +77,7 @@ pub mod social;
 pub mod socialnet;
 pub mod staffing;
 pub mod talk;
+pub mod training;
 pub mod youth;
 
 use pw_core::{DecisionId, Weekday};
@@ -222,6 +223,7 @@ impl Sim {
         // Anyone created by the monthly systems (cohorts, staff) has a life.
         life::sync(w);
         if monday {
+            prof!("training::weekly", training::weekly(w));
             prof!("board::weekly", board::weekly(w));
         }
 

@@ -727,7 +727,13 @@ fn pick(w: &World, n: NationId, level: Level, importance: f32) -> Option<Picked>
 }
 
 fn sheet(w: &World, pk: &Picked) -> TeamSheet {
-    let ps = |p: PlayerId| -> PlayerSheet { crate::selection::player_sheet(w, p) };
+    // A camp of a few days: nothing like a club's drilling.
+    let drill = 0.85 + 0.15 * crate::training::CAMP_DRILL;
+    let ps = |p: PlayerId| -> PlayerSheet {
+        let mut s = crate::selection::player_sheet(w, p);
+        s.sharpness *= drill;
+        s
+    };
     TeamSheet {
         team: TeamId::NONE,
         tactics: pk.tactics,

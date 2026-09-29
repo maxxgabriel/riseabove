@@ -21,6 +21,8 @@ pub enum RulingKind {
     SackManager,
     /// The board weighed acting and kept him.
     BackManager,
+    /// A manager's call on the training load against what his staff advised.
+    LoadPlan,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
