@@ -26,8 +26,10 @@ fn a_postponed_first_leg_delays_the_decision_and_the_round() {
     let postponed_to = start.add_days(25);
     w.fixtures.reschedule(first_leg, postponed_to);
 
-    // Play through both scheduled leg dates.
-    sim.run(3 + 7 + 1);
+    // Play through both scheduled leg dates (a team never plays twice in a day, so a leg may sit a few days after the round's nominal date).
+    let last_scheduled = sim.world.fixtures.iter().filter(|(id, f)| f.comp == cup && *id != first_leg).map(|(_, f)| f.date).max().unwrap();
+    assert!(last_scheduled < postponed_to, "the postponed leg is still after every other leg");
+    sim.run(sim.world.date.days_until(last_scheduled) as u32 + 1);
     let ties = &sim.world.comps[cup].state.ties;
     assert_eq!(ties.len(), 2, "the round has not moved on");
     assert!(ties[0].is_decided(), "the tie whose two legs were played is decided");
@@ -38,7 +40,7 @@ fn a_postponed_first_leg_delays_the_decision_and_the_round() {
     assert!(second.score.is_some_and(|s| s.pens.is_none()), "no shootout for a match that was not the last leg");
 
     // Now the postponed leg is played: it decides the tie and the final follows without any panic.
-    sim.run(25);
+    sim.run(sim.world.date.days_until(postponed_to) as u32 + 2);
     let w = &sim.world;
     let t1 = &w.comps[cup].state.ties;
     assert!(t1.iter().all(|t| t.is_decided()) || w.comps[cup].state.ties.len() == 1, "the round completed");
