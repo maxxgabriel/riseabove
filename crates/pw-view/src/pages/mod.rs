@@ -8,6 +8,7 @@ pub mod matchp;
 pub mod me;
 pub mod newsroom;
 pub mod person;
+pub mod route;
 pub mod social;
 pub mod threads;
 pub mod world;

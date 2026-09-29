@@ -27,8 +27,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use advance::{AdvanceReq, Job};
-use ctx::Ctx;
 pub use contract::{ErrorBody, ErrorKind};
+use ctx::Ctx;
 pub use model::{ApiError, ApiResult};
 use session::Session;
 
@@ -127,7 +127,9 @@ impl Api {
     /// Dispatch one call. Errors carry a code and a message fit to show to the person.
     pub fn call(&self, method: &str, args: Value) -> ApiResult<Value> {
         match method {
-            "app.info" => Ok(serde_json::to_value(contract::AppInfo { name: "Rise Above".into(), version: env!("CARGO_PKG_VERSION").into(), data_dir: self.sh.dir.display().to_string() }).unwrap_or(Value::Null)),
+            "app.info" => {
+                Ok(serde_json::to_value(contract::AppInfo { name: "Rise Above".into(), version: env!("CARGO_PKG_VERSION").into(), data_dir: self.sh.dir.display().to_string() }).unwrap_or(Value::Null))
+            }
             "world.status" => Ok(self.status()),
             "world.new" => self.world_new(args),
             "world.inspect_import" => self.inspect_import(args),
@@ -188,6 +190,11 @@ impl Api {
             "person.create" => {
                 self.not_while_advancing()?;
                 self.with_mut(|s| pages::person::create(s, &args))
+            }
+            "route.options" => self.with(pages::route::options),
+            "route.begin" => {
+                self.not_while_advancing()?;
+                self.with_mut(|s| pages::route::begin_route(s, &args))
             }
 
             "table.query" => {
@@ -303,6 +310,7 @@ impl Api {
         let req: NewWorld = serde_json::from_value(args).map_err(|e| ApiError::Bad(e.to_string()))?;
         let label = match req.kind.as_str() {
             "synthetic" => "Building a test world",
+            "india" => "Building the India pathway world",
             "import" => "Importing the dataset",
             _ => return Err(ApiError::Bad("Unknown world source.".into())),
         };
@@ -441,6 +449,18 @@ fn build_world(req: &NewWorld) -> Result<(pw_world::World, String, Value), Strin
             let seed = req.seed.unwrap_or(42);
             let w = synthetic::build(DataPack::builtin(), seed, scale);
             let name = req.name.clone().unwrap_or_else(|| format!("Test world {}", req.scale.as_deref().unwrap_or("small")));
+            let report = json!({"players": w.players.len(), "clubs": w.clubs.len()});
+            Ok((w, name, report))
+        }
+        "india" => {
+            use pw_import::india::{self, IndiaScale};
+            let scale = match req.scale.as_deref() {
+                Some("full") => IndiaScale::FULL,
+                Some("regional") => IndiaScale { states: 12, state_league: 8, squad: 20 },
+                _ => IndiaScale::TINY,
+            };
+            let w = india::build(DataPack::builtin(), req.seed.unwrap_or(42), scale);
+            let name = req.name.clone().unwrap_or_else(|| "India pathway".into());
             let report = json!({"players": w.players.len(), "clubs": w.clubs.len()});
             Ok((w, name, report))
         }

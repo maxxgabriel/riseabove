@@ -503,6 +503,8 @@ pub fn manifest() -> Vec<MethodSpec> {
         c("persp.observe"),
         c("persp.inhabit"),
         c("person.create"),
+        q("route.options"),
+        c("route.begin"),
         typed(q("table.query"), Some("TableReq"), "TableResp"),
         q("search"),
         q("overview"),
