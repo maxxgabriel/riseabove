@@ -8,7 +8,7 @@
 //! fees, wage splits, options, obligations and recall clauses. Pre-contracts
 //! and trials sit alongside.
 
-use pw_core::{ClubId, Date, EventId, Money, PlayerId, PosGroup, TalkId};
+use pw_core::{ClubId, Date, EventId, Money, PlayerId, Pos, PosGroup, TalkId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
@@ -57,11 +57,21 @@ pub struct GroupPlan {
     pub prospects: u8,
     /// Starters aged 31+.
     pub ageing_starters: u8,
+    /// The likely starters' expected ability one and two seasons from now (development, ageing).
+    pub quality_next: f32,
+    pub quality_in_two: f32,
+    /// Players expected to leave within a year: expiring contracts the club is unlikely to renew.
+    pub expected_departures: u8,
+    /// The thinnest spot in the group for the manager's system, and how many able players cover it beyond those needed.
+    pub weak_pos: Pos,
+    pub weak_cover: i8,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct PlanNeed {
     pub group: PosGroup,
+    /// The position the manager's system is short at within the group.
+    pub pos: Pos,
     pub role: NeedRole,
     pub min_ability: u8,
     pub max_age: u8,
@@ -86,6 +96,8 @@ pub struct SquadPlan {
     pub promote: SmallVec<[PlayerId; 4]>,
     /// Homegrown players short of the quota.
     pub homegrown_gap: u8,
+    /// Wage budget left after the current wage bill (negative: over budget).
+    pub wage_headroom: Money,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -7,8 +7,40 @@ use pw_core::{Attr, Hidden, Pos, StaffAttr};
 use pw_world::{PlayerStatus, StaffRole, TeamKind, World};
 use rayon::prelude::*;
 
-/// Coaching multiplier per curve group (0.6–1.4) and facility multiplier, per team.
-fn team_environment(w: &World) -> Vec<([f32; N_CURVE_GROUPS], f32)> {
+/// What surrounds a player's growth beyond training and minutes, each read from state the world already keeps.
+#[derive(Clone, Copy, Debug)]
+pub struct Circumstances {
+    /// Ambition (1–20): how hard the player drives themselves.
+    pub ambition: f32,
+    /// Confidence (0–100).
+    pub confidence: f32,
+    /// Has an experienced teammate taken them under their wing.
+    pub mentored: bool,
+    /// Current ability minus the usual standard at their club: positive means playing below their level.
+    pub level_gap: f32,
+    /// Months since arriving at a club in another country, if that is where they are now.
+    pub months_abroad: Option<f32>,
+    /// Adaptability (1–20).
+    pub adaptability: f32,
+}
+
+/// A multiplier near 1.0 on weekly growth. Drive and belief speed it up, a mentor helps a little, playing well below one's
+/// level teaches less than being stretched, and the first months in a new country slow everything until the player settles
+/// (faster for the adaptable).
+pub fn circumstance_factor(c: &Circumstances) -> f32 {
+    let drive = 0.90 + 0.01 * c.ambition;
+    let belief = 0.92 + 0.0016 * c.confidence;
+    let mentor = if c.mentored { 1.06 } else { 1.0 };
+    let challenge = 1.0 - 0.25 * (c.level_gap / 40.0).clamp(-1.0, 1.0);
+    let settle = c.months_abroad.map_or(1.0, |m| {
+        let months_to_settle = 9.0 - 0.25 * c.adaptability;
+        0.80 + 0.20 * (m / months_to_settle.max(2.0)).min(1.0)
+    });
+    (drive * belief * mentor * challenge * settle).clamp(0.6, 1.4)
+}
+
+/// Coaching multiplier per curve group (0.6–1.4), facility multiplier, the club's usual standard, and its nation, per team.
+fn team_environment(w: &World) -> Vec<([f32; N_CURVE_GROUPS], f32, f32, pw_core::NationId)> {
     w.teams
         .iter()
         .map(|t| {
@@ -30,7 +62,7 @@ fn team_environment(w: &World) -> Vec<([f32; N_CURVE_GROUPS], f32)> {
             }
             let coach = best.map(|v| 0.6 + 0.8 * (v / 20.0));
             let fac = if youth { club.facilities.youth } else { club.facilities.training };
-            (coach, 0.85 + 0.3 * f32::from(fac) / 20.0)
+            (coach, 0.85 + 0.3 * f32::from(fac) / 20.0, crate::market::ideal_ca(club.reputation), club.nation)
         })
         .collect()
 }
@@ -44,6 +76,7 @@ pub fn weekly(w: &mut World) {
     let weights = &w.data.weights;
     let hot: &[pw_world::PlayerHot] = &w.players.hot;
     let people = &w.people;
+    let mentored = &w.growth.records;
     let team_kind: Vec<TeamKind> = w.teams.iter().map(|t| t.kind).collect();
 
     w.players.cold.par_iter_mut().enumerate().for_each(|(i, c)| {
@@ -54,7 +87,17 @@ pub fn weekly(w: &mut World) {
         let person = &people[c.person];
         let age = person.dob.age_years(today) + f32::from(c.bio_offset) / 10.0;
         let mut rng = Rng::keyed(&[seed, stream::DEVELOPMENT, i as u64, today.0 as u64]);
-        let (coach, facility) = if h.team.is_some() { env[h.team.0 as usize] } else { ([0.75; N_CURVE_GROUPS], 0.85) };
+        let (coach, facility, level, club_nation) = if h.team.is_some() { env[h.team.0 as usize] } else { ([0.75; N_CURVE_GROUPS], 0.85, f32::from(c.ca), pw_core::NationId::NONE) };
+        let abroad = club_nation.is_some() && person.nation != club_nation && person.nation2 != club_nation;
+        let circumstances = circumstance_factor(&Circumstances {
+            ambition: person.hidden.f(Hidden::Ambition),
+            confidence: f32::from(h.confidence),
+            mentored: mentored.get(&pw_core::PlayerId(i as u32)).is_some_and(|r| r.mentor.is_some()),
+            // A youth side does not play to the first team's standard, so it has no gap to speak of.
+            level_gap: if h.team.is_some() && !team_kind[h.team.0 as usize].is_youth() { f32::from(c.ca) - level } else { 0.0 },
+            months_abroad: abroad.then(|| c.joined.days_until(today).max(0) as f32 / 30.0),
+            adaptability: person.hidden.f(Hidden::Adaptability),
+        });
         let level_fit = if h.team.is_some() && team_kind[h.team.0 as usize].is_youth() { 0.7 } else { 1.0 };
         let minutes = f32::from(h.minutes_4w);
         let rating = h.form_avg().unwrap_or(6.5);
@@ -82,7 +125,7 @@ pub fn weekly(w: &mut World) {
             let emph = 0.5 + 0.5 * row[a.idx()] / max_w;
             let plan = c.plan;
             let own = plan.intensity.growth_mult() * plan.focus.weight(a) * (1.0 + 0.04 * f32::from(plan.extra));
-            let grow = dev.growth * room * age_f.max(0.0) * (train_f * own + match_f) * wellness * prof * emph * injured;
+            let grow = dev.growth * room * age_f.max(0.0) * (train_f * own + match_f) * wellness * prof * emph * injured * circumstances;
             let physical = matches!(g, CurveGroup::Speed | CurveGroup::Power);
             let decline = age_f.min(0.0) * dev.decline * if physical { (1.3 - nf / 20.0 * 0.6) * (1.0 + wear / 200.0) } else { 1.0 };
             let noise = rng.normal() * dev.noise * if age_f > 0.0 { 1.0 } else { 0.5 };
@@ -124,4 +167,50 @@ pub fn weekly(w: &mut World) {
             c.pa = (f32::from(c.pa) + delta).round().clamp(f32::from(c.ca), 200.0) as u8;
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn base() -> Circumstances {
+        Circumstances { ambition: 10.0, confidence: 50.0, mentored: false, level_gap: 0.0, months_abroad: None, adaptability: 10.0 }
+    }
+
+    #[test]
+    fn an_ordinary_player_in_ordinary_circumstances_grows_at_about_the_normal_rate() {
+        let f = circumstance_factor(&base());
+        assert!((0.95..=1.10).contains(&f), "{f}");
+    }
+
+    #[test]
+    fn drive_belief_and_a_mentor_speed_growth_and_their_absence_slows_it() {
+        let f = |c: Circumstances| circumstance_factor(&c);
+        assert!(f(Circumstances { ambition: 19.0, ..base() }) > f(base()) && f(base()) > f(Circumstances { ambition: 3.0, ..base() }));
+        assert!(f(Circumstances { confidence: 90.0, ..base() }) > f(Circumstances { confidence: 15.0, ..base() }));
+        assert!(f(Circumstances { mentored: true, ..base() }) > f(base()));
+    }
+
+    #[test]
+    fn being_stretched_teaches_more_than_coasting_below_your_level() {
+        let stretched = circumstance_factor(&Circumstances { level_gap: -30.0, ..base() });
+        let coasting = circumstance_factor(&Circumstances { level_gap: 30.0, ..base() });
+        assert!(stretched > circumstance_factor(&base()) && circumstance_factor(&base()) > coasting);
+    }
+
+    #[test]
+    fn a_new_country_slows_growth_until_the_player_settles_and_the_adaptable_settle_sooner() {
+        let at = |months: f32, adaptability: f32| circumstance_factor(&Circumstances { months_abroad: Some(months), adaptability, ..base() });
+        assert!(at(0.0, 10.0) < at(3.0, 10.0) && at(3.0, 10.0) < at(12.0, 10.0));
+        assert!((at(24.0, 10.0) - circumstance_factor(&base())).abs() < 1e-6, "settled: no effect");
+        assert!(at(3.0, 19.0) > at(3.0, 2.0));
+    }
+
+    #[test]
+    fn the_factor_never_leaves_its_bounds() {
+        let extreme = Circumstances { ambition: 20.0, confidence: 100.0, mentored: true, level_gap: -200.0, months_abroad: None, adaptability: 20.0 };
+        assert!(circumstance_factor(&extreme) <= 1.4);
+        let worst = Circumstances { ambition: 1.0, confidence: 0.0, mentored: false, level_gap: 200.0, months_abroad: Some(0.0), adaptability: 1.0 };
+        assert!(circumstance_factor(&worst) >= 0.6);
+    }
 }
