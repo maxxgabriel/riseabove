@@ -207,9 +207,10 @@ impl Game {
         ok
     }
 
-    pub fn step(&mut self) {
-        self.sim.step();
+    pub fn step(&mut self) -> pw_sim::DayStats {
+        let stats = self.sim.step();
         self.check_goals();
+        stats
     }
 
     pub fn advance(&mut self, mode: Advance) -> AdvanceReport {

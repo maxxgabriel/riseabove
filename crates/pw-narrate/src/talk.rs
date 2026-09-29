@@ -14,7 +14,7 @@ fn say(w: &World, p: PersonId, viewer: PersonId) -> String {
     if p == viewer { "You".into() } else { person(w, p) }
 }
 
-fn opener(topic: Topic, tone: Tone, key: u64) -> &'static str {
+pub fn opener(topic: Topic, tone: Tone, key: u64) -> &'static str {
     match (topic, tone) {
         (Topic::PlayingTime, Tone::Aggressive) => pick(key, &["I should be playing. This is a joke.", "I'm not sitting on the bench any more."]),
         (Topic::PlayingTime, Tone::Humble) => pick(key, &["I'd like to understand what I need to do to get more minutes.", "I just want a chance to show what I can do."]),
@@ -39,7 +39,7 @@ fn opener(topic: Topic, tone: Tone, key: u64) -> &'static str {
     }
 }
 
-fn reply(tone: Tone, key: u64) -> &'static str {
+pub fn reply(tone: Tone, key: u64) -> &'static str {
     match tone {
         Tone::Calm => pick(key, &["I hear you.", "Let's talk about it properly.", "Okay. Go on."]),
         Tone::Assertive => pick(key, &["I'll be straight with you.", "Here's how I see it."]),
@@ -49,7 +49,7 @@ fn reply(tone: Tone, key: u64) -> &'static str {
     }
 }
 
-fn outcome(w: &World, o: &Outcome, m: &Meeting, viewer: PersonId) -> String {
+pub fn outcome(w: &World, o: &Outcome, m: &Meeting, viewer: PersonId) -> String {
     match *o {
         Outcome::PromiseMade { promise } => {
             let p = w.social.promise(promise);

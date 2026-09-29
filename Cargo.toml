@@ -10,9 +10,13 @@ members = [
     "crates/pw-narrate",
     "crates/pw-career",
     "crates/pw-cli",
-    "app/src-tauri",
+    "crates/pw-view",
+    "crates/pw-serve",
     "vendor/ofm-engine",
 ]
+
+# The desktop shell needs the platform webview toolchain, so it builds on its own (see app/src-tauri).
+exclude = ["app/src-tauri"]
 
 [workspace.package]
 version = "0.1.0"
@@ -27,6 +31,7 @@ pw-match = { path = "crates/pw-match" }
 pw-sim = { path = "crates/pw-sim" }
 pw-import = { path = "crates/pw-import" }
 pw-career = { path = "crates/pw-career" }
+pw-view = { path = "crates/pw-view" }
 pw-narrate = { path = "crates/pw-narrate" }
 ofm-engine = { path = "vendor/ofm-engine" }
 rand = "0.10"

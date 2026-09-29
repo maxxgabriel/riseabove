@@ -43,10 +43,10 @@ pub fn title(w: &World, d: &Decision) -> String {
             .controversies
             .get(*controversy as usize)
             .map_or_else(String::new, |c| format!("Appeal {}'s red card against {}?", crate::fmt::player(w, c.player), crate::history::holder(w, pw_world::records::Holder::Club(c.benefited)))),
-        DecisionKind::Incident { incident } => format!("You need to deal with this: {}", crate::incidents::summary(w, *incident, false, false)),
+        DecisionKind::Incident { incident } => format!("You need to deal with this: {}", crate::incidents::summary_for(w, *incident, false, false, d.person)),
         DecisionKind::IncidentAsk { incident, ask } => match ask {
-            pw_world::incident::Ask::RequestLeave => format!("Ask for time away? ({})", crate::incidents::summary(w, *incident, false, false)),
-            pw_world::incident::Ask::Apologise => format!("You are expected to apologise: {}", crate::incidents::summary(w, *incident, false, false)),
+            pw_world::incident::Ask::RequestLeave => format!("Ask for time away? ({})", crate::incidents::summary_for(w, *incident, false, false, d.person)),
+            pw_world::incident::Ask::Apologise => format!("You are expected to apologise: {}", crate::incidents::summary_for(w, *incident, false, false, d.person)),
         },
         DecisionKind::Treatment { surgery_days, rehab_days } => {
             format!("Surgery (about {}, lower risk of recurrence) or rehabilitation (about {}, setbacks likelier)?", crate::fmt::duration_days(*surgery_days), crate::fmt::duration_days(*rehab_days))

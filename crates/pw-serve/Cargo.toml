@@ -1,0 +1,14 @@
+[package]
+name = "pw-serve"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "pathway-serve"
+path = "src/main.rs"
+
+[dependencies]
+pw-view.workspace = true
+serde_json.workspace = true
+tiny_http = "0.12"

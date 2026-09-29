@@ -1,0 +1,51 @@
+/* ---- table view (toolbar + grid) ---- */
+.tv { display: flex; flex-direction: column; min-height: 0; min-width: 0; gap: 0.5rem; }
+.tv-fill { flex: 1; }
+.tv-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; min-height: 1.9rem; }
+.tv-filters { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
+.tv-tools { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+.tv-count { color: var(--text-2); font-size: 0.92rem; white-space: nowrap; }
+.tv-note { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.7rem; border-radius: var(--radius); background: var(--info-soft); color: var(--text-2); font-size: 0.92rem; }
+.tv-note svg { color: var(--info); flex: none; }
+
+.dt { position: relative; display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.dt-fill { flex: 1; }
+.dt-scroll { flex: 1; min-height: 0; overflow: auto; position: relative; outline: none; }
+.dt-scroll:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); border-radius: 0; }
+.dt-inner { position: relative; min-width: 100%; }
+.dt-head { position: sticky; top: 0; z-index: 4; display: grid; background: var(--raised); border-bottom: 1px solid var(--line-2); }
+.dt-h { position: relative; display: flex; align-items: center; min-width: 0; padding: 0 0.6rem; color: var(--text-2); font-size: 0.86rem; font-weight: 580; background: var(--raised); }
+.dt-h.align-right { justify-content: flex-end; }
+.dt-h.align-center { justify-content: center; }
+.dt-h.sticky, .dt-c.sticky { position: sticky; z-index: 3; }
+.dt-h.sorted { color: var(--text); }
+.dt-sort { display: inline-flex; align-items: center; gap: 0.25rem; max-width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; }
+.dt-sort:hover { color: var(--text); }
+.dt-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dt-resize { position: absolute; top: 0; right: -3px; width: 7px; height: 100%; cursor: col-resize; z-index: 5; }
+.dt-resize::after { content: ""; position: absolute; top: 25%; bottom: 25%; left: 3px; width: 1px; background: var(--line-2); }
+.dt-resize:hover::after { background: var(--accent); width: 2px; left: 2px; }
+.dt-row { position: absolute; left: 0; top: 0; display: grid; align-items: center; background: var(--panel); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); --row-bg: var(--panel); }
+.dt-row.odd { background: color-mix(in srgb, var(--raised) 55%, var(--panel)); --row-bg: color-mix(in srgb, var(--raised) 55%, var(--panel)); }
+.dt-row.openable { cursor: pointer; }
+.dt-row:hover { background: var(--hover); --row-bg: var(--hover); }
+.dt-row.selected { background: var(--sel); --row-bg: var(--sel); }
+.dt-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; z-index: 6; background: transparent; }
+.dt-row.active::before { background: var(--accent); }
+.dt-row.rowtone-pos::before { background: var(--pos); }
+.dt-row.rowtone-neg::before { background: var(--neg); }
+.dt-row.rowtone-warn::before { background: var(--warn); }
+.dt-row.rowtone-info::before { background: var(--you); }
+.dt-row.rowtone-muted { color: var(--text-3); }
+.dt-c { min-width: 0; padding: 0 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: inherit; height: 100%; display: flex; align-items: center; }
+.dt-c > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dt-c.align-right { justify-content: flex-end; }
+.dt-c.align-center { justify-content: center; }
+.dt-c.sticky { font-weight: 540; }
+.dt-check { justify-content: center; padding: 0; }
+.dt-empty { display: grid; place-items: center; height: 100%; min-height: 8rem; color: var(--text-2); padding: 2rem; text-align: center; }
+.dt-error { padding: 0.75rem 1rem; color: var(--neg); }
+.inbar { display: inline-block; width: 2.4rem; height: 4px; margin-right: 0.45rem; border-radius: 2px; background: var(--line-2); flex: none; }
+.inbar span { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+.range { color: var(--text-2); }
+.dt-empty.compact { min-height: 0; height: auto; padding: 1rem; color: var(--text-3); }
