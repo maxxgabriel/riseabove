@@ -86,3 +86,18 @@ Wave 0 adds one field to `Players` (`origin`). Pre-change saves do not load; thi
 | `pw-core/src/rng.rs` (`stream::ALL`) | no | new stream ids |
 | `data/engine/tuning.toml`, `pw-data/src/tuning.rs` | no | D1 field |
 | `PROGRESS.md`, `pw-cli/tests/world.rs`, `pw-view/**`, `app/**` | no | avoided |
+
+## Injury calibration (D1 follow-up)
+
+Targets are the professional figures: about 8 time-loss match injuries per 1000 match-hours, about 3.7 per
+1000 training hours, roughly 1–2 injuries per player-season overall, with 8–12% of a squad unavailable at any time.
+
+Measured before: match injuries 15 per 1000 h at ordinary risk (about 1.8x high); training injuries about 0.08 per
+player-season (about 15x low), so almost all injuries came from matches.
+
+Changed: `injury_exposure` 0.0009 → 0.0005, `ofm_noncontact_injury` 0.006 → 0.0032, OFM `CONTACT_RISK_REF` 1.5 → 2.4,
+`training_session` 0.00045 → 0.005 (Rust default and `data/engine/tuning.toml`).
+
+Measured after: 9.6 per 1000 match-hours at risk 1.0; 1.14 injuries per player-season (1.3 for regulars), mean 31 days,
+about 10% of players out at any time. Reports: `pw-match/tests/injury.rs::rate` and `pw-cli/tests/returns.rs::season_rate`
+(both `#[ignore]`, run with `--ignored --nocapture`).

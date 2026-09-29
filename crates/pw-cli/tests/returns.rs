@@ -98,3 +98,41 @@ fn a_low_stakes_match_or_a_far_off_case_is_not_rushed() {
     pw_sim::returns::consider_rush(&mut d.w, d.club, d.m, d.p, 0.2);
     assert!(d.w.ext.medical.rushed.is_empty());
 }
+
+/// Injuries per player-season in a running world (all causes, illness excluded), for calibration.
+/// Professional football: about 2 time-loss injuries per player-season.
+/// `cargo test --release -p pw-cli --test returns season_rate -- --ignored --nocapture`
+#[test]
+#[ignore = "report"]
+fn season_rate() {
+    use pw_data::DataPack;
+    use pw_import::synthetic::{self, Scale};
+    use pw_sim::Sim;
+    // TRAINING=0 isolates match injuries; otherwise everything in the tuning file.
+    let mut pack = DataPack::builtin();
+    if std::env::var("NO_TRAINING_INJURY").is_ok() {
+        pack.tuning.health.training_session = 0.0;
+    }
+    if let Ok(v) = std::env::var("TRAINING_SESSION") {
+        pack.tuning.health.training_session = v.parse().unwrap();
+    }
+    let mut s = Sim::new(synthetic::build(pack, 51, Scale::TINY));
+    s.run(365);
+    let start = s.world.date;
+    s.run(365);
+    let w = &s.world;
+    let cases: Vec<_> = w.medical.open.values().chain(w.medical.history.values().flatten()).filter(|c| c.region != u8::MAX && start.days_until(c.date) >= 0).collect();
+    let squad = w.players.hot.iter_enumerated().filter(|(_, h)| h.club.is_some() && h.status != pw_world::PlayerStatus::Retired).count();
+    let per: f64 = cases.len() as f64 / squad.max(1) as f64;
+    let mean_days = cases.iter().map(|c| f64::from(c.actual.max(c.estimate))).sum::<f64>() / cases.len().max(1) as f64;
+    // Regulars only (900+ minutes in the year): what the professional figures describe.
+    let mut minutes: std::collections::HashMap<pw_core::PlayerId, u32> = Default::default();
+    for l in w.stats.iter().chain(w.history.lines.iter().filter(|l| l.season >= start.year())) {
+        *minutes.entry(l.player).or_default() += l.minutes;
+    }
+    let regulars: Vec<_> = minutes.iter().filter(|x| *x.1 >= 900).map(|x| *x.0).collect();
+    let reg_cases = cases.iter().filter(|c| regulars.contains(&c.player)).count();
+    let match_hours: f64 = minutes.values().map(|&m| f64::from(m)).sum::<f64>() / 60.0;
+    eprintln!("regulars {}: {:.2} injuries per regular-season; {:.1} injuries per 1000 match-hours overall ({:.0} match-hours)", regulars.len(), reg_cases as f64 / regulars.len().max(1) as f64, cases.len() as f64 / match_hours * 1000.0, match_hours);
+    eprintln!("season rate: {} injuries over {squad} club players = {per:.2} per player-season, mean {mean_days:.0} days", cases.len());
+}

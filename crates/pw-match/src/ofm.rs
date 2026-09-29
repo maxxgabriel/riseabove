@@ -19,7 +19,7 @@ use crate::pitch::{N_ZONES, zone_id};
 use crate::types::*;
 
 /// `injury_risk` at which OFM's contact injuries stand unthinned (a typical, slightly worn player).
-const CONTACT_RISK_REF: f32 = 1.5;
+const CONTACT_RISK_REF: f32 = 2.4;
 
 pub fn simulate(inp: &MatchInput) -> MatchResult {
     let home = team(&inp.home, inp);

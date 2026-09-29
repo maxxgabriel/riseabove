@@ -91,3 +91,36 @@ fn injuries_rise_with_risk_and_tiredness() {
     assert!(robust < typical && typical < fragile, "robust {robust} typical {typical} fragile {fragile}");
     assert!(nc > 0, "no non-contact injuries at high risk");
 }
+
+/// Injuries per 1000 player-hours of match play at ordinary risk and condition, for calibration.
+/// Professional football runs at roughly 8 per 1000 match-hours (time-loss injuries, all causes).
+/// `cargo test --release -p pw-match --test injury rate -- --ignored --nocapture`
+#[test]
+#[ignore = "report"]
+fn rate() {
+    let pack = DataPack::builtin();
+    let t = &pack.tuning.matches;
+    for (risk, cond) in [(1.0f32, 90.0f32), (1.5, 85.0)] {
+        for lod in [Lod::Full, Lod::Standard] {
+            let (mut inj, mut nc, mut minutes) = (0usize, 0usize, 0.0f64);
+            for s in 0..1500u64 {
+                let mut inp = input(s, 12.0, 12.0, &pack, t, false);
+                inp.lod = lod;
+                for side in [&mut inp.home, &mut inp.away] {
+                    for p in side.xi.iter_mut().chain(side.bench.iter_mut()) {
+                        p.injury_risk = risk;
+                        p.condition = cond;
+                    }
+                }
+                let r = simulate(&inp);
+                for l in &r.lines {
+                    minutes += f64::from(l.minutes);
+                    inj += usize::from(l.injured);
+                    nc += usize::from(l.injury_noncontact);
+                }
+            }
+            let hours = minutes / 60.0;
+            eprintln!("risk {risk} cond {cond} {lod:?}: {:.1} injuries per 1000 h ({:.0}% non-contact), {inj} in {hours:.0} h", inj as f64 / hours * 1000.0, 100.0 * nc as f64 / inj.max(1) as f64);
+        }
+    }
+}
