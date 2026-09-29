@@ -38,3 +38,21 @@ fn india_runs_a_season_and_stays_consistent() {
     // Some children have been noticed and some have a route recorded.
     assert!(w.ext.ecosystem.stages.values().any(|v| v.len() >= 2), "no one has a route of more than one step");
 }
+
+#[test]
+fn state_football_feeds_the_pyramid_and_the_state_championship_is_played() {
+    let mut s = world(7);
+    s.run(760);
+    let w = &s.world;
+    // The championship ran and left a winner and records behind.
+    assert!(!w.ext.ecosystem.tournament_titles.is_empty(), "no state championship was completed");
+    assert!(w.records.records.keys().any(|k| matches!(k.scope, pw_world::records::Scope::Event(..))), "no championship records");
+    // Some player has a state-team step on their route, chosen from what selectors saw.
+    assert!(w.ext.ecosystem.stages.values().any(|v| v.iter().any(|s| s.kind == pw_world::ecosystem::StageKind::StateTeam)));
+    // The fourth tier and the state leagues have exchanged clubs.
+    let india = w.nations.iter_enumerated().find(|(_, n)| n.code == "IND").map(|x| x.0).unwrap();
+    let fourth = *w.nations[india].leagues.last().unwrap();
+    assert!(!w.comps[fourth].state.last_moves.is_empty() || w.history.tables.iter().any(|t| t.comp == fourth), "the pyramid's fourth tier did not complete a season");
+    let b = pw_sim::invariants::check(w);
+    assert!(b.is_empty(), "{b:#?}");
+}

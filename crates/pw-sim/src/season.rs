@@ -157,6 +157,7 @@ pub fn finish_nation(w: &mut World, n: NationId) {
             w.comps[lower].state.last_moves.push((t, -1));
         }
     }
+    crate::statepath::season_end(w, n, year);
     crate::reputation::season_end(w, n);
 }
 

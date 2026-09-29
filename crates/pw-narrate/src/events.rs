@@ -172,6 +172,7 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
                 pw_world::ruling::RulingKind::BackManager => format!("{} decided to stand by the manager for now.", club(w, r.club)),
                 pw_world::ruling::RulingKind::AcademyChoice => format!("{} chose {} over other academies.", pl(r.subject), club(w, r.club)),
                 pw_world::ruling::RulingKind::ReleaseForCountry => format!("{} and the national side disagreed over whether {} should report.", club(w, r.club), pl(r.subject)),
+                pw_world::ruling::RulingKind::ClubLicence => format!("{} were not granted the licence to take their place in the league.", club(w, r.club)),
                 pw_world::ruling::RulingKind::LoadPlan => format!("The manager at {} kept the training load up against advice.", club(w, r.club)),
             },
             None => "A decision was made.".to_string(),

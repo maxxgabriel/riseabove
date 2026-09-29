@@ -321,7 +321,7 @@ fn eligible(w: &World, e: Entrant, p: PlayerId) -> bool {
     let h = &w.players.hot[p];
     // Registration: a student plays for the university, not also for a local side the same week.
     let student = matches!(e, Entrant::Local(_)) && w.minor.member_of.get(&p).is_some_and(|&i| w.minor.institutions[i as usize].kind == InstKind::University);
-    h.status != PlayerStatus::Retired && !student && (matches!(e, Entrant::Inst(_)) || h.club.is_none())
+    h.status != PlayerStatus::Retired && !student && !w.intl.duty.contains(&p) && (matches!(e, Entrant::Inst(_)) || h.club.is_none())
 }
 
 fn coaching(w: &World, e: Entrant) -> f32 {

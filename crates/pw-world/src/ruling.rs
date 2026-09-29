@@ -27,6 +27,8 @@ pub enum RulingKind {
     AcademyChoice,
     /// Whether a club releases a player for international duty, or pulls him out.
     ReleaseForCountry,
+    /// A club won promotion on the pitch and was refused (or granted) the licence to take its place.
+    ClubLicence,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]

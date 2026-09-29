@@ -210,6 +210,27 @@ pub struct InstProfile {
     pub real: bool,
 }
 
+/// The state-team championship in progress (the Santosh Trophy's shape: state and
+/// association sides, groups, then knockouts).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Tournament {
+    pub year: i32,
+    pub nation: NationId,
+    /// (state, squad).
+    pub squads: Vec<(RegionId, Vec<PlayerId>)>,
+    /// Groups of indices into `squads`.
+    pub groups: Vec<Vec<usize>>,
+    /// Scheduled matches not yet played: (date, home, away, knockout).
+    pub fixtures: Vec<(Date, usize, usize, bool)>,
+    /// Points and goals per squad in the groups: (played, points, for, against).
+    pub table: Vec<(u8, u8, u16, u16)>,
+    /// Squads still alive in the knockout.
+    pub alive: Vec<usize>,
+    pub stage: u8,
+    pub winner: RegionId,
+    pub scorers: FxHashMap<PlayerId, u16>,
+}
+
 /// Owned by `pw_sim::ecosystem`. Empty unless a nation has been given an ecosystem.
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Ecosystem {
@@ -229,6 +250,10 @@ pub struct Ecosystem {
     pub stages: FxHashMap<PlayerId, SmallVec<[Stage; 8]>>,
     pub local_region: FxHashMap<LocalClubId, RegionId>,
     pub club_region: FxHashMap<ClubId, RegionId>,
+    /// The state-team championship of the current year, while it runs.
+    pub tournament: Option<Tournament>,
+    /// Winners of the state championship so far: (state, year).
+    pub tournament_titles: Vec<(RegionId, i32)>,
     /// Year the last yearly update ran.
     pub last_year: i32,
 }

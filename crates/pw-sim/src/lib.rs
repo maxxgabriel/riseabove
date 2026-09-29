@@ -79,6 +79,7 @@ pub mod selection;
 pub mod social;
 pub mod socialnet;
 pub mod stafflife;
+pub mod statepath;
 pub mod staffing;
 pub mod talk;
 pub mod training;
@@ -272,6 +273,7 @@ impl Sim {
         prof!("officials::daily", officials::daily(w));
         // National teams: windows, qualifiers, tournaments.
         prof!("intl::daily", intl::daily(w));
+        prof!("statepath::daily", statepath::daily(w));
 
         // 8b. What people heard today, and whom they told; what got printed.
         prof!("grapevine::daily", grapevine::daily(w));
