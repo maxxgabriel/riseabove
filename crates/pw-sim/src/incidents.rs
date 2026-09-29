@@ -714,7 +714,8 @@ fn consequences(w: &mut World, id: u32) {
         IncidentKind::Postponement => {
             if inc.fixture.is_some() {
                 let d = w.fixtures.get(inc.fixture).date;
-                let to = d.add_days(7).next_weekday(pw_core::Weekday::Wed);
+                let (h, a) = (w.fixtures.get(inc.fixture).home, w.fixtures.get(inc.fixture).away);
+                let to = w.fixtures.first_free_date(h, a, d.add_days(7).next_weekday(pw_core::Weekday::Wed), 21, Some(inc.fixture));
                 w.fixtures.reschedule(inc.fixture, to);
             }
         }

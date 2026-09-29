@@ -294,6 +294,17 @@ impl Fixtures {
         self.list.is_empty()
     }
 
+    /// Whether `team` has no fixture (other than `ignore`) on `date`.
+    pub fn team_free(&self, team: TeamId, date: Date, ignore: Option<FixtureId>) -> bool {
+        self.of_team_between(team, date, date).all(|id| Some(id) == ignore)
+    }
+
+    /// The first date on or after `from` when neither team is playing
+    /// (a team never plays twice in a day). Gives up after `limit` days and returns `from`.
+    pub fn first_free_date(&self, a: TeamId, b: TeamId, from: Date, limit: i32, ignore: Option<FixtureId>) -> Date {
+        (0..=limit).map(|d| from.add_days(d)).find(|&d| self.team_free(a, d, ignore) && self.team_free(b, d, ignore)).unwrap_or(from)
+    }
+
     /// Move a fixture to another date (postponement / rescheduling).
     pub fn reschedule(&mut self, id: FixtureId, date: Date) {
         let old = self.list[id].date;
