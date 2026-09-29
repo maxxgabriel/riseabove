@@ -99,10 +99,34 @@ fn balance(a: &Args) {
 {problems} problem(s) across {} seed(s)", a.seeds.len());
 }
 
+/// `check FILE`: what a save is (schema, build, seed, migration history) and whether the world in it is structurally sound.
+fn check(a: &Args) {
+    let file = PathBuf::from(a.positional.clone().unwrap_or_else(|| die("check needs a save file")));
+    let info = pw_sim::save::inspect(&file).unwrap_or_else(|e| die(&e.to_string()));
+    println!("{}: schema {} ({:?}), {:.1} MB", file.display(), info.schema, info.compat, info.bytes as f64 / 1e6);
+    match &info.meta {
+        Some(m) => println!("  created with schema {}, last written by build {}, seed {:?}, import provenance {:?}, {} migration(s) {:?}", m.created_schema.map_or("unknown".into(), |s| s.to_string()), m.build, m.world_seed, m.import_provenance, m.migrations.len(), m.migrations),
+        None => println!("  no metadata (written before saves carried it)"),
+    }
+    let w: World = pw_sim::save::load(&file).unwrap_or_else(|e| die(&e.to_string()));
+    let problems = pw_sim::validate::problems(&w);
+    println!("  {} people, {} players, {} clubs; {} structural problem(s)", w.people.len(), w.players.hot.len(), w.clubs.len(), problems.len());
+    for p in &problems {
+        println!("    {p}");
+    }
+    if !problems.is_empty() {
+        std::process::exit(1);
+    }
+}
+
 fn main() {
     let a = parse();
     if a.cmd == "balance" {
         balance(&a);
+        return;
+    }
+    if a.cmd == "check" {
+        check(&a);
         return;
     }
     let world = match a.cmd.as_str() {
@@ -128,7 +152,7 @@ fn main() {
         }
         "run" | "report" => {
             let file = PathBuf::from(a.positional.clone().unwrap_or_else(|| die("needs a save file")));
-            pw_sim::save::load::<World>(&file).unwrap_or_else(|e| die(&e.to_string()))
+            pw_sim::save::load_world(&file).unwrap_or_else(|e| die(&e.to_string()))
         }
         _ => {
             println!("usage: pathway-sim synth [tiny|small|huge] [--days N] [--save F] | import DIR [--days N] [--save F] | run F --days N | report F");
@@ -143,7 +167,7 @@ fn main() {
     report(&sim.world);
     if let Some(path) = &a.save {
         let t = Instant::now();
-        pw_sim::save::save(&sim.world, path).unwrap_or_else(|e| die(&e.to_string()));
+        pw_sim::save::save_with(&sim.world, path, &pw_sim::save::Info::of_world(&sim.world)).unwrap_or_else(|e| die(&e.to_string()));
         let size = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
         println!("saved {} ({:.1} MB) in {:.2?}", path.display(), size as f64 / 1e6, t.elapsed());
     }

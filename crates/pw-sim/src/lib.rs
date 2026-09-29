@@ -75,6 +75,7 @@ pub mod metrics;
 pub mod socialnet;
 pub mod staffing;
 pub mod talk;
+pub mod validate;
 pub mod youth;
 
 use pw_core::{DecisionId, Weekday};

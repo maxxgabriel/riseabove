@@ -69,6 +69,8 @@ pub struct Snapshot {
     pub accounts: usize,
     pub events: usize,
     pub save_bytes: u64,
+    /// Structural problems found by `validate::problems` (dangling ids, double registrations, insane finances).
+    pub structural_problems: usize,
 }
 
 fn pct<T: Copy + PartialOrd>(v: &mut [T], q: f32) -> Option<T> {
@@ -193,6 +195,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.accounts = w.net.accounts.len();
     s.events = w.events.len();
     s.save_bytes = bincode::serialized_size(w).unwrap_or(0);
+    s.structural_problems = crate::validate::problems(w).len();
     s
 }
 
@@ -245,6 +248,9 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     let mut flag = |level: Level, name: &'static str, msg: String| out.push(Finding { level, series: name, message: msg });
     let last = run.last().expect("non-empty");
 
+    if let Some(bad) = run.iter().find(|s| s.structural_problems > 0) {
+        flag(Level::Problem, "structure", format!("{} structural problem(s) in year {}: run `pathway-sim check` on a save to list them", bad.structural_problems, bad.year));
+    }
     // Money: drift, debt, wages against revenue, fee inflation.
     if let Some(g) = yearly_growth(&series(&|s| s.balance_median)) {
         if g > 30.0 {
@@ -270,7 +276,13 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
             flag(Level::Warn, "wages", format!("median player wage inflates {g:.0}% a year"));
         }
     }
-    if let Some(g) = yearly_growth(&series(&|s| s.fee_median)) {
+    // Fees: a median of a handful of deals says nothing, so only years with a real market count.
+    let market_years: Vec<&Snapshot> = run[warm..].iter().filter(|s| s.transfers >= 15 && s.fee_median > 0.0).collect();
+    let fee_growth = match (market_years.first(), market_years.last()) {
+        (Some(a), Some(b)) if b.year > a.year => Some(((b.fee_median / a.fee_median).powf(1.0 / f64::from(b.year - a.year)) - 1.0) * 100.0),
+        _ => None,
+    };
+    if let Some(g) = fee_growth {
         if g > 15.0 {
             flag(Level::Problem, "fees", format!("median transfer fee inflates {g:.0}% a year"));
         } else if g > 8.0 {
@@ -399,6 +411,7 @@ mod tests {
                 balance_median: 5e6,
                 player_wage_median: 5000.0,
                 fee_median: 1e6,
+                transfers: 40,
                 mean_ca: 100.0,
                 wage_to_revenue_median: 0.6,
                 retirements: 80,
@@ -467,5 +480,27 @@ mod tests {
     fn growth_is_measured_from_the_first_full_year() {
         assert!((yearly_growth(&[1.0, 100.0, 110.0, 121.0]).unwrap() - 10.0).abs() < 1e-6);
         assert!(yearly_growth(&[1.0, 0.0, 5.0, 6.0]).is_none());
+    }
+
+    #[test]
+    fn a_handful_of_deals_cannot_show_fee_inflation_but_a_real_market_can() {
+        let mut thin = flat(8);
+        for (i, s) in thin.iter_mut().enumerate() {
+            s.transfers = 4;
+            s.fee_median *= 3.0f64.powi(i as i32);
+        }
+        assert!(analyse(&thin).iter().all(|f| f.series != "fees"), "medians of four deals are noise");
+        let mut real = flat(8);
+        for (i, s) in real.iter_mut().enumerate() {
+            s.fee_median *= 1.3f64.powi(i as i32);
+        }
+        assert!(analyse(&real).iter().any(|f| f.series == "fees" && f.level == Level::Problem));
+    }
+
+    #[test]
+    fn structural_damage_in_any_year_is_a_problem() {
+        let mut run = flat(6);
+        run[3].structural_problems = 2;
+        assert!(analyse(&run).iter().any(|f| f.series == "structure" && f.level == Level::Problem));
     }
 }

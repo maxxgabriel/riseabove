@@ -11,6 +11,7 @@ pw-world.workspace = true
 pw-match.workspace = true
 serde.workspace = true
 bincode.workspace = true
+serde_json.workspace = true
 lz4_flex.workspace = true
 rayon.workspace = true
 rustc-hash.workspace = true

@@ -130,6 +130,9 @@ pub struct Unresolved {
     pub reason: String,
 }
 
+/// Version of the provenance model an import writes (recorded in save metadata, §10.15).
+pub const PROVENANCE_VERSION: u32 = 1;
+
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct OriginBook {
     pub sources: Vec<Source>,

@@ -309,6 +309,11 @@ impl Social {
         self.rel.get(&(from, to)).copied()
     }
 
+    /// Every stored relationship's endpoints (for validation).
+    pub fn endpoints(&self) -> impl Iterator<Item = (PersonId, PersonId)> + '_ {
+        self.rel.keys().copied()
+    }
+
     /// Everyone who has a relationship toward `to` (a full scan: use rarely,
     /// e.g. when someone starts a new career and needs contacts).
     pub fn toward(&self, to: PersonId) -> impl Iterator<Item = (PersonId, Rel)> + '_ {

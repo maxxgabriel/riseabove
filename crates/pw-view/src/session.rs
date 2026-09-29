@@ -78,11 +78,11 @@ impl Session {
     pub fn save(&self, path: &Path) -> ApiResult<()> {
         // The world is cloned so the worker can keep simulating; saves are rare.
         let file = SaveFile { world: self.game.sim.world.clone(), session: self.game.session.clone(), meta: self.meta.clone() };
-        pw_sim::save::save(&file, path).map_err(|e| ApiError::State(e.to_string()))
+        pw_sim::save::save_with(&file, path, &pw_sim::save::Info::of_world(&file.world)).map_err(|e| ApiError::State(e.to_string()))
     }
 
     pub fn load(path: &Path) -> ApiResult<Self> {
-        match pw_sim::save::load::<SaveFile>(path) {
+        match pw_sim::save::load_checked::<SaveFile>(path, &|f: &SaveFile| pw_sim::validate::check(&f.world)) {
             Ok(f) => Ok(Self::assemble(f.world, f.session, f.meta)),
             // Only a shape mismatch may mean "text client save"; version, damage and io errors are shown as they are.
             Err(first) if !matches!(first, pw_sim::save::SaveError::Encode(_)) => Err(ApiError::State(first.to_string())),

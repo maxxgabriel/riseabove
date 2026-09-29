@@ -111,11 +111,11 @@ impl Game {
             world: &'a World,
             session: &'a Session,
         }
-        pw_sim::save::save(&View { world: &self.sim.world, session: &self.session }, path)
+        pw_sim::save::save_with(&View { world: &self.sim.world, session: &self.session }, path, &pw_sim::save::Info::of_world(&self.sim.world))
     }
 
     pub fn load(path: &std::path::Path) -> Result<Self, pw_sim::save::SaveError> {
-        let f: SaveFile = pw_sim::save::load(path)?;
+        let f: SaveFile = pw_sim::save::load_checked(path, &|f: &SaveFile| pw_sim::validate::check(&f.world))?;
         Ok(Self { sim: Sim::new(f.world), session: f.session })
     }
 
