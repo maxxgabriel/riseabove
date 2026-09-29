@@ -899,6 +899,7 @@ fn apply(w: &mut World, fx: IntlFixture, r: MatchResult) {
             }
         }
     }
+    crate::almanac::national_match(w, nations, &r, hash_key(&[u64::from(fx.home.0), u64::from(fx.away.0), today.0 as u64]));
     record(w, fx, r.home_goals, r.away_goals, r.pens, lines);
 }
 

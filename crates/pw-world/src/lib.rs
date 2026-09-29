@@ -5,6 +5,7 @@ pub mod academy;
 pub mod affairs;
 pub mod agenda;
 pub mod agent;
+pub mod almanac;
 pub mod awards;
 pub mod backfill;
 pub mod beliefs;

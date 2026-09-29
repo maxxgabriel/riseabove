@@ -16,6 +16,7 @@ macro_rules! prof {
 
 pub mod affairs;
 pub mod agents;
+pub mod almanac;
 pub mod audit;
 pub mod awards;
 pub mod backfill;
@@ -81,6 +82,7 @@ pub mod stafflife;
 pub mod staffing;
 pub mod talk;
 pub mod training;
+pub mod university;
 pub mod youth;
 
 use pw_core::{DecisionId, Weekday};
@@ -163,6 +165,7 @@ impl Sim {
         if today.month() == 7 && today.day() == 1 {
             prof!("officials::season_review", officials::season_review(w));
             prof!("ecosystem::yearly", ecosystem::yearly(w));
+            prof!("university::yearly", university::yearly(w));
             prof!("evolution::yearly", evolution::yearly(w));
             prof!("economy::yearly", economy::yearly(w));
             prof!("governance::yearly", governance::yearly(w));

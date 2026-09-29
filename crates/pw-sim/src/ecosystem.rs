@@ -154,11 +154,26 @@ fn associations(w: &mut World, year: i32) {
 fn regions(w: &mut World, year: i32) {
     // Football the region has produced lately: players from here who have become senior regulars.
     let mut produced: pw_world::FxHashMap<RegionId, f32> = Default::default();
+    let mut counts: pw_world::FxHashMap<RegionId, (i64, i64)> = Default::default();
     for (&p, s) in &w.ext.ecosystem.story {
         let c = &w.players.cold[p];
         if c.senior_apps >= 10 && w.players.hot[p].status != PlayerStatus::Retired && w.age(p) <= 27 && !s.home.is_none() {
             *produced.entry(s.home).or_default() += 1.0 + f32::from(c.caps.min(20)) / 10.0;
+            let e = counts.entry(s.home).or_default();
+            e.0 += 1;
+            e.1 += i64::from(c.caps > 0);
+            let st = w.ext.ecosystem.state_of(s.home);
+            if st != s.home && st.is_some() {
+                let e = counts.entry(st).or_default();
+                e.0 += 1;
+                e.1 += i64::from(c.caps > 0);
+            }
         }
+    }
+    let mut marks: Vec<(RegionId, (i64, i64))> = counts.into_iter().collect();
+    marks.sort_by_key(|m| m.0);
+    for (r, (players, caps)) in marks {
+        crate::almanac::region_marks(w, r, players, caps);
     }
     let n = w.ext.ecosystem.regions.len();
     for i in 0..n {

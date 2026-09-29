@@ -198,6 +198,7 @@ fn close_league(w: &mut World, c: CompId, year: i32) {
     }
     crate::culture::season_end(w, c, &rows);
     crate::records::league_season(w, c, &rows);
+    crate::almanac::league_season(w, c, &rows);
     w.history.tables.push(ArchivedTable { comp: c, season: year, rows });
     archive_stats(w, c, year);
     w.comps[c].state.stage = Stage::Finished;
@@ -225,6 +226,7 @@ fn archive_stats(w: &mut World, c: CompId, year: i32) {
         award(AwardKind::YoungPlayerOfSeason, young, young.map_or(0.0, |l| l.avg_rating()));
         crate::honours::season_awards(w, c, year, &lines, games);
     }
+    crate::almanac::season_lines(w, c, &lines, games);
     w.history.archive_lines(lines);
 }
 

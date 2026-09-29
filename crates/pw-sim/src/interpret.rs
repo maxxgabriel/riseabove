@@ -84,6 +84,10 @@ pub fn record(w: &mut World, fx: &Fixture, home: &Selection, away: &Selection, r
     if senior[0] && senior[1] {
         crate::records::result(w, [clubs[0], clubs[1]], [r.home_goals, r.away_goals]);
     }
+    {
+        let squads = [w.teams[home.team].squad.clone(), w.teams[away.team].squad.clone()];
+        crate::almanac::club_match(w, fx.comp, clubs, [&squads[0], &squads[1]], r, fx.uid);
+    }
     // Biggest wins.
     if senior[0] && senior[1] && r.home_goals != r.away_goals {
         let (win, lose) = if r.home_goals > r.away_goals { (clubs[0], clubs[1]) } else { (clubs[1], clubs[0]) };
