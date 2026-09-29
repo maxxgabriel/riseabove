@@ -413,6 +413,8 @@ fn trials(w: &mut World) {
         v.sort();
         v
     };
+    // Every academy says whom it wants first; a child wanted by several then chooses.
+    let mut wanted: Vec<(PlayerId, ClubId)> = Vec::new();
     for club in clubs {
         if !(club.0 + (today.0 / 7) as u32).is_multiple_of(2) {
             continue;
@@ -427,8 +429,23 @@ fn trials(w: &mut World) {
             .collect();
         cands.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
         for (p, _) in cands.into_iter().take(2) {
-            invite(w, club, p);
+            wanted.push((p, club));
         }
+    }
+    wanted.sort();
+    let mut k = 0;
+    while k < wanted.len() {
+        let p = wanted[k].0;
+        let group: Vec<ClubId> = wanted[k..].iter().take_while(|x| x.0 == p).map(|x| x.1).collect();
+        k += group.len();
+        let chosen = crate::pathway::choose(w, p, &group);
+        for &c in &group {
+            if c != chosen {
+                // The others do not ask again for a while.
+                w.market.cooldown.insert((c, p), today.add_days(150));
+            }
+        }
+        invite(w, chosen, p);
     }
 }
 

@@ -23,6 +23,10 @@ pub enum RulingKind {
     BackManager,
     /// A manager's call on the training load against what his staff advised.
     LoadPlan,
+    /// Where a child, with their family, chose to go when more than one academy wanted them.
+    AcademyChoice,
+    /// Whether a club releases a player for international duty, or pulls him out.
+    ReleaseForCountry,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -33,6 +37,10 @@ pub enum StanceRole {
     Owner,
     Chair,
     Director,
+    /// An academy's head of youth making the case for his club.
+    Recruiter,
+    /// A national team manager.
+    Federation,
     /// The person the ruling is about, when it is about a person rather than a player.
     Subject,
 }

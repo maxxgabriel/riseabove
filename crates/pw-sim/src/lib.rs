@@ -58,6 +58,7 @@ pub mod morale;
 pub mod negotiation;
 pub mod newsroom;
 pub mod officials;
+pub mod pathway;
 pub mod people;
 pub mod perception;
 pub mod planning;
@@ -75,6 +76,7 @@ pub mod season;
 pub mod selection;
 pub mod social;
 pub mod socialnet;
+pub mod stafflife;
 pub mod staffing;
 pub mod talk;
 pub mod training;
@@ -187,6 +189,7 @@ impl Sim {
             prof!("life::monthly", life::monthly(w));
             prof!("mind::monthly", mind::monthly(w));
             prof!("social::monthly", social::monthly(w));
+            prof!("stafflife::monthly", stafflife::monthly(w));
             prof!("staffing::monthly", staffing::monthly(w));
             prof!("governance::monthly", governance::monthly(w));
             prof!("managers::monthly", managers::monthly(w));
@@ -215,6 +218,7 @@ impl Sim {
                 prof!("youth::reviews", youth::reviews(w));
             }
             if today.month() == 9 {
+                prof!("pathway::yearly", pathway::yearly(w));
                 prof!("youth::yearly", youth::yearly(w));
             }
             vacancies(w);

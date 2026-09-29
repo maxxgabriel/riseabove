@@ -87,7 +87,14 @@ pub fn decide(w: &mut World, club: ClubId) -> Option<EventId> {
         .filter(|(id, s)| s.role == StaffRole::Manager && !s.employed() && !s.retired && !w.intl.managers.contains(id) && i32::from(s.reputation) <= rep + 1500)
         .map(|(_, s)| s.role_rating(StaffRole::Manager))
         .fold(0.0f32, f32::max);
-    let gain = if alternative > 0.0 { (alternative - incumbent) / 20.0 + 0.35 } else { 0.0 };
+    // Someone can always be found: the assistant, or a newly qualified coach whose level follows the club's standing.
+    let assistant = w.clubs[club].staff.iter().filter(|&&s| w.staff[s].role == StaffRole::Assistant).map(|&s| w.staff[s].role_rating(StaffRole::Manager)).fold(0.0f32, f32::max);
+    let floor = 6.0 + f32::from(w.clubs[club].reputation) / 1000.0;
+    let alternative = alternative.max(assistant).max(floor);
+    let gain = (alternative - incumbent) / 20.0 + 0.35;
+    // Patience is spent: each time the board has already stood by him this year, backing thins.
+    let backed_before = w.ext.decisions.rulings.iter().rev().take_while(|r| r.date.days_until(today) <= 365).filter(|r| r.club == club && r.kind == RulingKind::BackManager).count() as f32;
+    let support = support - 12.0 * backed_before;
     let act = support < -20.0 && gain > cost_weight;
 
     let mp = w.staff[m].person;

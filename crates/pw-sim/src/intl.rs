@@ -403,21 +403,59 @@ fn call_up(w: &mut World, key: (NationId, Level), pool: &[PlayerId], size: usize
 
     // Club pressure: a player carrying a knock whose club manager objects may
     // be withdrawn; the national manager remembers who pulled him out.
-    let mut withdrawn: Vec<PlayerId> = Vec::new();
+    //
+    // How hard he can push depends on what the window is worth: a friendly is the club's
+    // to refuse, a qualifier is the country's unless the body is plainly not ready.
+    let stakes = w.intl.fixtures.iter().filter(|f| f.level == level && (f.home == n || f.away == n)).map(|f| importance(f.kind)).fold(0.3f32, f32::max);
+    let competitive = stakes >= 0.7;
+    let mut withdrawn: Vec<(PlayerId, pw_core::EventId)> = Vec::new();
     for &p in &squad {
         let h = &w.players.hot[p];
         if h.injury_days == 0 && h.condition >= 80 {
             continue;
         }
-        let club_mgr = w.manager_of_player(p);
+        let left = f32::from(h.injury_days) / f32::from(h.injury_total.max(1));
+        // The club's objection: an unfinished injury above all, then plain tiredness.
+        let objection = (left * 1.2 + (1.0 - f32::from(h.condition) / 100.0) * 0.8).clamp(0.0, 1.0);
+        let Some(club_mgr) = w.manager_of_player(p) else { continue };
         let roll = (hash_key(&[w.seed, stream::INTL, u64::from(p.0), today.0 as u64]) % 1000) as f32 / 1000.0;
-        if club_mgr.is_some() && roll < 0.5 {
-            withdrawn.push(p);
+        let out = left > 0.5 || roll < objection * if competitive { 0.35 } else { 0.9 };
+        // Only what mattered is remembered: a competitive window, or someone medically out.
+        let mut ev = pw_core::EventId::NONE;
+        if competitive || left > 0.5 {
+            let club_person = club_mgr;
+            let mut stances: smallvec::SmallVec<[pw_world::ruling::Stance; 4]> = smallvec::SmallVec::new();
+            stances.push(pw_world::ruling::Stance { who: mp, role: pw_world::ruling::StanceRole::Federation, believed_pct: 255, backing: (stakes * 100.0) as i8, authority: competitive && left <= 0.5 });
+            stances.push(pw_world::ruling::Stance { who: club_person, role: pw_world::ruling::StanceRole::Manager, believed_pct: (left * 100.0) as u8, backing: -(objection * 100.0) as i8, authority: !competitive || left > 0.5 });
+            let id = w.ext.decisions.add(pw_world::ruling::Ruling {
+                id: 0,
+                kind: pw_world::ruling::RulingKind::ReleaseForCountry,
+                date: today,
+                club: w.players.hot[p].club,
+                subject: p,
+                about: pw_core::PersonId::NONE,
+                liability: 0,
+                decider: if out { club_person } else { mp },
+                stances,
+                true_pct: (left * 100.0) as u8,
+                want: (stakes * 100.0) as u8,
+                outcome: pw_world::ruling::Outcome::Enacted,
+                resolved: Some(today),
+                event: pw_core::EventId::NONE,
+            });
+            ev = w.events.push(today, Visibility::Club(w.players.hot[p].club), EventKind::Ruling { ruling: id });
+            if let Some(r) = w.ext.decisions.get_mut(id) {
+                r.event = ev;
+            }
+        }
+        if out {
+            withdrawn.push((p, ev));
         }
     }
-    for &p in &withdrawn {
+    for &(p, cause) in &withdrawn {
         squad.retain(|&x| x != p);
-        let ev = w.events.push(today, Visibility::Public, EventKind::WithdrewFromSquad { player: p, nation: n });
+        let causes: pw_world::Causes = if cause.is_some() { pw_world::causes![pw_world::Cause::Event(cause)] } else { pw_world::Causes::new() };
+        let ev = w.events.push_caused(today, Visibility::Public, EventKind::WithdrewFromSquad { player: p, nation: n }, causes);
         if let Some(cm) = w.manager_of_player(p) {
             let compat = consider::compat(w, mp, cm);
             w.social.remember(mp, cm, MemoryKind::LetDown, today, ev, false, 0.4, compat);

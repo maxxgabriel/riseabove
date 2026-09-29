@@ -1,6 +1,7 @@
 //! Complete world state. Plain data plus small, local invariants; the systems
 //! that evolve it live in `pw-sim`.
 
+pub mod academy;
 pub mod affairs;
 pub mod agenda;
 pub mod agent;
@@ -52,6 +53,7 @@ pub mod scouting;
 pub mod social;
 pub mod socialnet;
 pub mod staff;
+pub mod stafflife;
 pub mod training;
 pub mod stats;
 pub mod world;

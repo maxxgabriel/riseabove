@@ -11,12 +11,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::medical::MedicalExt;
 use crate::ruling::DecisionMemory;
+use crate::academy::AcademyExt;
+use crate::stafflife::StaffExt;
 use crate::training::TrainingExt;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
     /// Owner: `pw_sim::returns` and `pw_sim::medical`.
     pub medical: MedicalExt,
+    /// Owner: `pw_sim::pathway`.
+    pub academy: AcademyExt,
+    /// Owner: `pw_sim::stafflife`.
+    pub staff: StaffExt,
     /// Owner: `pw_sim::training`.
     pub training: TrainingExt,
     /// Owner: whichever system makes a material decision; read by any system that asks "why".

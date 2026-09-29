@@ -115,6 +115,7 @@ pub fn appoint(w: &mut World, club: ClubId) {
     let best = crate::managers::try_poach(w, club, best_fit).or(best);
     let chosen = best.or_else(|| {
         let a = w.clubs[club].staff.iter().copied().find(|&s| w.staff[s].role == StaffRole::Assistant)?;
+        crate::stafflife::on_promoted(w, a, club);
         w.staff[a].role = StaffRole::Manager;
         w.clubs[club].staff.retain(|&s| s != a);
         Some(a)
