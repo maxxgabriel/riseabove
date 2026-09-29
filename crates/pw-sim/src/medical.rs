@@ -136,7 +136,9 @@ pub fn answer_treatment(w: &mut World, p: PlayerId, surgery: bool) {
 /// close and leave their mark.
 pub fn weekly(w: &mut World) {
     let today = w.date;
-    let open: Vec<PlayerId> = w.medical.open.keys().copied().collect();
+    // Fixed order: setbacks emit events and a map's iteration order changes when a world is reloaded.
+    let mut open: Vec<PlayerId> = w.medical.open.keys().copied().collect();
+    open.sort();
     for p in open {
         let h = &w.players.hot[p];
         if h.injury == 0 || h.status == PlayerStatus::Retired {
