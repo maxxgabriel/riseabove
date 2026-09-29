@@ -1278,7 +1278,7 @@ pub fn source_reliability(w: &World, j: PersonId, s: PersonId) -> Option<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pw_core::{Date, EventId, OutletId, StoryId};
+    use pw_core::{Date, EventId, OutletId};
     use pw_data::DataPack;
     use pw_world::media::{Angle, Focus, Journalist, JournalistProfile, SourceTie, Story, StoryKind, StoryThread, Verification};
     use pw_world::Cause;

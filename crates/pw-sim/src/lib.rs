@@ -71,6 +71,7 @@ pub mod scouting;
 pub mod season;
 pub mod selection;
 pub mod social;
+pub mod metrics;
 pub mod socialnet;
 pub mod staffing;
 pub mod talk;

@@ -2,6 +2,7 @@
 //!
 //! pathway-sim synth [tiny|small|huge|NATIONS] [--days N] [--seed S] [--save FILE]
 //! pathway-sim import DIR [--days N] [--seed S] [--save FILE]
+//! pathway-sim balance <tiny|small|huge|DIR> [--years N] [--seeds 1,2,3]   long-run economy, fame and growth trends
 //!
 //! Without `--seed` every new world gets a fresh random seed (printed, so a
 //! world can be rebuilt exactly). Seeds may be hex, decimal or any word.
@@ -22,25 +23,68 @@ struct Args {
     days: u32,
     seed: Option<u64>,
     save: Option<PathBuf>,
+    years: u32,
+    seeds: Vec<u64>,
 }
 
 fn parse() -> Args {
     let mut it = std::env::args().skip(1);
     let cmd = it.next().unwrap_or_else(|| "help".into());
-    let mut a = Args { cmd, positional: None, days: 0, seed: None, save: None };
+    let mut a = Args { cmd, positional: None, days: 0, seed: None, save: None, years: 5, seeds: vec![1, 2, 3] };
     while let Some(x) = it.next() {
         match x.as_str() {
             "--days" => a.days = it.next().and_then(|v| v.parse().ok()).unwrap_or(0),
             "--seed" => a.seed = it.next().map(|v| pw_core::rng::parse_seed(&v)),
             "--save" => a.save = it.next().map(PathBuf::from),
+            "--years" => a.years = it.next().and_then(|v| v.parse().ok()).unwrap_or(5),
+            "--seeds" => a.seeds = it.next().map(|v| v.split(',').map(pw_core::rng::parse_seed).collect()).unwrap_or_default(),
             _ => a.positional = Some(x),
         }
     }
     a
 }
 
+/// Run the same world for several seeds and years and say what is drifting.
+fn balance(a: &Args) {
+    let target = a.positional.clone().unwrap_or_else(|| "small".into());
+    let dir = PathBuf::from(&target);
+    let mut problems = 0;
+    for &seed in &a.seeds {
+        let world = if dir.is_dir() {
+            pw_import::load_dir_seeded(&dir, DataPack::builtin(), Some(seed)).unwrap_or_else(|e| die(&e.to_string())).0
+        } else {
+            let scale = match target.as_str() {
+                "tiny" => pw_import::synthetic::Scale::TINY,
+                "huge" => pw_import::synthetic::Scale::HUGE,
+                _ => pw_import::synthetic::Scale::SMALL,
+            };
+            pw_import::synthetic::build(DataPack::builtin(), seed, scale)
+        };
+        let t = Instant::now();
+        let mut sim = Sim::new(world);
+        let run = pw_sim::metrics::observe(&mut sim, a.years, |s| eprintln!("  seed {seed}: year {} done ({:.0?})", s.year, t.elapsed()));
+        println!("
+== {target}, seed {} ({} years, {:.1?}) ==", pw_core::rng::seed_label(seed), a.years, t.elapsed());
+        print!("{}", pw_sim::metrics::render(&run));
+        let findings = pw_sim::metrics::analyse(&run);
+        if findings.is_empty() {
+            println!("no drift found");
+        }
+        for f in &findings {
+            problems += usize::from(f.level == pw_sim::metrics::Level::Problem);
+            println!("  {} [{}] {}", if f.level == pw_sim::metrics::Level::Problem { "PROBLEM" } else { "warn   " }, f.series, f.message);
+        }
+    }
+    println!("
+{problems} problem(s) across {} seed(s)", a.seeds.len());
+}
+
 fn main() {
     let a = parse();
+    if a.cmd == "balance" {
+        balance(&a);
+        return;
+    }
     let world = match a.cmd.as_str() {
         "synth" => {
             let scale = match a.positional.as_deref() {

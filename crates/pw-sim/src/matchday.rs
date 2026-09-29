@@ -70,11 +70,11 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         (None, _) => return Outcome::Walkover { fixture: f, home_forfeits: true },
         (_, None) => return Outcome::Walkover { fixture: f, home_forfeits: false },
     };
-    let first_leg = (fx.leg == 2).then(|| {
-        let t = &comp.state.ties[usize::from(fx.tie)];
-        // This match's home side is the tie's `b` (away in leg one).
-        (t.goals_b, t.goals_a)
-    });
+    // Whichever leg is played last decides the tie (a postponed first leg can follow the second), and it is played with the
+    // aggregate so far in front of both sides.
+    let tie = (fx.tie != u16::MAX).then(|| comp.state.ties.get(usize::from(fx.tie))).flatten();
+    let decisive = tie.map_or(fx.decisive, |t| t.played + 1 >= t.legs.max(1));
+    let first_leg = tie.filter(|t| t.played >= 1).map(|t| if fx.home == t.a { (t.goals_a, t.goals_b) } else { (t.goals_b, t.goals_a) });
     // The appointed referee's strictness; unrefereed levels vary by match.
     let strict = crate::officials::strictness(w, fx).unwrap_or_else(|| 0.75 + 0.5 * (hash_key(&[w.seed, fx.uid, 0x7ef]) % 1000) as f32 / 1000.0);
     let lod = if watched.contains(&fx.home) || watched.contains(&fx.away) { Lod::Full } else { Lod::Standard };
@@ -83,7 +83,7 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         home: selection::team_sheet(w, &home),
         away: selection::team_sheet(w, &away),
         neutral: fx.neutral,
-        decisive: fx.decisive,
+        decisive,
         first_leg,
         away_goals_rule: comp.rules.away_goals,
         importance: imp,
@@ -113,6 +113,11 @@ fn record_tie(w: &mut World, f: FixtureId, hg: u8, ag: u8, pens: Option<(u8, u8)
     }
     let away_rule = w.comps[fx.comp].rules.away_goals;
     let seed = w.seed;
+    // A fixture whose tie no longer exists cannot decide anything; the audit reports it rather than the world panicking.
+    if usize::from(fx.tie) >= w.comps[fx.comp].state.ties.len() {
+        debug_assert!(false, "fixture {} of {} refers to a tie that does not exist", fx.uid, w.comps[fx.comp].name);
+        return;
+    }
     let t = &mut w.comps[fx.comp].state.ties[usize::from(fx.tie)];
     if fx.leg <= 1 {
         t.goals_a += hg;
@@ -124,7 +129,8 @@ fn record_tie(w: &mut World, f: FixtureId, hg: u8, ag: u8, pens: Option<(u8, u8)
         t.away_a += ag;
     }
     t.played += 1;
-    if !fx.decisive {
+    // A tie is decided when its last leg is played, whichever leg that is: a postponed first leg can be played after the second.
+    if t.played < t.legs.max(1) {
         return;
     }
     let by_pens = |home_team: TeamId, away_team: TeamId| pens.map(|(h, a)| if h > a { home_team } else { away_team });
