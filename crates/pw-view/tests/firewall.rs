@@ -97,6 +97,8 @@ fn pages(api: &Api, people: &[u32], inhabited: bool) -> BTreeMap<String, Value> 
     put("insight.comp".into(), "insight.comp", json!({"id": 0}));
     put("nation".into(), "nation", json!({"id": 0}));
     put("overview".into(), "overview", json!({}));
+    put("world.pulse".into(), "world.pulse", json!({}));
+    put("news.feed".into(), "news.feed", json!({}));
     put("search".into(), "search", json!({"q": "a"}));
     if inhabited {
         for m in ["me.today", "me.self", "me.life", "me.people", "me.promises", "me.rumours", "me.press", "me.agent", "me.contract", "me.football", "me.options", "me.messages", "me.inbox", "me.feed"] {

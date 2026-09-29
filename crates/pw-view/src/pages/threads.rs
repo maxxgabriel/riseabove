@@ -21,7 +21,7 @@ use crate::narrative;
 use crate::session::Session;
 
 fn need(c: &Ctx) -> ApiResult<PersonId> {
-    c.me().ok_or_else(|| ApiError::State("You are observing the world. Inhabit someone to read their messages.".into()))
+    c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to read their messages.".into()))
 }
 
 fn short(s: &str, n: usize) -> String {
@@ -276,7 +276,7 @@ pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
 pub fn mark_read(s: &mut Session, args: &Value) -> ApiResult<Value> {
     let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing thread".into()))? as u32;
     if s.my_person().is_none() {
-        return Err(ApiError::State("You are observing the world; there is no inbox to read.".into()));
+        return Err(ApiError::Unauthorized("You are observing the world; there is no inbox to read.".into()));
     }
     s.game.read_thread(id);
     Ok(json!({"ok": true}))
@@ -286,7 +286,7 @@ pub fn mark_read(s: &mut Session, args: &Value) -> ApiResult<Value> {
 pub fn reply(s: &mut Session, args: &Value) -> ApiResult<Value> {
     let msg = args.get("message").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing message".into()))? as u32;
     let key = args.get("key").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing reply".into()))?;
-    let me = s.my_person().ok_or_else(|| ApiError::State("You are observing the world; there is nobody to reply for.".into()))?;
+    let me = s.my_person().ok_or_else(|| ApiError::Unauthorized("You are observing the world; there is nobody to reply for.".into()))?;
     let w = s.w();
     let m = w.inbox.messages.get(msg as usize).copied().filter(|m| m.to == me).ok_or_else(|| ApiError::NotFound("message".into()))?;
     if m.replied.is_some() {

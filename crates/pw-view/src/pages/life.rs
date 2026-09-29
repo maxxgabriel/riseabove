@@ -13,11 +13,12 @@ use serde_json::{Value, json};
 
 use super::me::named;
 use crate::ctx::Ctx;
-use crate::model::{ApiError, ApiResult, Ref, sureness};
+use crate::contract::{Evidence, PeopleView, RelationshipRow, RumourRow, RumoursView};
+use crate::model::{ApiError, ApiResult, Named, Ref, Tone, sureness};
 use crate::session::Session;
 
 fn need(c: &Ctx) -> ApiResult<PersonId> {
-    c.me().ok_or_else(|| ApiError::State("You are observing the world. Inhabit someone to use this page.".into()))
+    c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to use this page.".into()))
 }
 
 fn channel_text(c: &Ctx, ch: &Channel) -> String {
@@ -84,7 +85,7 @@ pub fn life_of(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let who = match (c.me(), id) {
         (Some(me), None) => me,
         (Some(me), Some(x)) if x == me => me,
-        (Some(_), Some(_)) => return Err(ApiError::State("You cannot see into someone else's private life.".into())),
+        (Some(_), Some(_)) => return Err(ApiError::Unauthorized("You cannot see into someone else's private life.".into())),
         (None, Some(x)) => x,
         (None, None) => return Err(ApiError::Bad("missing person".into())),
     };
@@ -186,27 +187,33 @@ pub fn people(c: &Ctx) -> ApiResult<Value> {
     let grudge = pw_world::social::grudge_factor(&w.people[me]);
     let mut rels: Vec<(PersonId, pw_world::Rel)> = w.social.relations_of(me).collect();
     rels.sort_by_key(|(p, r)| (std::cmp::Reverse(i32::from(r.affinity).abs() + (i32::from(r.trust) - 50).abs()), *p));
-    let rows: Vec<Value> = rels
+    let ev = |m: &pw_world::social::Memory| Evidence { text: format!("They {}", m.kind.text()), date: m.date.0 };
+    let people: Vec<RelationshipRow> = rels
         .into_iter()
         .take(40)
         .map(|(p, r)| {
-            let why = w.social.defining_memory(me, p, today, grudge).map(|m| json!({"text": format!("They {}", m.kind.text()), "date": m.date.0}));
             // Recent things that shaped it: the evidence, not the score (locked design 8.7).
             let mut mem: Vec<&pw_world::social::Memory> = w.social.recall(me, p).collect();
             mem.sort_by_key(|m| std::cmp::Reverse(m.date));
-            let evidence: Vec<Value> = mem.iter().take(3).map(|m| json!({"text": format!("They {}", m.kind.text()), "date": m.date.0})).collect();
-            let tone = match r.affinity {
-                25.. => "pos",
-                ..=-25 => "neg",
-                _ => "warn",
-            };
-            json!({
-                "who": named(Ref::person(p), c.person_name(p)), "role": role_of(c, me, p), "label": r.label(), "tone": tone,
-                "trust": level(r.trust), "respect": level(r.respect), "since": r.since.0, "last": r.last.0, "why": why, "evidence": evidence,
-            })
+            RelationshipRow {
+                who: Named::new(Ref::person(p), c.person_name(p)),
+                role: role_of(c, me, p),
+                label: r.label().into(),
+                tone: match r.affinity {
+                    25.. => Tone::Pos,
+                    ..=-25 => Tone::Neg,
+                    _ => Tone::Warn,
+                },
+                trust: level(r.trust).to_string(),
+                respect: level(r.respect).to_string(),
+                since: r.since.0,
+                last: r.last.0,
+                why: w.social.defining_memory(me, p, today, grudge).map(ev),
+                evidence: mem.iter().take(3).map(|m| ev(m)).collect(),
+            }
         })
         .collect();
-    Ok(json!({"people": rows}))
+    typed(&PeopleView { people })
 }
 
 pub fn promises(c: &Ctx) -> ApiResult<Value> {
@@ -244,29 +251,26 @@ pub fn rumours(c: &Ctx) -> ApiResult<Value> {
     let w = c.w;
     let mut bs: Vec<_> = w.beliefs.of(me).collect();
     bs.sort_by_key(|b| std::cmp::Reverse(b.date));
-    let mut rows: Vec<Value> = Vec::new();
+    let mut rumours: Vec<RumourRow> = Vec::new();
     for b in bs {
         let via = channel_text(c, &b.channel);
+        let row = |kind: &str, via: String, text: String, club: Option<Named>, fee: Option<i64>| RumourRow { kind: kind.into(), date: b.date.0, via, sureness: sureness(b.confidence).into(), text, club, fee };
         match b.kind {
-            BeliefKind::ClubInterested { club } => rows.push(json!({
-                "kind": "interest", "date": b.date.0, "via": via, "sureness": sureness(b.confidence), "club": named(Ref::club(club), c.club_name(club)),
-                "text": format!("{} are interested in you.", c.club_name(club)),
-            })),
-            BeliefKind::BidMade { club, fee } => rows.push(json!({
-                "kind": "bid", "date": b.date.0, "via": via, "sureness": sureness(b.confidence), "club": named(Ref::club(club), c.club_name(club)), "fee": fee,
-                "text": format!("{} made a bid for you.", c.club_name(club)),
-            })),
+            BeliefKind::ClubInterested { club } => rumours.push(row("interest", via, format!("{} are interested in you.", c.club_name(club)), Some(Named::new(Ref::club(club), c.club_name(club))), None)),
+            BeliefKind::BidMade { club, fee } => rumours.push(row("bid", via, format!("{} made a bid for you.", c.club_name(club)), Some(Named::new(Ref::club(club), c.club_name(club))), Some(fee as i64))),
             BeliefKind::Rumour { story } => {
                 let s = &w.media.stories[story];
-                rows.push(json!({
-                    "kind": "rumour", "date": b.date.0, "via": pw_narrate::press::outlet_name(w, s), "sureness": sureness(b.confidence),
-                    "text": c.headline(s),
-                }));
+                rumours.push(row("rumour", pw_narrate::press::outlet_name(w, s), c.headline(s), None, None));
             }
             _ => {}
         }
     }
-    Ok(json!({"rumours": rows}))
+    typed(&RumoursView { rumours })
+}
+
+/// A contract payload, serialised.
+fn typed<T: serde::Serialize>(v: &T) -> ApiResult<Value> {
+    serde_json::to_value(v).map_err(|e| ApiError::Internal(e.to_string()))
 }
 
 /// What is said about you, and how the fans see you.
@@ -396,7 +400,7 @@ pub fn journal(c: &Ctx) -> ApiResult<Value> {
 
 pub fn add_goal(s: &mut Session, args: &Value) -> ApiResult<Value> {
     if s.my_person().is_none() {
-        return Err(ApiError::State("You are observing the world.".into()));
+        return Err(ApiError::Unauthorized("You are observing the world.".into()));
     }
     let today = s.today();
     let kind_s = args.get("kind").and_then(Value::as_str).unwrap_or("personal");
@@ -435,7 +439,7 @@ pub fn goal_done(s: &mut Session, args: &Value) -> ApiResult<Value> {
 
 pub fn add_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
     if s.my_person().is_none() {
-        return Err(ApiError::State("You are observing the world.".into()));
+        return Err(ApiError::Unauthorized("You are observing the world.".into()));
     }
     let text = args.get("text").and_then(Value::as_str).map(str::trim).unwrap_or("");
     if text.is_empty() {

@@ -1,82 +1,24 @@
-// Wire types. These mirror what `pw-view` sends; nothing here is computed on the client.
+// Wire types. The shared ones (references, cells, columns, tables, requests, errors) are GENERATED from the Rust contract
+// (crates/pw-view/src/contract.rs -> contract.generated.ts); the rest still mirror what `pw-view` sends by hand.
 
-export type Kind = "person" | "club" | "comp" | "nation" | "match" | "team";
-export interface Ref {
-  k: Kind;
-  id: number;
-}
-export interface Named extends Ref {
-  name: string;
-}
-export type Tone = "pos" | "neg" | "warn" | "muted" | "info";
+import type { PerspectiveView as Perspective, Ref } from "./contract.generated";
 
-/** A run of a sentence: plain text, a link, a money amount or a date. */
-export interface Part {
-  t: string;
-  r?: Ref;
-  m?: number;
-  d?: number;
-}
-
-export interface Cell {
-  n?: number;
-  s?: string;
-  r?: Ref;
-  tone?: Tone;
-  u?: boolean;
-  bar?: number;
-  sub?: string;
-  range?: [number, number];
-  parts?: Part[];
-}
-
-export type Fmt = "text" | "int" | "dec1" | "dec2" | "money" | "date" | "pct" | "ordinal";
-
-export interface Col {
-  key: string;
-  label: string;
-  short: string;
-  fmt: Fmt;
-  align: "left" | "right" | "center";
-  w: number;
-  presets: string[];
-  sortable: boolean;
-  help: string;
-}
-
-export interface Row {
-  id: number;
-  cells: Cell[];
-  open?: Ref;
-  tone?: Tone;
-}
-
-export interface TableResp {
-  all_columns: Col[];
-  columns: string[];
-  presets: string[];
-  total: number;
-  offset: number;
-  rows: Row[];
-  note?: string;
-  revision: number;
-  sort: [string, boolean] | null;
-}
-
-export interface SortSpec {
-  key: string;
-  desc: boolean;
-}
-
-export interface TableReq {
-  table: string;
-  filters?: Record<string, unknown>;
-  sort?: SortSpec | null;
-  offset?: number;
-  limit?: number;
-  columns?: string[] | null;
-  preset?: string | null;
-}
+export type {
+  Cell,
+  Col,
+  ErrorKind,
+  Fmt,
+  Kind,
+  Knowledge,
+  Named,
+  Part,
+  Ref,
+  Row,
+  SortSpec,
+  TableReq,
+  TableResp,
+  Tone,
+} from "./contract.generated";
 
 export interface StopInfo {
   kind: "target" | "user" | "decision" | "major" | "match" | "error" | string;
@@ -104,9 +46,7 @@ export interface TaskState {
   report: Record<string, unknown> | null;
 }
 
-export type Perspective =
-  | { mode: "observer" }
-  | { mode: "inhabit"; person: number; name: string; club: string | null };
+export type { Perspective };
 
 export interface WorldSettings {
   conceal_mine: boolean;

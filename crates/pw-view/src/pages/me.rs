@@ -18,7 +18,7 @@ pub(crate) fn named(r: Ref, n: String) -> Value {
 }
 
 pub(crate) fn need_me(c: &Ctx) -> ApiResult<PlayerId> {
-    c.my_player().ok_or_else(|| ApiError::State("You are observing the world. Inhabit a player to use this page.".into()))
+    c.my_player().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit a player to use this page.".into()))
 }
 
 fn word(v: u8, tiers: &[(u8, &str)], floor: &str) -> String {
@@ -393,7 +393,7 @@ pub fn football(c: &Ctx) -> ApiResult<Value> {
 }
 
 pub fn set_plan(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let p = s.my_player().ok_or_else(|| ApiError::State("Inhabit a player to set a training plan.".into()))?;
+    let p = s.my_player().ok_or_else(|| ApiError::Unauthorized("Inhabit a player to set a training plan.".into()))?;
     if s.w().players.hot[p].status == PlayerStatus::Retired {
         return Err(ApiError::State("You have retired.".into()));
     }

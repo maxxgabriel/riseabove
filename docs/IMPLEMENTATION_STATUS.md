@@ -152,11 +152,19 @@ only door to mutate a world from outside is `Api::debug_mutate_world` (`pw-view/
 
 Provenance on the person page is omniscient-view only.
 
-## 9. Typed API contracts — NOT IMPLEMENTED
+## 9. Typed API contracts — PARTIAL
 
-Requests and responses are `serde_json::Value`; the frontend keeps hand-written TypeScript types (`app/src/types.ts`). Errors
-carry a code (`bad_request`, `state`, `not_found`) but not the design's categories. No generated bindings, no contract tests
-beyond behaviour tests.
+`crates/pw-view/src/contract.rs` is the contract layer. Tests: `crates/pw-view/tests/contract.rs` (9 tests).
+
+| Rule | Status | Evidence |
+| --- | --- | --- |
+| Contract drift fails early (§9.1, 9.3) | **IMPLEMENTED** for the declared types | payload types are declared once with `contract!` (Rust struct + TypeScript interface); `contract::typescript()` renders them; `app/src/contract.generated.ts` must equal it (test fails otherwise; `UPDATE_CONTRACT=1 cargo test -p pw-view --test contract` regenerates); `app/src/types.ts` re-exports the shared wire types (Ref, Named, Cell, Col, Row, TableReq/Resp, Perspective, ErrorKind) from the generated file; `npx tsc --noEmit` clean |
+| Typed payloads (§9.2) | **PARTIAL** | typed and checked field-by-field against real responses: `app.info`, `world.status` (+Job, Task, settings), `table.query` (TableReq/TableResp/Col/Row/Cell), `person.attributes`, `me.people`, `me.rumours` (the last three are *built* through the contract structs). About 55 other methods still return `serde_json::Value` (listed `unknown` in `ApiMethods`); the frontend `call<any>` fallback remains for them |
+| Structured errors (§9.5) | **IMPLEMENTED** | `ErrorKind` (NotFound, UnauthorizedPerspective, InvalidRequest, StateConflict, UnavailableInformation, SaveIncompatible, SimulationBusy, InternalError), `ApiError::kind()`, `ErrorBody {kind, code, message, retryable}` used by `pw-serve` (with HTTP statuses) and the Tauri command; the legacy `code()` (`bad_request`/`not_found`/`state`) is unchanged so nothing old breaks; `app/src/api.ts` `ApiError` carries `kind` and `retryable`. `UnavailableInformation` exists but no page raises it yet |
+| Unknown / hidden / estimated / known distinct (§9.6) | **PARTIAL** | `Knowledge<T>` (exact, range, reported, unknown, hidden; no value for unknown or hidden), attribute rows use its tags, sureness in words. Cells still use `u: true` for unknown; most pages use `null` |
+| Queries separate from commands (§9.7) | **IMPLEMENTED** as a manifest | `contract::manifest()` lists every method as query or command; a test keeps it equal to the dispatcher in `lib.rs` (it caught the newsroom methods added by a merge), every argument-free query is shown not to change the revision or the clock and to repeat exactly, and a client-supplied wage/fee on a command changes nothing |
+| View types, not world types (§9.4) | **PARTIAL** | the typed payloads are view types; the untyped pages still assemble JSON from `Ctx` (see §8) |
+| Contract tests cover major surfaces (§9.9) | **PARTIAL** | the surfaces above; no request validation schema for commands yet (`me.act` still parses `Value` by hand) |
 
 ## 10. Saves — PARTIAL
 

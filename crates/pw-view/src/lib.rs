@@ -6,6 +6,7 @@
 //! identically by the desktop shell and the development server.
 
 mod advance;
+pub mod contract;
 mod ctx;
 mod debug;
 mod fmt;
@@ -27,6 +28,7 @@ use serde_json::{Value, json};
 
 use advance::{AdvanceReq, Job};
 use ctx::Ctx;
+pub use contract::{ErrorBody, ErrorKind};
 pub use model::{ApiError, ApiResult};
 use session::Session;
 
@@ -119,13 +121,13 @@ impl Api {
     }
 
     fn not_while_advancing(&self) -> ApiResult<()> {
-        if self.job_running() { Err(ApiError::State("The world is advancing. Stop it first.".into())) } else { Ok(()) }
+        if self.job_running() { Err(ApiError::Busy("The world is advancing. Stop it first.".into())) } else { Ok(()) }
     }
 
     /// Dispatch one call. Errors carry a code and a message fit to show to the person.
     pub fn call(&self, method: &str, args: Value) -> ApiResult<Value> {
         match method {
-            "app.info" => Ok(json!({"name": "Rise Above", "version": env!("CARGO_PKG_VERSION"), "data_dir": self.sh.dir.display().to_string()})),
+            "app.info" => Ok(serde_json::to_value(contract::AppInfo { name: "Rise Above".into(), version: env!("CARGO_PKG_VERSION").into(), data_dir: self.sh.dir.display().to_string() }).unwrap_or(Value::Null)),
             "world.status" => Ok(self.status()),
             "world.new" => self.world_new(args),
             "world.inspect_import" => self.inspect_import(args),
@@ -282,7 +284,7 @@ impl Api {
     fn start_task(&self, label: &str) -> ApiResult<u64> {
         let mut t = self.sh.task.lock().unwrap_or_else(|e| e.into_inner());
         if t.running {
-            return Err(ApiError::State("Another operation is still running.".into()));
+            return Err(ApiError::Busy("Another operation is still running.".into()));
         }
         let seq = t.seq + 1;
         *t = Task { running: true, seq, label: label.into(), error: None, report: None };

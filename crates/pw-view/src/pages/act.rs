@@ -184,7 +184,7 @@ fn text_arg<'a>(args: &'a Value, key: &str) -> ApiResult<&'a str> {
 }
 
 fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
-    let me = s.my_person().ok_or_else(|| ApiError::State("You are observing the world; there is nobody to act for.".into()))?;
+    let me = s.my_person().ok_or_else(|| ApiError::Unauthorized("You are observing the world; there is nobody to act for.".into()))?;
     let w = s.w();
     let p = w.people[me].player;
     let status = (p.is_some()).then(|| w.players.hot[p].status);
@@ -386,7 +386,7 @@ pub fn act(s: &mut Session, args: &Value) -> ApiResult<Value> {
 
 /// The choices behind each action's picker, drawn from the world as this person can know it.
 pub fn options(c: &Ctx) -> ApiResult<Value> {
-    let me = c.me().ok_or_else(|| ApiError::State("You are observing the world. Inhabit someone first.".into()))?;
+    let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone first.".into()))?;
     let w = c.w;
     let p = w.people[me].player;
     let aff = w.affairs.of(me);

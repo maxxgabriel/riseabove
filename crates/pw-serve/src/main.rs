@@ -54,12 +54,8 @@ fn handle(api: &Api, statics: Option<&Path>, mut req: Request) {
         let (status, payload) = match api.call(method, args) {
             Ok(v) => (200, v),
             Err(e) => {
-                let status = match e.code() {
-                    "not_found" => 404,
-                    "bad_request" => 400,
-                    _ => 409,
-                };
-                (status, serde_json::json!({"error": {"code": e.code(), "message": e.to_string()}}))
+                let body = pw_view::ErrorBody::of(&e);
+                (body.kind.http_status(), serde_json::json!({"error": body}))
             }
         };
         let r = Response::from_string(payload.to_string()).with_status_code(status).with_header(json_header()).with_header(cors());

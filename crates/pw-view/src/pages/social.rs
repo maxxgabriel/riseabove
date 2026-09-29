@@ -61,7 +61,7 @@ pub fn post_json(c: &Ctx, p: &Post, depth: u8) -> Value {
 
 /// The inhabited person's feed.
 pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let me = c.me().ok_or_else(|| ApiError::State("You are observing the world. Inhabit someone to read their feed.".into()))?;
+    let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to read their feed.".into()))?;
     let n = args.get("limit").and_then(Value::as_u64).map_or(40, |n| n.clamp(5, 100) as usize);
     let ids = pw_sim::socialnet::feed(c.w, me, n);
     let posts: Vec<Value> = ids.into_iter().filter_map(|id| c.w.net.post(id)).filter(|p| !c.post_spoils(p)).map(|p| post_json(c, p, 0)).collect();

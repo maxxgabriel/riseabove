@@ -1,11 +1,18 @@
 // One transport for everything: `call(method, args)`. In the desktop shell it is a
 // Tauri command; in a browser it is a POST to the development server.
 
+import type { ErrorKind } from "./contract.generated";
+
 export class ApiError extends Error {
   code: string;
-  constructor(code: string, message: string) {
+  /** The category of the failure: "you may not know this" is not "the program failed". */
+  kind: ErrorKind | null;
+  retryable: boolean;
+  constructor(code: string, message: string, kind: ErrorKind | null = null, retryable = false) {
     super(message);
     this.code = code;
+    this.kind = kind;
+    this.retryable = retryable;
   }
 }
 
@@ -22,9 +29,9 @@ async function viaTauri<T>(method: string, args: unknown): Promise<T> {
   try {
     return (await invoke("api", { method, args })) as T;
   } catch (e) {
-    const err = e as { code?: string; message?: string } | string;
+    const err = e as { code?: string; kind?: ErrorKind; retryable?: boolean; message?: string } | string;
     if (typeof err === "string") throw new ApiError("state", err);
-    throw new ApiError(err.code ?? "state", err.message ?? "Something went wrong.");
+    throw new ApiError(err.code ?? "state", err.message ?? "Something went wrong.", err.kind ?? null, err.retryable ?? false);
   }
 }
 
@@ -47,8 +54,8 @@ async function viaHttp<T>(method: string, args: unknown): Promise<T> {
     /* fallthrough */
   }
   if (!res.ok) {
-    const e = (body as { error?: { code?: string; message?: string } } | null)?.error;
-    throw new ApiError(e?.code ?? "state", e?.message ?? `Request failed (${res.status}).`);
+    const e = (body as { error?: { code?: string; kind?: ErrorKind; retryable?: boolean; message?: string } } | null)?.error;
+    throw new ApiError(e?.code ?? "state", e?.message ?? `Request failed (${res.status}).`, e?.kind ?? null, e?.retryable ?? false);
   }
   return body as T;
 }

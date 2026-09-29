@@ -575,7 +575,7 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
 }
 
 pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let me = c.me().ok_or_else(|| ApiError::State("You are observing the world. Inhabit someone to read their messages.".into()))?;
+    let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to read their messages.".into()))?;
     let id = args.get("id").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing message id".into()))?;
     let w = c.w;
     if let Some(n) = id.strip_prefix('d').and_then(|s| s.parse::<u32>().ok()) {

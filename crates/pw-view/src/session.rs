@@ -88,7 +88,7 @@ impl Session {
         match pw_sim::save::load_checked::<SaveFile>(path, &|f: &SaveFile| pw_sim::validate::check(&f.world)) {
             Ok(f) => Ok(Self::assemble(f.world, f.session, f.meta)),
             // Only a shape mismatch may mean "text client save"; version, damage and io errors are shown as they are.
-            Err(first) if !matches!(first, pw_sim::save::SaveError::Encode(_)) => Err(ApiError::State(first.to_string())),
+            Err(first) if !matches!(first, pw_sim::save::SaveError::Encode(_)) => Err(ApiError::SaveIncompatible(first.to_string())),
             Err(first) => {
                 // A save from the text client has no presentation state.
                 let f: TextClientSave = pw_sim::save::load(path).map_err(|_| ApiError::State(first.to_string()))?;
@@ -138,7 +138,7 @@ impl Session {
 
     /// Answer a decision that belongs to the inhabited person.
     pub fn answer(&mut self, id: DecisionId, choice: u8) -> ApiResult<()> {
-        let me = self.my_person().ok_or_else(|| ApiError::State("You are observing; there is nobody to answer for.".into()))?;
+        let me = self.my_person().ok_or_else(|| ApiError::Unauthorized("You are observing; there is nobody to answer for.".into()))?;
         let d = self.w().decisions.all.get(id).ok_or_else(|| ApiError::NotFound(format!("decision {}", id.0)))?;
         if d.person != me {
             return Err(ApiError::State("That decision belongs to someone else.".into()));
@@ -156,7 +156,7 @@ impl Session {
     /// Something the inhabited person decides to do; the world applies it on the next simulated day.
     pub fn act(&mut self, intent: Intent) -> ApiResult<()> {
         if !self.game.act(intent) {
-            return Err(ApiError::State("You are observing; there is nobody to act for.".into()));
+            return Err(ApiError::Unauthorized("You are observing; there is nobody to act for.".into()));
         }
         self.revision += 1;
         Ok(())

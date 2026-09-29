@@ -276,15 +276,41 @@ pub enum ApiError {
     NotFound(String),
     #[error("{0}")]
     State(String),
+    /// The viewer's perspective does not allow it.
+    #[error("{0}")]
+    Unauthorized(String),
+    /// The viewer cannot know this.
+    #[error("{0}")]
+    Unavailable(String),
+    /// A save this build cannot open.
+    #[error("{0}")]
+    SaveIncompatible(String),
+    /// The simulation is busy.
+    #[error("{0}")]
+    Busy(String),
+    #[error("{0}")]
+    Internal(String),
 }
 
 impl ApiError {
-    pub fn code(&self) -> &'static str {
+    /// The category a client acts on (locked design 9.5).
+    pub fn kind(&self) -> crate::contract::ErrorKind {
+        use crate::contract::ErrorKind as K;
         match self {
-            ApiError::Bad(_) => "bad_request",
-            ApiError::NotFound(_) => "not_found",
-            ApiError::State(_) => "state",
+            ApiError::Bad(_) => K::InvalidRequest,
+            ApiError::NotFound(_) => K::NotFound,
+            ApiError::State(_) => K::StateConflict,
+            ApiError::Unauthorized(_) => K::UnauthorizedPerspective,
+            ApiError::Unavailable(_) => K::UnavailableInformation,
+            ApiError::SaveIncompatible(_) => K::SaveIncompatible,
+            ApiError::Busy(_) => K::SimulationBusy,
+            ApiError::Internal(_) => K::InternalError,
         }
+    }
+
+    /// The older three-way code (`bad_request`, `not_found`, `state`): kept so existing clients and tests read the same.
+    pub fn code(&self) -> &'static str {
+        self.kind().legacy_code()
     }
 }
 

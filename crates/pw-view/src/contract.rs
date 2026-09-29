@@ -12,6 +12,57 @@
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::model::{Named, Tone};
+
+// ------------------------------------------------------------------ type mapping
+
+/// How a Rust payload type is written in TypeScript.
+pub trait Ts {
+    fn ts() -> String;
+}
+
+macro_rules! ts_prim {
+    ($($t:ty => $s:literal),* $(,)?) => {$( impl Ts for $t { fn ts() -> String { $s.into() } } )*};
+}
+
+ts_prim!(bool => "boolean", u8 => "number", u16 => "number", u32 => "number", u64 => "number", usize => "number", i8 => "number", i16 => "number", i32 => "number", i64 => "number",
+    f32 => "number", f64 => "number", String => "string", &'static str => "string", Value => "unknown");
+
+impl<T: Ts> Ts for Option<T> {
+    fn ts() -> String {
+        format!("{} | null", T::ts())
+    }
+}
+
+impl<T: Ts> Ts for Vec<T> {
+    fn ts() -> String {
+        let t = T::ts();
+        if t.contains(' ') { format!("({t})[]") } else { format!("{t}[]") }
+    }
+}
+
+/// Declare a payload type once: a serialisable Rust struct and its TypeScript interface.
+macro_rules! contract {
+    ($( $(#[$m:meta])* pub struct $name:ident { $( $(#[$fm:meta])* pub $f:ident : $t:ty ),* $(,)? } )*) => {$(
+        $(#[$m])*
+        #[derive(Clone, Debug, Serialize)]
+        pub struct $name { $( $(#[$fm])* pub $f: $t ),* }
+
+        impl Ts for $name {
+            fn ts() -> String { stringify!($name).into() }
+        }
+
+        impl $name {
+            pub fn declaration() -> String {
+                let mut s = format!("export interface {} {{\n", stringify!($name));
+                $( s.push_str(&format!("  {}: {};\n", stringify!($f), <$t as Ts>::ts())); )*
+                s.push_str("}\n");
+                s
+            }
+        }
+    )*};
+}
+
 // ------------------------------------------------------------------ errors
 
 /// What went wrong, in terms the client can act on.
@@ -110,56 +161,6 @@ impl ErrorBody {
         Self { kind, code: kind.legacy_code().into(), message: e.to_string(), retryable: kind.retryable() }
     }
 }
-
-// ------------------------------------------------------------------ type mapping
-
-/// How a Rust payload type is written in TypeScript.
-pub trait Ts {
-    fn ts() -> String;
-}
-
-macro_rules! ts_prim {
-    ($($t:ty => $s:literal),* $(,)?) => {$( impl Ts for $t { fn ts() -> String { $s.into() } } )*};
-}
-
-ts_prim!(bool => "boolean", u8 => "number", u16 => "number", u32 => "number", u64 => "number", usize => "number", i8 => "number", i16 => "number", i32 => "number", i64 => "number",
-    f32 => "number", f64 => "number", String => "string", &'static str => "string", Value => "unknown");
-
-impl<T: Ts> Ts for Option<T> {
-    fn ts() -> String {
-        format!("{} | null", T::ts())
-    }
-}
-
-impl<T: Ts> Ts for Vec<T> {
-    fn ts() -> String {
-        let t = T::ts();
-        if t.contains(' ') { format!("({t})[]") } else { format!("{t}[]") }
-    }
-}
-
-/// Declare a payload type once: a serialisable Rust struct and its TypeScript interface.
-macro_rules! contract {
-    ($( $(#[$m:meta])* pub struct $name:ident { $( $(#[$fm:meta])* pub $f:ident : $t:ty ),* $(,)? } )*) => {$(
-        $(#[$m])*
-        #[derive(Clone, Debug, Serialize)]
-        pub struct $name { $( $(#[$fm])* pub $f: $t ),* }
-
-        impl Ts for $name {
-            fn ts() -> String { stringify!($name).into() }
-        }
-
-        impl $name {
-            pub fn declaration() -> String {
-                let mut s = format!("export interface {} {{\n", stringify!($name));
-                $( s.push_str(&format!("  {}: {};\n", stringify!($f), <$t as Ts>::ts())); )*
-                s.push_str("}\n");
-                s
-            }
-        }
-    )*};
-}
-use contract;
 
 // ------------------------------------------------------------------ semantic values
 
@@ -331,8 +332,6 @@ contract! {
         pub seq: u64,
         pub label: String,
         pub error: Option<String>,
-        /// The category of the failure, when there was one.
-        pub error_kind: Option<ErrorKind>,
         pub report: Option<Value>,
     }
 
@@ -507,6 +506,9 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("table.query"), Some("TableReq"), "TableResp"),
         q("search"),
         q("overview"),
+        q("world.pulse"),
+        q("news.feed"),
+        q("news.story"),
         q("diagnostics"),
         q("capabilities"),
         q("person"),
@@ -639,9 +641,13 @@ pub fn interface_fields(ts: &str, name: &str) -> Option<(Vec<String>, Vec<String
         if line.starts_with("/**") || line.starts_with("//") || line.starts_with('*') || !line.contains(':') {
             continue;
         }
-        let field = line.split(':').next().unwrap_or("").trim();
+        let (field, ty) = line.split_once(':').unwrap_or(("", ""));
+        let field = field.trim();
+        // A field that may be `null` or is marked `?` may be absent from a payload built without it; the rest must be there.
         if let Some(f) = field.strip_suffix('?') {
             opt.push(f.to_string());
+        } else if ty.contains("| null") {
+            opt.push(field.to_string());
         } else {
             req.push(field.to_string());
         }

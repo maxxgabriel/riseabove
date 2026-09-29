@@ -12,7 +12,9 @@ use tauri::Manager;
 #[derive(Serialize)]
 struct CommandError {
     code: String,
+    kind: pw_view::ErrorKind,
     message: String,
+    retryable: bool,
 }
 
 /// One entry point for everything the interface asks of the simulation.
@@ -22,8 +24,8 @@ async fn api(state: tauri::State<'_, Api>, method: String, args: Option<Value>) 
     let api = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move || api.call(&method, args.unwrap_or(Value::Null)))
         .await
-        .map_err(|e| CommandError { code: "internal".into(), message: e.to_string() })?
-        .map_err(|e| CommandError { code: e.code().into(), message: e.to_string() })
+        .map_err(|e| CommandError { code: "state".into(), kind: pw_view::ErrorKind::InternalError, message: e.to_string(), retryable: false })?
+        .map_err(|e| { let b = pw_view::ErrorBody::of(&e); CommandError { code: b.code, kind: b.kind, message: b.message, retryable: b.retryable } })
 }
 
 fn main() {

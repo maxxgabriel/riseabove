@@ -90,7 +90,7 @@ pub fn start(sh: &Arc<Shared>, req: AdvanceReq) -> ApiResult<()> {
     {
         let mut job = sh.job.lock().unwrap_or_else(|e| e.into_inner());
         if job.running {
-            return Err(ApiError::State("The world is already advancing.".into()));
+            return Err(ApiError::Busy("The world is already advancing.".into()));
         }
         let seq = job.seq + 1;
         *job = Job { running: true, seq, label, from, target, days_total: total, ..Default::default() };
