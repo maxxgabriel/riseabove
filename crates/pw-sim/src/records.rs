@@ -11,6 +11,8 @@ use pw_world::{FanReason, TableRow, TeamKind, World};
 /// it set a new record (the first mark ever only establishes one). `min` is
 /// the least value worth a record at all; `announce` publishes it.
 pub fn note(w: &mut World, key: RecordKey, mark: Mark, min: i64, announce: bool) -> Option<u32> {
+    // An estimate is kept beside the facts but is never announced as if it were one (its provenance says what it is).
+    let announce = announce && key.stat.provenance().official();
     let lower = key.stat.lower_is_better();
     if if lower { mark.value > min } else { mark.value < min } {
         return None;
@@ -248,4 +250,15 @@ pub fn of_nation(w: &World, n: NationId) -> Vec<&Record> {
         .collect();
     v.sort_by_key(|r| r.key);
     v
+}
+
+/// What evidence made this mark: its kind's provenance, unless it was set before the simulation began, in which case it is history
+/// (imported if the world came from a database, else generated).
+pub fn mark_provenance(w: &World, stat: pw_world::records::Stat, mark: &Mark) -> pw_world::records::Provenance {
+    use pw_world::records::Provenance;
+    let start = w.date.add_days(-(w.days_simulated.min(1_000_000) as i32));
+    if mark.date < start {
+        return if w.origins.sources.is_empty() { Provenance::SimulatedHistorical } else { Provenance::ImportedHistorical };
+    }
+    stat.provenance()
 }

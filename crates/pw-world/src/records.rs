@@ -66,9 +66,9 @@ pub enum Stat {
     FastestHatTrick,
     GoalsInMatch,
     AssistsInMatch,
-    /// Highest speed reached in a match, tenths of km/h. A measurement model (pace, acceleration, age, condition), not tracked play.
+    /// ESTIMATED peak speed in a match, tenths of km/h. A measurement model (pace, acceleration, age, condition), not tracked play.
     TopSpeed,
-    /// Distance covered in a match, metres. A measurement model (stamina, work rate, role, minutes).
+    /// ESTIMATED distance covered in a match, metres. A measurement model (stamina, work rate, role, minutes).
     DistanceCovered,
     /// Best match rating ×10.
     MatchRating,
@@ -126,7 +126,65 @@ pub enum Stat {
     InternationalsProduced,
 }
 
+/// What kind of evidence made a record (the India brief, item 8). An estimate must never sit beside a fact without saying so.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum Provenance {
+    /// Counted from what happened in a match the engine played (goals, cards, clean sheets, minutes).
+    ObservedMatchStat,
+    /// Computed from observed stats (a streak, a rate, a total across seasons).
+    DerivedFromObservedStats,
+    /// Modelled from a player's attributes, because the match engine does not record it.
+    Estimated,
+    /// Brought in with an imported database, from before the simulation began.
+    ImportedHistorical,
+    /// Generated to give a new world a past, from before the simulation began.
+    SimulatedHistorical,
+}
+
+impl Provenance {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Provenance::ObservedMatchStat => "observed in a match",
+            Provenance::DerivedFromObservedStats => "derived from observed matches",
+            Provenance::Estimated => "estimated (not tracked in play)",
+            Provenance::ImportedHistorical => "imported history",
+            Provenance::SimulatedHistorical => "simulated history",
+        }
+    }
+
+    /// Whether this counts as an official record that can be announced as one.
+    pub const fn official(self) -> bool {
+        !matches!(self, Provenance::Estimated)
+    }
+}
+
 impl Stat {
+    /// The evidence behind this kind of record, whenever it was set.
+    pub const fn provenance(self) -> Provenance {
+        match self {
+            Stat::TopSpeed | Stat::DistanceCovered => Provenance::Estimated,
+            Stat::WinsInRow
+            | Stat::UnbeatenRun
+            | Stat::PointsInSeason
+            | Stat::GoalStreak
+            | Stat::AppStreak
+            | Stat::AppsToFirstGoal
+            | Stat::AppsTo10Goals
+            | Stat::AppsTo50Goals
+            | Stat::AppsTo100Goals
+            | Stat::DaysToFirstGoal
+            | Stat::DaysTo10Goals
+            | Stat::DaysTo50Goals
+            | Stat::DaysTo100Goals
+            | Stat::GoalRate
+            | Stat::AvgRatingInSeason
+            | Stat::Titles
+            | Stat::GoldenBoots
+            | Stat::KeeperMinutesUnbeaten => Provenance::DerivedFromObservedStats,
+            _ => Provenance::ObservedMatchStat,
+        }
+    }
+
     pub const fn lower_is_better(self) -> bool {
         matches!(
             self,
@@ -170,8 +228,8 @@ impl Stat {
             Stat::FastestHatTrick => "fastest hat-trick record",
             Stat::GoalsInMatch => "record for goals in a match",
             Stat::AssistsInMatch => "record for assists in a match",
-            Stat::TopSpeed => "top-speed record",
-            Stat::DistanceCovered => "distance-covered record",
+            Stat::TopSpeed => "estimated peak speed",
+            Stat::DistanceCovered => "estimated distance covered",
             Stat::MatchRating => "best-performance record",
             Stat::FastestRedCard => "fastest-dismissal record",
             Stat::YoungestHatTrick => "youngest hat-trick record",
@@ -218,8 +276,8 @@ impl Stat {
         match self {
             Stat::YoungestScorer | Stat::YoungestDebut | Stat::OldestScorer | Stat::YoungestHatTrick => format!("{} years {} days", v / 365, v % 365),
             Stat::FastestGoal | Stat::FastestHatTrick | Stat::FastestRedCard => format!("{} into the match", minutes_seconds(v)),
-            Stat::TopSpeed => format!("{}.{} km/h", v / 10, v % 10),
-            Stat::DistanceCovered => format!("{}.{:02} km", v / 1000, (v % 1000) / 10),
+            Stat::TopSpeed => format!("about {}.{} km/h", v / 10, v % 10),
+            Stat::DistanceCovered => format!("about {}.{:02} km", v / 1000, (v % 1000) / 10),
             Stat::MatchRating => format!("a {}.{} rating", v / 10, v % 10),
             Stat::AvgRatingInSeason => format!("an average of {}.{:02}", v / 100, v % 100),
             Stat::GoalRate => format!("{}.{:03} goals a game", v / 1000, v % 1000),

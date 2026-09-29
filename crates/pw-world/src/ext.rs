@@ -22,12 +22,17 @@ use crate::academy::AcademyExt;
 use crate::almanac::Almanac;
 use crate::ecosystem::Ecosystem;
 use crate::medical::MedicalExt;
+use crate::pathway::PathwayExt;
+use crate::recog::Recog;
+use crate::scenario::Scenario;
 use crate::ruling::DecisionMemory;
 use crate::stafflife::StaffExt;
 use crate::training::TrainingExt;
 
-/// Version of the `Extensions` layout written by this build. History: 1 = the layout at the introduction of the envelope.
-pub const EXT_VERSION: u32 = 1;
+/// Version of the `Extensions` layout written by this build. History: 1 = the layout at the introduction of the envelope; 2 = adds
+/// `scenario` (tuning and calendar), `recog` (what organisations know, vouches, market regard) and `pathway` (why players moved, how
+/// they were created), all appended and all empty or default in a save from layout 1.
+pub const EXT_VERSION: u32 = 2;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -45,6 +50,13 @@ pub struct Extensions {
     pub training: TrainingExt,
     /// Owner: whichever system makes a material decision; read by any system that asks "why".
     pub decisions: DecisionMemory,
+    // ---- layout 2: appended, in this order (the step below depends on it)
+    /// Owner: the world builder (from the pack) and `pw_sim::recognition`. Tuning and calendar of the scenario.
+    pub scenario: Scenario,
+    /// Owner: `pw_sim::recognition` and `pw_sim::foreign`. What each organisation knows, vouches, referral records, market regard.
+    pub recog: Recog,
+    /// Owner: `pw_sim::pathway`. Why players went where they went, and how each was created.
+    pub pathway: PathwayExt,
     /// Set (never saved) when this value was upgraded from an older layout: the version it came from. `pw_sim::legacy::finish`
     /// consumes it after load.
     #[serde(skip)]
@@ -60,7 +72,19 @@ pub struct ExtStep {
 
 /// The steps that upgrade older `Extensions` bytes to [`EXT_VERSION`], in order.
 pub fn steps() -> &'static [ExtStep] {
-    &[]
+    &[ExtStep { from: 1, name: "add scenario tuning, organisation knowledge and pathway history", apply: v1_to_v2 }]
+}
+
+/// What layout 2 appended to layout 1, in field order.
+#[derive(Default, Serialize)]
+struct V2Tail {
+    scenario: Scenario,
+    recog: Recog,
+    pathway: PathwayExt,
+}
+
+fn v1_to_v2(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    append_default::<V2Tail>(bytes)
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
