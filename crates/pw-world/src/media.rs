@@ -240,8 +240,12 @@ pub struct JournalistProfile {
     pub focus: Focus,
     /// Professional standing, 0–10,000.
     pub reputation: u16,
+    /// Professional accuracy: claims that were true (`hits`) or false (`misses`) *when they were published*, whatever happened next.
     pub hits: u16,
     pub misses: u16,
+    /// What audiences saw: reported things that came to pass, and ones that did not. An honest report can end up here as a miss.
+    pub public_hits: u16,
+    pub public_misses: u16,
     /// When they started covering each club on their beat.
     pub beat_since: SmallVec<[(ClubId, Date); 4]>,
     pub ties: SmallVec<[SourceTie; 8]>,

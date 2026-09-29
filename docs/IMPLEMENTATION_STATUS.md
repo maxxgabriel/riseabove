@@ -30,7 +30,9 @@ Exists: outlets, journalists (`JournalistProfile`: knowledge, risk, bias, hits/m
 
 Gaps against the locked rules (these are the design's own priority targets):
 
-* accuracy is judged by outcome: `media.rs::settle_credibility` rewards an outlet when the event later *happened* (§2.3) — **OPEN**
+* professional accuracy is judged on claim-time truth (`Story::grounded`): `newsroom.rs::close_thread` scores journalists, their source ties and
+  corrections that way, while a separate public record follows what audiences saw come to pass (§2.3, §2.11) — **IMPLEMENTED**
+  (three scenario tests). Outlet-level public credibility (`media.rs::settle_credibility`) stays outcome-based on purpose (it is the public's view).
 * one flat `credibility` per outlet and per journalist; no topic or club-specific credibility (§2.7) — **OPEN**
 * `socialnet.rs::believes` is partly contextual (personal outlet trust, credulity, knowledge, desirability, corroboration) but
   ignores journalist identity, topic and prior belief (§2.9) — **PARTIAL**
@@ -97,6 +99,7 @@ beyond behaviour tests.
 
 ## 10. Saves — PARTIAL
 
+Current schema is **3**; schemas 1 and 2 were development formats and are refused with a plain message (tested).
 **IMPLEMENTED**: explicit schema version, sequential migration steps (`pw-sim::save::Step`), backup before upgrade, atomic write,
 checksum, clear too-new / unsupported errors, listing shows compatibility; unit tests for the framework. **Missing**: post-migration
 validation hook, save metadata (created schema, migration history), a deterministic legacy-init helper (`stable_seed(world, migration,

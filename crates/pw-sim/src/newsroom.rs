@@ -114,6 +114,8 @@ pub fn ensure_profiles(w: &mut World) {
             reputation: (reach * 300.0 + f32::from(years_in as u16) * 120.0 + rng.normal() * 400.0).clamp(100.0, 10_000.0) as u16,
             hits: 0,
             misses: 0,
+            public_hits: 0,
+            public_misses: 0,
             beat_since,
             ties: SmallVec::new(),
             employers: [(outlet, today.add_days(-365 * years_in))].into_iter().collect(),
@@ -824,7 +826,7 @@ pub(crate) fn back_references(w: &World, player: PlayerId, current: u32) -> Smal
     v
 }
 
-fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
+pub(crate) fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
     let today = w.date;
     let t = &mut w.media.threads[thread as usize];
     if t.state != ThreadState::Open {
@@ -833,24 +835,32 @@ fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
     t.state = state;
     t.closed = Some(today);
     let stories = t.stories.clone();
-    // Journalists are judged on how their claims turned out.
+    // Two different judgements (locked design §2.3, §2.11). Professionally a journalist is judged on whether each claim was true when
+    // it was published; the public judges what it saw come to pass. An honest report on a deal that later collapses is a professional
+    // hit and a public miss; a false report that luck makes true is the reverse.
     for sid in stories {
         let s = w.media.stories[sid].clone();
         if !matches!(s.claim_type, ClaimType::Report | ClaimType::Rumour | ClaimType::Speculation) {
             continue;
         }
-        let right = state == ThreadState::Happened;
+        let came_true = state == ThreadState::Happened;
+        let honest = s.grounded;
         if let Some(p) = w.media.journalist_profiles.get_mut(&s.journalist) {
-            if right {
+            if honest {
                 p.hits = p.hits.saturating_add(1);
             } else {
                 p.misses = p.misses.saturating_add(1);
             }
-            // …and learn how reliable the person who told them was.
+            if came_true {
+                p.public_hits = p.public_hits.saturating_add(1);
+            } else {
+                p.public_misses = p.public_misses.saturating_add(1);
+            }
+            // The person who told them is judged on what they said, not on how events turned out.
             if s.leaker.is_some()
                 && let Some(t) = p.ties.iter_mut().find(|t| t.person == s.leaker)
             {
-                if right {
+                if honest {
                     t.hits = t.hits.saturating_add(1);
                     t.reliability = (t.reliability + 8).min(100);
                 } else {
@@ -859,8 +869,12 @@ fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
                 }
             }
         }
-        // Careful outlets correct confident claims that proved wrong.
-        if !right && s.claim >= 70 && s.outlet.is_some() {
+        // The public's trust in the person follows what it saw.
+        if let Some(j) = w.media.journalists.get_mut(&s.journalist) {
+            j.credibility = if came_true { j.credibility.saturating_add(2).min(100) } else { j.credibility.saturating_sub(2) };
+        }
+        // Careful outlets correct confident claims that were wrong when made (not ones that were right and were overtaken).
+        if !honest && s.claim >= 70 && s.outlet.is_some() {
             let corrects = w.media.outlet_profiles.get(&s.outlet).is_some_and(|p| p.corrections >= 60);
             if corrects {
                 correction(w, sid);
@@ -1257,4 +1271,105 @@ fn hire(w: &mut World) {
 /// How reliable a journalist believes a source to be (for audits and views).
 pub fn source_reliability(w: &World, j: PersonId, s: PersonId) -> Option<u8> {
     w.media.journalist_profiles.get(&j).and_then(|p| p.tie(s)).map(|t| t.reliability)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pw_core::{Date, EventId, OutletId, StoryId};
+    use pw_data::DataPack;
+    use pw_world::media::{Angle, Focus, Journalist, JournalistProfile, SourceTie, Story, StoryKind, StoryThread, Verification};
+    use pw_world::Cause;
+
+    const J: PersonId = PersonId(0);
+    const SOURCE: PersonId = PersonId(1);
+
+    /// A bare world with one journalist, one source they trust a little, and one closed-able thread of one story.
+    fn world_with_story(grounded: bool) -> (World, u32) {
+        let mut w = World::new(DataPack::builtin(), 1, Date::from_ymd(2026, 7, 15));
+        w.media.journalists.insert(J, Journalist { person: J, outlet: OutletId::NONE, beat: Default::default(), sources: Default::default(), credibility: 50 });
+        w.media.journalist_profiles.insert(
+            J,
+            JournalistProfile {
+                knowledge: 50,
+                tactical: 50,
+                ambition: 50,
+                risk: 50,
+                bias: ClubId::NONE,
+                focus: Focus::Transfers,
+                reputation: 5000,
+                hits: 0,
+                misses: 0,
+                public_hits: 0,
+                public_misses: 0,
+                beat_since: Default::default(),
+                ties: [SourceTie { person: SOURCE, since: Date::from_ymd(2025, 1, 1), strength: 60, reliability: 50, hits: 0, misses: 0, last_used: Date::from_ymd(2026, 7, 1) }].into_iter().collect(),
+                employers: Default::default(),
+                languages: Default::default(),
+            },
+        );
+        let id = w.media.stories.next_id();
+        w.media.stories.push(Story {
+            id,
+            date: w.date,
+            outlet: OutletId::NONE,
+            journalist: J,
+            kind: StoryKind::TransferRumour,
+            player: PlayerId::NONE,
+            person: PersonId::NONE,
+            club: ClubId::NONE,
+            other_club: ClubId::NONE,
+            fee: 0,
+            claim: 60,
+            grounded,
+            source: Cause::Event(EventId::NONE),
+            leaker: SOURCE,
+            tone: 0,
+            event: EventId::NONE,
+            claim_type: ClaimType::Report,
+            angle: Angle::Straight,
+            info: u32::MAX,
+            thread: 0,
+            verification: Verification { asked: 1, confirmed: 1, denied: 0, confidence: 60 },
+            minute: 0,
+            news: 50,
+            refs: Default::default(),
+        });
+        w.media.threads.push(StoryThread { id: 0, subject: ThreadSubject::Contract { player: PlayerId::NONE, club: ClubId::NONE }, opened: w.date, last: w.date, stories: vec![id], events: Default::default(), state: ThreadState::Open, closed: None });
+        (w, 0)
+    }
+
+    fn close(grounded: bool, state: ThreadState) -> (JournalistProfile, u8) {
+        let (mut w, t) = world_with_story(grounded);
+        close_thread(&mut w, t, state);
+        (w.media.journalist_profiles[&J].clone(), w.media.journalists[&J].credibility)
+    }
+
+    #[test]
+    fn an_honest_report_on_a_deal_that_collapses_is_a_professional_hit_and_a_public_miss() {
+        let (p, public) = close(true, ThreadState::Collapsed);
+        assert_eq!((p.hits, p.misses), (1, 0), "true when published: professionally accurate");
+        assert_eq!((p.public_hits, p.public_misses), (0, 1), "the public saw it fall through");
+        assert!(public < 50, "public credibility falls while professional accuracy does not");
+        let tie = &p.ties[0];
+        assert_eq!((tie.hits, tie.misses), (1, 0));
+        assert!(tie.reliability > 50, "the source told the truth; events overtook it");
+    }
+
+    #[test]
+    fn a_false_report_that_luck_makes_true_is_still_a_professional_miss() {
+        let (p, public) = close(false, ThreadState::Happened);
+        assert_eq!((p.hits, p.misses), (0, 1), "luck does not turn bad reporting into good reporting");
+        assert_eq!((p.public_hits, p.public_misses), (1, 0));
+        assert!(public > 50, "the public sees a scoop");
+        assert!(p.ties[0].reliability < 50, "a source who gave false information loses standing whatever happened later");
+    }
+
+    #[test]
+    fn accurate_and_borne_out_and_false_and_failed_are_the_plain_cases() {
+        let (a, _) = close(true, ThreadState::Happened);
+        assert_eq!((a.hits, a.misses, a.public_hits, a.public_misses), (1, 0, 1, 0));
+        let (b, _) = close(false, ThreadState::Collapsed);
+        assert_eq!((b.hits, b.misses, b.public_hits, b.public_misses), (0, 1, 0, 1));
+    }
 }

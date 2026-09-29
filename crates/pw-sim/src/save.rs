@@ -24,9 +24,14 @@ const LEGACY_MAGIC: &[u8; 8] = b"PWSAVE01";
 const HEADER: usize = 8 + 4 + 8;
 
 /// Version of the serialised world model written by this build.
-pub const SCHEMA_VERSION: u32 = 2;
+///
+/// * 1: the unversioned development format (`PWSAVE01`).
+/// * 2: first versioned format (development only).
+/// * 3: provenance book, position-level squad plans, professional/public journalist records. Schemas 1 and 2 were development
+///   formats whose world shape changed without steps; they cannot be upgraded, and say so.
+pub const SCHEMA_VERSION: u32 = 3;
 /// The oldest schema this build can still upgrade from.
-pub const OLDEST_SUPPORTED: u32 = 2;
+pub const OLDEST_SUPPORTED: u32 = 3;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SaveError {
@@ -343,6 +348,18 @@ mod tests {
         let err = load_with::<V3>(&p, &[Step { from: 1, name: "wrong", apply: wrong }], 2, 1).unwrap_err();
         assert!(matches!(err, SaveError::Migration { .. }));
         assert_eq!(inspect(&p).unwrap().schema, 1);
+    }
+
+    #[test]
+    fn the_development_formats_are_refused_with_a_plain_message_and_left_alone() {
+        let p = temp("dev2");
+        write_at(&p, 2, &V1 { name: "old".into(), goals: 1 });
+        let before = std::fs::read(&p).unwrap();
+        let err = load::<V1>(&p).unwrap_err();
+        assert!(matches!(err, SaveError::Unsupported { found: 2, oldest: OLDEST_SUPPORTED }), "{err}");
+        assert!(err.to_string().contains("no longer upgrade") && err.to_string().contains("Nothing was changed"));
+        assert_eq!(inspect(&p).unwrap().compat, Compat::Unsupported);
+        assert_eq!(std::fs::read(&p).unwrap(), before);
     }
 
     #[test]
