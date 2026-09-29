@@ -17,6 +17,10 @@ use smallvec::SmallVec;
 pub enum RulingKind {
     /// Whether an injured player is cleared to play before the body is ready.
     ReturnFromInjury,
+    /// The board acted on a manager.
+    SackManager,
+    /// The board weighed acting and kept him.
+    BackManager,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -24,6 +28,11 @@ pub enum StanceRole {
     Manager,
     Medical,
     Player,
+    Owner,
+    Chair,
+    Director,
+    /// The person the ruling is about, when it is about a person rather than a player.
+    Subject,
 }
 
 /// One person's position on the question at the time.
@@ -48,6 +57,8 @@ pub enum Outcome {
     Failed,
     /// The person who wanted it was stopped by someone with authority.
     Vetoed,
+    /// Decided and carried out; judged by what followed, not by a flag.
+    Enacted,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -57,6 +68,10 @@ pub struct Ruling {
     pub date: Date,
     pub club: ClubId,
     pub subject: PlayerId,
+    /// For rulings about a staff member (a manager), who.
+    pub about: PersonId,
+    /// What acting would have cost (contract remaining), recorded even when not paid.
+    pub liability: i64,
     pub decider: PersonId,
     pub stances: SmallVec<[Stance; 4]>,
     /// The risk actually accepted: percent of the case that was truly left.

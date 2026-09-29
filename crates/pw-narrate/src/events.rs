@@ -166,7 +166,11 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         ),
         InjurySetback { player: p, days } => format!("{} suffered a setback in rehabilitation: another {} out.", pl(p), crate::fmt::duration_days(days)),
         Ruling { ruling } => match w.ext.decisions.get(ruling) {
-            Some(r) => format!("The club cleared {} to play before the injury had fully healed.", pl(r.subject)),
+            Some(r) => match r.kind {
+                pw_world::ruling::RulingKind::ReturnFromInjury => format!("The club cleared {} to play before the injury had fully healed.", pl(r.subject)),
+                pw_world::ruling::RulingKind::SackManager => format!("{} decided to part with the manager.", club(w, r.club)),
+                pw_world::ruling::RulingKind::BackManager => format!("{} decided to stand by the manager for now.", club(w, r.club)),
+            },
             None => "A decision was made.".to_string(),
         },
         RushedBack { player: p } => format!("{} was passed fit ahead of schedule.", pl(p)),

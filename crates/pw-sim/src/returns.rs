@@ -186,6 +186,8 @@ fn record(w: &mut World, club: ClubId, p: PlayerId, mp: PersonId, stances: Small
         date: today,
         club,
         subject: p,
+        about: pw_core::PersonId::NONE,
+        liability: 0,
         decider: mp,
         stances,
         true_pct: pct(truth_left),

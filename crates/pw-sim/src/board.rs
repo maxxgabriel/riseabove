@@ -26,11 +26,11 @@ pub fn set_targets(w: &mut World, n: NationId) {
 
 pub fn weekly(w: &mut World) {
     let today = w.date;
-    let mut sack: Vec<ClubId> = Vec::new();
+    let mut sack: Vec<(ClubId, pw_core::EventId)> = Vec::new();
     for club in w.clubs.ids() {
         let c = &w.clubs[club];
         if c.manager.is_none() {
-            sack.push(club);
+            sack.push((club, pw_core::EventId::NONE));
             continue;
         }
         let league = c.league;
@@ -60,7 +60,10 @@ pub fn weekly(w: &mut World) {
             b.satisfaction = 40;
             let warnings = b.warnings;
             if warnings >= 3 {
-                sack.push(club);
+                // Three warnings put the question; the seats answer it.
+                if let Some(ev) = crate::boardroom::decide(w, club) {
+                    sack.push((club, ev));
+                }
             } else if let Some(m) = w.clubs[club].manager.get() {
                 // Privately: the manager and the board know; others may hear.
                 let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
@@ -68,14 +71,17 @@ pub fn weekly(w: &mut World) {
             }
         }
     }
-    for club in sack {
+    for (club, ruling_event) in sack {
         if let Some(m) = w.clubs[club].manager.get() {
             w.staff[m].club = pw_core::ClubId::NONE;
             w.staff[m].record.sackings += 1;
             w.clubs[club].staff.retain(|&s| s != m);
             w.clubs[club].manager = StaffId::NONE;
             let warnings = w.clubs[club].board.warnings;
-            let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+            let mut causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+            if ruling_event.is_some() {
+                causes.push(pw_world::Cause::Event(ruling_event));
+            }
             w.events.push_caused(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club }, causes);
             crate::managers::on_departure(w, m, club, pw_world::careers::JobEnd::Sacked);
         }

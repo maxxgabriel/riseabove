@@ -20,6 +20,7 @@ pub mod audit;
 pub mod awards;
 pub mod backfill;
 pub mod board;
+pub mod boardroom;
 pub mod commerce;
 pub mod consider;
 pub mod contracts;
