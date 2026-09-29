@@ -302,18 +302,71 @@ pub fn familiarity_label(f: u8) -> &'static str {
     FAMILIARITY_LABELS.iter().find(|(min, _)| f >= *min).map_or("Ineffectual", |(_, l)| l)
 }
 
+/// Why a player exists. Every creation path names one; there is no way to add
+/// a player without it (`Players::push` requires an `Origin`), so population
+/// metrics can say exactly where every player came from.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum PlayerSource {
+    /// Read from the imported world data.
+    DatabaseImport,
+    /// Built by the synthetic test/benchmark world.
+    SyntheticFixture,
+    /// Spawned straight into a club's youth team at the yearly academy intake.
+    AcademyIntake,
+    /// A child born into a grassroots club's yearly cohort (the pipeline's start).
+    GrassrootsCohort,
+    /// Created for a human to inhabit.
+    HumanCreated,
+}
+
+impl PlayerSource {
+    pub const ALL: [PlayerSource; 5] = [PlayerSource::DatabaseImport, PlayerSource::SyntheticFixture, PlayerSource::AcademyIntake, PlayerSource::GrassrootsCohort, PlayerSource::HumanCreated];
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            PlayerSource::DatabaseImport => "database import",
+            PlayerSource::SyntheticFixture => "synthetic fixture",
+            PlayerSource::AcademyIntake => "academy intake",
+            PlayerSource::GrassrootsCohort => "grassroots cohort",
+            PlayerSource::HumanCreated => "created for a human",
+        }
+    }
+}
+
+/// When and why a player entered the world.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Origin {
+    pub source: PlayerSource,
+    pub date: Date,
+}
+
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Players {
     pub hot: IdVec<PlayerId, PlayerHot>,
     pub cold: IdVec<PlayerId, PlayerCold>,
+    /// Aligned with `hot` and `cold`: how each player came to exist.
+    pub origin: IdVec<PlayerId, Origin>,
 }
 
 impl Players {
-    pub fn push(&mut self, hot: PlayerHot, cold: PlayerCold) -> PlayerId {
+    pub fn push(&mut self, hot: PlayerHot, cold: PlayerCold, origin: Origin) -> PlayerId {
         let id = self.hot.push(hot);
         let id2 = self.cold.push(cold);
-        debug_assert_eq!(id, id2);
+        let id3 = self.origin.push(origin);
+        debug_assert!(id == id2 && id == id3);
         id
+    }
+
+    /// Players created in `[from, to)` by source, in `PlayerSource::ALL` order.
+    pub fn created_by_source(&self, from: Date, to: Date) -> [u32; PlayerSource::ALL.len()] {
+        let mut out = [0u32; PlayerSource::ALL.len()];
+        for o in self.origin.iter() {
+            if o.date >= from && o.date < to {
+                let i = PlayerSource::ALL.iter().position(|&s| s == o.source).unwrap_or(0);
+                out[i] += 1;
+            }
+        }
+        out
     }
 
     #[inline]

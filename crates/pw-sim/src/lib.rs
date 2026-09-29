@@ -44,6 +44,7 @@ pub mod incidents;
 pub mod intents;
 pub mod interpret;
 pub mod intl;
+pub mod invariants;
 pub mod life;
 pub mod managers;
 pub mod market;

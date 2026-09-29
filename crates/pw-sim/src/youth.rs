@@ -18,6 +18,7 @@ use pw_world::contract::ContractKind;
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
 use pw_world::scouting::Brief;
 use pw_world::youth::{Academy, AcademyStyle, AcademyTrial, LocalClub, LocalLevel, Reach, Release, School};
+use pw_world::player::PlayerSource;
 use pw_world::{Contract, MemoryKind, MindKind, PlayerStatus, StaffRole, Team, TeamKind, World};
 use smallvec::SmallVec;
 
@@ -138,12 +139,50 @@ fn new_cohort(w: &mut World, age: u32, year: i32) {
             let a = dob.age_years(today);
             let ca = (pa * gen_::ca_share_at(a) * rng.normal_ms(1.0, 0.1)).clamp(8.0, pa);
             let pos = gen_::random_position(&mut rng);
-            let p = spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: TeamId::NONE, contract: Contract::default() }, &mut rng);
+            let p = spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: TeamId::NONE, contract: Contract::default(), source: PlayerSource::GrassrootsCohort }, &mut rng);
             w.players.hot[p].status = PlayerStatus::Amateur;
             w.youth.join(p, l);
             let who = w.players.cold[p].person;
             w.youth.school.insert(who, School::default());
         }
+    }
+}
+
+/// Annual academy intake (04 §6, 07 §6): each club's yearly signings of
+/// fifteen- and sixteen-year-olds, created directly in its youth team.
+///
+/// `people::daily` only decides *when*; the youth domain owns creation, and
+/// every player made here is tagged `PlayerSource::AcademyIntake`, so the
+/// share of talent that bypasses the grassroots pipeline (`new_cohort`) is
+/// measurable. Draws are unchanged from when this lived in `people.rs`.
+pub fn academy_intake(w: &mut World, n: NationId) {
+    let today = w.date;
+    let youth_rating = f32::from(w.nations[n].youth_rating);
+    let t = w.data.tuning.squad.clone();
+    let clubs: Vec<ClubId> = w.clubs.iter_enumerated().filter(|(_, c)| c.nation == n).map(|(id, _)| id).collect();
+    for club in clubs {
+        let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(club.0), today.year() as u64]);
+        let c = &w.clubs[club];
+        let academy = f32::from(c.facilities.academy + c.facilities.youth) / 40.0;
+        let count = f32::from(t.youth_intake_min) + academy * f32::from(t.youth_intake_max - t.youth_intake_min) + rng.normal() * 1.2;
+        let count = count.round().clamp(1.0, f32::from(t.youth_intake_max) + 2.0) as usize;
+        let team = [TeamKind::U18, TeamKind::U19, TeamKind::U21, TeamKind::Reserve, TeamKind::First].iter().find_map(|&k| w.club_team(club, k));
+        let Some(team) = team else { continue };
+        let rep = f32::from(c.reputation);
+        let youth_fac = f32::from(c.facilities.youth);
+        for _ in 0..count {
+            let foreign = rng.chance(0.08);
+            let nation = if foreign { NationId(rng.below(w.nations.len() as u32)) } else { n };
+            let age_days = rng.range_i32(15 * 365 + 30, 16 * 365 + 200);
+            let dob = today.add_days(-age_days);
+            let pa = crate::people::intake_pa(youth_fac, youth_rating, rep, &mut rng);
+            let age = age_days as f32 / 365.25;
+            let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
+            let contract = Contract { club, kind: ContractKind::Youth, wage: (80.0 + rep / 40.0) as i64, start: today, end: dob.add_months(12 * 18 + 12), ..Default::default() };
+            let pos = gen_::random_position(&mut rng);
+            spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team, contract, source: PlayerSource::AcademyIntake }, &mut rng);
+        }
+        w.events.push(today, Visibility::Club(club), EventKind::YouthIntake { club, count: count as u8 });
     }
 }
 

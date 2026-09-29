@@ -451,7 +451,7 @@ pub fn load_dir_seeded(dir: &Path, pack: DataPack, seed: Option<u64>) -> Result<
             fitness: 85,
             ..PlayerHot::default()
         };
-        let pid = w.players.push(hot, cold);
+        let pid = w.players.push(hot, cold, pw_world::player::Origin { source: pw_world::player::PlayerSource::DatabaseImport, date: w.date });
         w.people[person].player = pid;
         if team.is_some() {
             w.teams[team].squad.push(pid);
