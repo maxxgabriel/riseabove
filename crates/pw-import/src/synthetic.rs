@@ -19,6 +19,8 @@ pub struct Scale {
 }
 
 impl Scale {
+    /// Four clubs in one division: the smallest world with a league, a cup, contracts and season rollover. For smoke tests.
+    pub const MICRO: Scale = Scale { nations: 1, divisions: 1, clubs_per_division: 4, youth_teams: false };
     pub const TINY: Scale = Scale { nations: 1, divisions: 1, clubs_per_division: 8, youth_teams: false };
     pub const SMALL: Scale = Scale { nations: 2, divisions: 2, clubs_per_division: 16, youth_teams: true };
     /// Roughly 300k players: 40 nations × 4 divisions × 22 clubs × (26 + 20 + 20).

@@ -68,22 +68,36 @@ pub fn fair_value(w: &World, club: ClubId, p: PlayerId) -> Money {
     price_formula(w, p, ca, pa)
 }
 
+/// The wage curve before any club's means are applied: weekly money for a player of this ability.
+fn wage_curve(ca: f32) -> f32 {
+    400.0 * exp(0.048 * (ca - 60.0))
+}
+
+/// How a club's means scale the wage curve: the board allows `wage_share` of revenue for wages, spread over a typical squad at the
+/// club's own standard, so a richer club pays more for the same ability and wages keep pace with revenue as both inflate.
+pub fn wage_pool_scale(w: &World, club: ClubId) -> f32 {
+    let revenue = crate::finance::season_revenue(w, club) as f32;
+    let pool = revenue * w.data.tuning.finance.wage_share / 52.0;
+    let ideal = ideal_ca(w.clubs[club].reputation);
+    let typical_squad = 24.0 * wage_curve(ideal - 6.0) * 1.2;
+    (pool / typical_squad).max(0.02)
+}
+
 /// Weekly wage a player expects at `club`.
 pub fn wage_demand(w: &World, p: PlayerId, club: ClubId) -> Money {
     let c = &w.players.cold[p];
     // The wage a player and his agent ask for follows how the market reads him, not his hidden ability.
     let ca = public_view(w, p).0;
-    let (econ, rep) = if club.is_some() {
-        let cl = &w.clubs[club];
-        (w.nations[cl.nation].economy, f32::from(cl.reputation) / 10_000.0)
-    } else {
-        (0.5, 0.3)
-    };
-    let index = if club.is_some() { w.economy.wage_index(w.clubs[club].nation) } else { w.economy.global() };
-    let base = 400.0 * exp(0.048 * (ca - 60.0)) * index;
-    let club_scale = 0.3 + 1.3 * rep;
     let fame = 1.0 + 0.5 * f32::from(c.rep.world) / 10_000.0;
-    ((base * club_scale * fame * econ.max(0.2)).max(150.0) as Money / 50) * 50
+    let wage = if club.is_some() {
+        let cached = w.clubs[club].finance.wage_scale;
+        let scale = if cached > 0.0 { cached } else { wage_pool_scale(w, club) };
+        wage_curve(ca) * scale * fame
+    } else {
+        // Nobody is paying yet: the ask of a player between clubs.
+        wage_curve(ca) * 0.3 * fame * w.economy.global()
+    };
+    (wage.max(150.0) as Money / 50) * 50
 }
 
 pub fn contract_years(age: u32) -> u8 {
@@ -133,6 +147,8 @@ pub fn monthly(w: &mut World) {
     for club in w.clubs.ids() {
         assign_statuses(w, club);
         plan_squad(w, club);
+        let scale = wage_pool_scale(w, club);
+        w.clubs[club].finance.wage_scale = scale;
     }
 }
 

@@ -1,0 +1,3 @@
+# `cargo xtask <quick|smoke|full|soak>` is the development workflow; see docs/DEV_WORKFLOW.md.
+[alias]
+xtask = "run --quiet --package xtask --"

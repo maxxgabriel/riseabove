@@ -1,0 +1,9 @@
+[package]
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# Deliberately no dependencies: the workflow runner must build in a second and never break because another crate did.
+[dependencies]

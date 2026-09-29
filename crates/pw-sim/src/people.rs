@@ -2,7 +2,7 @@
 //! become coaches.
 
 use pw_core::rng::{Rng, stream};
-use pw_core::{Attr, ClubId, Date, Foot, Hidden, NationId, PersonId, PlayerId, Pos, StaffAttr, StaffAttrs, StaffId};
+use pw_core::{Attr, ClubId, Date, Foot, Hidden, NationId, PersonId, PlayerId, Pos, StaffAttr, StaffAttrs, StaffId, TeamId};
 use pw_world::contract::ContractKind;
 use pw_world::event::{EventKind, Visibility};
 use pw_world::player::Reputation;
@@ -121,6 +121,66 @@ pub fn daily(w: &mut World) {
     }
     if today.month() == 7 && today.day() == 1 {
         retirements(w);
+        age_out(w);
+    }
+}
+
+/// July 1: players who have outgrown the side they play in step up or are let go. The club decides from its own reading of him (never
+/// his hidden ability): a player good enough for the club's standard joins the first team (or the reserves if that is full), everyone
+/// else is released and drifts into the amateur game. Without this, youth and reserve sides fill with adults nobody wants and the
+/// world's population grows without bound.
+fn age_out(w: &mut World) {
+    let mut moves: Vec<(PlayerId, TeamId)> = Vec::new();
+    let mut releases: Vec<PlayerId> = Vec::new();
+    for t in w.teams.ids() {
+        let kind = w.teams[t].kind;
+        if kind == TeamKind::First {
+            continue;
+        }
+        let club = w.teams[t].club;
+        let first = w.clubs[club].first_team();
+        let bar = crate::market::ideal_ca(w.clubs[club].reputation) - 12.0;
+        let room = usize::from(w.data.tuning.squad.first_team_max).saturating_sub(w.teams[first].squad.len());
+        let mut stepping_up = 0;
+        for &p in &w.teams[t].squad {
+            let h = &w.players.hot[p];
+            let who = w.players.cold[p].person;
+            if h.status != PlayerStatus::Active || w.people[who].mind != MindKind::Ai || w.players.cold[p].loan.is_some() {
+                continue;
+            }
+            let age = w.age(p);
+            let outgrown = match kind.max_age() {
+                Some(max) => age > max,
+                None => age >= 23,
+            };
+            if !outgrown {
+                continue;
+            }
+            let (ca, _, pa, _) = crate::scouting::view(w, club, p);
+            if ca >= bar - 8.0 || (age <= 23 && pa >= bar + 4.0) {
+                if stepping_up < room {
+                    stepping_up += 1;
+                    moves.push((p, first));
+                } else if let Some(reserve) = w.club_team(club, TeamKind::Reserve).filter(|&r| r != t) {
+                    moves.push((p, reserve));
+                } else {
+                    releases.push(p);
+                }
+            } else {
+                releases.push(p);
+            }
+        }
+    }
+    for (p, to) in moves {
+        let from = w.players.hot[p].team;
+        if from.is_some() {
+            w.teams[from].squad.retain(|&x| x != p);
+        }
+        w.teams[to].squad.push(p);
+        w.players.hot[p].team = to;
+    }
+    for p in releases {
+        contracts::release(w, p);
     }
 }
 

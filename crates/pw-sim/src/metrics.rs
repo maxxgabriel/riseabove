@@ -15,6 +15,13 @@ pub struct Snapshot {
     // population
     pub active_players: usize,
     pub free_agents: usize,
+    pub amateurs: usize,
+    /// Players registered with a club's first team, its reserves, and its youth sides (U16-U21).
+    pub in_first_teams: usize,
+    pub in_reserves: usize,
+    pub in_youth_sides: usize,
+    /// Players aged 22+ who are not in a first team (still in reserve or youth sides).
+    pub adults_below_first_team: usize,
     pub mean_age: f32,
     pub mean_ca: f32,
     pub p99_ca: f32,
@@ -84,8 +91,19 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
                     wages.push(wage as f64);
                 }
                 s.active_players += 1;
+                if h.team.is_some() {
+                    match w.teams[h.team].kind {
+                        pw_world::TeamKind::First => s.in_first_teams += 1,
+                        pw_world::TeamKind::Reserve => s.in_reserves += 1,
+                        _ => s.in_youth_sides += 1,
+                    }
+                    if w.age(p) >= 22 && w.teams[h.team].kind != pw_world::TeamKind::First {
+                        s.adults_below_first_team += 1;
+                    }
+                }
             }
             PlayerStatus::FreeAgent => s.free_agents += 1,
+            PlayerStatus::Amateur => s.amateurs += 1,
             _ => {}
         }
     }
@@ -312,12 +330,17 @@ fn money(v: f64) -> String {
 /// A plain-text table of the run, one row per year.
 pub fn render(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  active  age  meanCA  balMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
+    s.push_str("year  active  first  resv  youth  adult<1st  amat  age  meanCA  balMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>4.1} {:>7.1} {:>7} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
+            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>4.1} {:>7.1} {:>7} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
             r.year,
             r.active_players,
+            r.in_first_teams,
+            r.in_reserves,
+            r.in_youth_sides,
+            r.adults_below_first_team,
+            r.amateurs,
             r.mean_age,
             r.mean_ca,
             money(r.balance_median),
