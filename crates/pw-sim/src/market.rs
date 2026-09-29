@@ -76,9 +76,8 @@ fn wage_curve(ca: f32) -> f32 {
     400.0 * exp(0.048 * (ca - 60.0))
 }
 
-/// How a club's means scale the wage curve: the board allows `wage_share` of revenue for wages, and the scale is what makes the wage
-/// curve, applied to the players the market reads in the club's own first team, add up to exactly that. A richer club pays more for the
-/// same ability and wages keep pace with revenue as both inflate, whatever the squad's size or spread.
+/// Scale wages to the club's means and a complete first-team squad. Vacancies keep their share of the pool available for recruitment;
+/// they must not turn into automatic pay rises for the remaining players.
 pub fn wage_pool_scale(w: &World, club: ClubId) -> f32 {
     let revenue = crate::finance::season_revenue(w, club) as f32;
     let pool = revenue * w.data.tuning.finance.wage_share / 52.0;
@@ -91,10 +90,11 @@ pub fn wage_pool_scale(w: &World, club: ClubId) -> f32 {
             wage_curve(public_view(w, p).0) * fame
         })
         .sum();
-    if demand <= 0.0 {
-        // No squad to read: a typical one at the club's own standard.
-        demand = 24.0 * wage_curve(ideal_ca(w.clubs[club].reputation) - 6.0) * 1.2;
-    }
+    let target = usize::from(w.data.tuning.squad.first_team_target.max(1));
+    let count = w.teams[first].squad.len();
+    let typical = wage_curve(ideal_ca(w.clubs[club].reputation) - 6.0) * 1.2;
+    let vacancy = if count > 0 { (demand / count as f32).max(typical) } else { typical };
+    demand += target.saturating_sub(count) as f32 * vacancy;
     (pool / demand).max(0.02)
 }
 

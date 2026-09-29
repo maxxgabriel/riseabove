@@ -127,7 +127,7 @@ pub fn response(w: &World, id: u32, by: PersonId, r: Response, viewer: PersonId)
     }
 }
 
-fn capitalise(s: &str) -> String {
+pub(crate) fn capitalise(s: &str) -> String {
     let mut c = s.chars();
     match c.next() {
         Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),

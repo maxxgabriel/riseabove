@@ -79,6 +79,7 @@ pub mod pressroom;
 pub mod recognition;
 pub mod records;
 pub mod renown;
+pub mod retention;
 pub mod reputation;
 pub mod returns;
 pub mod responses;
@@ -442,5 +443,6 @@ fn compact(w: &mut World) {
     w.reports.retain(|uid, r| keep.contains(uid) || external.iter().any(|&p| r.line(p).is_some()));
     let today = w.date;
     w.social.prune(today, today.add_days(-3 * 365));
+    retention::yearly(w);
     w.ext.decisions.compact(today.add_days(-2 * 365));
 }

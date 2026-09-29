@@ -39,6 +39,9 @@ pub struct Snapshot {
     pub revenue_median: f64,
     pub wage_to_revenue_median: f32,
     pub wage_to_revenue_p90: f32,
+    /// Median weekly wage in first teams, separate from reserves and youth squads.
+    pub first_team_wage_median: f64,
+    /// Median weekly wage across all active contracted players.
     pub player_wage_median: f64,
     pub player_wage_p99: f64,
     // market
@@ -87,8 +90,85 @@ pub struct Snapshot {
     pub accounts: usize,
     pub events: usize,
     pub save_bytes: u64,
+    /// Six largest serialized world sections, included in balance reports to diagnose save growth.
+    pub top_sections: String,
     /// Structural problems found by `validate::problems` (dangling ids, double registrations, insane finances).
     pub structural_problems: usize,
+}
+
+/// Uncompressed serialized size of each world section, largest first. Used by the save-growth diagnostics, not by the simulation.
+pub fn section_sizes(w: &World) -> Vec<(&'static str, u64)> {
+    let mut sizes = vec![
+        ("seed", bincode::serialized_size(&w.seed).unwrap_or(0)),
+        ("date", bincode::serialized_size(&w.date).unwrap_or(0)),
+        ("data", bincode::serialized_size(&w.data).unwrap_or(0)),
+        ("names", bincode::serialized_size(&w.names).unwrap_or(0)),
+        ("nations", bincode::serialized_size(&w.nations).unwrap_or(0)),
+        ("people", bincode::serialized_size(&w.people).unwrap_or(0)),
+        ("players", bincode::serialized_size(&w.players).unwrap_or(0)),
+        ("staff", bincode::serialized_size(&w.staff).unwrap_or(0)),
+        ("clubs", bincode::serialized_size(&w.clubs).unwrap_or(0)),
+        ("teams", bincode::serialized_size(&w.teams).unwrap_or(0)),
+        ("comps", bincode::serialized_size(&w.comps).unwrap_or(0)),
+        ("fixtures", bincode::serialized_size(&w.fixtures).unwrap_or(0)),
+        ("knowledge", bincode::serialized_size(&w.knowledge).unwrap_or(0)),
+        ("events", bincode::serialized_size(&w.events).unwrap_or(0)),
+        ("history", bincode::serialized_size(&w.history).unwrap_or(0)),
+        ("stats", bincode::serialized_size(&w.stats).unwrap_or(0)),
+        ("decisions", bincode::serialized_size(&w.decisions).unwrap_or(0)),
+        ("market", bincode::serialized_size(&w.market).unwrap_or(0)),
+        ("social", bincode::serialized_size(&w.social).unwrap_or(0)),
+        ("talks", bincode::serialized_size(&w.talks).unwrap_or(0)),
+        ("beliefs", bincode::serialized_size(&w.beliefs).unwrap_or(0)),
+        ("lives", bincode::serialized_size(&w.lives).unwrap_or(0)),
+        ("agents", bincode::serialized_size(&w.agents).unwrap_or(0)),
+        ("media", bincode::serialized_size(&w.media).unwrap_or(0)),
+        ("meetings", bincode::serialized_size(&w.meetings).unwrap_or(0)),
+        ("intents", bincode::serialized_size(&w.intents).unwrap_or(0)),
+        ("governance", bincode::serialized_size(&w.governance).unwrap_or(0)),
+        ("economy", bincode::serialized_size(&w.economy).unwrap_or(0)),
+        ("careers", bincode::serialized_size(&w.careers).unwrap_or(0)),
+        ("scouting", bincode::serialized_size(&w.scouting).unwrap_or(0)),
+        ("deals", bincode::serialized_size(&w.deals).unwrap_or(0)),
+        ("youth", bincode::serialized_size(&w.youth).unwrap_or(0)),
+        ("intl", bincode::serialized_size(&w.intl).unwrap_or(0)),
+        ("medical", bincode::serialized_size(&w.medical).unwrap_or(0)),
+        ("ext", bincode::serialized_size(&w.ext).unwrap_or(0)),
+        ("rooms", bincode::serialized_size(&w.rooms).unwrap_or(0)),
+        ("perf", bincode::serialized_size(&w.perf).unwrap_or(0)),
+        ("growth", bincode::serialized_size(&w.growth).unwrap_or(0)),
+        ("honours", bincode::serialized_size(&w.honours).unwrap_or(0)),
+        ("renown", bincode::serialized_size(&w.renown).unwrap_or(0)),
+        ("affairs", bincode::serialized_size(&w.affairs).unwrap_or(0)),
+        ("commerce", bincode::serialized_size(&w.commerce).unwrap_or(0)),
+        ("culture", bincode::serialized_size(&w.culture).unwrap_or(0)),
+        ("grapevine", bincode::serialized_size(&w.grapevine).unwrap_or(0)),
+        ("incidents", bincode::serialized_size(&w.incidents).unwrap_or(0)),
+        ("agenda", bincode::serialized_size(&w.agenda).unwrap_or(0)),
+        ("recent_matches", bincode::serialized_size(&w.recent_matches).unwrap_or(0)),
+        ("pressroom", bincode::serialized_size(&w.pressroom).unwrap_or(0)),
+        ("net", bincode::serialized_size(&w.net).unwrap_or(0)),
+        ("inbox", bincode::serialized_size(&w.inbox).unwrap_or(0)),
+        ("minor", bincode::serialized_size(&w.minor).unwrap_or(0)),
+        ("records", bincode::serialized_size(&w.records).unwrap_or(0)),
+        ("acclaim", bincode::serialized_size(&w.acclaim).unwrap_or(0)),
+        ("officials", bincode::serialized_size(&w.officials).unwrap_or(0)),
+        ("evolution", bincode::serialized_size(&w.evolution).unwrap_or(0)),
+        ("backfill", bincode::serialized_size(&w.backfill).unwrap_or(0)),
+        ("origins", bincode::serialized_size(&w.origins).unwrap_or(0)),
+        ("reports", bincode::serialized_size(&w.reports).unwrap_or(0)),
+        ("days_simulated", bincode::serialized_size(&w.days_simulated).unwrap_or(0)),
+        ("followed", bincode::serialized_size(&w.followed).unwrap_or(0)),
+        ("prepared", bincode::serialized_size(&w.prepared).unwrap_or(0)),
+        ("playthrough", bincode::serialized_size(&w.playthrough).unwrap_or(0)),
+        ("dossiers", bincode::serialized_size(&w.dossiers).unwrap_or(0)),
+        ("boardroom", bincode::serialized_size(&w.boardroom).unwrap_or(0)),
+        ("adaptation", bincode::serialized_size(&w.adaptation).unwrap_or(0)),
+        ("tactics", bincode::serialized_size(&w.tactics).unwrap_or(0)),
+        ("lifestate", bincode::serialized_size(&w.lifestate).unwrap_or(0)),
+    ];
+    sizes.sort_by(|a, b| b.1.cmp(&a.1));
+    sizes
 }
 
 fn pct<T: Copy + PartialOrd>(v: &mut [T], q: f32) -> Option<T> {
@@ -104,6 +184,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     let mut s = Snapshot { year, date: w.date.0, ..Default::default() };
     // Players.
     let (mut ages, mut cas, mut wages, mut fame): (Vec<f32>, Vec<f32>, Vec<f64>, Vec<f32>) = (vec![], vec![], vec![], vec![]);
+    let mut first_team_wages: Vec<f64> = Vec::new();
     for p in w.players.ids() {
         let h = &w.players.hot[p];
         match h.status {
@@ -115,6 +196,9 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
                 let wage = c.contract.current_wage(w.date);
                 if wage > 0 {
                     wages.push(wage as f64);
+                    if h.team.is_some() && w.teams[h.team].kind == pw_world::TeamKind::First {
+                        first_team_wages.push(wage as f64);
+                    }
                 }
                 s.active_players += 1;
                 if h.team.is_some() {
@@ -141,6 +225,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.mean_ca = mean(&cas);
     s.p99_ca = pct(&mut cas.clone(), 0.99).unwrap_or(0.0);
     s.player_wage_median = pct(&mut wages.clone(), 0.5).unwrap_or(0.0);
+    s.first_team_wage_median = pct(&mut first_team_wages, 0.5).unwrap_or(0.0);
     s.player_wage_p99 = pct(&mut wages, 0.99).unwrap_or(0.0);
     s.fame_mean = mean(&fame);
     s.fame_p99 = pct(&mut fame.clone(), 0.99).unwrap_or(0.0);
@@ -197,7 +282,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
             }
             EventKind::LoanMove { .. } => s.loans += 1,
             EventKind::Retired { .. } => s.retirements += 1,
-            EventKind::YouthIntake { .. } => s.youth_intakes += 1,
+            EventKind::YouthIntake { count, .. } => s.youth_intakes += u32::from(count),
             EventKind::ManagerSacked { .. } => s.sackings += 1,
             _ => {}
         }
@@ -240,6 +325,12 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.accounts = w.net.accounts.len();
     s.events = w.events.len();
     s.save_bytes = bincode::serialized_size(w).unwrap_or(0);
+    s.top_sections = section_sizes(w)
+        .into_iter()
+        .take(6)
+        .map(|(name, bytes)| format!("{name} {:.1}", bytes as f64 / 1e6))
+        .collect::<Vec<_>>()
+        .join(", ");
     s.structural_problems = crate::validate::problems(w).len();
     s
 }
@@ -314,11 +405,11 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     } else if last.wage_to_revenue_median > 0.85 {
         flag(Level::Warn, "wages", format!("the median club pays {:.0}% of its revenue in wages", last.wage_to_revenue_median * 100.0));
     }
-    if let Some(g) = yearly_growth(&series(&|s| s.player_wage_median)) {
+    if let Some(g) = yearly_growth(&series(&|s| s.first_team_wage_median)) {
         if g > 12.0 {
-            flag(Level::Problem, "wages", format!("median player wage inflates {g:.0}% a year"));
+            flag(Level::Problem, "wages", format!("median first-team wage inflates {g:.0}% a year"));
         } else if g > 6.0 {
-            flag(Level::Warn, "wages", format!("median player wage inflates {g:.0}% a year"));
+            flag(Level::Warn, "wages", format!("median first-team wage inflates {g:.0}% a year"));
         }
     }
     // Fees: a median of a handful of deals says nothing, so only years with a real market count.
@@ -405,10 +496,10 @@ fn money(v: f64) -> String {
 /// A plain-text table of the run, one row per year.
 pub fn render(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  active  first  resv  youth  adult<1st  free  amat  sqd  sqdMax  age  meanCA  balMed   revMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  settle(n/s) planfail chain(w/d/f) sig  apt(min/mean/max)  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
+    s.push_str("year  active  first  resv  youth  adult<1st  free  amat  sqd  sqdMax  age  meanCA  balMed   revMed   inDebt  wage/rev  wageFT  wageAll fee50  fee90   feeMax  settle(n/s) planfail chain(w/d/f) sig  apt(min/mean/max)  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>5} {:>5.1} {:>6} {:>4.1} {:>7.1} {:>7} {:>8} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6}/{:<4} {:>8} {:>3}/{}/{} {:>4} {:>4.2}/{:.2}/{:.2} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
+            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>5} {:>5.1} {:>6} {:>4.1} {:>7.1} {:>7} {:>8} {:>7} {:>8.2} {:>7} {:>7} {:>6} {:>6} {:>8} {:>6}/{:<4} {:>8} {:>3}/{}/{} {:>4} {:>4.2}/{:.2}/{:.2} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
             r.year,
             r.active_players,
             r.in_first_teams,
@@ -425,6 +516,7 @@ pub fn render(run: &[Snapshot]) -> String {
             money(r.revenue_median),
             r.clubs_in_debt,
             r.wage_to_revenue_median,
+            money(r.first_team_wage_median),
             money(r.player_wage_median),
             money(r.fee_median),
             money(r.fee_p90),
@@ -450,6 +542,9 @@ pub fn render(run: &[Snapshot]) -> String {
             r.save_bytes as f64 / 1e6,
         ));
     }
+    for r in run {
+        s.push_str(&format!("  save y{}: {}\n", r.year, r.top_sections));
+    }
     s
 }
 
@@ -464,6 +559,7 @@ mod tests {
                 active_players: 1000,
                 clubs: 50,
                 balance_median: 5e6,
+                first_team_wage_median: 5000.0,
                 player_wage_median: 5000.0,
                 fee_median: 1e6,
                 transfers: 40,
@@ -496,7 +592,7 @@ mod tests {
         for (i, s) in run.iter_mut().enumerate() {
             let k = 1.5f64.powi(i as i32);
             s.balance_median *= k;
-            s.player_wage_median *= 1.25f64.powi(i as i32);
+            s.first_team_wage_median *= 1.25f64.powi(i as i32);
             s.fee_median *= 1.3f64.powi(i as i32);
             s.save_bytes = (50_000_000.0 * 1.6f64.powi(i as i32)) as u64;
         }

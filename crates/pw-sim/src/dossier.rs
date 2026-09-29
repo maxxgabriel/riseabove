@@ -396,23 +396,57 @@ fn revised(w: &World, old: Option<&Dossier>, mut new: Dossier) -> Dossier {
     new
 }
 
-/// Monthly: rebuild the dossiers of everyone a club has a reason to have an opinion on (its own people, shortlisted targets, players
-/// its scouts have reported on), keep their history, prune the stale, and log old readings to be checked later.
-pub fn monthly(w: &mut World) {
-    let today = w.date;
+/// Recent scouting reports a club keeps a full written assessment for.
+const MAX_REPORTED: usize = 300;
+/// Keep a last assessment briefly after the club no longer has a current reason to hold it.
+const KEEP_AFTER_LEAVING_DAYS: i32 = 120;
+
+/// Players for whom a club has a current reason to keep a full dossier: its first team and reserves, shortlisted targets, open deals,
+/// and its most recently reported players. Other pages use the club's general scouting view instead.
+pub fn wanted(w: &World) -> Vec<(ClubId, PlayerId)> {
+    let reportable = |p: PlayerId| {
+        let h = &w.players.hot[p];
+        matches!(h.status, PlayerStatus::Active | PlayerStatus::FreeAgent) && !(h.team.is_some() && w.teams[h.team].kind.is_youth())
+    };
     let mut wanted: Vec<(ClubId, PlayerId)> = Vec::new();
     for c in w.clubs.ids() {
         for &t in &w.clubs[c].teams {
-            wanted.extend(w.teams[t].squad.iter().map(|&p| (c, p)));
+            if matches!(w.teams[t].kind, pw_world::TeamKind::First | pw_world::TeamKind::Reserve) {
+                wanted.extend(w.teams[t].squad.iter().copied().filter(|&p| w.players.hot[p].status != PlayerStatus::Retired).map(|p| (c, p)));
+            }
         }
     }
     for (&(club, _), sl) in &w.deals.shortlists {
-        wanted.extend(sl.targets.iter().map(|&(p, _)| (club, p)));
+        wanted.extend(sl.targets.iter().map(|&(p, _)| (club, p)).filter(|&(_, p)| w.players.hot[p].status != PlayerStatus::Retired));
     }
-    wanted.extend(w.scouting.reports.keys().copied());
+    wanted.extend(w.deals.deals.iter().filter(|d| d.is_open()).map(|d| (d.buyer, d.player)));
+
+    let mut by_club: rustc_hash::FxHashMap<ClubId, Vec<(pw_core::Date, PlayerId)>> = rustc_hash::FxHashMap::default();
+    for (&(club, player), reports) in &w.scouting.reports {
+        if reportable(player)
+            && let Some(newest) = reports.iter().map(|r| r.date).max()
+        {
+            by_club.entry(club).or_default().push((newest, player));
+        }
+    }
+    let mut clubs: Vec<ClubId> = by_club.keys().copied().collect();
+    clubs.sort();
+    for club in clubs {
+        let reports = by_club.get_mut(&club).expect("club was collected above");
+        reports.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+        wanted.extend(reports.iter().take(MAX_REPORTED).map(|&(_, player)| (club, player)));
+    }
+
     wanted.sort();
     wanted.dedup();
-    wanted.retain(|&(_, p)| w.players.hot[p].status != PlayerStatus::Retired);
+    wanted.retain(|&(_, p)| !matches!(w.players.hot[p].status, PlayerStatus::Retired | PlayerStatus::Amateur));
+    wanted
+}
+
+/// Monthly: rebuild current dossiers, keep their short history, prune stale readings, and queue old readings to be checked later.
+pub fn monthly(w: &mut World) {
+    let today = w.date;
+    let wanted = wanted(w);
 
     let mut fresh: Vec<Dossier> = Vec::with_capacity(wanted.len());
     for &(club, p) in &wanted {
@@ -421,7 +455,7 @@ pub fn monthly(w: &mut World) {
         }
     }
     let keep: rustc_hash::FxHashSet<(ClubId, PlayerId)> = wanted.iter().copied().collect();
-    w.dossiers.map.retain(|k, d| keep.contains(k) || d.date.days_until(today) < 365);
+    w.dossiers.map.retain(|k, d| keep.contains(k) || (d.date.days_until(today) < KEEP_AFTER_LEAVING_DAYS && w.players.hot[k.1].status != PlayerStatus::Retired));
     // A year-old reading of a young player is worth checking later; log one per evaluator per player.
     if today.month() == 1 {
         for d in &fresh {

@@ -582,7 +582,7 @@ fn close_old(w: &mut World) {
 /// journalists whose stories rest on them (so every story's source path
 /// stays checkable, even after its journalist leaves the trade).
 pub fn compact(w: &mut World) {
-    let before = w.date.add_days(-180);
+    let today = w.date;
     let mut cited: FxHashSet<(u32, PersonId)> = FxHashSet::default();
     for s in w.media.stories.iter() {
         if let Cause::Fact(Fact::Heard { info, .. }) = s.source {
@@ -590,16 +590,30 @@ pub fn compact(w: &mut World) {
         }
     }
     for it in w.grapevine.items.iter_mut() {
-        if it.closed && it.date < before && it.holders.len() > 4 {
+        let age = it.date.days_until(today);
+        let keep = if age > 730 {
+            0
+        } else if age > 365 {
+            2
+        } else {
+            4
+        };
+        if it.closed && age > 180 && it.holders.len() > keep {
             let mut i = 0;
             let id = it.id;
             it.holders.retain(|k| {
                 i += 1;
-                i <= 4 || cited.contains(&(id, k.person))
+                i <= keep || cited.contains(&(id, k.person))
             });
+            it.holders.shrink_to_fit();
         }
     }
-    w.grapevine.by_person.retain(|_, v| !v.is_empty());
+    // `known_by` reads this bounded index. Remove entries whose holder was compacted, or a person could keep stale private knowledge.
+    let items = &w.grapevine.items;
+    w.grapevine.by_person.retain(|person, ids| {
+        ids.retain(|id| items.get(*id as usize).is_some_and(|item| item.knows(*person)));
+        !ids.is_empty()
+    });
 }
 
 /// Does `person` know something about `player` that has not been published?

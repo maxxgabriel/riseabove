@@ -134,7 +134,7 @@ pub fn headline(w: &World, s: &Story) -> String {
             Some(it) => match it.kind {
                 pw_world::info::InfoKind::Incident { incident } => {
                     let t = crate::incidents::summary(w, incident, false, loud);
-                    let t = t.strip_prefix("that ").unwrap_or(&t).to_string();
+                    let t = crate::incidents::capitalise(t.strip_prefix("that ").unwrap_or(&t));
                     crate::lexicon::loud(&voice(w, s), &t)
                 }
                 _ => format!("Incident at {}", club_short(w, s.club)),

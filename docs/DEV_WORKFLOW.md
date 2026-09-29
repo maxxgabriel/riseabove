@@ -7,7 +7,7 @@ It is now seconds. **No test was removed, weakened or ignored to get there**: th
 | --- | --- | --- | --- |
 | **QUICK** | after every small change | `cargo xtask quick` | 0.2 s no-op, 2-6 s after an edit |
 | **SMOKE** | after a coherent block of work | `cargo xtask smoke` | 3.4 s |
-| **FULL** | when the work is stable | `cargo xtask full` | about 3.5 min |
+| **FULL** | when the work is stable | `cargo xtask full` | 8m52 on the latest integrated tree; timings vary by cache and host |
 | **SOAK** | major checkpoints, or when long-run balance may have moved | `cargo xtask soak ...` | minutes, on demand |
 
 `cargo xtask help` lists everything. Every step prints its output and elapsed time and the command stops at the first failure.
@@ -91,6 +91,8 @@ debug info made each relink of the big test binaries dominate (123 s to 8.6 s af
 | SMOKE, first run after switching profile | n/a | 39 s (compiles four test targets) |
 | SMOKE, steady state | n/a | 3.4 s |
 | FULL | not measured before (no single command existed) | 3 m 38 s (all tests, type-check and the simulation; tests 148 s, check 35 s, sim 34 s) |
+| Latest FULL, 398 tests plus all-target check and 3-seed tiny balance | n/a | 8 m 52 s |
+| Real archive SOAK, 3 years, 1 seed, with archive checks | n/a | 13 m 02 s (9 m 48 balance; 3 m 09 archive-check step, including a 2 m 56 cold test build) |
 | Release build of `pathway-sim` (cold) | 1 m 32 s | 1 m 32 s (unchanged) |
 | Release build, nothing changed | 0.2 s | 0.2 s |
 | `balance micro --years 2` | 0.74 s via `cargo run` | 0.57 s direct |
