@@ -442,9 +442,11 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
     }
     // Club reputation: percentile of squad value among all imported clubs (INFERRED).
     let vals: Vec<f64> = clubs.iter().map(|c| c.squad_value.unwrap_or(0) as f64).collect();
+    let mut value_pct: FxHashMap<Key, f64> = FxHashMap::default();
     for (c, p) in clubs.iter_mut().zip(percentiles(&vals)) {
         if c.squad_value.is_some() {
             c.reputation = Some((2200.0 + 7300.0 * p.powf(1.35)).round() as u16);
+            value_pct.insert(c.key.clone(), p);
         }
     }
     // Nation strength: the eight strongest clubs' squad values (leagues), or the 25 best players' values.
@@ -475,11 +477,13 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
     let league_strengths: Vec<f64> = strengths.iter().filter(|s| s.2).map(|s| s.1).collect();
     let league_pct = percentiles(&league_strengths);
     let mut li = 0;
+    let mut nation_league_pct: FxHashMap<Key, f64> = FxHashMap::default();
     let mut nation_rep: FxHashMap<Key, (u16, f32, u8)> = FxHashMap::default();
     for (k, s, has_league) in &strengths {
         let (rep, econ) = if *has_league {
             let p = league_pct[li];
             li += 1;
+            nation_league_pct.insert(k.clone(), p);
             (3800.0 + 5200.0 * p.powf(0.9), 0.25 + 0.75 * p.powf(1.2))
         } else {
             let p = (s.max(1.0).ln() / 22.0).clamp(0.0, 1.0);
@@ -607,6 +611,30 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
                 nation.calendar = Some(if spring * 2 > months.len() { "calendar_year" } else { "autumn_spring" }.to_string());
             }
         }
+        // Club standing gets a second, independent input: where the club finished in its own league last season. Squad value alone
+        // would count the same price signal twice once it also feeds each player's ability (locked design §11.14).
+        let mut position_pct: FxHashMap<Key, f64> = FxHashMap::default();
+        for ((comp, season), tab) in &tables {
+            if *season != newest {
+                continue;
+            }
+            let mut ppg: Vec<(&Key, f64)> = tab.iter().filter(|(_, r)| r.games >= 10).map(|(club, r)| (club, f64::from(r.pts) / f64::from(r.games))).collect();
+            if ppg.len() < 6 {
+                continue;
+            }
+            ppg.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(b.0)));
+            let n = ppg.len() as f64 - 1.0;
+            for (i, (club, _)) in ppg.into_iter().enumerate() {
+                position_pct.insert(club.clone(), i as f64 / n);
+            }
+            let _ = comp;
+        }
+        for c in &mut clubs {
+            if let (Some(pv), Some(pp), Some(np)) = (value_pct.get(&c.key), position_pct.get(&c.key), c.nation.as_ref().and_then(|n| nation_league_pct.get(n))) {
+                let blend = 0.65 * pv + 0.35 * (0.5 * np + 0.5 * pp);
+                c.reputation = Some((2200.0 + 7300.0 * blend.powf(1.35)).round() as u16);
+            }
+        }
         let mut keys: Vec<_> = tables.keys().cloned().collect();
         keys.sort();
         for k in keys {
@@ -651,6 +679,9 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
                 ids
             };
             let mut tot: FxHashMap<Key, (u32, u32)> = FxHashMap::default();
+            // Minutes in the year before the start: the level of football a player is actually trusted with.
+            let mut recent: FxHashMap<Key, u32> = FxHashMap::default();
+            let window_from = start.add_days(-365);
             let mut scorers: FxHashMap<(Key, i32), FxHashMap<String, (String, u32)>> = FxHashMap::default();
             let season_ids: FxHashSet<(Key, i32)> = set.seasons.iter().map(|s| (s.comp.clone(), s.season)).collect();
             t.for_each(|_, r| {
@@ -664,6 +695,9 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
                     let e = tot.entry(pid.to_string()).or_default();
                     e.0 += 1;
                     e.1 += goals;
+                    if r.date("date").is_some_and(|d| d > window_from && d <= start) {
+                        *recent.entry(pid.to_string()).or_default() += r.num::<u32>("minutes_played").unwrap_or(0);
+                    }
                 }
                 if goals > 0
                     && let Some((c, s)) = game_meta.get(r.s("game_id").as_ref())
@@ -678,6 +712,8 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
                     p.apps = Some(a);
                     p.goals = Some(g);
                 }
+                // The file covers the modelled leagues' matches, so no rows in the window means no minutes there.
+                p.minutes_12m = Some(recent.get(&p.key).copied().unwrap_or(0));
             }
             for s in &mut set.seasons {
                 if let Some(best) = scorers.get(&(s.comp.clone(), s.season)).and_then(|m| m.values().max_by(|a, b| a.1.cmp(&b.1).then(b.0.cmp(&a.0)))) {

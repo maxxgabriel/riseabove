@@ -364,3 +364,45 @@ fn parsed_set_can_be_adjusted_before_building() {
     assert_eq!(w.players.len(), 100);
     assert_eq!(set.issues.total(Severity::Error), 0);
 }
+
+fn digest(w: &pw_world::World) -> Vec<(String, u8, u8, i32)> {
+    let mut v: Vec<_> = w.players.cold.iter().map(|c| (w.people[c.person].display_name(&w.names).to_string(), c.ca, c.pa, w.people[c.person].dob.0)).collect();
+    v.sort();
+    v
+}
+
+#[test]
+fn same_input_and_seed_build_the_same_world_and_a_new_seed_changes_only_what_was_generated() {
+    let a = Archive::standard();
+    let dir = a.write("determinism");
+    let build = |seed| load_dir_with(&dir, DataPack::builtin(), Some(seed), LoadOptions::default()).unwrap().0;
+    let (w1, w2, w3) = (build(5), build(5), build(6));
+    assert_eq!(digest(&w1), digest(&w2), "same input and seed: identical worlds");
+    // Another seed keeps every imported fact (names, birth dates, clubs) and re-draws the estimated ones.
+    let facts = |w: &pw_world::World| {
+        let mut v: Vec<_> = w.players.cold.iter().map(|c| (w.people[c.person].display_name(&w.names).to_string(), w.people[c.person].dob.0, c.value)).collect();
+        v.sort();
+        v
+    };
+    assert_eq!(facts(&w1), facts(&w3), "imported facts do not depend on the seed");
+    assert_ne!(digest(&w1), digest(&w3), "estimated ability is drawn from the seed");
+}
+
+#[test]
+fn ability_follows_the_evidence_but_is_not_a_function_of_price() {
+    let (w, _) = load(&Archive::standard(), "evidence");
+    let mut pairs: Vec<(f32, f32)> = w.players.cold.iter().map(|c| ((c.value.max(1) as f32).ln(), f32::from(c.ca))).collect();
+    pairs.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let (xs, ys): (Vec<f32>, Vec<f32>) = pairs.into_iter().unzip();
+    let n = xs.len() as f32;
+    let (mx, my) = (xs.iter().sum::<f32>() / n, ys.iter().sum::<f32>() / n);
+    let cov: f32 = xs.iter().zip(&ys).map(|(x, y)| (x - mx) * (y - my)).sum();
+    let r = cov / (xs.iter().map(|x| (x - mx).powi(2)).sum::<f32>().sqrt() * ys.iter().map(|y| (y - my).powi(2)).sum::<f32>().sqrt());
+    assert!((0.4..0.97).contains(&r), "value and ability are related without being one and the same: r = {r:.2}");
+    // Two players with the very same value differ in ability.
+    let mut by_value: std::collections::HashMap<i64, Vec<u8>> = Default::default();
+    for c in w.players.cold.iter() {
+        by_value.entry(c.value).or_default().push(c.ca);
+    }
+    assert!(by_value.values().any(|v| v.len() > 1 && v.iter().any(|x| *x != v[0])), "equal prices, different abilities");
+}

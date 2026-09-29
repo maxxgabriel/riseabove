@@ -272,14 +272,28 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
     }
 
     // ---- players ----------------------------------------------------------------------------------------
-    // Typical ability per club from the values its imported players carry, for players whose own value is missing.
-    let mut club_values: FxHashMap<&str, Vec<f64>> = FxHashMap::default();
+    // Evidence that does not depend on the absolute price: where each player sits in his own club's value order (league price
+    // levels cancel out) and how much his club uses the most-used player.
+    let mut by_club: FxHashMap<&str, Vec<(&str, f64)>> = FxHashMap::default();
+    let mut club_max_minutes: FxHashMap<&str, u32> = FxHashMap::default();
     for p in &set.players {
-        if let (Some(c), Some(v)) = (&p.club, p.value) {
-            club_values.entry(c).or_default().push(v as f64);
+        let Some(c) = &p.club else { continue };
+        if let Some(v) = p.value {
+            by_club.entry(c).or_default().push((&p.key, v as f64));
+        }
+        if let Some(m) = p.minutes_12m {
+            let e = club_max_minutes.entry(c).or_default();
+            *e = (*e).max(m);
         }
     }
-    let club_level: FxHashMap<&str, f32> = club_values.iter_mut().filter_map(|(k, v)| infer::club_level(v).map(|l| (*k, l))).collect();
+    let mut value_rank: FxHashMap<&str, f32> = FxHashMap::default();
+    for list in by_club.values_mut() {
+        list.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(b.0)));
+        let n = list.len().max(2) as f32 - 1.0;
+        for (i, (key, _)) in list.iter().enumerate() {
+            value_rank.insert(key, i as f32 / n);
+        }
+    }
 
     let mut spells_by_player: FxHashMap<&str, Vec<&ImpSpell>> = FxHashMap::default();
     for s in &set.spells {
@@ -312,20 +326,25 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
         mark.mark(Facet::Position, pos_origin);
         let natural = naturals[0];
 
-        // Ability: stated, else from market value, else from the club's level.
-        let (target, target_origin, value_pa) = if let Some(ca) = p.ca {
+        // Ability: stated, else estimated from several kinds of evidence (never from price alone) and sampled from that
+        // estimate with the world's seed, so value cannot decide ability exactly (locked design §11.2-11.3).
+        let (target, target_origin, sampled_pa) = if let Some(ca) = p.ca {
             (ca, Origin::Imported, None)
-        } else if let Some(v) = p.value {
-            let (ca, pa) = infer::ability_from_value(v as f64, age);
-            (ca, Origin::Inferred, Some(pa))
         } else {
-            let level = p.club.as_deref().and_then(|c| club_level.get(c)).copied().unwrap_or_else(|| {
-                let league = if club.is_some() { w.clubs[club].league } else { CompId::NONE };
-                infer::league_level(if league.is_some() { w.comps[league].reputation } else { 1000 })
+            let club_level = if club.is_some() { pw_sim::market::ideal_ca(w.clubs[club].reputation) - 6.0 } else { infer::league_level(1000) };
+            let max_minutes = p.club.as_deref().and_then(|c| club_max_minutes.get(c)).copied().unwrap_or(0);
+            let est = infer::estimate(&infer::Evidence {
+                age,
+                value: p.value.map(|v| v as f64),
+                value_rank_in_club: value_rank.get(p.key.as_str()).copied(),
+                minutes: p.minutes_12m.map(|m| (m, if max_minutes > 0 { m as f32 / max_minutes as f32 } else { 0.0 })),
+                caps: p.caps.unwrap_or(0),
+                club_level,
             });
-            let share = ca_share_at(age);
-            let young = if age < 27.0 { share + (1.0 - share) * 0.35 } else { 1.0 };
-            ((level * young + rng.normal() * 7.0).clamp(20.0, 190.0), Origin::Generated, None)
+            let ca = rng.normal_ms(est.ca_mean, est.ca_sd).clamp(20.0, 195.0);
+            let pa = rng.normal_ms(est.pa_mean, est.pa_sd).clamp(ca, 200.0);
+            let origin = if est.informed { Origin::Inferred } else { Origin::Generated };
+            (ca, origin, Some((pa, origin)))
         };
 
         let known_attrs = p.attrs.len();
@@ -423,12 +442,12 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
         cold.refresh_ca(&w.data.weights);
         // Potential.
         let ours = f32::from(cold.ca);
-        let (pa, pa_origin) = match (p.pa, p.ca, value_pa) {
+        let (pa, pa_origin) = match (p.pa, p.ca, sampled_pa) {
             (Some(pa), Some(ca), _) if ca > 0.0 => {
                 let pa = f32::from(resolve_pa(pa, ca.min(200.0) as u8, &mut rng));
                 (ours * pa / ca, Origin::Imported)
             }
-            (_, _, Some(vpa)) => (vpa * rng.normal_ms(1.0, 0.03).clamp(0.92, 1.08).max(ours / vpa.max(1.0)), Origin::Inferred),
+            (_, _, Some((sampled, origin))) => (sampled, origin),
             _ => (ours / ca_share_at(age) * rng.normal_ms(1.0, 0.1), Origin::Generated),
         };
         cold.pa = pa.round().clamp(ours, 200.0) as u8;

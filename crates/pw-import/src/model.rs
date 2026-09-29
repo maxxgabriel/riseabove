@@ -214,6 +214,8 @@ pub struct ImpPlayer {
     pub intl_goals: Option<u16>,
     pub apps: Option<u32>,
     pub goals: Option<u32>,
+    /// Minutes played in the twelve months before the start date, when the source covers matches.
+    pub minutes_12m: Option<u32>,
     pub agent: Option<String>,
     /// When the player joined the current club, if the source says.
     pub joined: Option<Date>,
@@ -257,6 +259,7 @@ impl ImpPlayer {
             intl_goals: None,
             apps: None,
             goals: None,
+            minutes_12m: None,
             agent: None,
             joined: None,
         }
