@@ -483,10 +483,11 @@ fn react(w: &mut World, who: PersonId, info: u32) {
             }
         }
         InfoKind::Unhappy { player, .. } | InfoKind::Discipline { player, .. } | InfoKind::DressingRoom { leader: player, .. } | InfoKind::ContractTalks { player, .. } => {
-            // An agent who hears a client is unsettled starts sounding out clubs.
+            // An agent who hears a client is unsettled starts sounding out clubs
+            // (talks that are merely going on are not unrest).
             if let Some(a) = w.agents.agent_of(player)
                 && w.agents.list[a].person == who
-                && !w.grapevine.known_by(who).any(|i| matches!(i.kind, InfoKind::Exploring { player: q, .. } if q == player) && i.date.days_until(today) < 60)
+                && !matches!(item.kind, InfoKind::ContractTalks { stalling: false, .. })
             {
                 crate::agents::explore(w, a, player, ev);
             }

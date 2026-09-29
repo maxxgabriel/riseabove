@@ -168,20 +168,30 @@ fn a_human_posts_and_replies_through_the_same_systems() {
 
 #[test]
 fn referees_are_not_biased_even_when_supporters_think_so() {
-    let s = ran(Scale::SMALL, 17, 700);
-    let w = &s.world;
-    // Correctness must not depend on which side a call went against.
+    // Correctness must not depend on which side a call went against. Every
+    // disputed call over two seasons in three worlds, compared with a
+    // binomial tolerance (four standard errors).
     let (mut home, mut away) = ((0u32, 0u32), (0u32, 0u32));
-    for c in &w.officials.controversies {
-        let Some(m) = w.recent_matches.by_uid(c.uid) else { continue };
-        let slot = if c.against == m.home { &mut home } else { &mut away };
-        slot.0 += 1;
-        slot.1 += u32::from(c.correct);
+    let mut believed_total = 0;
+    for seed in [17u64, 18, 19] {
+        let s = ran(Scale::SMALL, seed, 700);
+        for c in &s.world.officials.controversies {
+            let slot = if c.against_home { &mut home } else { &mut away };
+            slot.0 += 1;
+            slot.1 += u32::from(c.correct);
+        }
+        // Supporters may believe otherwise; that is allowed and recorded.
+        let believed = s.world.officials.grievance.values().filter(|&&g| g >= 400).count();
+        println!("seed {seed}: grievances amounting to perceived bias: {believed}");
+        believed_total += believed;
     }
-    if home.0 >= 30 && away.0 >= 30 {
-        let (rh, ra) = (home.1 as f32 / home.0 as f32, away.1 as f32 / away.0 as f32);
-        assert!((rh - ra).abs() < 0.15, "correct-call rate home {rh:.2} vs away {ra:.2}");
-    }
+    assert!(believed_total > 0, "supporters never came to believe in a biased referee");
+    let (rh, ra) = (home.1 as f64 / home.0.max(1) as f64, away.1 as f64 / away.0.max(1) as f64);
+    let p = (home.1 + away.1) as f64 / (home.0 + away.0).max(1) as f64;
+    let se = (p * (1.0 - p) * (1.0 / home.0.max(1) as f64 + 1.0 / away.0.max(1) as f64)).sqrt();
+    println!("calls against home {} ({rh:.3} correct), against away {} ({ra:.3} correct)", home.0, away.0);
+    assert!(home.0 >= 100 && away.0 >= 100, "enough calls to judge");
+    assert!((rh - ra).abs() <= 4.0 * se, "correct-call rate home {rh:.3} vs away {ra:.3} (se {se:.3})");
 }
 
 #[test]

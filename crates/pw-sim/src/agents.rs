@@ -121,7 +121,7 @@ pub fn hire(w: &mut World, p: PlayerId, a: AgentId) {
     let agent_person = agent.person;
     drop_agent(w, p);
     w.agents.list[a].clients.push(p);
-    w.agents.of_player.insert(p, Representation { agent: a, since: today, until: today.add_months(24), fee_pct, last_pitch: today, satisfaction: 60 });
+    w.agents.of_player.insert(p, Representation { agent: a, since: today, until: today.add_months(24), fee_pct, last_pitch: today, satisfaction: 60, explored: pw_core::Date(0) });
     let who = w.players.cold[p].person;
     w.events.push(today, Visibility::Person(who), EventKind::AgentHired { player: p, agent: a });
     let compat = consider::compat(w, who, agent_person);
@@ -272,6 +272,11 @@ fn pitch(w: &mut World, a: AgentId, p: PlayerId, needy: &[ClubId], rng: &mut Rng
 /// — which is itself information that can travel.
 pub fn explore(w: &mut World, a: AgentId, p: PlayerId, cause: EventId) {
     let today = w.date;
+    // One round of soundings at a time: the agent is already on it.
+    match w.agents.of_player.get_mut(&p) {
+        Some(r) if r.explored.0 == 0 || r.explored.days_until(today) >= 180 => r.explored = today,
+        _ => return,
+    }
     let agent = w.agents.list[a].person;
     let needy: Vec<ClubId> = w.clubs.ids().filter(|&c| !w.clubs[c].market.needs.is_empty()).collect();
     let mut rng = w.rng(stream::AGENT, &[u64::from(a.0), u64::from(p.0), pw_core::rng::period::week(today), 0xe8]);

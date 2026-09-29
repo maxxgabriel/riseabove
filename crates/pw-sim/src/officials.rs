@@ -219,7 +219,21 @@ pub fn after_match(w: &mut World, fx: &Fixture, r: &MatchResult) {
         let late = if minute >= 80 { 15.0 } else { 0.0 };
         let grievance = ((if correct { 20.0 } else { 60.0 }) + tribal * 25.0 + late + hostility * (1.0 - composure) * 10.0).clamp(0.0, 100.0) as u8;
         let id = w.officials.controversies.len() as u32;
-        w.officials.controversies.push(Controversy { id, uid: fx.uid, date: today, referee: rid, kind, player, against, benefited, minute, correct, grievance, appeal: None });
+        w.officials.controversies.push(Controversy {
+            id,
+            uid: fx.uid,
+            date: today,
+            referee: rid,
+            kind,
+            player,
+            against,
+            benefited,
+            minute,
+            correct,
+            against_home: against_side == 0,
+            grievance,
+            appeal: None,
+        });
         let g = w.officials.grievance.entry((against, rid)).or_default();
         let was_biased = *g >= 400;
         *g = (*g + u16::from(grievance) * 2).min(1000);
@@ -248,12 +262,6 @@ pub fn after_match(w: &mut World, fx: &Fixture, r: &MatchResult) {
             let reds = r.events.iter().filter(|e| e.side == side && matches!(e.kind, Ev::Red | Ev::SecondYellow)).count();
             if yellows >= 6 || reds >= 2 {
                 charge(w, clubs[usize::from(side)], ChargeKind::FailingToControl, fx.uid);
-            }
-        }
-        // Supporters' views of referees decay slowly between meetings.
-        if today.day() == 1 {
-            for g in w.officials.grievance.values_mut() {
-                *g = g.saturating_sub(20);
             }
         }
     }
@@ -344,9 +352,15 @@ fn lodge(w: &mut World, controversy: u32) {
     w.officials.controversies[controversy as usize].appeal = Some(id);
 }
 
-/// Daily: appeal panels sit two days after lodging.
+/// Daily: supporters' grievances fade a little each month; appeal panels
+/// sit two days after lodging.
 pub fn daily(w: &mut World) {
     let today = w.date;
+    if today.day() == 1 {
+        for g in w.officials.grievance.values_mut() {
+            *g = g.saturating_sub(20);
+        }
+    }
     let open: Vec<u32> = w.officials.appeals.iter().rev().take(500).filter(|a| a.decided.is_none() && a.lodged.days_until(today) >= 2).map(|a| a.id).collect();
     for id in open {
         let a = w.officials.appeals[id as usize];
