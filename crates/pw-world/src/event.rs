@@ -652,6 +652,23 @@ pub enum EventKind {
     RushedBack {
         player: PlayerId,
     },
+    /// A step on a player's route through football: joining a school, an academy, a university, a state team.
+    PathwayStep {
+        player: PlayerId,
+        kind: u8,
+        target: u32,
+    },
+    /// A young player's name spread beyond their own pitch: a clip that travelled (`earned` false) or a run of
+    /// steady football that people finally noticed (`earned` true). `tier` is the level (`ecosystem::Tier`).
+    Breakout {
+        player: PlayerId,
+        tier: u8,
+        earned: bool,
+    },
+    /// A material decision was made; the ruling holds who believed and backed what.
+    Ruling {
+        ruling: u32,
+    },
     ChronicCondition {
         player: PlayerId,
     },
@@ -1031,6 +1048,8 @@ impl EventKind {
             | Diagnosed { player, .. }
             | InjurySetback { player, .. }
             | RushedBack { player }
+            | PathwayStep { player, .. }
+            | Breakout { player, .. }
             | ChronicCondition { player }
             | PlayerSettled { player, .. }
             | LeaderEmerged { player, .. }

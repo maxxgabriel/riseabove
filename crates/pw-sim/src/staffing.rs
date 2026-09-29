@@ -5,7 +5,7 @@
 //! player, who you know at the club, and whether they rate you.
 
 use pw_core::rng::{Rng, stream};
-use pw_core::{ClubId, PersonId, StaffId};
+use pw_core::{ClubId, StaffId};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::{StaffRole, World};
 
@@ -88,6 +88,10 @@ pub fn monthly(w: &mut World) {
     }
 }
 
+pub(crate) fn wanted_count(rep: u16, role: StaffRole) -> usize {
+    wanted(rep, role)
+}
+
 fn best_candidate(w: &World, club: ClubId, role: StaffRole, rng: &mut Rng) -> Option<StaffId> {
     let rep = i32::from(w.clubs[club].reputation);
     let nation = w.clubs[club].nation;
@@ -161,7 +165,7 @@ fn fresh(w: &mut World, club: ClubId, role: StaffRole, rng: &mut Rng) -> StaffId
     id
 }
 
-fn hire(w: &mut World, club: ClubId, s: StaffId) {
+pub(crate) fn hire(w: &mut World, club: ClubId, s: StaffId) {
     let today = w.date;
     let revenue = crate::finance::season_revenue(w, club) as f64;
     let st = &mut w.staff[s];
@@ -172,23 +176,11 @@ fn hire(w: &mut World, club: ClubId, s: StaffId) {
     let person = st.person;
     w.clubs[club].staff.push(s);
     w.events.push(today, Visibility::Public, EventKind::JoinedStaff { person, staff: s, club });
+    crate::stafflife::open_job(w, s, club);
 }
 
-/// Staff grow into their jobs: experience lifts the attributes that matter.
+/// Staff grow into their jobs, plateau, and decline; the oldest retire. Growth is a chance,
+/// not a certainty: professionalism and having a mentor raise it, and no one improves forever.
 pub fn yearly_growth(w: &mut World) {
-    let ids: Vec<StaffId> = w.staff.ids().collect();
-    for s in ids {
-        if !w.staff[s].employed() {
-            continue;
-        }
-        let role = w.staff[s].role;
-        let person: PersonId = w.staff[s].person;
-        let det = consider::hid(w, person, pw_core::Hidden::Professionalism);
-        for &a in role.key_attrs() {
-            let cur = w.staff[s].attrs.get(a);
-            if cur < 18 && det >= 10.0 {
-                w.staff[s].attrs.set(a, cur + 1);
-            }
-        }
-    }
+    crate::stafflife::yearly(w);
 }

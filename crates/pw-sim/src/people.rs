@@ -37,6 +37,8 @@ pub struct NewPlayer {
     pub club: ClubId,
     pub team: pw_core::TeamId,
     pub contract: Contract,
+    /// Why this player exists (recorded for population metrics).
+    pub source: pw_world::player::PlayerSource,
 }
 
 pub fn spawn_player(w: &mut World, np: NewPlayer, rng: &mut Rng) -> PlayerId {
@@ -100,7 +102,7 @@ pub fn spawn_player(w: &mut World, np: NewPlayer, rng: &mut Rng) -> PlayerId {
         fitness: 75,
         ..PlayerHot::default()
     };
-    let id = w.players.push(hot, cold);
+    let id = w.players.push(hot, cold, pw_world::player::Origin { source: np.source, date: w.date });
     debug_assert_eq!(id, player_id);
     if np.team.is_some() {
         w.teams[np.team].squad.push(id);
@@ -116,7 +118,7 @@ pub fn daily(w: &mut World) {
     for n in w.nations.ids() {
         let s = &w.nations[n].season;
         if s.year != 0 && today == s.start.add_days(210) {
-            youth_intake(w, n);
+            crate::youth::academy_intake(w, n);
         }
     }
     if today.month() == 7 && today.day() == 1 {
@@ -230,38 +232,6 @@ pub fn intake_pa(youth_facilities: f32, nation_youth_rating: f32, club_rep: f32,
         pa += rng.range_f32(25.0, 60.0);
     }
     pa.clamp(35.0, 200.0)
-}
-
-/// Annual academy intake (04 §6, 07 §6).
-fn youth_intake(w: &mut World, n: NationId) {
-    let today = w.date;
-    let youth_rating = f32::from(w.nations[n].youth_rating);
-    let t = w.data.tuning.squad.clone();
-    let clubs: Vec<ClubId> = w.clubs.iter_enumerated().filter(|(_, c)| c.nation == n).map(|(id, _)| id).collect();
-    for club in clubs {
-        let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(club.0), today.year() as u64]);
-        let c = &w.clubs[club];
-        let academy = f32::from(c.facilities.academy + c.facilities.youth) / 40.0;
-        let count = f32::from(t.youth_intake_min) + academy * f32::from(t.youth_intake_max - t.youth_intake_min) + rng.normal() * 1.2;
-        let count = count.round().clamp(1.0, f32::from(t.youth_intake_max) + 2.0) as usize;
-        let team = [TeamKind::U18, TeamKind::U19, TeamKind::U21, TeamKind::Reserve, TeamKind::First].iter().find_map(|&k| w.club_team(club, k));
-        let Some(team) = team else { continue };
-        let rep = f32::from(c.reputation);
-        let youth_fac = f32::from(c.facilities.youth);
-        for _ in 0..count {
-            let foreign = rng.chance(0.08);
-            let nation = if foreign { pw_core::NationId(rng.below(w.nations.len() as u32)) } else { n };
-            let age_days = rng.range_i32(15 * 365 + 30, 16 * 365 + 200);
-            let dob = today.add_days(-age_days);
-            let pa = intake_pa(youth_fac, youth_rating, rep, &mut rng);
-            let age = age_days as f32 / 365.25;
-            let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
-            let contract = Contract { club, kind: ContractKind::Youth, wage: (80.0 + rep / 40.0) as i64, start: today, end: dob.add_months(12 * 18 + 12), ..Default::default() };
-            let pos = gen_::random_position(&mut rng);
-            spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team, contract }, &mut rng);
-        }
-        w.events.push(today, Visibility::Club(club), EventKind::YouthIntake { club, count: count as u8 });
-    }
 }
 
 /// Season's end: every AI-minded player weighs whether to carry on

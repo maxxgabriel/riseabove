@@ -49,6 +49,8 @@ pub struct Referee {
     pub wrong: u32,
     pub active: bool,
     pub since: Date,
+    /// The state whose association trained them (`RegionId::NONE` outside worlds with an ecosystem).
+    pub region: pw_core::RegionId,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]

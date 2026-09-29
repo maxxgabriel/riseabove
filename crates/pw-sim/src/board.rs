@@ -26,11 +26,11 @@ pub fn set_targets(w: &mut World, n: NationId) {
 
 pub fn weekly(w: &mut World) {
     let today = w.date;
-    let mut sack: Vec<ClubId> = Vec::new();
+    let mut sack: Vec<(ClubId, pw_core::EventId)> = Vec::new();
     for club in w.clubs.ids() {
         let c = &w.clubs[club];
         if c.manager.is_none() {
-            sack.push(club);
+            sack.push((club, pw_core::EventId::NONE));
             continue;
         }
         let league = c.league;
@@ -60,7 +60,10 @@ pub fn weekly(w: &mut World) {
             b.satisfaction = 40;
             let warnings = b.warnings;
             if warnings >= 3 {
-                sack.push(club);
+                // Three warnings put the question; the seats answer it.
+                if let Some(ev) = crate::boardruling::decide(w, club) {
+                    sack.push((club, ev));
+                }
             } else if let Some(m) = w.clubs[club].manager.get() {
                 // Privately: the manager and the board know; others may hear.
                 let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
@@ -68,14 +71,17 @@ pub fn weekly(w: &mut World) {
             }
         }
     }
-    for club in sack {
+    for (club, ruling_event) in sack {
         if let Some(m) = w.clubs[club].manager.get() {
             w.staff[m].club = pw_core::ClubId::NONE;
             w.staff[m].record.sackings += 1;
             w.clubs[club].staff.retain(|&s| s != m);
             w.clubs[club].manager = StaffId::NONE;
             let warnings = w.clubs[club].board.warnings;
-            let causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+            let mut causes: pw_world::Causes = pw_world::causes![pw_world::Cause::Fact(pw_world::Fact::BoardPressure { club, warnings })];
+            if ruling_event.is_some() {
+                causes.push(pw_world::Cause::Event(ruling_event));
+            }
             w.events.push_caused(today, Visibility::Public, EventKind::ManagerSacked { staff: m, club }, causes);
             crate::managers::on_departure(w, m, club, pw_world::careers::JobEnd::Sacked);
         }
@@ -99,7 +105,9 @@ pub fn appoint(w: &mut World, club: ClubId) {
         .filter(|(_, s)| crate::affairs::coaching_level(w, s.person) >= crate::affairs::required_level(w.clubs[club].reputation))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 1500)
         .map(|(id, s)| {
-            let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 };
+            let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 }
+                // The seats' own taste: the style the board wants, weighted more where the owner leaves football to others.
+                + style_taste(w, club, s.philosophy.mentality);
             (id, fit)
         })
         .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));
@@ -109,6 +117,7 @@ pub fn appoint(w: &mut World, club: ClubId) {
     let best = crate::managers::try_poach(w, club, best_fit).or(best);
     let chosen = best.or_else(|| {
         let a = w.clubs[club].staff.iter().copied().find(|&s| w.staff[s].role == StaffRole::Assistant)?;
+        crate::stafflife::on_promoted(w, a, club);
         w.staff[a].role = StaffRole::Manager;
         w.clubs[club].staff.retain(|&s| s != a);
         Some(a)
@@ -180,4 +189,12 @@ fn new_manager(w: &mut World, club: ClubId) -> StaffId {
     });
     w.people[person].staff = id;
     id
+}
+
+/// How well a candidate's approach matches what this club's board wants (−0.3 … 0.3).
+fn style_taste(w: &World, club: ClubId, mentality: i8) -> f32 {
+    let Some(g) = w.governance.get(&club) else { return 0.0 };
+    let gap = (i32::from(mentality) - i32::from(g.policy.style_mandate)).abs() as f32;
+    let say = if g.owner.meddling < 40 { 1.0 } else { 0.6 };
+    (0.3 - 0.15 * gap) * say
 }

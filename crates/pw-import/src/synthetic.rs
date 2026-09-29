@@ -111,7 +111,7 @@ pub fn build(pack: DataPack, seed: u64, scale: Scale) -> World {
                             yearly_rise: 3,
                             ..Default::default()
                         };
-                        let np = pw_sim::people::NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team: t, contract };
+                        let np = pw_sim::people::NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team: t, contract, source: pw_world::player::PlayerSource::SyntheticFixture };
                         let p = pw_sim::people::spawn_player(&mut w, np, &mut rng);
                         let first = word(&mut rng, 2);
                         let last = word(&mut rng, 3);

@@ -60,6 +60,8 @@ pub enum MinorKind {
     /// All schools in a nation, a knockout.
     SchoolCup,
     UniversityLeague,
+    /// The all-India inter-university championship: a knockout of every university side.
+    UniversityCup,
     /// Adult amateur pyramid, tier 1 at the top.
     AmateurLeague {
         tier: u8,
@@ -76,6 +78,7 @@ impl MinorKind {
             MinorKind::SchoolCup => 2,
             MinorKind::UniversityLeague => 3,
             MinorKind::GrassrootsCup => 4,
+            MinorKind::UniversityCup => 5,
             MinorKind::AmateurLeague { tier } => 10u8.saturating_add(tier),
         }
     }
@@ -86,19 +89,20 @@ impl MinorKind {
             2 => MinorKind::SchoolCup,
             3 => MinorKind::UniversityLeague,
             4 => MinorKind::GrassrootsCup,
+            5 => MinorKind::UniversityCup,
             t => MinorKind::AmateurLeague { tier: t.saturating_sub(10) },
         }
     }
 
     pub fn is_cup(self) -> bool {
-        matches!(self, MinorKind::SchoolCup | MinorKind::GrassrootsCup)
+        matches!(self, MinorKind::SchoolCup | MinorKind::GrassrootsCup | MinorKind::UniversityCup)
     }
 
     /// The history level this competition belongs to.
     pub fn level(self) -> crate::minor::Level {
         match self {
             MinorKind::SchoolLeague | MinorKind::SchoolCup => Level::School,
-            MinorKind::UniversityLeague => Level::University,
+            MinorKind::UniversityLeague | MinorKind::UniversityCup => Level::University,
             MinorKind::AmateurLeague { .. } => Level::Amateur,
             MinorKind::GrassrootsCup => Level::Grassroots,
         }
@@ -116,6 +120,8 @@ pub enum Level {
     Youth,
     Professional,
     International,
+    /// State and regional representative football.
+    State,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Default)]

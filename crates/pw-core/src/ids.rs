@@ -65,4 +65,4 @@ macro_rules! define_ids {
     )*};
 }
 
-define_ids!(PersonId, PlayerId, StaffId, ClubId, TeamId, NationId, CompId, FixtureId, DecisionId, CultureId, TalkId, EventId, AgentId, OutletId, StoryId, MeetingId, LocalClubId,);
+define_ids!(PersonId, PlayerId, StaffId, ClubId, TeamId, NationId, CompId, FixtureId, DecisionId, CultureId, TalkId, EventId, AgentId, OutletId, StoryId, MeetingId, LocalClubId, RegionId,);

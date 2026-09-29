@@ -69,7 +69,7 @@ pub fn create_person(w: &mut World, np: NewPerson) -> (PersonId, PlayerId) {
         (pw_core::TeamId::NONE, Contract::default())
     };
     let club = if child { ClubId::NONE } else { np.club };
-    let p = spawn_player(w, NewPlayer { nation, dob, pos: np.pos, ca, pa: pa as u8, club, team, contract }, &mut rng);
+    let p = spawn_player(w, NewPlayer { nation, dob, pos: np.pos, ca, pa: pa as u8, club, team, contract, source: pw_world::player::PlayerSource::HumanCreated }, &mut rng);
     let person = w.players.cold[p].person;
     if !np.first.trim().is_empty() {
         w.people[person].first = w.names.intern(&np.first);

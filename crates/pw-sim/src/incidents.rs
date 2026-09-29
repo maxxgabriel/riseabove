@@ -432,6 +432,13 @@ pub fn daily(w: &mut World) {
         if weather {
             p = (p * 25.0).min(0.35);
         }
+        // Where the monsoon breaks over a home ground, matches are called off more often.
+        if w.ext.ecosystem.is_configured() {
+            let r = w.ext.ecosystem.region_of_club(club);
+            if r.is_some() && w.ext.ecosystem.regions[r].climate == pw_world::ecosystem::Climate::HeavyMonsoon && (6..=9).contains(&today.month()) {
+                p = (p * 6.0).min(0.3);
+            }
+        }
         if pitch {
             p = (p * 40.0).min(0.6);
         }
@@ -714,7 +721,8 @@ fn consequences(w: &mut World, id: u32) {
         IncidentKind::Postponement => {
             if inc.fixture.is_some() {
                 let d = w.fixtures.get(inc.fixture).date;
-                let to = d.add_days(7).next_weekday(pw_core::Weekday::Wed);
+                let (h, a) = (w.fixtures.get(inc.fixture).home, w.fixtures.get(inc.fixture).away);
+                let to = w.fixtures.first_free_date(h, a, d.add_days(7).next_weekday(pw_core::Weekday::Wed), 21, Some(inc.fixture));
                 w.fixtures.reschedule(inc.fixture, to);
             }
         }

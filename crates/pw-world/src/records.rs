@@ -12,7 +12,7 @@
 //! The professional records in `honours` feed this book too (without a
 //! second announcement), so every record has the same history.
 
-use pw_core::{ClubId, CompId, Date, LocalClubId, NationId, PersonId};
+use pw_core::{ClubId, CompId, Date, LocalClubId, NationId, PersonId, RegionId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
@@ -31,6 +31,10 @@ pub enum Scope {
     /// A minor competition by kind within a nation (school leagues of a
     /// nation share records; `u8` is the kind's code, `tier` for amateurs).
     Minor(NationId, u8),
+    /// A state or district: what it has produced, and football played there.
+    Region(RegionId),
+    /// A one-off tournament series within a nation (a state championship, a national school games); `u16` names it.
+    Event(NationId, u16),
 }
 
 /// What is measured.
@@ -55,12 +59,196 @@ pub enum Stat {
     WinsInRow,
     UnbeatenRun,
     PointsInSeason,
+    // ---- one match, one player (seconds, tenths of km/h, metres, rating ×10)
+    /// Seconds from kick-off to a player's first goal (lower is the record).
+    FastestGoal,
+    /// Seconds from a player's first to third goal of one match (lower).
+    FastestHatTrick,
+    GoalsInMatch,
+    AssistsInMatch,
+    /// Highest speed reached in a match, tenths of km/h. A measurement model (pace, acceleration, age, condition), not tracked play.
+    TopSpeed,
+    /// Distance covered in a match, metres. A measurement model (stamina, work rate, role, minutes).
+    DistanceCovered,
+    /// Best match rating ×10.
+    MatchRating,
+    /// Seconds from kick-off to a dismissal (lower).
+    FastestRedCard,
+    /// Age in days at a hat-trick (lower).
+    YoungestHatTrick,
+    // ---- a season, a career
+    AssistsInSeason,
+    CleanSheetsInSeason,
+    /// Season average rating ×100 (enough appearances only).
+    AvgRatingInSeason,
+    Assists,
+    CleanSheets,
+    HatTricks,
+    YellowCards,
+    RedCards,
+    ManOfTheMatch,
+    /// Consecutive matches scored in.
+    GoalStreak,
+    /// Consecutive appearances for the club side.
+    AppStreak,
+    /// Appearances taken to reach 1, 10, 50, 100 career goals (lower).
+    AppsToFirstGoal,
+    AppsTo10Goals,
+    AppsTo50Goals,
+    AppsTo100Goals,
+    /// Days from debut to reach 1, 10, 50, 100 career goals (lower).
+    DaysToFirstGoal,
+    DaysTo10Goals,
+    DaysTo50Goals,
+    DaysTo100Goals,
+    /// Goals per game ×1000 over a career of at least 100 appearances.
+    GoalRate,
+    /// Minutes a keeper has gone unbeaten in a row.
+    KeeperMinutesUnbeaten,
+    /// Golden boots (top-scorer awards) won.
+    GoldenBoots,
+    // ---- teams
+    MostGoalsInMatch,
+    MostGoalsInSeason,
+    /// Goals conceded over a league season (lower).
+    FewestConcededInSeason,
+    BestGoalDifference,
+    WinsInSeason,
+    /// Matches unbeaten from the start of a league season.
+    UnbeatenSeason,
+    LosingRun,
+    HomeUnbeaten,
+    HighestAttendance,
+    /// Consecutive titles in a competition.
+    TitleStreak,
+    // ---- regions
+    PlayersProduced,
+    InternationalsProduced,
 }
 
 impl Stat {
-    /// Whether lower values are records.
     pub const fn lower_is_better(self) -> bool {
-        matches!(self, Stat::YoungestScorer | Stat::YoungestDebut)
+        matches!(
+            self,
+            Stat::YoungestScorer
+                | Stat::YoungestDebut
+                | Stat::YoungestHatTrick
+                | Stat::FastestGoal
+                | Stat::FastestHatTrick
+                | Stat::FastestRedCard
+                | Stat::AppsToFirstGoal
+                | Stat::AppsTo10Goals
+                | Stat::AppsTo50Goals
+                | Stat::AppsTo100Goals
+                | Stat::DaysToFirstGoal
+                | Stat::DaysTo10Goals
+                | Stat::DaysTo50Goals
+                | Stat::DaysTo100Goals
+                | Stat::FewestConcededInSeason
+        )
+    }
+
+    /// The name of the record, for headlines.
+    pub const fn title(self) -> &'static str {
+        match self {
+            Stat::Goals => "all-time scoring record",
+            Stat::Apps => "appearance record",
+            Stat::GoalsInSeason => "record for goals in a season",
+            Stat::BiggestWin => "record win",
+            Stat::FeePaid => "record signing",
+            Stat::FeeReceived => "record sale",
+            Stat::Caps => "caps record",
+            Stat::IntlGoals => "international scoring record",
+            Stat::Titles => "record for most titles",
+            Stat::YoungestScorer => "youngest-scorer record",
+            Stat::YoungestDebut => "youngest-debutant record",
+            Stat::OldestScorer => "oldest-scorer record",
+            Stat::WinsInRow => "record winning run",
+            Stat::UnbeatenRun => "record unbeaten run",
+            Stat::PointsInSeason => "points record",
+            Stat::FastestGoal => "fastest-goal record",
+            Stat::FastestHatTrick => "fastest hat-trick record",
+            Stat::GoalsInMatch => "record for goals in a match",
+            Stat::AssistsInMatch => "record for assists in a match",
+            Stat::TopSpeed => "top-speed record",
+            Stat::DistanceCovered => "distance-covered record",
+            Stat::MatchRating => "best-performance record",
+            Stat::FastestRedCard => "fastest-dismissal record",
+            Stat::YoungestHatTrick => "youngest hat-trick record",
+            Stat::AssistsInSeason => "record for assists in a season",
+            Stat::CleanSheetsInSeason => "record for clean sheets in a season",
+            Stat::AvgRatingInSeason => "best season-average rating",
+            Stat::Assists => "all-time assists record",
+            Stat::CleanSheets => "all-time clean-sheets record",
+            Stat::HatTricks => "record for hat-tricks",
+            Stat::YellowCards => "record for yellow cards",
+            Stat::RedCards => "record for red cards",
+            Stat::ManOfTheMatch => "record for man-of-the-match awards",
+            Stat::GoalStreak => "record scoring streak",
+            Stat::AppStreak => "record run of consecutive appearances",
+            Stat::AppsToFirstGoal => "fastest-to-a-first-goal record (appearances)",
+            Stat::AppsTo10Goals => "fastest-to-10-goals record (appearances)",
+            Stat::AppsTo50Goals => "fastest-to-50-goals record (appearances)",
+            Stat::AppsTo100Goals => "fastest-to-100-goals record (appearances)",
+            Stat::DaysToFirstGoal => "quickest first goal after debut",
+            Stat::DaysTo10Goals => "quickest to 10 goals",
+            Stat::DaysTo50Goals => "quickest to 50 goals",
+            Stat::DaysTo100Goals => "quickest to 100 goals",
+            Stat::GoalRate => "best goals-per-game record",
+            Stat::KeeperMinutesUnbeaten => "record for minutes without conceding",
+            Stat::GoldenBoots => "record for golden boots",
+            Stat::MostGoalsInMatch => "record for goals in a match by a team",
+            Stat::MostGoalsInSeason => "record for goals in a season by a team",
+            Stat::FewestConcededInSeason => "best defensive season",
+            Stat::BestGoalDifference => "best goal difference",
+            Stat::WinsInSeason => "record for wins in a season",
+            Stat::UnbeatenSeason => "longest unbeaten start to a season",
+            Stat::LosingRun => "longest losing run",
+            Stat::HomeUnbeaten => "longest unbeaten home run",
+            Stat::HighestAttendance => "record attendance",
+            Stat::TitleStreak => "record run of consecutive titles",
+            Stat::PlayersProduced => "record for players produced",
+            Stat::InternationalsProduced => "record for internationals produced",
+        }
+    }
+
+    /// A value in words.
+    pub fn render(self, v: i64) -> String {
+        let minutes_seconds = |s: i64| format!("{}:{:02}", s / 60, s % 60);
+        match self {
+            Stat::YoungestScorer | Stat::YoungestDebut | Stat::OldestScorer | Stat::YoungestHatTrick => format!("{} years {} days", v / 365, v % 365),
+            Stat::FastestGoal | Stat::FastestHatTrick | Stat::FastestRedCard => format!("{} into the match", minutes_seconds(v)),
+            Stat::TopSpeed => format!("{}.{} km/h", v / 10, v % 10),
+            Stat::DistanceCovered => format!("{}.{:02} km", v / 1000, (v % 1000) / 10),
+            Stat::MatchRating => format!("a {}.{} rating", v / 10, v % 10),
+            Stat::AvgRatingInSeason => format!("an average of {}.{:02}", v / 100, v % 100),
+            Stat::GoalRate => format!("{}.{:03} goals a game", v / 1000, v % 1000),
+            Stat::AppsToFirstGoal | Stat::AppsTo10Goals | Stat::AppsTo50Goals | Stat::AppsTo100Goals => format!("{v} appearances"),
+            Stat::DaysToFirstGoal | Stat::DaysTo10Goals | Stat::DaysTo50Goals | Stat::DaysTo100Goals => format!("{} days", v),
+            Stat::KeeperMinutesUnbeaten => format!("{v} minutes"),
+            Stat::HighestAttendance => format!("{v} spectators"),
+            Stat::BestGoalDifference => format!("a goal difference of {v}"),
+            Stat::FewestConcededInSeason => format!("{v} goals conceded"),
+            Stat::FeePaid | Stat::FeeReceived => format!("{v}"),
+            Stat::BiggestWin => format!("a {v}-goal margin"),
+            Stat::WinsInRow | Stat::WinsInSeason => format!("{v} wins"),
+            Stat::UnbeatenRun | Stat::UnbeatenSeason | Stat::HomeUnbeaten => format!("{v} games unbeaten"),
+            Stat::LosingRun => format!("{v} defeats in a row"),
+            Stat::PointsInSeason => format!("{v} points"),
+            Stat::Titles | Stat::TitleStreak => format!("{v} titles"),
+            Stat::Caps => format!("{v} caps"),
+            Stat::Goals | Stat::GoalsInSeason | Stat::IntlGoals | Stat::GoalsInMatch | Stat::MostGoalsInMatch | Stat::MostGoalsInSeason => format!("{v} goals"),
+            Stat::Assists | Stat::AssistsInSeason | Stat::AssistsInMatch => format!("{v} assists"),
+            Stat::Apps | Stat::AppStreak => format!("{v} appearances"),
+            Stat::CleanSheets | Stat::CleanSheetsInSeason => format!("{v} clean sheets"),
+            Stat::HatTricks => format!("{v} hat-tricks"),
+            Stat::YellowCards => format!("{v} yellow cards"),
+            Stat::RedCards => format!("{v} red cards"),
+            Stat::ManOfTheMatch => format!("{v} man-of-the-match awards"),
+            Stat::GoalStreak => format!("scoring in {v} games in a row"),
+            Stat::GoldenBoots => format!("{v} golden boots"),
+            Stat::PlayersProduced | Stat::InternationalsProduced => format!("{v} players"),
+        }
     }
 }
 
@@ -78,6 +266,7 @@ pub enum Holder {
     Club(ClubId),
     Entrant(Entrant),
     Nation(NationId),
+    Region(RegionId),
     /// A figure of the world's past (`World::backfill.figures`).
     Past(u32),
 }

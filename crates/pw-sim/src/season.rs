@@ -134,15 +134,17 @@ pub fn finish_nation(w: &mut World, n: NationId) {
             (r, 0) => r,
             (r, p) => r.min(p),
         });
-        let upper_rank: Vec<TeamId> = last_table(w, upper, year);
-        let lower_rank: Vec<TeamId> = last_table(w, lower, year);
+        // Rank by last season's table, but only among sides still in the division: an earlier pair (or the
+        // state pathway) may already have moved someone, and a side must never be in two divisions.
+        let upper_rank: Vec<TeamId> = last_table(w, upper, year).into_iter().filter(|t| w.comps[upper].state.entrants.contains(t)).collect();
+        let lower_rank: Vec<TeamId> = last_table(w, lower, year).into_iter().filter(|t| w.comps[lower].state.entrants.contains(t)).collect();
         if upper_rank.is_empty() || lower_rank.is_empty() || k == 0 {
             continue;
         }
         let promoted: Vec<TeamId> = lower_rank.iter().filter(|&&t| !is_b_team_blocked(w, t, upper)).take(k).copied().collect();
         let relegated: Vec<TeamId> = upper_rank.iter().rev().take(promoted.len()).copied().collect();
         let date = w.date;
-        let mut new_upper: Vec<TeamId> = upper_rank.iter().copied().filter(|t| !relegated.contains(t)).collect();
+        let mut new_upper: Vec<TeamId> = w.comps[upper].state.entrants.iter().copied().filter(|t| !relegated.contains(t)).collect();
         new_upper.extend(promoted.iter().copied());
         let mut new_lower: Vec<TeamId> = w.comps[lower].state.entrants.iter().copied().filter(|t| !promoted.contains(t)).collect();
         new_lower.extend(relegated.iter().copied());
@@ -157,6 +159,7 @@ pub fn finish_nation(w: &mut World, n: NationId) {
             w.comps[lower].state.last_moves.push((t, -1));
         }
     }
+    crate::statepath::season_end(w, n, year);
     crate::reputation::season_end(w, n);
 }
 
@@ -198,6 +201,7 @@ fn close_league(w: &mut World, c: CompId, year: i32) {
     }
     crate::culture::season_end(w, c, &rows);
     crate::records::league_season(w, c, &rows);
+    crate::almanac::league_season(w, c, &rows);
     w.history.tables.push(ArchivedTable { comp: c, season: year, rows });
     archive_stats(w, c, year);
     w.comps[c].state.stage = Stage::Finished;
@@ -225,6 +229,7 @@ fn archive_stats(w: &mut World, c: CompId, year: i32) {
         award(AwardKind::YoungPlayerOfSeason, young, young.map_or(0.0, |l| l.avg_rating()));
         crate::honours::season_awards(w, c, year, &lines, games);
     }
+    crate::almanac::season_lines(w, c, &lines, games);
     w.history.archive_lines(lines);
 }
 

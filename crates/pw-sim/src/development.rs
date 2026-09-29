@@ -39,14 +39,27 @@ pub fn circumstance_factor(c: &Circumstances) -> f32 {
     (drive * belief * mentor * challenge * settle).clamp(0.6, 1.4)
 }
 
-/// Coaching multiplier per curve group (0.6–1.4), facility multiplier, the club's usual standard, and its nation, per team.
-fn team_environment(w: &World) -> Vec<([f32; N_CURVE_GROUPS], f32, f32, pw_core::NationId)> {
+/// One team's coaching environment: quality per attribute group, facilities, the
+/// best specialist for each unit (keeper, defence, midfield, attack), what the
+/// week's plan emphasises, the club's usual standard and its nation.
+struct Env {
+    coach: [f32; N_CURVE_GROUPS],
+    facility: f32,
+    unit: [f32; 4],
+    emphasis: [f32; N_CURVE_GROUPS],
+    level: f32,
+    nation: pw_core::NationId,
+}
+
+fn team_environment(w: &World) -> Vec<Env> {
     w.teams
         .iter()
-        .map(|t| {
+        .enumerate()
+        .map(|(ti, t)| {
             let club = &w.clubs[t.club];
             let youth = t.kind.is_youth();
             let mut best = [8.0f32; N_CURVE_GROUPS];
+            let mut unit = [8.0f32; 4];
             for &s in &club.staff {
                 let st = &w.staff[s];
                 if !matches!(st.role, StaffRole::Coach | StaffRole::GkCoach | StaffRole::FitnessCoach | StaffRole::Manager | StaffRole::Assistant | StaffRole::HeadOfYouth) {
@@ -59,10 +72,22 @@ fn team_environment(w: &World) -> Vec<([f32; N_CURVE_GROUPS], f32, f32, pw_core:
                 best[CurveGroup::Speed as usize] = best[CurveGroup::Speed as usize].max(g(StaffAttr::Fitness));
                 best[CurveGroup::Power as usize] = best[CurveGroup::Power as usize].max(g(StaffAttr::Fitness));
                 best[CurveGroup::Goalkeeping as usize] = best[CurveGroup::Goalkeeping as usize].max(g(StaffAttr::Goalkeeping));
+                unit[0] = unit[0].max(g(StaffAttr::Goalkeeping));
+                unit[1] = unit[1].max(g(StaffAttr::Defending));
+                unit[2] = unit[2].max(g(StaffAttr::Tactical));
+                unit[3] = unit[3].max(g(StaffAttr::Attacking));
             }
             let coach = best.map(|v| 0.6 + 0.8 * (v / 20.0));
             let fac = if youth { club.facilities.youth } else { club.facilities.training };
-            (coach, 0.85 + 0.3 * f32::from(fac) / 20.0, crate::market::ideal_ca(club.reputation), club.nation)
+            // The week's plan: more drilling favours technical and mental growth, more conditioning speed and power.
+            let plan = w.ext.training.plans.get(&pw_core::TeamId(ti as u32)).copied().unwrap_or_default();
+            let (tac, phys) = (f32::from(plan.tactical) / 100.0, f32::from(plan.physical) / 100.0);
+            let mut emphasis = [1.0f32; N_CURVE_GROUPS];
+            emphasis[CurveGroup::Technical as usize] = 1.0 + 0.3 * (tac - 0.4);
+            emphasis[CurveGroup::Mental as usize] = 1.0 + 0.3 * (tac - 0.4);
+            emphasis[CurveGroup::Speed as usize] = 1.0 + 0.3 * (phys - 0.35);
+            emphasis[CurveGroup::Power as usize] = 1.0 + 0.3 * (phys - 0.35);
+            Env { coach, facility: 0.85 + 0.3 * f32::from(fac) / 20.0, unit, emphasis, level: crate::market::ideal_ca(club.reputation), nation: club.nation }
         })
         .collect()
 }
@@ -78,6 +103,26 @@ pub fn weekly(w: &mut World) {
     let people = &w.people;
     let mentored = &w.growth.records;
     let team_kind: Vec<TeamKind> = w.teams.iter().map(|t| t.kind).collect();
+    // Players outside professional teams develop where they are: their school or university, else their district.
+    let story = &w.ext.ecosystem.story;
+    let regions = &w.ext.ecosystem.regions;
+    let member = &w.minor.member_of;
+    let insts = &w.minor.institutions;
+    let inst_profile = &w.ext.ecosystem.inst;
+    let local_env = |p: pw_core::PlayerId| -> Option<([f32; N_CURVE_GROUPS], f32)> {
+        let s = story.get(&p)?;
+        if s.dev.is_none() {
+            return None;
+        }
+        let r = &regions[s.dev];
+        let (mut coach, mut fac) = (r.coach_density / 20.0, r.facilities / 100.0);
+        if let Some(&i) = member.get(&p) {
+            coach = coach.max(f32::from(insts[i as usize].coaching));
+            fac = fac.max(inst_profile.get(&i).map_or(0.0, |x| x.facilities / 100.0));
+        }
+        let q = 0.6 + 0.8 * (coach.clamp(1.0, 20.0) / 20.0);
+        Some(([q; N_CURVE_GROUPS], 0.85 + 0.3 * fac.clamp(0.0, 1.0)))
+    };
 
     w.players.cold.par_iter_mut().enumerate().for_each(|(i, c)| {
         let h = &hot[i];
@@ -87,7 +132,14 @@ pub fn weekly(w: &mut World) {
         let person = &people[c.person];
         let age = person.dob.age_years(today) + f32::from(c.bio_offset) / 10.0;
         let mut rng = Rng::keyed(&[seed, stream::DEVELOPMENT, i as u64, today.0 as u64]);
-        let (coach, facility, level, club_nation) = if h.team.is_some() { env[h.team.0 as usize] } else { ([0.75; N_CURVE_GROUPS], 0.85, f32::from(c.ca), pw_core::NationId::NONE) };
+        let (coach, facility, unit, emphasis, level, club_nation) = if h.team.is_some() {
+            let e = &env[h.team.0 as usize];
+            (e.coach, e.facility, e.unit, e.emphasis, e.level, e.nation)
+        } else {
+            let ca_now = f32::from(c.ca);
+            let (cg, f) = local_env(pw_core::PlayerId(i as u32)).unwrap_or(([0.75; N_CURVE_GROUPS], 0.85));
+            (cg, f, [8.0; 4], [1.0; N_CURVE_GROUPS], ca_now, pw_core::NationId::NONE)
+        };
         let abroad = club_nation.is_some() && person.nation != club_nation && person.nation2 != club_nation;
         let circumstances = circumstance_factor(&Circumstances {
             ambition: person.hidden.f(Hidden::Ambition),
@@ -98,6 +150,13 @@ pub fn weekly(w: &mut World) {
             months_abroad: abroad.then(|| c.joined.days_until(today).max(0) as f32 / 30.0),
             adaptability: person.hidden.f(Hidden::Adaptability),
         });
+        // The specialist for this player's unit matters a little: a good striker coach helps strikers.
+        let unit_mult = 0.9 + 0.2 * unit[match c.best_pos.group() {
+            pw_core::PosGroup::Gk => 0,
+            pw_core::PosGroup::Def => 1,
+            pw_core::PosGroup::Mid => 2,
+            pw_core::PosGroup::Att => 3,
+        }] / 20.0;
         let level_fit = if h.team.is_some() && team_kind[h.team.0 as usize].is_youth() { 0.7 } else { 1.0 };
         let minutes = f32::from(h.minutes_4w);
         let rating = h.form_avg().unwrap_or(6.5);
@@ -121,7 +180,7 @@ pub fn weekly(w: &mut World) {
             }
             let g = a.curve();
             let age_f = curves.factor(g, age);
-            let train_f = 0.4 + 0.6 * coach[g as usize] * facility;
+            let train_f = 0.4 + 0.6 * coach[g as usize] * facility * unit_mult * emphasis[g as usize];
             let emph = 0.5 + 0.5 * row[a.idx()] / max_w;
             let plan = c.plan;
             let own = plan.intensity.growth_mult() * plan.focus.weight(a) * (1.0 + 0.04 * f32::from(plan.extra));

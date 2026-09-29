@@ -110,6 +110,8 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         lod,
         tuning: &w.data.tuning.matches,
     };
+    let mut input = input;
+    crate::ecosystem::travel_effects(w, fx.home, fx.away, &mut input);
     if !coached {
         let result = Box::new(simulate(&input));
         return Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result, thinking: None };
@@ -244,7 +246,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
             w.events.push(today, Visibility::Public, EventKind::Suspended { player: p, matches });
         }
         if line.injured {
-            health::match_injury(w, p, &mut rng);
+            health::match_injury(w, p, &mut rng, line.injury_noncontact);
         }
         let pom = r.pom == p;
         w.stats.record(fx.comp, club, season, line, pom);
@@ -292,7 +294,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
         let mood = &mut w.clubs[club].fan_mood;
         *mood = (i32::from(*mood) + result_sign[side] * 3).clamp(0, 100) as u8;
     }
-    gate_receipts(w, clubs[0], comp_kind, senior[0]);
+    gate_receipts(w, clubs[0], fx.comp, comp_kind, senior[0]);
     let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, &fx)).min(1.0);
     crate::interpret::record(w, &fx, home, away, &r, imp);
     crate::culture::after_result(w, &fx, hg, ag, r.pens, pw_core::EventId::NONE);
@@ -309,7 +311,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
     }
 }
 
-fn gate_receipts(w: &mut World, club: ClubId, kind: CompKind, senior: bool) {
+fn gate_receipts(w: &mut World, club: ClubId, comp: pw_core::CompId, kind: CompKind, senior: bool) {
     if !senior {
         return;
     }
@@ -318,8 +320,10 @@ fn gate_receipts(w: &mut World, club: ClubId, kind: CompKind, senior: bool) {
     let rep = f64::from(c.reputation) / 10_000.0;
     let demand = (0.45 + 0.4 * rep + 0.15 * f64::from(c.fan_mood) / 100.0 + if kind == CompKind::Continental { 0.15 } else { 0.0 }).min(1.0);
     let price = f64::from(w.data.tuning.finance.ticket_price_top) * (0.25 + 0.75 * rep) * econ;
+    let spectators = (f64::from(c.capacity) * demand) as i64;
     let income = (f64::from(c.capacity) * demand * price) as i64;
     let f = &mut w.clubs[club].finance;
     f.balance += income;
     f.season_income += income;
+    crate::almanac::attendance(w, club, comp, spectators);
 }

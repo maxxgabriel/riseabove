@@ -192,6 +192,44 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             treatment.label()
         ),
         InjurySetback { player: p, days } => format!("{} suffered a setback in rehabilitation: another {} out.", pl(p), crate::fmt::duration_days(days)),
+        Ruling { ruling } => match w.ext.decisions.get(ruling) {
+            Some(r) => match r.kind {
+                pw_world::ruling::RulingKind::ReturnFromInjury => format!("The club cleared {} to play before the injury had fully healed.", pl(r.subject)),
+                pw_world::ruling::RulingKind::SackManager => format!("{} decided to part with the manager.", club(w, r.club)),
+                pw_world::ruling::RulingKind::BackManager => format!("{} decided to stand by the manager for now.", club(w, r.club)),
+                pw_world::ruling::RulingKind::AcademyChoice => format!("{} chose {} over other academies.", pl(r.subject), club(w, r.club)),
+                pw_world::ruling::RulingKind::ReleaseForCountry => format!("{} and the national side disagreed over whether {} should report.", club(w, r.club), pl(r.subject)),
+                pw_world::ruling::RulingKind::ClubLicence => format!("{} were not granted the licence to take their place in the league.", club(w, r.club)),
+                pw_world::ruling::RulingKind::LoadPlan => format!("The manager at {} kept the training load up against advice.", club(w, r.club)),
+            },
+            None => "A decision was made.".to_string(),
+        },
+        PathwayStep { player: p, kind, target } => {
+            use pw_world::ecosystem::StageKind as K;
+            let k = K::from_code(kind);
+            let place = match k {
+                K::Academy | K::Released | K::Professional | K::SemiPro | K::Trial => club(w, pw_core::ClubId(target)),
+                K::School | K::University => w.minor.institutions.get(target as usize).map_or_else(|| "an institution".to_string(), |i| i.name.clone()),
+                _ => String::new(),
+            };
+            match k {
+                K::Academy => format!("{} joined the {} academy.", pl(p), place),
+                K::Released => format!("{} was released by {}.", pl(p), place),
+                K::University => format!("{} took up a place at {}.", pl(p), place),
+                K::School => format!("{} started playing for {}.", pl(p), place),
+                K::Trial => format!("{} went on trial at {}.", pl(p), place),
+                K::StateTeam => format!("{} was picked for the state side.", pl(p)),
+                K::NationalCamp => format!("{} was called to a national identification camp.", pl(p)),
+                _ => format!("{} moved on to {}.", pl(p), k.label()),
+            }
+        }
+        Breakout { player: p, earned, .. } => {
+            if earned {
+                format!("People were beginning to talk about {}: a season of steady football had got around.", pl(p))
+            } else {
+                format!("A clip of {} went round: one afternoon, and suddenly people were asking who he was.", pl(p))
+            }
+        }
         RushedBack { player: p } => format!("{} was passed fit ahead of schedule.", pl(p)),
         ChronicCondition { player: p } => format!("{} now has a condition that will need managing.", pl(p)),
         PlayerSettled { player: p, club: c } => format!("{} has settled in at {}.", pl(p), club(w, c)),

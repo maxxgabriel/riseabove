@@ -47,7 +47,7 @@ pub struct Health {
 
 impl Default for Health {
     fn default() -> Self {
-        Self { match_exposure: 0.00034, training_session: 0.00045, illness_daily: 0.0009, acwr_safe_low: 0.8, acwr_safe_high: 1.3, condition_recovery: 24.0 }
+        Self { match_exposure: 0.00034, training_session: 0.005, illness_daily: 0.0009, acwr_safe_low: 0.8, acwr_safe_high: 1.3, condition_recovery: 24.0 }
     }
 }
 
@@ -83,6 +83,9 @@ pub struct MatchTuning {
     pub finish_bias: f32,
     /// Injury probability per contact/sprint exposure at neutral risk.
     pub injury_exposure: f32,
+    /// OFM backend: chance per 90 minutes of a non-contact injury at neutral risk. OFM's own
+    /// injuries are contact-only (a fouled player), blind to workload, fatigue and history.
+    pub ofm_noncontact_injury: f32,
     /// OFM backend: probability an on-target shot beats the keeper.
     pub ofm_conversion: f32,
     /// OFM backend: condition lost per minute (drives fatigue substitutions).
@@ -106,7 +109,8 @@ impl Default for MatchTuning {
             rating_scale: 2.2,
             shot_bias: 1.0,
             finish_bias: 1.0,
-            injury_exposure: 0.0009,
+            injury_exposure: 0.0005,
+            ofm_noncontact_injury: 0.0032,
             ofm_conversion: 0.225,
             ofm_fatigue: 0.45,
         }

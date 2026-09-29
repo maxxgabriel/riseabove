@@ -26,6 +26,7 @@ pub fn level(l: Level) -> &'static str {
         Level::Youth => "youth",
         Level::Professional => "professional",
         Level::International => "international",
+        Level::State => "state",
     }
 }
 
@@ -36,6 +37,7 @@ pub fn comp_name(w: &World, kind: MinorKind, n: pw_core::NationId, region: &str)
         MinorKind::SchoolLeague => format!("{where_} Schools League"),
         MinorKind::SchoolCup => format!("{where_} Schools Cup"),
         MinorKind::UniversityLeague => format!("{where_} Universities League"),
+        MinorKind::UniversityCup => format!("{where_} Inter-University Championship"),
         MinorKind::AmateurLeague { tier: 1 } => format!("{where_} Amateur League"),
         MinorKind::AmateurLeague { tier } => format!("{where_} Amateur League, division {tier}"),
         MinorKind::GrassrootsCup => format!("{where_} Junior Cup"),
@@ -74,6 +76,7 @@ pub fn holder(w: &World, h: Holder) -> String {
         Holder::Club(c) => crate::fmt::club(w, c),
         Holder::Entrant(e) => entrant(w, e),
         Holder::Nation(n) => nation(w, n),
+        Holder::Region(r) => w.ext.ecosystem.regions.get(r).map_or_else(|| "?".into(), |x| x.name.clone()),
         Holder::Past(f) => w.backfill.figures.get(f as usize).map_or_else(|| "?".into(), |x| x.name.clone()),
     }
 }
@@ -87,49 +90,25 @@ fn scope(w: &World, s: Scope) -> String {
         Scope::Institution(i) => institution(w, i),
         Scope::Local(l) => entrant(w, Entrant::Local(l)),
         Scope::Minor(n, code) => comp_name(w, MinorKind::from_code(code), n, ""),
+        Scope::Region(r) => w.ext.ecosystem.regions.get(r).map_or_else(|| "?".into(), |x| x.name.clone()),
+        Scope::Event(_, code) => match code {
+            1 => "Santosh Trophy".into(),
+            2 => "National School Games".into(),
+            _ => "the tournament".into(),
+        },
     }
-}
-
-fn years_days(d: i64) -> String {
-    format!("{} years {} days", d / 365, d % 365)
 }
 
 /// A record's value in words.
 pub fn value(stat: Stat, v: i64) -> String {
-    match stat {
-        Stat::YoungestScorer | Stat::YoungestDebut | Stat::OldestScorer => years_days(v),
-        Stat::FeePaid | Stat::FeeReceived => crate::fmt::money(v),
-        Stat::BiggestWin => format!("a {v}-goal margin"),
-        Stat::WinsInRow => format!("{v} wins in a row"),
-        Stat::UnbeatenRun => format!("{v} games unbeaten"),
-        Stat::PointsInSeason => format!("{v} points"),
-        Stat::Titles => format!("{v} titles"),
-        Stat::Caps => format!("{v} caps"),
-        Stat::Goals | Stat::GoalsInSeason | Stat::IntlGoals => format!("{v} goals"),
-        Stat::Apps => format!("{v} appearances"),
-    }
+    stat.render(v)
 }
 
 /// "the Riverton High School all-time scoring record".
 pub fn record_name(w: &World, k: RecordKey) -> String {
-    let what = match k.stat {
-        Stat::Goals => "all-time scoring record",
-        Stat::Apps => "appearance record",
-        Stat::GoalsInSeason => "record for goals in a season",
-        Stat::BiggestWin => "record win",
-        Stat::FeePaid => "record signing",
-        Stat::FeeReceived => "record sale",
-        Stat::Caps => "caps record",
-        Stat::IntlGoals => "international scoring record",
-        Stat::Titles => "record for most titles",
-        Stat::YoungestScorer => "youngest-scorer record",
-        Stat::YoungestDebut => "youngest-debutant record",
-        Stat::OldestScorer => "oldest-scorer record",
-        Stat::WinsInRow => "record winning run",
-        Stat::UnbeatenRun => "record unbeaten run",
-        Stat::PointsInSeason => "points record",
-    };
-    format!("the {} {what}", scope(w, k.scope))
+    let sc = scope(w, k.scope);
+    let article = if sc.starts_with("the ") { "" } else { "the " };
+    format!("{article}{sc} {}", k.stat.title())
 }
 
 fn stood(days: i32) -> Option<String> {

@@ -83,6 +83,8 @@ pub fn spread_dates(w: &World, from: Date, to: Date, count: usize, preferred: We
 }
 
 pub fn add_fixture(w: &mut World, comp: CompId, round: u8, leg: u8, group: u8, date: Date, home: TeamId, away: TeamId, tie: u16, decisive: bool, neutral: bool) {
+    // A team never plays twice in a day: a clash moves this fixture to the next free day.
+    let date = w.fixtures.first_free_date(home, away, date, 14, None);
     w.fixtures.add(Fixture { uid: 0, comp, round, leg, group, date, home, away, tie, decisive, neutral, score: None });
 }
 

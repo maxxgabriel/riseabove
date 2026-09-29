@@ -203,6 +203,8 @@ pub struct PlayerLine {
     pub saves: u8,
     pub conceded: u8,
     pub injured: bool,
+    /// The injury was not from contact (overuse, landing, sprinting); drawn from the body's own risk.
+    pub injury_noncontact: bool,
     pub condition_end: u8,
     /// Action counts per zone in the player's attacking frame (Full LOD only).
     pub zones: Option<Box<[u16; 30]>>,

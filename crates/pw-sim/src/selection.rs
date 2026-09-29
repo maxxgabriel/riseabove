@@ -433,7 +433,8 @@ pub fn select_ctx(w: &World, team: TeamId, comp: CompId, date: Date, ctx: &Conte
         let max_ability = cands.iter().flat_map(|c| c.ability).fold(1.0f32, f32::max);
         let score = |r: usize, col: usize| slot_score(&cands[col], r, slots[r], max_ability, &wt, ctx);
         let assign = hungarian::maximise(11, cands.len(), score);
-        let total: f32 = assign.iter().enumerate().map(|(r, &c)| score(r, c)).filter(|s| s.is_finite()).sum();
+        // A drilled shape is easier to play: the squad's practice pulls the choice toward it.
+        let total: f32 = assign.iter().enumerate().map(|(r, &c)| score(r, c)).filter(|s| s.is_finite()).sum::<f32>() + 0.8 * w.ext.training.drilled(team, f);
         if best.as_ref().is_none_or(|b| total > b.0 + 0.02) {
             best = Some((total, f, slots, cands, assign));
         }
@@ -492,7 +493,13 @@ pub fn forecast(w: &World, team: TeamId, player: PlayerId, date: Date, samples: 
 
 /// Engine input for a selected side.
 pub fn team_sheet(w: &World, sel: &Selection) -> TeamSheet {
-    let sheet = |p: PlayerId| player_sheet(w, p);
+    // An undrilled shape costs execution; with no engine hook for cohesion it shows up as sharpness.
+    let drill = 0.85 + 0.15 * w.ext.training.drilled(sel.team, sel.formation);
+    let sheet = |p: PlayerId| {
+        let mut s = player_sheet(w, p);
+        s.sharpness *= drill;
+        s
+    };
     let phil = philosophy_of(w, sel.team);
     TeamSheet {
         team: sel.team,

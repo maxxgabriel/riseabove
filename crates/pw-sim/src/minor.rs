@@ -151,6 +151,8 @@ pub fn assign(w: &mut World) {
     for p in gone {
         w.youth.leave(p);
     }
+    // Where an ecosystem exists, universities recruit on their own terms before the default enrolment.
+    crate::university::recruit(w);
     // Schools by town.
     let mut schools: FxHashMap<(NationId, String), SmallVec<[u32; 2]>> = FxHashMap::default();
     let mut unis: FxHashMap<NationId, Vec<u32>> = FxHashMap::default();
@@ -171,6 +173,9 @@ pub fn assign(w: &mut World) {
         let Some(options) = schools.get(&town) else { continue };
         let k = pw_core::rng::hash_key(&[w.seed, stream::MINOR, u64::from(who.0)]) as usize % options.len();
         w.minor.join(p, options[k]);
+        crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::School, options[k]);
+        let region = w.ext.ecosystem.inst.get(&options[k]).map_or(pw_core::RegionId::NONE, |i| i.region);
+        crate::ecosystem::set_dev_region(w, p, region);
     }
     // University: school leavers aged 18–19 with qualifications, not professionals.
     let leavers: Vec<PlayerId> = w
@@ -272,7 +277,16 @@ pub fn season_start(w: &mut World) {
         }
         new_comp(w, MinorKind::SchoolCup, n, String::new(), schools.iter().map(|c| Entrant::Inst(c.1)).collect());
         let unis: Vec<Entrant> = w.minor.institutions.iter().filter(|i| i.nation == n && i.kind == InstKind::University && i.members.len() >= 11).map(|i| Entrant::Inst(i.id)).collect();
-        new_comp(w, MinorKind::UniversityLeague, n, String::new(), unis);
+        if w.ext.ecosystem.is_configured() {
+            // Zones: each university plays the others in its zone, and every university enters the all-India knockout.
+            for (z, zone) in w.ext.ecosystem.zones.clone().iter().enumerate() {
+                let entrants: Vec<Entrant> = unis.iter().copied().filter(|e| matches!(e, Entrant::Inst(i) if w.ext.ecosystem.inst.get(i).is_some_and(|p| p.region.is_some() && usize::from(w.ext.ecosystem.regions[p.region].zone) == z))).collect();
+                new_comp(w, MinorKind::UniversityLeague, n, format!("{zone} Zone"), entrants);
+            }
+            new_comp(w, MinorKind::UniversityCup, n, String::new(), unis.clone());
+        } else {
+            new_comp(w, MinorKind::UniversityLeague, n, String::new(), unis);
+        }
         // The amateur pyramid: standing orders the tiers.
         let mut am: Vec<(u16, LocalClubId)> =
             w.youth.local.iter_enumerated().filter(|(_, l)| l.nation == n && l.level == LocalLevel::Amateur && l.members.len() >= 11).map(|(id, l)| (u16::MAX - l.standing, id)).collect();
@@ -305,7 +319,9 @@ fn squad(w: &World, e: Entrant, kind: MinorKind) -> SmallVec<[PlayerId; 16]> {
 /// with a professional club (schools may field academy children).
 fn eligible(w: &World, e: Entrant, p: PlayerId) -> bool {
     let h = &w.players.hot[p];
-    h.status != PlayerStatus::Retired && (matches!(e, Entrant::Inst(_)) || h.club.is_none())
+    // Registration: a student plays for the university, not also for a local side the same week.
+    let student = matches!(e, Entrant::Local(_)) && w.minor.member_of.get(&p).is_some_and(|&i| w.minor.institutions[i as usize].kind == InstKind::University);
+    h.status != PlayerStatus::Retired && !student && !w.intl.duty.contains(&p) && (matches!(e, Entrant::Inst(_)) || h.club.is_none())
 }
 
 fn coaching(w: &World, e: Entrant) -> f32 {
@@ -354,6 +370,7 @@ fn play(w: &mut World, comp: u32, a: Entrant, b: Entrant, key: u64) -> (u8, u8) 
         gb = 0;
     }
     let season = w.minor.season;
+    let mut pending: Vec<(PlayerId, pw_world::ecosystem::Tier, f32, f32)> = Vec::new();
     for (sq, e, goals, conceded) in [(&sa, a, ga, gb), (&sb, b, gb, ga)] {
         // Scorers: weighted by attacking ability.
         let weights: SmallVec<[f32; 16]> = sq
@@ -384,7 +401,17 @@ fn play(w: &mut World, comp: u32, a: Entrant, b: Entrant, key: u64) -> (u8, u8) 
             l.apps += 1;
             l.goals += scored[i];
             l.rating += rating;
+            let tier = match kind {
+                MinorKind::SchoolLeague | MinorKind::SchoolCup => pw_world::ecosystem::Tier::School,
+                MinorKind::GrassrootsCup => pw_world::ecosystem::Tier::Grassroots,
+                _ => pw_world::ecosystem::Tier::Adult,
+            };
+            let strength = if e == a { 1.0 + (xb - xa) / 120.0 } else { 1.0 + (xa - xb) / 120.0 };
+            pending.push((p, tier, rating as f32 / 10.0 + 0.6, strength));
         }
+    }
+    for (p, tier, rating, strength) in pending {
+        crate::recognition::credit(w, p, tier, rating, strength);
     }
     let margin = (i32::from(ga) - i32::from(gb)).unsigned_abs();
     if margin >= 3 {

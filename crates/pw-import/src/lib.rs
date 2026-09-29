@@ -15,6 +15,7 @@ pub mod fixture;
 pub mod geo;
 pub mod infer;
 pub mod model;
+pub mod india;
 mod positions;
 mod resolve;
 mod staff_list;

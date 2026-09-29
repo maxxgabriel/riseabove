@@ -51,6 +51,30 @@ pub fn note(w: &mut World, key: RecordKey, mark: Mark, min: i64, announce: bool)
     Some(idx)
 }
 
+/// Like `note`, but the record simply changes hands: no `Broken` entry, no announcement.
+/// For the many small-scope marks the almanac offers, most of which are not news.
+pub fn note_quiet(w: &mut World, key: RecordKey, mark: Mark, min: i64) {
+    let lower = key.stat.lower_is_better();
+    if if lower { mark.value > min } else { mark.value < min } {
+        return;
+    }
+    let Some(r) = w.records.records.get_mut(&key) else {
+        w.records.records.insert(key, Record { key, current: mark, previous: Default::default(), broken: 0 });
+        return;
+    };
+    if if lower { mark.value < r.current.value } else { mark.value > r.current.value } {
+        if r.current.holder != mark.holder {
+            let old = r.current;
+            r.previous.push(old);
+            if r.previous.len() > 3 {
+                r.previous.remove(0);
+            }
+            r.broken = r.broken.saturating_add(1);
+        }
+        r.current = mark;
+    }
+}
+
 /// The most recent fall of a record (for text about a `RecordBroken`
 /// event from `honours`, which feeds the book silently).
 pub fn last_broken(w: &World, key: RecordKey) -> Option<&Broken> {
@@ -213,7 +237,8 @@ pub fn of_nation(w: &World, n: NationId) -> Vec<&Record> {
         .records
         .values()
         .filter(|r| match r.key.scope {
-            Scope::Nation(x) | Scope::Minor(x, _) => x == n,
+            Scope::Nation(x) | Scope::Minor(x, _) | Scope::Event(x, _) => x == n,
+            Scope::Region(g) => w.ext.ecosystem.regions.get(g).is_some_and(|r| r.nation == n),
             Scope::Club(c) => w.clubs[c].nation == n,
             Scope::Comp(c) => w.comps[c].nation == n,
             Scope::Institution(i) => w.minor.institutions.get(i as usize).is_some_and(|x| x.nation == n),

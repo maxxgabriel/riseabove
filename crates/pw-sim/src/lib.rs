@@ -18,6 +18,7 @@ pub mod adaptation;
 pub mod affairs;
 pub mod agents;
 pub mod attention;
+pub mod almanac;
 pub mod audit;
 pub mod awards;
 pub mod backfill;
@@ -26,6 +27,7 @@ pub mod clauses;
 pub mod coach;
 pub mod board;
 pub mod boardroom;
+pub mod boardruling;
 pub mod commerce;
 pub mod consider;
 pub mod contracts;
@@ -36,6 +38,7 @@ pub mod development;
 pub mod dossier;
 pub mod dressing;
 pub mod economy;
+pub mod ecosystem;
 pub mod evolution;
 pub mod facts;
 pub mod finance;
@@ -51,6 +54,7 @@ pub mod incidents;
 pub mod intents;
 pub mod interpret;
 pub mod intl;
+pub mod invariants;
 pub mod life;
 pub mod lifestate;
 pub mod managers;
@@ -66,14 +70,17 @@ pub mod negotiation;
 pub mod package;
 pub mod newsroom;
 pub mod officials;
+pub mod pathway;
 pub mod people;
 pub mod perception;
 pub mod planning;
 pub mod press;
 pub mod pressroom;
+pub mod recognition;
 pub mod records;
 pub mod renown;
 pub mod reputation;
+pub mod returns;
 pub mod responses;
 pub mod save;
 pub mod schedule;
@@ -83,10 +90,14 @@ pub mod selection;
 pub mod social;
 pub mod metrics;
 pub mod socialnet;
+pub mod stafflife;
+pub mod statepath;
 pub mod staffing;
 pub mod tactics;
 pub mod talk;
 pub mod validate;
+pub mod training;
+pub mod university;
 pub mod youth;
 
 use pw_core::{DecisionId, Weekday};
@@ -168,6 +179,8 @@ impl Sim {
         }
         if today.month() == 7 && today.day() == 1 {
             prof!("officials::season_review", officials::season_review(w));
+            prof!("ecosystem::yearly", ecosystem::yearly(w));
+            prof!("university::yearly", university::yearly(w));
             prof!("evolution::yearly", evolution::yearly(w));
             prof!("economy::yearly", economy::yearly(w));
             prof!("tactics::yearly", tactics::yearly(w));
@@ -202,6 +215,8 @@ impl Sim {
             prof!("life::monthly", life::monthly(w));
             prof!("mind::monthly", mind::monthly(w));
             prof!("social::monthly", social::monthly(w));
+            prof!("stafflife::monthly", stafflife::monthly(w));
+            prof!("ecosystem::monthly", ecosystem::monthly(w));
             prof!("staffing::monthly", staffing::monthly(w));
             prof!("governance::monthly", governance::monthly(w));
             prof!("managers::monthly", managers::monthly(w));
@@ -230,6 +245,7 @@ impl Sim {
                 prof!("youth::reviews", youth::reviews(w));
             }
             if today.month() == 9 {
+                prof!("pathway::yearly", pathway::yearly(w));
                 prof!("youth::yearly", youth::yearly(w));
             }
             vacancies(w);
@@ -238,6 +254,7 @@ impl Sim {
         // Anyone created by the monthly systems (cohorts, staff) has a life.
         life::sync(w);
         if monday {
+            prof!("training::weekly", training::weekly(w));
             prof!("board::weekly", board::weekly(w));
         }
 
@@ -272,11 +289,13 @@ impl Sim {
 
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
+        prof!("returns::pre_match", returns::pre_match(w));
         prof!("officials::pre_match", officials::pre_match(w));
         prof!("matchday::play_today", matchday::play_today(w));
         prof!("officials::daily", officials::daily(w));
         // National teams: windows, qualifiers, tournaments.
         prof!("intl::daily", intl::daily(w));
+        prof!("statepath::daily", statepath::daily(w));
 
         // 8b. What people heard today, and whom they told; what got printed.
         prof!("grapevine::daily", grapevine::daily(w));
@@ -357,6 +376,7 @@ pub fn prepare(w: &mut World) {
     managers::ensure(w);
     scouting::ensure(w);
     youth::ensure(w);
+    ecosystem::yearly(w);
     minor::ensure(w);
     officials::ensure(w);
     intl::ensure(w);
@@ -422,4 +442,5 @@ fn compact(w: &mut World) {
     w.reports.retain(|uid, r| keep.contains(uid) || external.iter().any(|&p| r.line(p).is_some()));
     let today = w.date;
     w.social.prune(today, today.add_days(-3 * 365));
+    w.ext.decisions.compact(today.add_days(-2 * 365));
 }

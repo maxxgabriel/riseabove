@@ -631,6 +631,7 @@ impl<'a> Engine<'a> {
         if self.rng.chance(p) {
             let s = m.side as usize;
             self.mp[i].line.injured = true;
+            self.mp[i].line.injury_noncontact = self.rng.chance(0.5);
             let z = self.ball;
             self.event(s, Ev::Injury, i, None, z, 0.0);
             self.dead(45.0, 110.0);

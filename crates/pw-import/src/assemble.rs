@@ -454,7 +454,7 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
         mark.mark(Facet::Potential, pa_origin);
 
         let hot = PlayerHot { club: registered, team, status: if registered.is_some() { PlayerStatus::Active } else { PlayerStatus::FreeAgent }, condition: 95, sharpness: 70, fitness: 85, ..PlayerHot::default() };
-        let pid = w.players.push(hot, cold);
+        let pid = w.players.push(hot, cold, pw_world::player::Origin { source: pw_world::player::PlayerSource::DatabaseImport, date: w.date });
         w.people[person].player = pid;
         if team.is_some() {
             w.teams[team].squad.push(pid);

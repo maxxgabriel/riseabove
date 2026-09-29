@@ -18,6 +18,7 @@ use pw_world::contract::ContractKind;
 use pw_world::event::{Cause, Causes, EventKind, Fact, Visibility};
 use pw_world::scouting::Brief;
 use pw_world::youth::{Academy, AcademyStyle, AcademyTrial, LocalClub, LocalLevel, Reach, Release, School};
+use pw_world::player::PlayerSource;
 use pw_world::{Contract, MemoryKind, MindKind, PlayerStatus, StaffRole, Team, TeamKind, World};
 use smallvec::SmallVec;
 
@@ -38,7 +39,8 @@ fn head_of_youth(w: &World, club: ClubId) -> Option<PersonId> {
 /// Local football around every professional club, academies with their own
 /// character, and age-group sides for clubs that run them.
 pub fn ensure(w: &mut World) {
-    if !w.youth.local.is_empty() {
+    // Worlds that were given their own grassroots clubs (an ecosystem) still need academies around the professional clubs.
+    if !w.youth.academies.is_empty() || (!w.youth.local.is_empty() && !w.ext.ecosystem.is_configured()) {
         return;
     }
     let clubs: Vec<ClubId> = w.clubs.ids().collect();
@@ -143,12 +145,50 @@ fn new_cohort(w: &mut World, age: u32, year: i32) {
             let a = dob.age_years(today);
             let ca = (pa * gen_::ca_share_at(a) * rng.normal_ms(1.0, 0.1)).clamp(8.0, pa);
             let pos = gen_::random_position(&mut rng);
-            let p = spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: TeamId::NONE, contract: Contract::default() }, &mut rng);
+            let p = spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: TeamId::NONE, contract: Contract::default(), source: PlayerSource::GrassrootsCohort }, &mut rng);
             w.players.hot[p].status = PlayerStatus::Amateur;
             w.youth.join(p, l);
             let who = w.players.cold[p].person;
             w.youth.school.insert(who, School::default());
         }
+    }
+}
+
+/// Annual academy intake (04 §6, 07 §6): each club's yearly signings of
+/// fifteen- and sixteen-year-olds, created directly in its youth team.
+///
+/// `people::daily` only decides *when*; the youth domain owns creation, and
+/// every player made here is tagged `PlayerSource::AcademyIntake`, so the
+/// share of talent that bypasses the grassroots pipeline (`new_cohort`) is
+/// measurable. Draws are unchanged from when this lived in `people.rs`.
+pub fn academy_intake(w: &mut World, n: NationId) {
+    let today = w.date;
+    let youth_rating = f32::from(w.nations[n].youth_rating);
+    let t = w.data.tuning.squad.clone();
+    let clubs: Vec<ClubId> = w.clubs.iter_enumerated().filter(|(_, c)| c.nation == n).map(|(id, _)| id).collect();
+    for club in clubs {
+        let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(club.0), today.year() as u64]);
+        let c = &w.clubs[club];
+        let academy = f32::from(c.facilities.academy + c.facilities.youth) / 40.0;
+        let count = f32::from(t.youth_intake_min) + academy * f32::from(t.youth_intake_max - t.youth_intake_min) + rng.normal() * 1.2;
+        let count = count.round().clamp(1.0, f32::from(t.youth_intake_max) + 2.0) as usize;
+        let team = [TeamKind::U18, TeamKind::U19, TeamKind::U21, TeamKind::Reserve, TeamKind::First].iter().find_map(|&k| w.club_team(club, k));
+        let Some(team) = team else { continue };
+        let rep = f32::from(c.reputation);
+        let youth_fac = f32::from(c.facilities.youth);
+        for _ in 0..count {
+            let foreign = rng.chance(0.08);
+            let nation = if foreign { NationId(rng.below(w.nations.len() as u32)) } else { n };
+            let age_days = rng.range_i32(15 * 365 + 30, 16 * 365 + 200);
+            let dob = today.add_days(-age_days);
+            let pa = crate::people::intake_pa(youth_fac, youth_rating, rep, &mut rng);
+            let age = age_days as f32 / 365.25;
+            let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
+            let contract = Contract { club, kind: ContractKind::Youth, wage: (80.0 + rep / 40.0) as i64, start: today, end: dob.add_months(12 * 18 + 12), ..Default::default() };
+            let pos = gen_::random_position(&mut rng);
+            spawn_player(w, NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team, contract, source: PlayerSource::AcademyIntake }, &mut rng);
+        }
+        w.events.push(today, Visibility::Club(club), EventKind::YouthIntake { club, count: count as u8 });
     }
 }
 
@@ -172,7 +212,7 @@ pub fn weekly(w: &mut World) {
 /// One statistical match's worth of football for a group of players: coaches
 /// pick by how good they think each is, ratings follow ability relative to the
 /// group, minutes and form accumulate. Used for all local and age-group football.
-fn play_group(w: &mut World, members: &[PlayerId], judge: Option<ClubId>, key: u64) {
+fn play_group(w: &mut World, members: &[PlayerId], judge: Option<ClubId>, key: u64, tier: pw_world::ecosystem::Tier) {
     if members.is_empty() {
         return;
     }
@@ -207,6 +247,8 @@ fn play_group(w: &mut World, members: &[PlayerId], judge: Option<ClubId>, key: u
         hh.push_rating(rating);
         hh.last_match = today;
         hh.sharpness = (f32::from(hh.sharpness) + f32::from(minutes) / 90.0 * 10.0).min(100.0) as u8;
+        // What was shown is evidence at this level, however it felt: dominating a weak side is capped and discounted.
+        crate::recognition::credit(w, p, tier, rating, 1.0);
     }
 }
 
@@ -224,10 +266,10 @@ fn play_local(w: &mut World) {
             ages.sort();
             for a in ages {
                 let g = by_age.remove(&a).unwrap_or_default();
-                play_group(w, &g, None, u64::from(l.0) << 8 | u64::from(a));
+                play_group(w, &g, None, u64::from(l.0) << 8 | u64::from(a), pw_world::ecosystem::Tier::Grassroots);
             }
         } else {
-            play_group(w, &members, None, u64::from(l.0));
+            play_group(w, &members, None, u64::from(l.0), pw_world::ecosystem::Tier::Adult);
         }
     }
     // Children who have grown out of grassroots move to the local adult side.
@@ -250,7 +292,7 @@ fn play_academy(w: &mut World) {
         for (kind, _) in ACADEMY_GROUPS {
             if let Some(t) = w.club_team(club, kind) {
                 let squad = w.teams[t].squad.clone();
-                play_group(w, &squad, Some(club), u64::from(t.0));
+                play_group(w, &squad, Some(club), u64::from(t.0), pw_world::ecosystem::Tier::Academy);
             }
         }
     }
@@ -262,6 +304,24 @@ fn in_reach(w: &World, academy: &Academy, l: LocalClubId) -> f32 {
     let home = &w.clubs[academy.club];
     if academy.feeders.contains(&l) {
         return 1.0;
+    }
+    // Worlds with an ecosystem measure nearness by regions and how much of the district's football is watched at all.
+    let eco = &w.ext.ecosystem;
+    if eco.is_configured()
+        && let (Some(&lr), Some(&ar)) = (eco.local_region.get(&l), eco.club_region.get(&academy.club))
+    {
+        if academy.feeders.contains(&l) {
+            return 1.0;
+        }
+        let base = match academy.reach {
+            Reach::Local => 0.6,
+            Reach::Regional => 0.7,
+            Reach::National => 0.5,
+            Reach::International => 0.5,
+        };
+        let near = (1.0 - 1.3 * eco.travel_burden(lr, ar)).max(0.03);
+        let coverage = 0.4 + 0.9 * eco.regions[lr].scouting_coverage / 100.0;
+        return (base * near * coverage).clamp(0.0, 1.0);
     }
     let same_city = local.city == home.city || local.city == home.short_name;
     let same_nation = local.nation == home.nation;
@@ -341,10 +401,42 @@ fn scout_local(w: &mut World) {
 fn watch(w: &mut World, scout: pw_core::StaffId, club: ClubId, l: LocalClubId) {
     let today = w.date;
     let members: Vec<PlayerId> = w.youth.local[l].members.iter().copied().filter(|&p| w.players.hot[p].last_match.days_until(today) <= 7).collect();
-    for p in members {
-        w.knowledge.observe(club, p, 60, today);
+    let tier = if w.youth.local[l].level == LocalLevel::Grassroots { pw_world::ecosystem::Tier::Grassroots } else { pw_world::ecosystem::Tier::Adult };
+    if !w.ext.ecosystem.is_configured() {
+        for p in members {
+            w.knowledge.observe(club, p, 60, today);
+            let r = crate::scouting::judge(w, scout, club, p, w.youth.local[l].standing);
+            w.scouting.file(club, p, r);
+            let finder = w.staff[scout].person;
+            crate::ecosystem::note_found(w, p, finder, club);
+        }
+        return;
+    }
+    // A scout at a match sees a few players, not all twenty-two, and only the ones who draw the eye.
+    // What draws it is `recognition::attention`: level, a sample of games, steadiness, form, position,
+    // maturity, whether anyone vouches, how crowded and how reachable the district is.
+    let week = (today.0 / 7) as u64;
+    let mut drawn: Vec<(f32, PlayerId)> = members
+        .into_iter()
+        .map(|p| {
+            let a = crate::recognition::attention(w, p, tier);
+            let roll = w.roll(stream::YOUTH, &[u64::from(scout.0), u64::from(p.0), week, 0x3a7]);
+            (if roll < a { a } else { 0.0 }, p)
+        })
+        .filter(|x| x.0 > 0.0)
+        .collect();
+    drawn.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
+    for (_, p) in drawn.into_iter().take(2) {
+        crate::recognition::sighted(w, p);
+        // Part of one match: it takes several looks to add up to enough to invite a child.
+        w.knowledge.observe(club, p, 25, today);
         let r = crate::scouting::judge(w, scout, club, p, w.youth.local[l].standing);
         w.scouting.file(club, p, r);
+        // Being noticed once is not being found: a scout has to have seen them more than in passing.
+        if w.ext.ecosystem.repute.get(&p).is_some_and(|r| r.sightings >= 2) {
+            let finder = w.staff[scout].person;
+            crate::ecosystem::note_found(w, p, finder, club);
+        }
     }
 }
 
@@ -379,6 +471,8 @@ fn trials(w: &mut World) {
         v.sort();
         v
     };
+    // Every academy says whom it wants first; a child wanted by several then chooses.
+    let mut wanted: Vec<(PlayerId, ClubId)> = Vec::new();
     for club in clubs {
         if !(club.0 + (today.0 / 7) as u32).is_multiple_of(2) {
             continue;
@@ -387,14 +481,29 @@ fn trials(w: &mut World) {
         let mut cands: Vec<(PlayerId, f32)> = w
             .knowledge
             .known(club)
-            .filter(|(p, s)| s.minutes >= 60 && w.players.hot[*p].status == PlayerStatus::Amateur && (8..=15).contains(&w.age(*p)))
+            .filter(|(p, s)| s.minutes >= 60 && w.players.hot[*p].status == PlayerStatus::Amateur && (8..=15).contains(&w.age(*p)) && crate::recognition::recognised_by(w, club, *p))
             .map(|(p, _)| (p, judged_potential(w, club, p)))
             .filter(|&(p, v)| v >= threshold && !w.youth.trials.iter().any(|t| t.player == p) && !w.market.on_cooldown(club, p, today))
             .collect();
         cands.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
         for (p, _) in cands.into_iter().take(2) {
-            invite(w, club, p);
+            wanted.push((p, club));
         }
+    }
+    wanted.sort();
+    let mut k = 0;
+    while k < wanted.len() {
+        let p = wanted[k].0;
+        let group: Vec<ClubId> = wanted[k..].iter().take_while(|x| x.0 == p).map(|x| x.1).collect();
+        k += group.len();
+        let chosen = crate::pathway::choose(w, p, &group);
+        for &c in &group {
+            if c != chosen {
+                // The others do not ask again for a while.
+                w.market.cooldown.insert((c, p), today.add_days(150));
+            }
+        }
+        invite(w, chosen, p);
     }
 }
 
@@ -431,6 +540,7 @@ pub fn start_trial(w: &mut World, club: ClubId, p: PlayerId) {
         return;
     }
     w.youth.trials.push(AcademyTrial { player: p, club, from: today, until: today.add_days(21) });
+    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Trial, club.0);
     w.knowledge.observe(club, p, 270, today);
     w.events.push(today, Visibility::Person(w.players.cold[p].person), EventKind::AcademyTrialStarted { player: p, club });
 }
@@ -480,6 +590,9 @@ fn join_academy(w: &mut World, club: ClubId, team: TeamId, p: PlayerId) {
     w.teams[team].squad.push(p);
     w.history.start_spell(p, club, today, false, 0);
     w.events.push(today, Visibility::Public, EventKind::AcademyJoined { player: p, club });
+    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Academy, club.0);
+    let region = w.ext.ecosystem.region_of_club(club);
+    crate::ecosystem::set_dev_region(w, p, region);
     if let Some(h) = head_of_youth(w, club) {
         let who = w.players.cold[p].person;
         let compat = consider::compat(w, who, h);
@@ -592,6 +705,7 @@ pub fn release(w: &mut World, club: ClubId, p: PlayerId) {
     w.youth.released.entry(p).or_default().push(Release { club, date: today, age: age as u8 });
     let causes: Causes = pw_world::causes![Cause::Fact(Fact::FormSlump { player: p })];
     let ev = w.events.push_caused(today, Visibility::Person(who), EventKind::AcademyReleased { player: p, club }, causes);
+    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Released, club.0);
     if let Some(h) = head_of_youth(w, club) {
         let compat = consider::compat(w, who, h);
         w.social.remember(who, h, MemoryKind::Refused, today, ev, false, 1.2, compat);
@@ -696,7 +810,10 @@ pub fn yearly(w: &mut World) {
         return;
     }
     w.youth.last_cohort = year;
-    new_cohort(w, 8, year);
+    // Worlds with an ecosystem draw their children from district pools (one creation pipeline, with provenance).
+    if !w.ext.ecosystem.is_configured() {
+        new_cohort(w, 8, year);
+    }
     // Academies' budgets follow the board's youth investment.
     let clubs: Vec<ClubId> = w.youth.academies.keys().copied().collect();
     for c in clubs {

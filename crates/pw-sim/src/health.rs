@@ -100,6 +100,7 @@ pub fn hazard_mult(w: &World, p: PlayerId) -> f32 {
         * age_mult
         * wellbeing
         * w.medical.fragility(p)
+        * crate::returns::hazard_factor(w, p)
         * crate::affairs::body_care(w, c.person)
 }
 
@@ -137,6 +138,7 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             if w.players.hot[p].status == PlayerStatus::Active { hazard_mult(w, p) } else { 1.0 }
         })
         .collect();
+    let tload: Vec<f32> = (0..w.teams.len()).map(|i| w.ext.training.load_mult(TeamId(i as u32))).collect();
     let injuries = &w.data.injuries;
     let people = &w.people;
     let lives = &w.lives;
@@ -182,7 +184,8 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             let plan = c.plan;
             let training_day = matches!(kind, DayKind::Training | DayKind::BeforeMatch);
             let own = if training_day { plan.intensity.load_mult() + f32::from(plan.extra) * 0.06 - f32::from(plan.recovery) * 0.03 } else { 1.0 };
-            let load = kind.load() * own * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
+            let tl = if h.team.is_some() { tload[h.team.0 as usize] } else { 1.0 };
+            let load = kind.load() * own * tl * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
             let routine = lives.get(c.person).map(|l| l.routine).unwrap_or_default();
             let sleep = lives.get(c.person).map_or(70.0, |l| f32::from(l.sleep));
             h.acute = pw_core::math::ewma(h.acute, load, 0.25);
@@ -261,9 +264,9 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
 }
 
 /// Record an injury that happened in a match (the engine only flags it).
-pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng) {
-    let mech = [Mechanism::Contact, Mechanism::NonContact];
-    if let Some((k, d)) = sample_injury(&w.data.injuries, &mech, rng) {
+pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng, noncontact: bool) {
+    let mech: &[Mechanism] = if noncontact { &[Mechanism::NonContact, Mechanism::Overuse] } else { &[Mechanism::Contact] };
+    if let Some((k, d)) = sample_injury(&w.data.injuries, mech, rng) {
         let h = &mut w.players.hot[p];
         h.injury = k as u16 + 1;
         h.injury_days = d;
