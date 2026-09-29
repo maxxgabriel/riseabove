@@ -86,6 +86,16 @@ The crates were checked bottom-up (`pw-core` → `pw-data` → `pw-world` → `p
 11. **Checker:** the doubled-word check misread rhetoric ("goals, goals, goals").
 12. **Guard semantics:** the past-name guard compared generated figures against people born years later.
     It now compares against the people who existed when the past was written.
+13. **Perceived bias never formed:** supporters' grievances against referees decayed once per match on
+    the first of each month, which wiped them. They now fade once a month. The test asserts that belief
+    in a biased referee forms while calls stay equally correct for home and away sides: 2,166 calls
+    against home sides were 91.3% correct, 2,409 against away sides 90.5%, within a four-standard-error
+    binomial tolerance. A first, smaller version of this test (four weeks of calls) failed on noise; it
+    was rebuilt with enough data rather than loosened.
+14. **Agents exploring constantly** (about 6,300 times a season on the small world): the dedup looked in
+    a short recent-items list, and routine contract talks counted as unrest. Now each representation
+    records its last exploration (at most every half season), and only unhappiness, discipline, a split
+    dressing room or stalling talks trigger it. The result is about 1,650 a season.
 
 ## 3. Causal chains demonstrated
 
@@ -107,16 +117,29 @@ Other links are asserted by tests or by the audit on every season of the long ru
 - records at every level → record events carrying their history
 - votes → awards, with ballots and reasons
 
-`causal_chain_report` (ignored; run with `--nocapture`) prints, per seed:
+`causal_chain_report` (ignored; run with `--nocapture`) counts chain links over two autonomous
+seasons on the small world, three seeds (301, 302, 303):
 
-- leaks suspected, board queries and agents exploring (the cascade in brief item P)
-- captain mediations and incident responses
-- appeals and charges
-- supporter actions
-- records, hall inductions and chronicle entries
-- tactical schools and rule changes
-- stories from sources and from viral posts, denials and closed threads
-- call-outs and changed or doubled-down opinions
+| Link | Per world |
+|---|---|
+| leaks suspected by colleagues | 383–499 |
+| boards asking managers to explain what they heard | 1,100–1,148 |
+| agents quietly exploring the market | 3,223–3,401 |
+| captains mediating | 605–672 |
+| incident responses | 10.5k–11.1k |
+| stories resting on a source | 642–907 |
+| stories about viral supporter posts | 143–395 |
+| denials | 39–50 |
+| running stories resolved (happened, denied, collapsed, faded) | 610–799 |
+| red-card appeals decided | 13–19 |
+| misconduct charges | 66–83 |
+
+Together these show the cascade in brief item P: a private event is witnessed, told on, suspected as a
+leak, queried by the board, and acted on by an agent. Rarer links: supporter-group actions (1–10),
+records (12–15), chronicle entries (1–5), a tactical school (0–1).
+
+Supporters changing their minds ("fair enough, I was wrong" or doubling down) and call-outs are rare
+(0–8). Opinions move slowly, so the thresholds for these are seldom crossed in two seasons (§12).
 
 ## 4. RNG reproducibility
 
@@ -201,11 +224,11 @@ In one run: 28,663 incidents (before recalibration), 12,018 published stories, 5
 
 ## 10. Long runs
 
-| Run | Result | Notes |
+| Run (final code; the three ran concurrently) | Result | Notes |
 |---|---|---|
-| 5 seasons, small (32 clubs, about 5,400 active players) | pass; audit clean every season | posts in the 45-day window stay at 3–5k |
-| 20 seasons, small | pass; audit clean every season | 542 s total; 3 rule changes, 6 tactical schools, 385 votes, 1,105 records; season time grows from 8 s to 34 s as history accumulates |
-| 50 seasons, tiny (8 clubs) | pass; audit clean every season | 155 s; stories 78k; 322 votes; 10 schools |
+| 5 seasons, small (64 clubs, about 5,400 active players) | pass; audit clean every season | 76 s; posts in the 45-day window stay at 3–5k |
+| 20 seasons, small | pass; audit clean every season | 405 s; 3 rule changes, 10 tactical schools, 399 votes, 1,106 records, 184k stories |
+| 50 seasons, tiny (8 clubs) | pass; audit clean every season | 178 s; 6 schools, 320 votes, 74.5k stories |
 
 What the long runs checked for (brief §33):
 
@@ -244,20 +267,32 @@ Profiling uses the per-system timer (`PW_PROFILE`) on the daily pipeline.
 | Social post explosion: every viral post became a meme, rivals reused all memes daily, and famous people's accounts reacted to everything like supporters | memes are born only from viral jibes (one per club a month), used on match days with fatigue, and fade; real people post about their own moments, and their accounts are created lazily |
 | Incident rates: about 14k incidents a season on the small world, because household incidents fired without circumstances | rebased so that pressures carry the probability (about 5.7k a season, mostly squad friction) |
 
-**Measured** (synthetic worlds; release build; 4 cores):
+**Measured** after the fixes (synthetic worlds; release build; 4 cores; 120 days from 1 July, which
+covers the transfer window and the season start):
 
-| Players (clubs) | Days | ms/day | Peak memory | Save size |
+| Players | Clubs | ms/day | Peak memory | Save after 120 days |
 |---|---|---|---|---|
-| 5.8k (88) | 120 | 18 | 68 MB | — |
-| 23k (352) | 200 | 135 | 425 MB | 26 MB at 60 days |
-| 52k (792) | 120 | 343 | 527 MB | 58 MB at 60 days |
-| 99k (1,496) | 60 | 436 (from 1,221) | 643 MB | 110 MB |
-| 302k (4,576) | 120 | FINAL_300K (from 6,910) | 2.46 GB | 480 MB |
+| 5.8k | 88 | 17 | 68 MB | 10 MB |
+| 23k | 352 | 77 | 254 MB | 42 MB |
+| 52k | 792 | 231 | 526 MB | 93 MB |
+| 99k | 1,496 | 584 | 1.0 GB | 174 MB |
+| 302k | 4,576 | 2,411 (6,910 before the last two fixes; 181 s for 30 days before the first) | 2.46 GB | 480 MB (load and report 8.5 s) |
 
-Largest remaining costs at 300k: `social::weekly` (relationship drift for every player and manager
-pair), `mind::weekly`, `morale::weekly`, and the social network. They scale linearly. A season at 300k
-still takes several minutes per simulated season; the budget set in PROGRESS (6 seconds per weekend)
-is not yet met at 300k.
+The world builds in 2.8 s at 302k players.
+
+Largest remaining costs at 300k:
+
+| System | ms/day |
+|---|---|
+| social network daily | 530 |
+| perception (weekly) | 2,150 per call |
+| matches | 234 |
+| minds (weekly) | 1,600 per call |
+| grapevine | 194 |
+| youth (weekly) | 1,250 per call |
+
+All scale roughly linearly. A 300k season is about 15 minutes of simulation. The PROGRESS budget (a
+simulated weekend in 6 seconds) is met up to about 50k players, but not at 300k.
 
 ## 12. Remaining shallow systems
 
@@ -271,12 +306,20 @@ is not yet met at 300k.
 - Institution hall committees are journalists (schools have no people).
 - Backfill covers top flights only (no past transfers or managers).
 - Several pre-existing systems (economy, market) are not validated here beyond staying alive.
+- Supporters' opinions move slowly. "I was wrong" and doubling down are rare in two seasons, and so
+  are call-outs of earlier posts. The mechanism works (the renderer and the audit check it) but it is
+  seldom triggered.
+- Fame-based person accounts appear only when a person posts, and people post only about their own
+  big moments.
 
 ## 13. Remaining known risks
 
 - **Balance over decades:** economy, wages, reputation and fame are not yet measured over 50 seasons.
   Fame inflation is suspected: the number of people above a fame threshold grew fourfold in three
   seasons on the small world, before accounts became lazy.
+- **Calibration:** the rates (incidents about 5.7k a season on the small world, agent explorations
+  about 1,650, stories from sources about 320–450) are plausible but not tuned against real football. They need targets
+  before release.
 - **History growth:** stories (about 9k a season on the small world), kept posts and the event log grow
   with history. Save size at 300k is 480 MB after 120 days.
 - **Save format:** saves are unversioned `bincode`. Any change to `World` breaks old saves; there is no

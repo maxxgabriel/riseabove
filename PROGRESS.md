@@ -253,6 +253,18 @@ See `docs/MEDIA_SOCIAL_HISTORY_SYSTEMS.md`. Eleven commits (3d013fa…adf8e58):
 - A generic record engine with holder histories.
 - Voted awards with ballots, halls of fame at every scope, and a chronicle of firsts.
 
+### 3.9c Integration — ✅ compiled, formatted, lint-clean, tested (2026-09-29)
+
+The whole workspace (except the unstarted `app/`) compiles with zero warnings and is clippy-clean.
+Formatting is enforced by a width-200 `rustfmt.toml`.
+
+- **Tests:** 39 pass. There are 7 ignored runs: the long runs of 5, 20 and 50 seasons and a causal-chain
+  report (all run and passing), and 3 match-engine calibration and diagnostic reports.
+- **Audit:** the semantic truth audit is clean in every season of the long runs.
+- **Performance:** at 302k players a day takes about 2.4 s.
+
+See `docs/INTEGRATION_REPORT.md`.
+
 ### 3.10 `app/` — desktop client — ⬜ not started (the terminal client comes first)
 
 ---
