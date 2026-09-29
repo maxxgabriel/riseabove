@@ -438,6 +438,12 @@ fn club_turn(w: &mut World, id: TalkId) {
         improved.signing_fee = (improved.signing_fee as f64 * 0.9) as Money;
         guard += 1;
     }
+    // Trimming wage and fee cannot take out a release clause or a promised status: if the package is still over the ceiling, the club
+    // holds its last offer rather than break it (it used to sign at up to 107% of its own limit).
+    if package::club_cost(w, club, player, &improved) > limit_cost as f64 * 1.02 {
+        improved = offer;
+        club_moves.clear();
+    }
     let t = &mut w.talks[id];
     let moved = improved != offer;
     t.log.push((today, if moved { TalkLine::ClubImproved(improved) } else { TalkLine::ClubHeldFirm }));
