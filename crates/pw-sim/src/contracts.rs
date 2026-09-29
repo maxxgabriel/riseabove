@@ -95,10 +95,12 @@ pub fn weekly(w: &mut World) {
             // Scholars earn a first professional deal only if the club believes in them.
             crate::youth::worth_pro_contract(w, p)
         } else {
+            // The club decides on how it rates him, not on his hidden ability.
+            let (ca, _, pa, _) = crate::scouting::view(w, h.club, p);
             match c.status {
                 SquadStatus::NotNeeded | SquadStatus::Backup => false,
-                SquadStatus::Fringe => age <= 21 && c.pa >= c.ca + 15,
-                _ => age < 33 || c.ca >= 130,
+                SquadStatus::Fringe => age <= 21 && pa >= ca + 15.0,
+                _ => age < 33 || ca >= 130.0,
             }
         };
         if !wanted || w.market.on_cooldown(h.club, p, today) {

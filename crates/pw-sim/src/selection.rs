@@ -192,16 +192,18 @@ fn pool(w: &World, team: TeamId, comp: CompId) -> Vec<PlayerId> {
     let mut v: Vec<PlayerId> = t.squad.iter().copied().filter(ok).collect();
     if v.len() < 16 {
         let club = &w.clubs[t.club];
-        let mut extra: Vec<PlayerId> = club
+        let extra: Vec<PlayerId> = club
             .teams
             .iter()
             .filter(|&&o| o != team)
             .flat_map(|&o| w.teams[o].squad.iter().copied())
             .filter(|&p| w.players.hot[p].available() && w.age(p) >= 15 && pw_world::rules::match_eligible(w, p, comp, t.club))
             .collect();
-        extra.sort_by(|&a, &b| w.players.cold[b].ca.cmp(&w.players.cold[a].ca).then(a.cmp(&b)));
+        // Called up by how the manager rates them, not by their hidden ability.
+        let mut rated: Vec<(f32, PlayerId)> = extra.into_iter().map(|p| (crate::scouting::view(w, t.club, p).0, p)).collect();
+        rated.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
         let need = 16 - v.len();
-        let add: Vec<PlayerId> = extra.into_iter().filter(|p| !v.contains(p)).take(need).collect();
+        let add: Vec<PlayerId> = rated.into_iter().map(|x| x.1).filter(|p| !v.contains(p)).take(need).collect();
         v.extend(add);
     }
     if v.len() < 11 {
@@ -220,7 +222,9 @@ fn pool(w: &World, team: TeamId, comp: CompId) -> Vec<PlayerId> {
         let mut foreign: Vec<PlayerId> = v.iter().copied().filter(|&p| pw_world::rules::is_foreign(w, p, nation)).collect();
         let allowed = usize::from(prof.foreign_on_pitch_max) + 2;
         if foreign.len() > allowed {
-            foreign.sort_by(|&a, &b| w.players.cold[b].ca.cmp(&w.players.cold[a].ca).then(a.cmp(&b)));
+            let mut rated: Vec<(f32, PlayerId)> = foreign.iter().map(|&p| (crate::scouting::view(w, t.club, p).0, p)).collect();
+            rated.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
+            foreign = rated.into_iter().map(|x| x.1).collect();
             let drop: Vec<PlayerId> = foreign.split_off(allowed);
             v.retain(|p| !drop.contains(p));
         }

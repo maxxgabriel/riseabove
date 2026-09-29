@@ -134,7 +134,7 @@ pub fn plan(w: &mut World, club: ClubId) {
         let ageing = starters_v.iter().filter(|(p, _)| w.age_years(*p) >= 31.0).count() as u8;
         // The starters' expected level in one and two seasons.
         let projected = |years: f32| -> f32 {
-            let v: Vec<f32> = starters_v.iter().map(|(p, ca)| project(*ca, f32::from(w.players.cold[*p].pa).max(*ca), w.age_years(*p), years)).collect();
+            let v: Vec<f32> = starters_v.iter().map(|(p, ca)| project(*ca, scouting::view(w, club, *p).2.max(*ca), w.age_years(*p), years)).collect();
             v.iter().sum::<f32>() / v.len().max(1) as f32
         };
         let (quality_next, quality_in_two) = (projected(1.0), projected(2.0));

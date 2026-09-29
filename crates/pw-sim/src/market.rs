@@ -26,8 +26,8 @@ pub fn public_view(w: &World, p: PlayerId) -> (f32, f32) {
     let c = &w.players.cold[p];
     let fame = f32::from(c.rep.world) / 10_000.0;
     let sigma = w.data.tuning.perception.sigma0 * (0.75 - 0.6 * fame).max(0.15);
-    let ca = perceive(f32::from(c.ca), sigma * 3.0, Observer::Public, p, field::CA).clamp(1.0, 200.0);
-    let pa = perceive(f32::from(c.pa), sigma * 3.0 + 4.0, Observer::Public, p, field::PA).clamp(ca, 200.0);
+    let ca = perceive(f32::from(c.ca), sigma * 3.0, Observer::Public, p, field::CA).clamp(1.0, 200.0); // truth-ok: the market's noisy reading
+    let pa = perceive(f32::from(c.pa), sigma * 3.0 + 4.0, Observer::Public, p, field::PA).clamp(ca, 200.0); // truth-ok: the market's noisy reading
     (ca, pa)
 }
 
@@ -59,7 +59,7 @@ pub fn value_of(w: &World, p: PlayerId) -> Money {
 /// The price formula on the true ability: what an omniscient observer would call his worth. For audits and debugging only; nothing
 /// inside the world may use it (locked design §1.15).
 pub fn true_worth(w: &World, p: PlayerId) -> Money {
-    price_formula(w, p, f32::from(w.players.cold[p].ca), f32::from(w.players.cold[p].pa))
+    price_formula(w, p, f32::from(w.players.cold[p].ca), f32::from(w.players.cold[p].pa)) // truth-ok: audit helper, never used inside the world
 }
 
 /// What a club believes a player is worth, from its own reading of him (its scouts' reports, its own coaches' eyes).
@@ -210,8 +210,13 @@ fn plan_squad(w: &mut World, club: ClubId) {
         (PosGroup::Mid, if big { 8 } else { 7 }, 4, Pos::MC),
         (PosGroup::Att, if big { 5 } else { 4 }, 2, Pos::ST),
     ] {
-        let mut cas: Vec<(u8, Pos)> =
-            w.teams[team].squad.iter().map(|&p| &w.players.cold[p]).filter(|c| c.best_pos.group() == group && c.status != SquadStatus::NotNeeded).map(|c| (c.ca, c.best_pos)).collect();
+        // The club's own reading of its players, not their hidden ability.
+        let mut cas: Vec<(u8, Pos)> = w.teams[team]
+            .squad
+            .iter()
+            .filter(|&&p| w.players.cold[p].best_pos.group() == group && w.players.cold[p].status != SquadStatus::NotNeeded)
+            .map(|&p| (crate::scouting::view(w, club, p).0.round().clamp(1.0, 200.0) as u8, w.players.cold[p].best_pos))
+            .collect();
         cas.sort_by(|a, b| b.0.cmp(&a.0));
         let weakest = cas.get(starters.saturating_sub(1)).map(|x| x.0).unwrap_or(0);
         let pos = cas.get(starters.saturating_sub(1)).map_or(rep_pos, |x| x.1);
@@ -412,10 +417,11 @@ fn landing_team(w: &World, p: PlayerId, club: ClubId) -> TeamId {
     if age >= 21 {
         return first;
     }
-    let mut cas: Vec<u8> = w.teams[first].squad.iter().map(|&x| w.players.cold[x].ca).collect();
-    cas.sort_by(|a, b| b.cmp(a));
-    let bar = cas.get(17).copied().unwrap_or(0);
-    if w.players.cold[p].ca >= bar {
+    // The club places him by how it rates him against how it rates its own squad.
+    let mut cas: Vec<f32> = w.teams[first].squad.iter().map(|&x| crate::scouting::view(w, club, x).0).collect();
+    cas.sort_by(|a, b| b.total_cmp(a));
+    let bar = cas.get(17).copied().unwrap_or(0.0);
+    if crate::scouting::view(w, club, p).0 >= bar {
         return first;
     }
     let youth = [TeamKind::U21, TeamKind::Reserve, TeamKind::U19, TeamKind::U18];
@@ -525,7 +531,7 @@ pub fn weekly_loans(w: &mut World) {
                 let h = &w.players.hot[p];
                 let age = w.age(p);
                 let agreed = w.market.loan_listed.contains_key(&p);
-                (agreed || ((18..=21).contains(&age) && h.minutes_4w < 120 && f32::from(c.pa) >= ideal_ca(parent_rep) - 10.0))
+                (agreed || ((18..=21).contains(&age) && h.minutes_4w < 120 && crate::scouting::view(w, parent, p).2 >= ideal_ca(parent_rep) - 10.0))
                     && age >= 17
                     && c.loan.is_none()
                     && h.available()
@@ -533,9 +539,9 @@ pub fn weekly_loans(w: &mut World) {
                     && !crate::negotiation::in_talks(w, p)
                     && !w.market.on_cooldown(ClubId::NONE, p, today)
             })
-            .max_by_key(|&p| (w.players.cold[p].pa, std::cmp::Reverse(p)));
+            .max_by_key(|&p| ((crate::scouting::view(w, parent, p).2 * 10.0) as i32, std::cmp::Reverse(p)));
         let Some(p) = candidate else { continue };
-        let ca = w.players.cold[p].ca;
+        let ca = crate::scouting::view(w, parent, p).0.round().clamp(1.0, 200.0) as u8;
         let group = w.players.cold[p].best_pos.group();
         let dest = w
             .clubs
@@ -576,13 +582,13 @@ pub fn free_agent_sweep(w: &mut World) {
                 let person = &w.people[c.person];
                 (person.nation == nation || w.knowledge.seen(club, p).is_some())
                     && (c.best_pos.group() == need.group)
-                    && c.ca >= need.min_ability
                     && w.age(p) <= u32::from(need.max_age) + 3
                     && !w.market.on_cooldown(club, p, today)
                     && !w.market.is_pending(p)
                     && !crate::negotiation::in_talks(w, p)
+                    && crate::scouting::view(w, club, p).0 >= f32::from(need.min_ability)
             })
-            .max_by_key(|&p| (w.players.cold[p].ca, std::cmp::Reverse(p)));
+            .max_by_key(|&p| ((crate::scouting::view(w, club, p).0 * 10.0) as i32, std::cmp::Reverse(p)));
         if let Some(p) = pick {
             approach(w, club, p, 0);
         }

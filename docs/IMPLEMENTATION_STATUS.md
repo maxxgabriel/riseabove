@@ -19,7 +19,9 @@ updated when they change.
 | Multi-domain judging, licences (§1.3-1.4) | **NOT IMPLEMENTED** | two staff attributes (judging ability / potential); no licences | no |
 | Manager weighs staff by trust and history (§1.7) | **NOT IMPLEMENTED** | | no |
 | Philosophy and context change decisions (§1.11-1.12) | **PARTIAL** | manager style from traits (rotation habit, loyalty, sports science, discipline); opposition, next fixture, promises | unit + `manager_ai.rs` |
-| **Known truth leaks** (§1.15) | **OPEN** | `selection.rs::pool` (emergency call-ups, foreigner trimming sort by true CA); `market.rs::plan_squad` (needs from true CA), `free_agent_sweep`, `weekly_loans`; `development`/`health` legitimately use truth | no |
+| Decision modules do not read true ability (§1.15) | **IMPLEMENTED** | selection, squad needs, newcomer placement, loans, free-agent sweeps, renewals, projections now use `scouting::view` | `pw-sim/tests/truth_guard.rs` fails on any unmarked `.ca`/`.pa` read in `selection`, `planning`, `deals`, `market`, `negotiation`, `contracts`, `board`, `staffing`, `managers` |
+
+Other modules (`youth`, `intl`, `awards`, `newsroom`, `incidents`, ...) are not under the guard yet; extend `DECISION_MODULES` as each is audited.
 
 ## 2. Media — PARTIAL
 
