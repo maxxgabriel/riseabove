@@ -8,3 +8,6 @@
 
 ## 2026-09-30  Agent A
 - Pushed `local/pathway-integration` (India recognition/pathway/export engine, UI pages `Development` + pathway panel on player pages, tests `crates/pw-cli/tests/india_ecosystem.rs`). Agent B's data-only branch will be merged in at the final push.
+
+- 2026-09-29T22:06:00Z [B] Agent B works on branch claude/india-real-world-data (from sim/expansion-audit): researched India reference data under data/worlds/india/ (schema: SCHEMA.md), plus validators. Not touching sim architecture.
+- 2026-09-29T22:08:57Z [B] Research stopped on user request. Data under data/worlds/india/ is mostly general-knowledge baseline (q C/D) except state_leagues/wb.toml. Validator: tools/validate_india_reference.py. Not modifying Rust.

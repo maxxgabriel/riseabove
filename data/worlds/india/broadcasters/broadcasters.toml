@@ -1,0 +1,49 @@
+[meta]
+dataset = "broadcasters"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-29"
+coverage = "Platforms that have carried Indian football; NO rights records."
+gaps = ["Which broadcaster carries which competition for 2025-26 and 2026-27 is not verified, so no [[rights]] rows are written. ISL rights changed around 2025; research before writing any."]
+
+[[broadcaster]]
+id = "bcast.jiostar"
+name = "JioStar (Star Sports / JioHotstar)"
+medium = ["tv", "digital"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn", "lang.mr"]
+region = "national"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[broadcaster]]
+id = "bcast.sony-sports"
+name = "Sony Sports Network / SonyLIV"
+medium = ["tv", "digital"]
+languages = ["lang.en", "lang.hi", "lang.ta", "lang.te"]
+region = "national"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[broadcaster]]
+id = "bcast.dd-sports"
+name = "DD Sports"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+owner = "Prasar Bharati"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[broadcaster]]
+id = "bcast.fancode"
+name = "FanCode"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[broadcaster]]
+id = "bcast.aiff-tv"
+name = "AIFF YouTube / official streaming"
+medium = ["digital"]
+languages = ["lang.en"]
+region = "national"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

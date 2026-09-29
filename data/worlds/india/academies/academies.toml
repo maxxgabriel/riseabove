@@ -1,0 +1,92 @@
+[meta]
+dataset = "academies"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "9 well-known academies."
+gaps = ["AIFF accreditation lists not researched.", "ISL/IFL club academies and state government academies not itemised."]
+
+[[academy]]
+id = "academy.rf-young-champs"
+name = "Reliance Foundation Young Champs"
+city = "Navi Mumbai"
+state = "state.mh"
+kind = "corporate"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.minerva-academy"
+name = "Minerva Academy"
+city = "Mohali"
+state = "state.pb"
+kind = "independent"
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.rkm-narendrapur"
+name = "Ramakrishna Mission Football Academy (Narendrapur)"
+city = "Narendrapur"
+state = "state.wb"
+kind = "independent"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.pune-krida-prabodhini"
+name = "Pune Krida Prabodhini"
+city = "Pune"
+state = "state.mh"
+kind = "state"
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.bhaichung-bhutia-schools"
+name = "Bhaichung Bhutia Football Schools"
+city = "Gangtok"
+state = "state.sk"
+kind = "independent"
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.aiff-elite-academy"
+name = "AIFF Elite Academy"
+kind = "state"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.tata-football-academy"
+name = "Tata Football Academy"
+city = "Jamshedpur"
+state = "state.jh"
+kind = "corporate"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.zinc-football-academy"
+name = "Zinc Football Academy"
+city = "Udaipur"
+state = "state.rj"
+kind = "corporate"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }
+
+[[academy]]
+id = "academy.sesa-football-academy"
+name = "SESA Football Academy"
+city = "Sanquelim"
+state = "state.ga"
+kind = "corporate"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "The institution is real and widely known. Accreditation, age groups and facilities are not recorded." }

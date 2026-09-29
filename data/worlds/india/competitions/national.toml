@@ -1,0 +1,391 @@
+[meta]
+dataset = "competitions.national"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-29"
+coverage = "The national competitions the game references."
+gaps = ["Official formats, team counts, promotion/relegation and prize money not verified for 2026-27.", "ISL operator and commercial arrangements after 2025 not verified.", "Foreign-player and registration rules not recorded (see rules/registration.toml)."]
+
+[[competition]]
+id = "comp.isl"
+name = "Indian Super League"
+short = "ISL"
+aliases = ["Hero ISL"]
+organiser = "assoc.aiff"
+level = "national"
+tier = 1
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+teams = 13
+format = "Double round-robin league followed by playoffs (format has varied by season)"
+calendar = "Sep-Apr"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "The AIFF confirmed ISL 2026-27 will proceed with 13 clubs (headline seen in search results, page not opened). Commercial operator and rights after the FSDL agreement are NOT verified." }
+
+[[competition]]
+id = "comp.ifl"
+name = "Indian Football League"
+short = "IFL"
+aliases = ["I-League"]
+organiser = "assoc.aiff"
+level = "national"
+tier = 2
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "League"
+calendar = "Oct-Apr"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "Second tier. Official current name unverified: earlier the I-League. Promotion to the ISL has been discussed and changed between seasons; do not treat as settled." }
+
+[[competition]]
+id = "comp.ifl2"
+name = "Indian Football League 2"
+short = "IFL2"
+aliases = ["I-League 2"]
+organiser = "assoc.aiff"
+level = "national"
+tier = 3
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Group stage plus final round"
+calendar = "Jan-Apr"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; third tier." }
+
+[[competition]]
+id = "comp.ifl3"
+name = "Indian Football League 3"
+short = "IFL3"
+aliases = ["I-League 3"]
+organiser = "assoc.aiff"
+level = "national"
+tier = 4
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Clubs nominated by state associations"
+calendar = "Jan-Apr"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; fourth tier." }
+
+[[competition]]
+id = "comp.super-cup"
+name = "Super Cup"
+short = "Super Cup"
+aliases = ["Hero Super Cup"]
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "cup"
+season = "2026-27"
+format = "Knockout, ISL and I-League clubs plus qualifiers"
+calendar = "Apr or Oct (varied)"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.durand-cup"
+name = "Durand Cup"
+short = "Durand"
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Group stage and knockouts, hosted in multiple cities; Indian armed-forces teams take part"
+calendar = "Jul-Aug"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; run with the Indian Army, one of the oldest tournaments in Asia." }
+
+[[competition]]
+id = "comp.santosh-trophy"
+name = "Santosh Trophy"
+short = "Santosh"
+aliases = ["National Football Championship for the Santosh Trophy"]
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "Zonal qualifiers then final round; state associations plus Services and Railways"
+calendar = "Oct-Feb varying"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.rfdl"
+name = "Reliance Foundation Development League"
+short = "RFDL"
+organiser = "assoc.aiff"
+level = "national"
+age = "u21"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "League of ISL and I-League club development sides"
+calendar = "Dec-Apr"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.youth-league-u17"
+name = "Elite Youth League U17"
+short = "U17"
+organiser = "assoc.aiff"
+level = "national"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; AIFF youth leagues, exact names and structure unverified." }
+
+[[competition]]
+id = "comp.youth-league-u15"
+name = "Elite Youth League U15"
+short = "U15"
+organiser = "assoc.aiff"
+level = "national"
+age = "u15"
+gender = "men"
+kind = "league"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; AIFF youth leagues, exact names and structure unverified." }
+
+[[competition]]
+id = "comp.youth-league-u13"
+name = "Youth League U13"
+short = "U13"
+organiser = "assoc.aiff"
+level = "national"
+age = "u13"
+gender = "men"
+kind = "league"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; AIFF youth leagues, exact names and structure unverified." }
+
+[[competition]]
+id = "comp.junior-nfc"
+name = "Junior National Football Championship"
+short = "Junior NFC"
+organiser = "assoc.aiff"
+level = "national"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; state teams; age band unverified." }
+
+[[competition]]
+id = "comp.sub-junior-nfc"
+name = "Sub-Junior National Football Championship"
+short = "Sub-Junior NFC"
+organiser = "assoc.aiff"
+level = "national"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; state teams; age band unverified." }
+
+[[competition]]
+id = "comp.iwl"
+name = "Indian Women's League"
+short = "IWL"
+organiser = "assoc.aiff"
+level = "national"
+tier = 1
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "League"
+calendar = "Varies"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.iwl2"
+name = "Indian Women's League 2"
+short = "IWL2"
+organiser = "assoc.aiff"
+level = "national"
+tier = 2
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "League"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.senior-women-nfc"
+name = "Senior Women's National Football Championship"
+short = "Women's NFC"
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "women"
+kind = "championship"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.subroto-cup"
+name = "Subroto Cup International Football Tournament"
+short = "Subroto Cup"
+organiser = "assoc.ssb-organiser"
+level = "national"
+age = "u17"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; school tournament run by the Indian Air Force's Subroto Mukerjee Sports Education Society; age categories unverified." }
+
+[[competition]]
+id = "comp.kiyg"
+name = "Khelo India Youth Games (football)"
+short = "KIYG"
+organiser = "assoc.gov-sports"
+level = "national"
+age = "u18"
+gender = "mixed"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; organised by the Ministry of Youth Affairs and Sports." }
+
+[[competition]]
+id = "comp.kiug"
+name = "Khelo India University Games (football)"
+short = "KIUG"
+organiser = "assoc.gov-sports"
+level = "national"
+age = "senior"
+gender = "mixed"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[competition]]
+id = "comp.aiu-north"
+name = "AIU North Zone Inter-University Football"
+short = "AIU North"
+organiser = "assoc.aiu"
+level = "zonal"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.aiu-south"
+name = "AIU South Zone Inter-University Football"
+short = "AIU South"
+organiser = "assoc.aiu"
+level = "zonal"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.aiu-east"
+name = "AIU East Zone Inter-University Football"
+short = "AIU East"
+organiser = "assoc.aiu"
+level = "zonal"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.aiu-west"
+name = "AIU West Zone Inter-University Football"
+short = "AIU West"
+organiser = "assoc.aiu"
+level = "zonal"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.aiu-inter-zone"
+name = "AIU All India Inter-University Football"
+short = "AIU All India"
+organiser = "assoc.aiu"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.sgfi-u14"
+name = "School Games Federation of India Football U14"
+short = "SGFI U14"
+organiser = "assoc.sgfi"
+level = "national"
+age = "u14"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.sgfi-u17"
+name = "School Games Federation of India Football U17"
+short = "SGFI U17"
+organiser = "assoc.sgfi"
+level = "national"
+age = "u17"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }
+
+[[competition]]
+id = "comp.sgfi-u19"
+name = "School Games Federation of India Football U19"
+short = "SGFI U19"
+organiser = "assoc.sgfi"
+level = "national"
+age = "u19"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; format and team count are the general understanding and must be checked against the season regulations." }

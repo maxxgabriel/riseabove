@@ -1,0 +1,7 @@
+[meta]
+dataset = "development.referees"
+quality = "E"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Empty on purpose."
+gaps = ["Referee progression not researched."]
