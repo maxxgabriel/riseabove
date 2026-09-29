@@ -4,80 +4,66 @@
 prose: it says what is done, what is partial, what is missing, and where the evidence is. Code and tests decide; this file is
 updated when they change.
 
-* Branch `local/pathway-integration` (remote `integration/pathway-data-import`), audited 2026-09-29.
+* Branch `local/pathway-integration` (remote `integration/pathway-data-import`), audited 2026-09-30 (sections 1-6 rewritten after the second implementation pass).
 * Labels: **IMPLEMENTED** · **PARTIAL** · **NOT IMPLEMENTED** · **NEEDS AUDIT**. "Tested" says whether a test enforces it.
 * Older reports (`INTEGRATION_REPORT.md`, `FINAL_DEPTH_PASS.md`, `WORLD_SYSTEMS.md`) describe earlier commits and may be stale.
 
-## 1. Knowledge, perception, decisions — PARTIAL
+## 1. Knowledge, perception, decisions - PARTIAL (core implemented)
 
 | Rule | Status | Evidence / gap | Tested |
 | --- | --- | --- | --- |
-| Actors read beliefs, not hidden truth (§1.1) for team selection | **IMPLEMENTED** | `selection.rs`: ability, role fit, edge, leadership, personality read through the club's perception (`perceive`); risk and discipline from observable evidence | `manager_ai.rs` (beliefs correlate with truth, never equal it) |
-| Exposure changes certainty (§1.9) | **IMPLEMENTED** | `knowledge.rs::sigma`, weekly observation in `perception.rs` | world tests |
-| Several scouts, reports, disagreement (§1.6) | **PARTIAL** | `scouting.rs::view`/`disagreement`; no departmental opinions (assistant, academy head, analyst) | partial |
-| Belief dossier instead of noisy PA (§1.5) | **NOT IMPLEMENTED** | a belief is `(ca, band, pa, band)`; no roles, risks, evidence list, revision history | no |
-| Multi-domain judging, licences (§1.3-1.4) | **NOT IMPLEMENTED** | two staff attributes (judging ability / potential); no licences | no |
-| Manager weighs staff by trust and history (§1.7) | **NOT IMPLEMENTED** | | no |
-| Philosophy and context change decisions (§1.11-1.12) | **PARTIAL** | manager style from traits (rotation habit, loyalty, sports science, discipline); opposition, next fixture, promises | unit + `manager_ai.rs` |
-| Decision modules do not read true ability (§1.15) | **IMPLEMENTED** | selection, squad needs, newcomer placement, loans, free-agent sweeps, renewals, projections now use `scouting::view` | `pw-sim/tests/truth_guard.rs` fails on any unmarked `.ca`/`.pa` read in `selection`, `planning`, `deals`, `market`, `negotiation`, `contracts`, `board`, `staffing`, `managers` |
+| Actors read beliefs, not hidden truth (1.1) for team selection | **IMPLEMENTED** | `selection.rs`: ability, role fit, edge, leadership, personality read through the club's perception; risk and discipline from observable evidence | `manager_ai.rs` |
+| Exposure changes certainty (1.9) | **IMPLEMENTED** | `knowledge.rs::sigma`, weekly observation in `perception.rs`; a dossier's band widens for players no one has seen | `dossier.rs` |
+| Belief dossier, not noisy PA (1.5) | **IMPLEMENTED** | `pw-world/dossier.rs`, `pw-sim/dossier.rs`: current level, one-year projection, ceiling, direction, risks (unknown kept apart from absent), roles, evidence, per-evaluator opinions, revision history with reasons; `scouting::view` reads it | `pw-cli/tests/dossier.rs` |
+| Several evaluators disagree (1.6), departments (1.8) | **IMPLEMENTED** | manager, assistant, coaches, head of youth, director, analyst and scouts each read the player with their own competence and exposure | `dossier.rs` |
+| Manager weighs staff by trust and history (1.7) | **IMPLEMENTED** | `dossier::trust` (years together, inherited or hired, standing, track record, regard, ego); a year on, readings are checked against the market and move the evaluator's record | `dossier.rs` |
+| Multi-domain judging (1.4); licences are competence, not truth (1.3) | **PARTIAL** | twelve `Domain`s from staff attributes; licences add to tactical and technical competence only, never to judging ability. Licences and schools do not yet feed manager priors | `dossier.rs` |
+| Philosophy and context change decisions (1.11-1.12) | **IMPLEMENTED** | `dossier::worth` (youth trust, patience), manager style from traits, opposition, next fixture, promises | `dossier.rs`, `manager_ai.rs` |
+| Players and agents act on beliefs (1.13) | **IMPLEMENTED** | `consider::self_view`, expected minutes from public standing, agents read the public view | `truth_guard.rs` |
+| Decision modules do not read true ability (1.15) | **IMPLEMENTED** | guard covers selection, planning, deals, market, negotiation, contracts, board, staffing, managers, decisions, consider, mind, agents, youth, intl, social, talk; a ratchet fails on any unclassified module | `truth_guard.rs`, `qa_truth_scan.rs`, `qa_truth.rs` |
 
-Other modules (`youth`, `intl`, `awards`, `newsroom`, `incidents`, ...) are not under the guard yet; extend `DECISION_MODULES` as each is audited.
+## 2. Media - PARTIAL (core implemented)
 
-## 2. Media — PARTIAL
+* Claim-time truth versus what audiences saw (2.3, 2.11); contextual credibility per club and topic (2.7); belief separate from sharing (2.10): **IMPLEMENTED** (`media_belief.rs`).
+* Truth categories (accurate, accurate at the time, misleading, manipulated, false) kept apart from framing, the writer's intent and the source's aim (2.2, 2.4-2.6): **IMPLEMENTED** (`Story::truth/intent/aim`; `newsroom.rs`, `mediarel.rs`); spin and being fooled recorded on the journalist (`media_truth.rs`).
+* Persistent directional relationships with causes, respect apart from warmth, grudges that outlast moods, access refused, tone bent (2.13-2.17, 2.20): **IMPLEMENTED** (`mediarel.rs`).
+* Media-versus-media feuds that cool and flare, scoops, exposure, poaching sources (2.18-2.19): **IMPLEMENTED**.
+* Gaps: prior belief about the subject in source inference (2.22), semantic history of corrections and denials beyond the existing story refs (2.23), organisations as several minds (2.12).
 
-Exists: outlets, journalists (`JournalistProfile`: knowledge, risk, bias, hits/misses, source ties), stories with claim type
-(fact/report/rumour/speculation), information fidelity incl. *planted* and *outdated*, threads, press conferences.
-
-Gaps against the locked rules (these are the design's own priority targets):
-
-* professional accuracy is judged on claim-time truth (`Story::grounded`): `newsroom.rs::close_thread` scores journalists, their source ties and
-  corrections that way, while a separate public record follows what audiences saw come to pass (§2.3, §2.11) — **IMPLEMENTED**
-  (three scenario tests). Outlet-level public credibility (`media.rs::settle_credibility`) stays outcome-based on purpose (it is the public's view).
-* credibility is contextual: each journalist keeps a record per club and kind of story (`JournalistProfile::ledger`, `public_trust`), and
-  `socialnet.rs::believes` uses it (falling back on the outlet with little evidence), together with personal outlet trust, credulity,
-  knowledge, desirability and corroboration — **IMPLEMENTED**; prior belief about the subject and source inference are still missing
-* belief and sharing are separate decisions: `socialnet.rs::pass_on` (spite, humour and news value add to belief rather than follow it) —
-  **IMPLEMENTED**
-* both are pinned by `crates/pw-cli/tests/media_belief.rs`
-* truth/framing/intent/manipulation kept apart (§2.4), directional persistent media relationships with causes (§2.13-15),
-  media–media rivalries (§2.18) — **NOT IMPLEMENTED** as designed
-
-## 3. Transfers — PARTIAL
+## 3. Transfers - PARTIAL (core implemented)
 
 | Rule | Status | Evidence | Tested |
 | --- | --- | --- | --- |
-| Public value is an estimate, not the truth price (§3.25) | **IMPLEMENTED** | `market.rs::public_view`/`value_of`: stable noisy consensus narrowed by fame | `manager_ai.rs` |
-| Buyer fair value and seller reservation come from each side's own reading (§3.5, 3.8-3.10) | **IMPLEMENTED** | `market.rs::fair_value`, `seller_reservation` (replacement cover, cash need, contract, board stance); `deals.rs` opening bid, ceiling, alternatives as leverage | `manager_ai.rs` |
-| Neither side sees the other's limit (§3.13) | **IMPLEMENTED** | negotiation compares bids only | by construction |
-| Wage demand follows public reading, not hidden ability | **IMPLEMENTED** | `wage_demand` | no |
-| Replacement chains (§3.11) | **PARTIAL** | replanning is monthly; no immediate replan after a departure; no measurement | market-activity test only |
-| Governance decides whose opinion counts (§3.6), causal memory of deals (§3.24) | **NOT IMPLEMENTED** | owner/board exist (`governance.rs`) but do not vote on signings | no |
-| Rival-bid information with provenance, bluffing, urgency signalling (§3.14, 3.27-28) | **NOT IMPLEMENTED** | | no |
-| Dynamic club risk appetite (§3.21) | **NOT IMPLEMENTED** | | no |
-| Planned vs opportunistic recruitment (§4.10) | **NOT IMPLEMENTED** | | no |
+| Public value is an estimate, not the price (3.25); fair value and reservation from each side's own reading (3.8-3.10) | **IMPLEMENTED** | `market.rs` (`fair_value` shades by uncertainty), `deals.rs` | `manager_ai.rs` |
+| Governance decides whose opinion counts (3.6); disagreement persists (3.7); causal memory (3.24) | **IMPLEMENTED** | `boardroom.rs`: seven voices with stances, power by club structure, authority earned and lost, case files | `boardroom.rs` |
+| Missed risk versus accepted risk (3.23) | **IMPLEMENTED** | verdicts judged on process and outcome a season on | `boardroom.rs` |
+| Dynamic club risk appetite (3.21-3.22) | **IMPLEMENTED** | `boardroom::appetite` with named drivers; individual tendencies | `boardroom.rs` |
+| Neither side sees the other's limit (3.13); bluffing and signalling (3.14); rival-bid information with provenance (3.28); information shocks (3.27) | **IMPLEMENTED** | `bargaining.rs`: ranges, signals, honesty records, agent tips, need premium | `boardroom.rs` |
+| Replacement chains (3.11), alternatives as leverage (3.12), knowing gambles (3.29) | **IMPLEMENTED** | `deals.rs::chain_wait`, replan after a departure, sellers hold out on young players they rate above the market | `boardroom.rs` |
+| Sponsor and commercial pressure, senior players opposing, supporters (3.17-3.20) | **PARTIAL** | owner commercial appeal, captain and supporter voices; sponsor pressure is not a separate driver | |
+| Player decisions consider the whole move (3.16) | **PARTIAL** | `move_utility`, package utility including relocation, family and language | |
 
-## 4. Squad planning and adaptation — PARTIAL
+## 4. Squad planning and adaptation - PARTIAL (core implemented)
 
-* Position-level needs from the manager's own formation, one- and two-season projections, expected departures by renewal chance,
-  wage headroom, resale, homegrown gap: **IMPLEMENTED** (`planning.rs`; unit tests for projection and renewal).
-* Scenarios with confidence by horizon, succession scenarios, time-to-usefulness (§4.3-4.4, 4.19, 4.22): **NOT IMPLEMENTED**.
-* Adaptation (§4.12-4.21): a single settling factor after a move abroad in weekly development (`development.rs::circumstance_factor`,
-  tested). Climate, timezone, language, football, social and mental channels each on their own timeline: **NOT IMPLEMENTED**.
-* Manager chooses how fast to integrate a signing (§4.20): **NOT IMPLEMENTED**.
+* Position-level needs, projections, departures, homegrown gap (`planning.rs`): **IMPLEMENTED**. Planned versus opportunistic recruitment (4.10) and tactical fit before signing (4.11): **IMPLEMENTED** (`system_fit`, `notice_opportunity`).
+* Adaptation in six channels with their own clocks (environment, routine, football, tactical, social, mental), distance from real differences and never from nationality names, experience and support, traits (4.12-4.18): **IMPLEMENTED** (`adaptation.rs`, `Nation::env`; environments are inferred and marked `known: false` until a source provides them).
+* Time to usefulness in planning (4.19, 4.22), the manager's integration plan (4.20), early-use loops (4.21): **IMPLEMENTED**.
+* Failed planning becomes history (4.23): **IMPLEMENTED** (`PlanFailed` events, scramble marks).
+* Gaps: scenarios by horizon (4.3-4.4), player intentions in the plan (4.6), manager/director conflict over construction (4.7) beyond the boardroom stances.
 
-## 5. Contracts — PARTIAL
+## 5. Contracts - PARTIAL (core implemented)
 
-`negotiation.rs::Terms` has wage, years, signing fee, appearance/goal/clean-sheet bonuses, release clause, promised status,
-yearly rise, relegation cut, sell-on to player. Missing: club/player/mutual options and automatic extensions (§5.14), loyalty,
-title, promotion, continental and cap bonuses, wage-hierarchy effects on other players' demands (§5.6), package trade-offs by
-agent priorities (§5.4, 5.13), causal memory of exceptional contracts (§5.19). Promises are stored and remembered
-(`social.rs::Promise`): **IMPLEMENTED**.
+* Packages shaped by club strategy (5.1-5.2, 5.7-5.9), player priorities (5.10), agent stakes (5.13), trade-offs between dimensions and refused clauses paid another way (5.4, 5.15), tax and cost of living (5.12), relocation demands (5.11): **IMPLEMENTED** (`package.rs`, `negotiation.rs`).
+* Options, automatic extensions, bonuses (appearance, goal, assist, clean sheet, loyalty, title, promotion, continental, caps), relegation cut and relegation release, release-clause bids in force (5.3, 5.14): **IMPLEMENTED** (`clauses.rs`).
+* Wage hierarchy ripples (5.6), promises remembered (5.5, 5.16), overcommitment and contract files judged on what was known (5.17-5.19): **IMPLEMENTED**.
+* Gaps: image rights and other exotic clauses (5.3); sell-on and buy-back exist only club to club.
 
-## 6. Social opinion — NEEDS AUDIT
+## 6. Social opinion - PARTIAL (core implemented)
 
-Persistent accounts with personas, groups, threads, chants, memes, reposts and replies (`socialnet.rs`, 1,450 lines) exist.
-Whether opinion is multidimensional (§6.1-6.2), fame/attention/commercial appeal separate (§6.18), virality and appearance
-audiences (§6.16-6.22), mythology and history grounding (§6.29-6.33) is not yet verified against the code.
+* Eight opinion dimensions, events that move different ones, summaries that depend on the account (6.1-6.2, 6.7): **IMPLEMENTED** (`socialnet.rs::apply/impact_for/summarise`).
+* Memories that return (6.3), belief coloured by trust (6.5, 6.12), expectation first-class (6.9), audiences (6.11), allegiance changes interpretation (6.6), opinions revised and called out (6.13): **IMPLEMENTED** (`social_opinion.rs`).
+* Attention waves with causes, half-lives and reach (6.20-6.22, 6.28); fame apart from football reputation (6.18); bounded brand premium (6.19, 6.24); anti-hype (6.26-6.27); audience-specific looks (6.16-6.17, 6.36-6.38); nicknames with lives (6.34); folklore that grows in the telling (6.29-6.33): **IMPLEMENTED** (`attention.rs`, `pw-cli/tests/attention.rs`).
+* Gaps: population aggregates beneath the representative accounts (6.14), players perceiving opinion imperfectly (6.15), jokes that become club culture (6.35), price and wages as public information (6.10), follower quality in transfers (6.23).
 
 ## 7. Tactics and life state — PARTIAL (core implemented)
 
