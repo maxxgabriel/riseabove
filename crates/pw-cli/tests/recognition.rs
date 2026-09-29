@@ -81,3 +81,44 @@ fn most_children_are_not_noticed_as_the_world_runs() {
     let b = pw_sim::invariants::check(w);
     assert!(b.is_empty(), "{b:#?}");
 }
+
+/// Funnel report for tuning how scarce recognition is: `cargo test --release -p pw-cli --test recognition funnel -- --ignored --nocapture`.
+#[test]
+#[ignore = "report"]
+fn funnel() {
+    use pw_world::ecosystem::StageKind::*;
+    for seed in [31u64, 32] {
+        let mut s = world(seed);
+        {
+            let eco = &s.world.ext.ecosystem;
+            let a0 = eco.stages.values().filter(|v| v.iter().any(|x| x.kind == Academy)).count();
+            eprintln!("seed {seed} at start: prospects {}, academy stages {a0}", eco.story.len());
+        }
+        s.run(1100);
+        let w = &s.world;
+        let eco = &w.ext.ecosystem;
+        let kids: Vec<_> = eco.story.keys().copied().collect();
+        let n = kids.len();
+        let mut seen1 = 0;
+        let mut seen2 = 0;
+        let mut found = 0;
+        let mut standing_hi = 0;
+        for &p in &kids {
+            if let Some(r) = eco.repute.get(&p) {
+                seen1 += usize::from(r.sightings >= 1);
+                seen2 += usize::from(r.sightings >= 2);
+            }
+            found += usize::from(eco.story[&p].found_by.is_some());
+            standing_hi += usize::from(recognition::standing(w, p) > 0.3);
+        }
+        let acad: Vec<_> = eco.stages.iter().filter(|(_, v)| v.iter().any(|x| x.kind == Academy)).map(|(p, _)| *p).collect();
+        let in_story = acad.iter().filter(|p| eco.story.contains_key(p)).count();
+        let seen2_acad = acad.iter().filter(|p| eco.repute.get(p).is_some_and(|r| r.sightings >= 2)).count();
+        eprintln!("seed {seed}: academy joiners {} (in story {in_story}, sighted>=2 {seen2_acad})", acad.len());
+        let stage = |k| eco.stages.values().filter(|v| v.iter().any(|s| s.kind == k)).count();
+        eprintln!(
+            "seed {seed}: prospects {n}, sighted>=1 {seen1}, sighted>=2 {seen2}, found {found}, standing>0.3 {standing_hi}, district {}, trial {}, academy {}, camp {}, state team {}, univ {}, pro {}, released {}",
+            stage(District), stage(Trial), stage(Academy), stage(NationalCamp), stage(StateTeam), stage(University), stage(Professional), stage(Released)
+        );
+    }
+}

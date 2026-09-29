@@ -792,7 +792,10 @@ pub fn yearly(w: &mut World) {
         return;
     }
     w.youth.last_cohort = year;
-    new_cohort(w, 8, year);
+    // Worlds with an ecosystem draw their children from district pools (one creation pipeline, with provenance).
+    if !w.ext.ecosystem.is_configured() {
+        new_cohort(w, 8, year);
+    }
     // Academies' budgets follow the board's youth investment.
     let clubs: Vec<ClubId> = w.youth.academies.keys().copied().collect();
     for c in clubs {

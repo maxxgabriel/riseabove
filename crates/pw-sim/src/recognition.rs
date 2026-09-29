@@ -203,7 +203,7 @@ pub fn sighted(w: &mut World, p: PlayerId) {
 fn need(w: &World, club: ClubId, p: PlayerId) -> f32 {
     let rep = f32::from(w.clubs[club].reputation) / 10_000.0;
     let feeder = w.youth.academies.get(&club).is_some_and(|a| w.youth.member_of.get(&p).is_some_and(|l| a.feeders.contains(l)));
-    let base = 0.03 + 0.28 * rep * rep + 0.10 * rep;
+    let base = 0.05 + 0.34 * rep * rep + 0.14 * rep;
     if feeder { base * 0.6 } else { base }
 }
 
@@ -214,10 +214,12 @@ pub fn recognised_by(w: &World, club: ClubId, p: PlayerId) -> bool {
     }
     let Some(r) = w.ext.ecosystem.repute.get(&p) else { return false };
     let total: f32 = r.at.iter().map(|e| e.games).sum();
-    if total < 6.0 || r.sightings < 2 {
+    let rep = w.clubs[club].reputation;
+    // Established academies want to have seen a child more than twice, on different days.
+    let looks = if rep >= 4500 { 3 } else { 2 };
+    if total < 6.0 || r.sightings < looks {
         return false;
     }
-    let rep = w.clubs[club].reputation;
     // The big academies want proof above the park: school, district, adult or state football.
     if rep >= 6500 && !best_tier(w, p).is_some_and(|t| t != Tier::Grassroots) {
         return false;
