@@ -93,6 +93,8 @@ pub fn appoint(w: &mut World, club: ClubId) {
         .staff
         .iter_enumerated()
         .filter(|(id, s)| s.role == StaffRole::Manager && !s.employed() && !s.retired && !w.intl.managers.contains(id))
+        // Not the man this club has just let go (sacked, resigned, contract not renewed): the search used to pick him straight back.
+        .filter(|(id, _)| !w.careers.managers.get(id).is_some_and(|p| p.jobs.iter().any(|j| j.club == club && j.to.is_some_and(|t| t.days_until(today) <= 365))))
         // Licensing: bigger clubs need higher coaching badges.
         .filter(|(_, s)| crate::affairs::coaching_level(w, s.person) >= crate::affairs::required_level(w.clubs[club].reputation))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 1500)
