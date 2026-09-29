@@ -150,49 +150,10 @@ pub fn season_end(w: &mut World, n: NationId, year: i32) {
 
 // ------------------------------------------------------------------ the state championship
 
-/// Every state a player may represent under the world's eligibility rules, with the ground, in the
-/// order of preference. Rules are data (`Ecosystem::eligibility`), so a world can change them.
+/// Every state a player may represent under the world's eligibility rules, with the ground, in the order of preference.
+/// The rules are data (`Ecosystem::eligibility`); the judgement itself lives in `crate::eligibility`.
 pub fn eligible_states(w: &World, p: PlayerId) -> Vec<(RegionId, Basis)> {
-    let eco = &w.ext.ecosystem;
-    let rules = &eco.eligibility;
-    let mut out: Vec<(RegionId, Basis)> = Vec::new();
-    let add = |r: RegionId, b: Basis, out: &mut Vec<(RegionId, Basis)>| {
-        if r.is_some() && !out.iter().any(|x| x.0 == r) {
-            out.push((r, b));
-        }
-    };
-    for &basis in &rules.bases {
-        match basis {
-            Basis::Birth => {
-                if let Some(s) = eco.story.get(&p) {
-                    add(eco.state_of(s.home), basis, &mut out);
-                }
-            }
-            Basis::Club => {
-                let club = w.players.hot[p].club;
-                if club.is_some() {
-                    add(eco.state_of(eco.region_of_club(club)), basis, &mut out);
-                }
-            }
-            Basis::Institution => {
-                if let Some(&i) = w.minor.member_of.get(&p)
-                    && let Some(prof) = eco.inst.get(&i)
-                {
-                    add(eco.state_of(prof.region), basis, &mut out);
-                }
-            }
-            Basis::Residence => {
-                if let Some(s) = eco.story.get(&p) {
-                    let st = eco.state_of(s.dev);
-                    let since = eco.route(p).iter().find(|x| eco.state_of(x.region) == st).map(|x| x.date);
-                    if since.is_some_and(|d| d.days_until(w.date) >= i32::from(rules.residence_years) * 365) {
-                        add(st, basis, &mut out);
-                    }
-                }
-            }
-        }
-    }
-    out
+    crate::eligibility::state_grounds(w, p)
 }
 
 /// A club's tier in the national pyramid (1 top) or 9 outside it.
@@ -202,26 +163,19 @@ fn tier_of(w: &World, club: ClubId) -> u8 {
 }
 
 fn select_squad(w: &World, state: RegionId, india: NationId, year: i32, fill: bool, taken: &pw_world::FxHashSet<PlayerId>) -> Vec<PlayerId> {
-    let rules = &w.ext.ecosystem.eligibility;
     let a = w.ext.ecosystem.assoc.get(&state).copied();
     let scouting = a.map_or(40.0, |a| a.scouting);
     let sigma = (14.0 - scouting / 10.0).max(3.0);
     let mut seen: Vec<(f32, PlayerId, bool)> = Vec::new();
     for (p, h) in w.players.hot.iter_enumerated() {
-        if !matches!(h.status, PlayerStatus::Active | PlayerStatus::Amateur | PlayerStatus::FreeAgent) || h.injury_days > 14 || w.age(p) < u32::from(rules.min_age) || w.age(p) > u32::from(rules.max_age) || taken.contains(&p) || (rules.one_state_per_year && w.ext.ecosystem.represented.get(&p).is_some_and(|&(y, r)| y == year && r != state)) {
+        if !matches!(h.status, PlayerStatus::Active | PlayerStatus::Amateur | PlayerStatus::FreeAgent) || h.injury_days > 14 || taken.contains(&p) {
             continue;
         }
         if w.people[w.players.cold[p].person].nation != india {
             continue;
         }
         // Their own state picks first; a state short of players may then call anyone else who qualifies for it.
-        let ok = eligible_states(w, p);
-        let qualifies = if fill { ok.iter().any(|x| x.0 == state) } else { ok.first().is_some_and(|x| x.0 == state) };
-        if !qualifies {
-            continue;
-        }
-        // Top-flight players are with their clubs.
-        if rules.exclude_top_division && h.club.is_some() && tier_of(w, h.club) == 1 {
+        if !crate::eligibility::judge_state(w, p, state, year, fill).eligible {
             continue;
         }
         // Selectors only pick who they have seen.

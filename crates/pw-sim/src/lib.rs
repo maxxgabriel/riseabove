@@ -38,6 +38,7 @@ pub mod development;
 pub mod dossier;
 pub mod dressing;
 pub mod economy;
+pub mod eligibility;
 pub mod ecosystem;
 pub mod evolution;
 pub mod facts;

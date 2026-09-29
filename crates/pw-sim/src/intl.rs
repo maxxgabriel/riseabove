@@ -50,21 +50,9 @@ const MIN_POOL: usize = 18;
 // Eligibility
 // ---------------------------------------------------------------------------
 
-/// Nations a player can currently be picked by.
+/// Nations a player can currently be picked by, under each federation's own rules (`crate::eligibility`).
 pub fn eligible_nations(w: &World, p: PlayerId) -> SmallVec<[NationId; 2]> {
-    let mut v = SmallVec::new();
-    if let Some(n) = w.intl.locked_to(p).or_else(|| w.intl.declared.get(&p).copied()) {
-        v.push(n);
-        return v;
-    }
-    let person = &w.people[w.players.cold[p].person];
-    if person.nation.is_some() {
-        v.push(person.nation);
-    }
-    if person.nation2.is_some() && person.nation2 != person.nation {
-        v.push(person.nation2);
-    }
-    v
+    crate::eligibility::eligible_nations(w, p)
 }
 
 fn age_ok(w: &World, p: PlayerId, level: Level) -> bool {

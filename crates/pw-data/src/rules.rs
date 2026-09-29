@@ -35,6 +35,14 @@ pub struct RuleProfile {
     pub registrations_per_season: u8,
     pub play_for_clubs_per_season: u8,
     pub max_foreign_age_youth: u8,
+    /// Grounds on which a player may play for this nation's national sides, tried in order: `nationality`, `birth`, `parent`, `residence`.
+    pub national_bases: Vec<String>,
+    /// Years lived in the country before residence qualifies.
+    pub national_residence_years: u8,
+    /// Competitive senior caps (for another nation) a player may hold and still switch to this one; 0 = a single competitive cap ties a player.
+    pub national_switch_max_caps: u8,
+    /// Years since his last cap for the other nation before he may switch (only where switching is allowed).
+    pub national_switch_wait_years: u8,
 }
 
 impl Default for RuleProfile {
@@ -67,6 +75,10 @@ impl Default for RuleProfile {
             registrations_per_season: 3,
             play_for_clubs_per_season: 2,
             max_foreign_age_youth: 0,
+            national_bases: vec!["nationality".into(), "parent".into(), "residence".into()],
+            national_residence_years: 5,
+            national_switch_max_caps: 0,
+            national_switch_wait_years: 3,
         }
     }
 }

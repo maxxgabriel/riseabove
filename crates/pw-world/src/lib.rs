@@ -23,6 +23,7 @@ pub mod deals;
 pub mod decision;
 pub mod dossier;
 pub mod dressing;
+pub mod eligibility;
 pub mod ecosystem;
 pub mod event;
 pub mod ext;
