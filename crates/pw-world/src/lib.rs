@@ -5,6 +5,7 @@ pub mod adaptation;
 pub mod affairs;
 pub mod agenda;
 pub mod agent;
+pub mod attention;
 pub mod awards;
 pub mod backfill;
 pub mod beliefs;

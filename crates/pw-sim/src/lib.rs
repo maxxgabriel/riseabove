@@ -17,6 +17,7 @@ macro_rules! prof {
 pub mod adaptation;
 pub mod affairs;
 pub mod agents;
+pub mod attention;
 pub mod audit;
 pub mod awards;
 pub mod backfill;
@@ -290,6 +291,7 @@ impl Sim {
             prof!("incidents::weekly", incidents::weekly(w));
             prof!("newsroom::weekly", newsroom::weekly(w));
             prof!("socialnet::weekly", socialnet::weekly(w));
+            prof!("attention::weekly", attention::weekly(w));
             prof!("dressing::weekly", dressing::weekly(w));
             prof!("perception::weekly", perception::weekly(w));
             prof!("social::weekly", social::weekly(w));

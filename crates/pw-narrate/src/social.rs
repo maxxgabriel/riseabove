@@ -137,6 +137,13 @@ pub fn post(w: &World, p: &Post) -> String {
         Concept::Disagree => pick(key, &["not having that", "completely wrong", "strongly disagree", "no chance"]).to_string(),
         Concept::Chant => w.net.chants.get(p.extra as usize).map_or_else(String::new, |c| chant(w, c)),
         Concept::Meme => w.net.memes.get(p.extra as usize).map_or_else(String::new, |m| meme(w, m)),
+        Concept::Overrated => format!("{}: {}", target, pick(key, &["the hype is doing a lot of work", "good, not that good", "overrated", "let's see the numbers before the parade"])),
+        Concept::Looks => match p.extra {
+            1 => format!("{} {}", target, pick(key, &["looking sharp", "has serious style", "the look is working", "easy on the eye"])),
+            3 => format!("{} {}", target, pick(key, &["trying a bit hard with the new look", "more time on the hair than the finishing"])),
+            _ => format!("{} {}", target, pick(key, &["not sold on the new look", "the look isn't for me"])),
+        },
+        Concept::Folklore => format!("{} {}", pick(key, &["remember when", "they still talk about the night", "never forget when"]), target),
         Concept::Statement => {
             if target.is_empty() {
                 what

@@ -226,7 +226,7 @@ fn recruitment_stance(w: &World, s: &Setting) -> Option<Stance> {
 
 fn owner_stance(w: &World, s: &Setting) -> Option<Stance> {
     let g = w.governance.get(&s.club)?;
-    let fame = f32::from(w.players.cold[s.p].rep.world) / 10_000.0;
+    let fame = crate::attention::commercial_appeal(w, s.p);
     let revenue = crate::finance::season_revenue(w, s.club).max(1) as f32;
     let means = (w.clubs[s.club].finance.balance.max(0) as f32).max(revenue * 0.2);
     let cost = (s.fee as f32 / means).min(2.0);

@@ -42,7 +42,8 @@ fn price_formula(w: &World, p: PlayerId, ca: f32, pa: f32) -> Money {
     let age_mult = interp(&[(16.0, 0.55), (19.0, 1.0), (24.0, 1.1), (28.0, 1.0), (31.0, 0.7), (33.0, 0.45), (36.0, 0.2)], age);
     let years = if h.club.is_some() { c.contract.days_left(w.date) as f32 / 365.0 } else { 0.0 };
     let contract = if h.status == PlayerStatus::FreeAgent { 0.3 } else { 0.35 + 0.65 * (years / 3.0).min(1.0) };
-    let rep = 0.85 + 0.3 * f32::from(c.rep.world) / 10_000.0;
+    // What he is worth to brands sits beside what he is worth on the pitch (locked design 6.24), never in place of it.
+    let rep = (0.85 + 0.3 * f32::from(c.rep.world) / 10_000.0) * (1.0 + crate::attention::brand_premium(w, p));
     // Current internationals carry a premium buyers pay for.
     let intl = 1.0 + 0.12 * crate::intl::standing(w, p);
     let inj = if h.injury_days > 60 { 0.8 } else { 1.0 };

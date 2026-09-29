@@ -298,6 +298,12 @@ pub enum Concept {
     Meme,
     /// A person's own statement.
     Statement,
+    /// "Overrated": the hype is out of proportion to what he is (locked design 6.26, 6.27).
+    Overrated,
+    /// A remark about how he looks; `Post::extra` says whether admiring (1), genuinely unimpressed (2) or point-scoring (3).
+    Looks,
+    /// The tale retold (locked design 6.29).
+    Folklore,
 }
 
 /// How the author came to know what they post about.
@@ -492,6 +498,10 @@ pub struct SocialNet {
     /// What each account has learned about each outlet (account, outlet
     /// id) → −60..60: trust is contextual, earned story by story.
     pub outlet_trust: FxHashMap<(AccountId, u32), i8>,
+    /// Waves of attention on people, nicknames that have taken hold, and moments that have become folklore.
+    pub attention: FxHashMap<PersonId, crate::attention::Attention>,
+    pub nicknames: Vec<crate::attention::Nickname>,
+    pub myths: Vec<crate::attention::Myth>,
     /// Ids of each account's posts in the window, oldest first. A lookup aid built from `posts`, so
     /// it is not saved; `sync_index` brings it up to date.
     #[serde(skip)]

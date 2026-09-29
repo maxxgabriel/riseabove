@@ -782,6 +782,21 @@ pub fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8,
         }
         return Some((if club_val < 0 { Concept::Worry } else { Concept::Question }, PersonId::NONE, refs));
     }
+    if about.is_some() && !matches!(f, Frame::Story { .. }) {
+        // How he looks (locked design 6.16, 6.36-6.38): read by taste, and sometimes used to score a point.
+        if roll < 0.30 && crate::attention::looks_reaction(w, acc, about).is_some() {
+            return Some((Concept::Looks, PersonId::NONE, refs));
+        }
+        // Hype and anti-hype together (locked design 6.26, 6.27): numbers people say the noise is out of proportion.
+        let pl = w.people[about].player;
+        if p.stats >= 60 && pl.is_some() && club_val >= 0 && roll < 0.5 && crate::attention::overhyped(w, pl) > 0.25 && w.net.opinion(a, about).is_none_or(|o| o.dims[Dim::Football.idx()] < 250) {
+            return Some((Concept::Overrated, PersonId::NONE, refs));
+        }
+        // The nostalgic retell what everyone remembers.
+        if p.nostalgia >= 65 && own && roll < 0.25 && w.net.myths.iter().any(|m| m.about == about) {
+            return Some((Concept::Folklore, PersonId::NONE, refs));
+        }
+    }
     if rival && !own {
         // The other lot.
         return if club_val < 0 && p.hostility > 40 { Some((if p.humour > 60 { Concept::Sarcasm } else { Concept::Mock }, PersonId::NONE, refs)) } else { None };
@@ -883,16 +898,17 @@ struct NewPost {
     refs: SmallVec<[u32; 2]>,
     knew: Knew,
     minute: u16,
+    extra: u32,
 }
 
 impl NewPost {
     fn new(frame: Frame, concept: Concept, about: PersonId, club: ClubId, knew: Knew, minute: u16) -> Self {
-        NewPost { frame, concept, about, about2: PersonId::NONE, club, intensity: 50, claim: ClaimType::Opinion, reply_to: NO_POST, quote_of: NO_POST, refs: SmallVec::new(), knew, minute }
+        NewPost { frame, concept, about, about2: PersonId::NONE, club, intensity: 50, claim: ClaimType::Opinion, reply_to: NO_POST, quote_of: NO_POST, refs: SmallVec::new(), knew, minute, extra: 0 }
     }
 }
 
 fn create_post(w: &mut World, author: AccountId, n: NewPost) -> u32 {
-    let NewPost { frame, concept: c, about, about2, club, intensity, claim, reply_to, quote_of, refs, knew, minute } = n;
+    let NewPost { frame, concept: c, about, about2, club, intensity, claim, reply_to, quote_of, refs, knew, minute, extra } = n;
     let today = w.date;
     w.net.sync_index();
     let id = w.net.next_post_id();
@@ -908,7 +924,7 @@ fn create_post(w: &mut World, author: AccountId, n: NewPost) -> u32 {
         about,
         about2,
         club,
-        extra: 0,
+        extra,
         intensity,
         claim,
         reply_to,
@@ -1012,6 +1028,9 @@ fn frame_subjects(w: &World, f: Frame) -> (SmallVec<[ClubId; 2]>, PersonId) {
 fn react(w: &mut World, f: Frame, clubs: &[ClubId], about: PersonId, ev: EventId, wave: u8, rivals_of: &FxHashMap<ClubId, Vec<AccountId>>) -> Vec<u32> {
     let today = w.date;
     let fw = weight(w, f);
+    if wave == 0 {
+        crate::attention::on_frame(w, f, about, fw);
+    }
     let fkey = pw_core::rng::hash_key(&[frame_key(f), u64::from(ev.0), u64::from(about.0), today.0 as u64]);
     let mut audience: Vec<(AccountId, bool)> = Vec::new();
     for &c in clubs {
@@ -1102,7 +1121,8 @@ fn react(w: &mut World, f: Frame, clubs: &[ClubId], about: PersonId, ev: EventId
         };
         let intensity = (fw * 70.0 + f32::from(acc.intensity) * 0.3) as u8;
         let minute = if wave > 0 { 480 + (r3 * 600.0) as u16 } else { (u16::from(acc.peak_hour) * 60).min(1380) + (r3 * 50.0) as u16 };
-        let id = create_post(w, a, NewPost { about2, intensity, claim, refs, ..NewPost::new(f, c, about, club, knew, minute) });
+        let extra = if c == Concept::Looks { crate::attention::looks_reaction(w, &acc, about).unwrap_or(1) } else { 0 };
+        let id = create_post(w, a, NewPost { about2, intensity, claim, refs, extra, ..NewPost::new(f, c, about, club, knew, minute) });
         posted.push(id);
     }
     posted

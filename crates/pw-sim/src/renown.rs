@@ -39,7 +39,9 @@ pub fn monthly(w: &mut World) {
         let image = f32::from(w.media.image.get(&who).copied().unwrap_or(0));
         let media_time = w.lives.get(who).map_or(1.0, |l| f32::from(l.routine.media));
         let partner_fame = w.lives.get(who).and_then(|l| l.household.partner).map_or(0.0, |pt| f32::from(w.renown.of(pt.person).fame) * 0.2);
-        let fame_target = (f32::from(c.rep.world) * 0.8 + image.abs() * 1.5 + media_time * 250.0 + partner_fame).clamp(0.0, 10_000.0) * if retired { 0.7 } else { 1.0 };
+        // Fame is not football reputation: attention that has left the game and how a person lands with people who never watch it count too.
+        let outside = crate::attention::level(w, who) * 2500.0 + crate::attention::appeal(w, who, crate::attention::Taste::Celebrity).max(0.0) * 400.0;
+        let fame_target = (f32::from(c.rep.world) * 0.8 + image.abs() * 1.5 + media_time * 250.0 + partner_fame + outside).clamp(0.0, 10_000.0) * if retired { 0.7 } else { 1.0 };
         let world_rep = c.rep.world;
         let r = w.renown.people.entry(who).or_default();
         let step = |cur: u16, tgt: f32, a: f32| (f32::from(cur) + a * (tgt - f32::from(cur))).clamp(0.0, 10_000.0) as u16;
