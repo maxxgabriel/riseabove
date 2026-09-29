@@ -194,6 +194,9 @@ impl Api {
             }
             "search" => self.with(|c| pages::world::search(c, &args)),
             "overview" => self.with(pages::world::overview),
+            "news.feed" => self.with(|c| pages::newsroom::feed(c, &args)),
+            "news.story" => self.with(|c| pages::newsroom::story(c, &args)),
+            "world.pulse" => self.with(|c| pages::newsroom::pulse(c, &args)),
             "diagnostics" => self.with(pages::world::diagnostics),
             "capabilities" => Ok(pages::world::capabilities()),
 

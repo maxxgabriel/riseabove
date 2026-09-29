@@ -274,9 +274,9 @@ export function ErrorState({ error, onRetry }: { error: { message: string; code?
   );
 }
 
-export function Section({ title, aside, children, className = "", id }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; id?: string }) {
+export function Section({ title, aside, children, className = "", id, tone = "default" }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; id?: string; tone?: "default" | "quiet" | "strong" }) {
   return (
-    <section className={`section ${className}`} id={id}>
+    <section className={`section section-${tone} ${className}`} id={id}>
       {(title || aside) && (
         <header className="section-head">
           {title && <h2>{title}</h2>}
@@ -286,6 +286,34 @@ export function Section({ title, aside, children, className = "", id }: { title?
       {children}
     </section>
   );
+}
+
+/** Compact right-rail information with a consistent title, body and optional action. */
+export function SideCard({ title, aside, children, className = "" }: { title: ReactNode; aside?: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <section className={`sidecard ${className}`}>
+      <header className="sidecard-head">
+        <h2>{title}</h2>
+        {aside && <div>{aside}</div>}
+      </header>
+      <div className="sidecard-body">{children}</div>
+    </section>
+  );
+}
+
+/** A small fact with enough hierarchy to stand on its own in a hero or a compact dashboard. */
+export function Metric({ label, value, detail, tone }: { label: ReactNode; value: ReactNode; detail?: ReactNode; tone?: "accent" | "pos" | "warn" | "neg" | "info" }) {
+  return (
+    <div className={`metric${tone ? ` metric-${tone}` : ""}`}>
+      <div className="metric-label">{label}</div>
+      <div className="metric-value num">{value}</div>
+      {detail && <div className="metric-detail">{detail}</div>}
+    </div>
+  );
+}
+
+export function StatStrip({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`stat-strip ${className}`}>{children}</div>;
 }
 
 export function KeyVal({ rows, className = "" }: { rows: { k: string; v: ReactNode; hint?: string }[]; className?: string }) {

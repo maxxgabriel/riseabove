@@ -238,6 +238,14 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let msgs: Vec<&Message> = t.messages.iter().map(|&i| &w.inbox.messages[i as usize]).collect();
         let unread = msgs.iter().filter(|m| !m.read).count();
         let needs = msgs.iter().any(|m| awaiting(w, m));
+        let deadline = msgs.iter().rev().find_map(|m| {
+            if !awaiting(w, m) { return None; }
+            match m.source {
+                MsgSource::Decision { decision } => w.decisions.all.get(decision).map(|d| d.deadline.0),
+                MsgSource::Question { conference, question } => pending_question(w, m.to, conference, question).map(|id| w.decisions.all[id].deadline.0),
+                _ => None,
+            }
+        });
         unread_total += unread;
         action_total += usize::from(needs);
         if rows.len() >= limit {
@@ -247,7 +255,7 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let (title, with, kind) = thread_title(c, t);
         rows.push(json!({
             "id": t.id, "title": title, "with": with, "kind": kind, "last": t.last.0, "opened": t.opened.0,
-            "count": msgs.len(), "unread": unread, "needs_action": needs, "preview": short(&line(c, last), 110),
+            "count": msgs.len(), "unread": unread, "needs_action": needs, "deadline": deadline, "preview": short(&line(c, last), 110),
             "last_kind": kind_key(&last.source),
         }));
     }

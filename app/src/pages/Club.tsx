@@ -7,7 +7,7 @@ import { fmtInt, ordinal, plural } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named } from "../types";
-import { Badge, Button, ErrorState, IconButton, KeyVal, Meter, Section, Skeleton } from "../ui/ui";
+import { Badge, Button, ErrorState, IconButton, KeyVal, Meter, Metric, Section, SideCard, Skeleton, StatStrip } from "../ui/ui";
 import { Insights } from "../components/Insights";
 import { Async, usePageTitle } from "./common";
 import { tintOf } from "../color";
@@ -137,7 +137,14 @@ function Overview({ c }: { c: ClubResp }) {
   const today = useStatus().date ?? 0;
   const first = c.teams.find((t) => t.kind_key === "first")?.team;
   return (
-    <div className="split">
+    <>
+      <StatStrip className="club-stat-strip">
+        <Metric label="League position" value={lg?.position ? ordinal(lg.position) : "—"} detail={lg?.comp.name ?? "No league"} tone="accent" />
+        <Metric label="Points" value={lg?.points ?? "—"} detail={lg?.played ? `${lg.played} matches` : "Season not started"} />
+        <Metric label="Reputation" value={fmtInt(c.reputation)} detail="Club standing" />
+        <Metric label="Supporters" value={c.fan_mood >= 66 ? "Positive" : c.fan_mood >= 40 ? "Mixed" : "Low"} detail="Current mood" tone={c.fan_mood >= 66 ? "pos" : c.fan_mood >= 40 ? "warn" : "neg"} />
+      </StatStrip>
+      <div className="split club-layout">
       <div className="stack">
         {lg && (
           <Section title="League" aside={<EntityLink r={lg.comp}>{lg.comp.name}</EntityLink>}>
@@ -189,8 +196,7 @@ function Overview({ c }: { c: ClubResp }) {
         )}
       </div>
       <aside className="stack">
-        <Section title="Club">
-          <div className="card">
+        <SideCard title="Club">
             <KeyVal
               rows={[
                 { k: "Stadium", v: <span>{c.stadium || "Not named"}{c.capacity ? <span className="faint num"> ({fmtInt(c.capacity)})</span> : null}</span> },
@@ -200,8 +206,7 @@ function Overview({ c }: { c: ClubResp }) {
                 { k: "Fans", v: <Meter value={c.fan_mood} label={c.fan_mood >= 66 ? "Happy" : c.fan_mood >= 40 ? "Mixed" : "Unhappy"} /> },
               ]}
             />
-          </div>
-        </Section>
+        </SideCard>
         <Section title="Squads">
           <div className="card">
             <ul className="rows compact">
@@ -244,7 +249,8 @@ function Overview({ c }: { c: ClubResp }) {
           </div>
         </Section>
       </aside>
-    </div>
+      </div>
+    </>
   );
 }
 

@@ -1,28 +1,29 @@
-/* Design tokens. Colour is used for meaning: green/red/amber/blue for outcomes,
-   orange only ever means "this is you". Everything else is neutral. */
-/* The dark theme is tinted: every surface is the page's `--tint` mixed into black, so a page
-   about a club or a competition takes on its colour. `<Stage>` sets `--tint` for its page. */
-:root { --tint: #12483a; }
+/* Design tokens. Context tint belongs in an entity hero, never in the whole application canvas. */
+:root { --tint: #173d78; }
 :root,
 :root[data-theme="dark"],
 :root[data-theme="dark"] .stage,
 :root[data-theme="light"] .stage {
   color-scheme: dark;
-  --bg: color-mix(in srgb, var(--tint) 30%, #030605);
-  --panel: color-mix(in srgb, var(--tint) 34%, #030605);
-  --raised: color-mix(in srgb, var(--tint) 42%, #040706);
-  --hover: color-mix(in srgb, var(--tint) 52%, #060908);
-  --pressed: color-mix(in srgb, var(--tint) 62%, #070a09);
-  --head: color-mix(in srgb, var(--tint) 24%, #020403);
-  --line: rgba(255, 255, 255, 0.1);
-  --line-2: rgba(255, 255, 255, 0.2);
-  --text: #f1f5f3;
-  --text-2: #bcc7c2;
-  --text-3: #83908a;
-  --accent: #3ee0a1;
-  --accent-strong: #67ecb9;
-  --accent-fg: #03231a;
-  --accent-soft: rgba(62, 224, 161, 0.14);
+  --bg: #060b16;
+  --panel: #0d1625;
+  --raised: #111d2f;
+  --hover: #162440;
+  --pressed: #1c2d4d;
+  --head: #091224;
+  --panel-2: #101b2d;
+  --panel-3: #15233a;
+  --shell: #050913;
+  --line: rgba(183, 200, 235, 0.09);
+  --line-2: rgba(183, 200, 235, 0.18);
+  --edge: rgba(192, 119, 255, 0.46);
+  --text: #f2f5ff;
+  --text-2: #bdc8dd;
+  --text-3: #7d8ba9;
+  --accent: #b64cf4;
+  --accent-strong: #d78bff;
+  --accent-fg: #160322;
+  --accent-soft: rgba(182, 76, 244, 0.17);
   --pos: #52d98a;
   --neg: #f47a7a;
   --warn: #f0b93f;
@@ -33,11 +34,19 @@
   --neg-soft: rgba(244, 122, 122, 0.15);
   --warn-soft: rgba(240, 185, 63, 0.15);
   --info-soft: rgba(106, 168, 245, 0.15);
-  --shadow: 0 10px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow: 0 14px 38px rgba(0, 0, 0, 0.44);
   --scroll: rgba(255, 255, 255, 0.18);
-  --sel: rgba(62, 224, 161, 0.16);
-  --zebra: rgba(255, 255, 255, 0.055);
-  --edge: rgba(255, 255, 255, 0.28);
+  --sel: rgba(182, 76, 244, 0.18);
+  --zebra: rgba(141, 162, 210, 0.06);
+  --space-1: 0.25rem;
+  --space-2: 0.45rem;
+  --space-3: 0.7rem;
+  --space-4: 1rem;
+  --space-5: 1.35rem;
+  --control-h: 1.9rem;
+  --row-h: 2rem;
+  --motion-fast: 120ms;
+  --motion-normal: 170ms;
 }
 
 :root[data-theme="light"] {
@@ -45,6 +54,9 @@
   --bg: #f3f4f6;
   --panel: #ffffff;
   --raised: #f7f8fa;
+  --panel-2: #f1f4f5;
+  --panel-3: #e9eef0;
+  --shell: #e8edef;
   --hover: #eef0f3;
   --pressed: #e4e7ec;
   --line: #e2e5ea;
@@ -76,10 +88,10 @@
 
 :root {
   --text-scale: 1;
-  --radius: 6px;
-  --radius-lg: 10px;
-  --rail-w: 208px;
-  --top-h: 44px;
+  --radius: 4px;
+  --radius-lg: 6px;
+  --rail-w: 196px;
+  --top-h: 42px;
   --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", var(--font-fallback);
   --font-fallback: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
