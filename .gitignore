@@ -22,3 +22,5 @@ __pycache__/
 
 # Local user data archives (never committed)
 /archive/
+
+!crates/pw-cli/tests/fixtures/*.pws
