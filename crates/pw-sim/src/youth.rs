@@ -53,7 +53,12 @@ pub fn ensure(w: &mut World) {
         let suffixes = ["Juniors", "Boys", "Youth", "Colts", "Rangers", "Athletic", "Wanderers", "Town", "Rovers", "United"];
         for k in 0..3 {
             let level = if k == 2 { LocalLevel::Amateur } else { LocalLevel::Grassroots };
-            let name = format!("{city} {}", suffixes[rng.index(suffixes.len())]);
+            // A city or short name that already ends in the suffix ("Tenos Rovers") would read "Tenos Rovers Rovers": take the next one.
+            let mut pick = rng.index(suffixes.len());
+            if city.split_whitespace().next_back().is_some_and(|last| last == suffixes[pick]) {
+                pick = (pick + 1) % suffixes.len();
+            }
+            let name = format!("{city} {}", suffixes[pick]);
             let feeder = level == LocalLevel::Grassroots && rng.chance(0.5 + f32::from(rep) / 20_000.0);
             let id = w.youth.local.push(LocalClub {
                 name,
