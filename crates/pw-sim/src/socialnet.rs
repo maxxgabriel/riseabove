@@ -295,7 +295,7 @@ pub fn expectation(w: &World, p: PlayerId) -> f32 {
 /// touches trust; a transfer request is about trust and belonging, not ability; an expensive signing raises the question of value.
 /// `feel` is the event's valence for this account (+1 good for them, -1 bad); `own` whether they support the club it happened at.
 pub fn impact_for(w: &World, f: Frame, own: bool, feel: i8, fw: f32, derby: bool) -> [i16; N_DIMS] {
-    let s = 75.0 * fw;
+    let s = 85.0 * fw;
     let mut d = [0.0f32; N_DIMS];
     let mut set = |dim: Dim, v: f32| d[dim.idx()] = v * s;
     match f {
