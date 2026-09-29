@@ -7,6 +7,7 @@ import { href, navigate, useRoute } from "../router";
 import { useApi } from "../store";
 import type { Named } from "../types";
 import { Badge, IconButton, KeyVal, Section, Segmented, Tabs } from "../ui/ui";
+import { Insights } from "../components/Insights";
 import { Async, PageHead, usePageTitle } from "./common";
 
 interface Tie {
@@ -123,6 +124,7 @@ function TablePane({ c }: { c: CompResp }) {
           noun={["team", "teams"]}
           stickyFirst={false}
         />
+        {c.groups <= 1 && <Insights method="insight.comp" args={{ id: c.id }} hideEmpty limit={6} />}
       </div>
       <aside className="stack">
         <StatePanel c={c} />

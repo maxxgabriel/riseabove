@@ -1,3 +1,4 @@
+import { Insights } from "../components/Insights";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EntityLink, Dt } from "../components/links";
 import { dateLong, fmtInt, ordinal } from "../format";
@@ -218,6 +219,7 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
         </div>
       )}
 
+      {!hidden && !played && <Insights method="insight.match" args={{ uid: m.uid }} title="Talking points" hideEmpty limit={6} />}
       {detail && (watching || (played && !hidden)) && (
         <>
           {watching && <Scrubber events={detail.events} minute={minute} setMinute={setMinute} onEnd={() => setRevealed(true)} />}
@@ -234,6 +236,7 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
       )}
 
       {(m.status !== "played" || hidden) && <Preview m={m} />}
+      {!hidden && played && <Insights method="insight.match" args={{ uid: m.uid }} title="Talking points" hideEmpty limit={6} />}
     </>
   );
 }

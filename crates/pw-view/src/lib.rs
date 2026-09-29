@@ -180,6 +180,10 @@ impl Api {
 
             "person" => self.with(|c| pages::person::get(c, &args)),
             "person.attributes" => self.with(|c| pages::person::attributes(c, &args)),
+            "insight.club" => self.with(|c| pages::insights::club(c, &args)),
+            "insight.comp" => self.with(|c| pages::insights::comp(c, &args)),
+            "insight.match" => self.with(|c| pages::insights::matchup(c, &args)),
+            "insight.person" => self.with(|c| pages::insights::person(c, &args)),
             "club" => self.with(|c| pages::club::get(c, &args)),
             "club.systems" => self.with(|c| pages::club::systems(c, &args)),
             "club.follow" => self.with_mut(|s| pages::club::follow(s, &args)),

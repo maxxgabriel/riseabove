@@ -6,6 +6,7 @@ import { act, notify, useApi, useStatus } from "../store";
 import type { Named, Part } from "../types";
 import { Icon, type IconName } from "../ui/Icon";
 import { Badge, Button, KeyVal, Meter, Section } from "../ui/ui";
+import { Insights } from "../components/Insights";
 import { Async, PageHead, usePageTitle } from "./common";
 
 interface FixtureBrief {
@@ -115,6 +116,7 @@ export function Today() {
                     </a>
                   </Section>
                 )}
+                {t.next_match && <Insights method="insight.match" args={{ uid: t.next_match.uid }} title="Ahead of the match" limit={3} compact hideEmpty />}
                 <Section
                   title="Recent results"
                   aside={
@@ -196,6 +198,7 @@ export function Today() {
                     </div>
                   </Section>
                 )}
+                <Insights method="insight.person" args={{ id: t.me.person }} limit={4} compact hideEmpty aside={<a href={href(`/person/${t.me.person}`)}>All</a>} />
                 <Section title="Form">
                   <div className="card">
                     <KeyVal

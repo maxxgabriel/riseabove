@@ -8,6 +8,7 @@ import { href, navigate, useRoute } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named } from "../types";
 import { Badge, Button, IconButton, KeyVal, Meter, Section, Tabs } from "../ui/ui";
+import { Insights } from "../components/Insights";
 import { Async, PageHead, usePageTitle } from "./common";
 import { BoardTab, FansTab, RoomTab, type Systems } from "./ClubInside";
 
@@ -139,6 +140,7 @@ function Overview({ c }: { c: ClubResp }) {
             </div>
           </Section>
         )}
+        <Insights method="insight.club" args={{ id: c.id }} />
         <Section title="Fixtures and results" aside={<a href={href(`/club/${c.id}/fixtures`)}>All</a>}>
           <TableView id="club-fixtures-brief" table="fixtures" label="Recent and upcoming fixtures" filters={{ ...(first != null ? { team: first } : { club: c.id }), from: today - 12, to: today + 45 }} height={7} noPresets noColumns empty="No fixtures." />
         </Section>

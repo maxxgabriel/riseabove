@@ -283,6 +283,23 @@ endpoint over local HTTP for development and browser tests. See `app/README.md`.
 - **Unrevealed results**: while one of your matches is unrevealed, its scoreline is kept out of tables, match pages, Today,
   match-report stories, the events feed and posts about it (`crates/pw-view/tests/api.rs`, `a_concealed_result_is_not_given_away_…`).
   It covers what the API renders; anything a future system prints about a match must go through `Ctx::headline` / `Ctx::post_text`.
+- **Insights** (`crates/pw-view/src/pages/insights.rs`, `app/src/components/Insights.tsx`): `insight.person`, `insight.club`,
+  `insight.comp` and `insight.match` return short notes computed on request from what the world already records, each with the
+  numbers it rests on (`basis`). Players: form against the year's average, goals and assists against expected, big-match against
+  weak-opposition rating, standing among team-mates in the same line, selection, scoring runs and droughts, cards, workload spikes
+  and tiredness (acute/chronic load, the same ratio the injury hazard uses), the medical room (open case with the medical team's own
+  certainty, injury history, fragile regions, chronic conditions), development against players of the same age, contract and minutes
+  against squad status, how the press, supporters and the manager see them, followers, milestones. Clubs: table position against
+  the board's target, runs, form, home against away, best and worst attack and defence, dependence on one scorer, squad age against
+  the league, fit players by line, treatment list, the manager's record, board patience and the wage bill. Competitions: title,
+  promotion, continental and relegation races with points and matches left, form side, leaders. Matches: what is at stake, form going in,
+  home and away records, earlier meetings, key absentees, the one to watch, and after the match what it did to each side's run.
+  Private state (body condition, contracts, the medical room, engine numbers such as ability and the board's state) is only used
+  for the person themselves, their club or an observer, and results you have not revealed are taken out of every count, not just hidden
+  in the text (`insights_*` tests in `crates/pw-view/tests/api.rs`). Not covered: the season statistics and leaders tables still
+  include unrevealed results; tactical analysis, scouting and squad-planning advice do not exist. Writing the notes showed that the
+  synthetic match engine is generous (a striker scoring 54 league goals in 24 games, season average ratings above 9), which is a
+  balance matter for the simulation, not the interface.
 - **Speed** (release, small synthetic world, four simulated years, measured after merging the simulation branch of 2026-09-28):
   about 23 s in all; an ordinary day costs 17 ms in year 1 and 34 ms in year 4, a Monday about 220 ms and the worst day about
   340 ms, from the weekly systems (morale, media, agents, youth, manager summons). `cargo run --release -p pw-view --example

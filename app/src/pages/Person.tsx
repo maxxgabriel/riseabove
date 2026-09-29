@@ -10,6 +10,7 @@ import type { Named, Ref } from "../types";
 import { Avatar, Badge, Button, IconButton, KeyVal, Meter, Section, Tabs } from "../ui/ui";
 import { PersonActions } from "../components/Actions";
 import { InhabitDialog } from "../components/InhabitDialog";
+import { Insights } from "../components/Insights";
 import { Async, PageHead, usePageTitle } from "./common";
 import { Icon } from "../ui/Icon";
 
@@ -192,6 +193,7 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
   return (
     <div className="split">
       <div className="stack">
+        <Insights method="insight.person" args={{ id: p.id }} />
         {pl.condition && (
           <Section title="Right now" aside={pl.availability.detail || undefined}>
             <div className="card meters">
@@ -290,6 +292,7 @@ function StaffOverview({ p, s }: { p: PersonResp; s: StaffInfo }) {
   return (
     <div className="split">
       <div className="stack">
+        <Insights method="insight.person" args={{ id: p.id }} hideEmpty />
         <Section title="Abilities">
           <div className="card">
             <ul className="attrgrid-tight">

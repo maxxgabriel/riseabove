@@ -576,3 +576,147 @@ fn the_world_inbox_groups_conversations_and_replies_become_actions() {
     api.call("me.reply", json!({"message": 0, "key": "nonsense"})).unwrap_err();
     api.call("me.thread", json!({"id": 999_999})).unwrap_err();
 }
+
+#[test]
+fn insights_answer_everywhere_and_read_sensibly() {
+    let api = api();
+    new_world(&api, "small");
+    advance(&api, 150);
+    let sane = |place: &str, v: &Value| {
+        for it in v["items"].as_array().unwrap_or_else(|| panic!("{place}: no items: {v}")) {
+            for k in ["kind", "title", "text", "basis"] {
+                assert!(it[k].as_str().is_some_and(|s| !s.trim().is_empty()), "{place}: empty {k}: {it}");
+            }
+            assert!(["pos", "neg", "warn", "muted", "info"].contains(&it["tone"].as_str().unwrap()), "{place}: odd tone: {it}");
+            let text = it["text"].as_str().unwrap();
+            for junk in ["NaN", "inf", "-0.0", "  ", "one matches", "one points"] {
+                assert!(!text.contains(junk), "{place}: {junk:?} in {text:?}");
+            }
+            // "1 points" is wrong, "11 points" is not.
+            for word in ["points", "matches", "goals", "weeks", "months", "days"] {
+                let bad = format!("1 {word}");
+                assert!(!text.match_indices(&bad).any(|(i, _)| i == 0 || !text.as_bytes()[i - 1].is_ascii_digit()), "{place}: {bad:?} in {text:?}");
+            }
+            assert!(!text.chars().next().unwrap().is_lowercase() || text.starts_with(|c: char| c.is_ascii_digit()), "{place}: text should start like a sentence: {text}");
+        }
+    };
+    let mut clubs_with_notes = 0;
+    for id in 0..12 {
+        let v = api.call("insight.club", json!({"id": id})).unwrap();
+        sane("club", &v);
+        clubs_with_notes += usize::from(!v["items"].as_array().unwrap().is_empty());
+    }
+    assert!(clubs_with_notes >= 6, "most clubs have something worth saying");
+    let mut league_notes = 0;
+    for id in 0..6 {
+        let v = api.call("insight.comp", json!({"id": id})).unwrap();
+        sane("comp", &v);
+        league_notes += v["items"].as_array().unwrap().len();
+    }
+    assert!(league_notes >= 6, "leagues have a table to talk about");
+    let mut kinds = std::collections::BTreeSet::new();
+    let people = api.call("world.status", json!({})).unwrap();
+    let _ = people;
+    for id in (0..3000).step_by(3) {
+        let v = api.call("insight.person", json!({"id": id})).unwrap();
+        sane("person", &v);
+        for it in v["items"].as_array().unwrap() {
+            kinds.insert(it["kind"].as_str().unwrap().to_string());
+        }
+    }
+    for want in ["form", "role", "opinion", "contract", "injury", "growth"] {
+        assert!(kinds.contains(want), "no {want} note anywhere in the sample: {kinds:?}");
+    }
+    let f = table(&api, "fixtures", json!({"played": true}), 60);
+    for row in f["rows"].as_array().unwrap().iter().take(60) {
+        let uid = row["open"]["id"].as_u64().unwrap();
+        sane("match", &api.call("insight.match", json!({"uid": uid})).unwrap());
+    }
+}
+
+#[test]
+fn insights_only_use_what_the_viewer_could_know() {
+    let api = api();
+    let me = inhabit_one(&api);
+    advance(&api, 60);
+    let my_club = api.call("person", json!({"id": me})).unwrap()["roles"][0]["org"]["id"].as_u64().unwrap();
+    let private = ["body", "contract"];
+    let mut foreign = 0;
+    for id in (0..2500).step_by(2) {
+        let p = api.call("person", json!({"id": id})).unwrap();
+        if p["player"].is_null() || id == me {
+            continue;
+        }
+        let same = p["roles"][0]["org"]["id"].as_u64() == Some(my_club) && p["roles"][0]["org"]["k"] == "club";
+        let v = api.call("insight.person", json!({"id": id})).unwrap();
+        for it in v["items"].as_array().unwrap() {
+            let (kind, text) = (it["kind"].as_str().unwrap(), it["text"].as_str().unwrap());
+            if !same {
+                assert!(!private.contains(&kind), "{kind} note about somebody else's player: {it}");
+                assert!(kind != "injury" && kind != "growth", "the medical room and development records are private to the club: {it}");
+                assert!(!text.starts_with("The manager sees") && !text.starts_with("Scouts see") && !text.starts_with("Analysts see"), "an inside view of someone else's player: {it}");
+            }
+            assert!(!it["basis"].as_str().unwrap().contains("internal"), "engine internals are for the observer only: {it}");
+        }
+        foreign += 1;
+    }
+    assert!(foreign > 20);
+    let internal = |v: &Value| v["items"].as_array().unwrap().iter().any(|it| it["basis"].as_str().unwrap().contains("internal"));
+    for id in 0..40 {
+        let v = api.call("insight.club", json!({"id": id})).unwrap();
+        assert!(!internal(&v), "the board and the books are private: {v}");
+    }
+    // The observer may read the private side.
+    api.call("persp.observe", json!({})).unwrap();
+    let mut saw_internal = false;
+    for id in 0..40 {
+        saw_internal |= internal(&api.call("insight.club", json!({"id": id})).unwrap());
+    }
+    assert!(saw_internal, "an observer sees what the board expects");
+}
+
+#[test]
+fn insights_leave_out_results_the_viewer_has_not_revealed() {
+    let api = api();
+    let me = inhabit_one(&api);
+    let club = api.call("person", json!({"id": me})).unwrap()["roles"][0]["org"]["id"].as_u64().unwrap();
+    let mut held_once = false;
+    for _ in 0..8 {
+        api.call("advance.start", json!({"mode": "until_match"})).unwrap();
+        if wait_job(&api)["stop"]["kind"] != "match" {
+            continue;
+        }
+        let f = api.call("table.query", json!({"table": "fixtures", "filters": {"mine": true, "played": true}, "limit": 3, "sort": {"key": "date", "desc": true}})).unwrap();
+        let uid = f["rows"][0]["open"]["id"].as_u64().unwrap();
+        // The talking points for a match nobody has been told the result of are empty.
+        let m = api.call("insight.match", json!({"uid": uid})).unwrap();
+        assert!(m["items"].as_array().unwrap().is_empty() && m["held"] == 1, "a hidden match has no talking points: {m}");
+        for (method, args) in [("insight.person", json!({"id": me})), ("insight.club", json!({"id": club}))] {
+            let v = api.call(method, args).unwrap();
+            assert!(v["held"].as_u64().unwrap() >= 1, "{method} should say it is holding something back: {v}");
+            held_once = true;
+        }
+        // A run of wins is counted from the same revealed results the league table's form column shows.
+        let lg = api.call("club", json!({"id": club})).unwrap()["league"]["comp"]["id"].as_u64().unwrap();
+        let st = table(&api, "standings", json!({"comp": lg}), 40);
+        let cols: Vec<&str> = st["columns"].as_array().unwrap().iter().map(|c| c.as_str().unwrap()).collect();
+        let (team_ix, form_ix) = (cols.iter().position(|c| *c == "team").unwrap(), cols.iter().position(|c| *c == "form").unwrap());
+        let short = api.call("club", json!({"id": club})).unwrap()["short"].as_str().unwrap().to_string();
+        let row = st["rows"].as_array().unwrap().iter().find(|r| r["cells"][team_ix]["s"].as_str() == Some(short.as_str())).expect("our club is in its league table");
+        let form: Vec<char> = row["cells"][form_ix]["s"].as_str().unwrap().chars().collect();
+        let run = form.iter().rev().take_while(|c| **c == 'W').count();
+        let notes = api.call("insight.club", json!({"id": club})).unwrap();
+        let claimed = notes["items"].as_array().unwrap().iter().find(|it| it["title"].as_str().unwrap().ends_with("wins in a row")).map(|it| it["text"].as_str().unwrap().to_string());
+        if run < form.len() {
+            match claimed {
+                Some(t) => assert!(run >= 3 && t.contains(&format!("last {run} league")), "a run of {run} wins was reported as {t:?}"),
+                None => assert!(run < 3, "a run of {run} wins went unreported"),
+            }
+        }
+    }
+    assert!(held_once, "the test never met a hidden result");
+    // Revealing brings the notes back.
+    api.call("match.reveal_all", json!({})).unwrap();
+    assert_eq!(api.call("insight.person", json!({"id": me})).unwrap()["held"], 0);
+    assert_eq!(api.call("insight.club", json!({"id": club})).unwrap()["held"], 0);
+}
