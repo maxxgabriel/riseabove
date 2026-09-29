@@ -131,10 +131,13 @@ fn c_an_action_reaches_the_simulation_and_its_effect_shows_up_later() {
 fn d_matches_are_played_recorded_and_reach_the_inhabited_persons_pages() {
     let api = api();
     import_world(&api, "journey-d");
-    let id = find_person(&api, "Player10005");
-    api.call("persp.inhabit", json!({"person": id})).unwrap();
-    // Play into the season: leagues start in August, the world starts mid-July.
+    // Play into the season as an observer: leagues start in August, the world starts mid-July.
     advance(&api, 130);
+    // Whether one named player gets minutes is the manager's choice and the season's luck, not what this test is about (it changed
+    // whenever anything upstream moved the random draws). Inhabit a first-team player who has actually played, and check his pages.
+    let played = api.call("table.query", json!({"table": "players", "filters": {"inhabitable": true, "kind": "first", "status": "active"}, "sort": {"key": "apps", "desc": true}, "limit": 1})).unwrap();
+    let id = played["rows"][0]["open"]["id"].as_u64().expect("a first-team player has played");
+    api.call("persp.inhabit", json!({"person": id})).unwrap();
     let football = api.call("me.football", json!({})).unwrap();
     let usage = football["usage"].as_array().unwrap();
     assert!(!usage.is_empty(), "the team has played league matches by now: {football}");
