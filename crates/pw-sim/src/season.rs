@@ -134,15 +134,17 @@ pub fn finish_nation(w: &mut World, n: NationId) {
             (r, 0) => r,
             (r, p) => r.min(p),
         });
-        let upper_rank: Vec<TeamId> = last_table(w, upper, year);
-        let lower_rank: Vec<TeamId> = last_table(w, lower, year);
+        // Rank by last season's table, but only among sides still in the division: an earlier pair (or the
+        // state pathway) may already have moved someone, and a side must never be in two divisions.
+        let upper_rank: Vec<TeamId> = last_table(w, upper, year).into_iter().filter(|t| w.comps[upper].state.entrants.contains(t)).collect();
+        let lower_rank: Vec<TeamId> = last_table(w, lower, year).into_iter().filter(|t| w.comps[lower].state.entrants.contains(t)).collect();
         if upper_rank.is_empty() || lower_rank.is_empty() || k == 0 {
             continue;
         }
         let promoted: Vec<TeamId> = lower_rank.iter().filter(|&&t| !is_b_team_blocked(w, t, upper)).take(k).copied().collect();
         let relegated: Vec<TeamId> = upper_rank.iter().rev().take(promoted.len()).copied().collect();
         let date = w.date;
-        let mut new_upper: Vec<TeamId> = upper_rank.iter().copied().filter(|t| !relegated.contains(t)).collect();
+        let mut new_upper: Vec<TeamId> = w.comps[upper].state.entrants.iter().copied().filter(|t| !relegated.contains(t)).collect();
         new_upper.extend(promoted.iter().copied());
         let mut new_lower: Vec<TeamId> = w.comps[lower].state.entrants.iter().copied().filter(|t| !promoted.contains(t)).collect();
         new_lower.extend(relegated.iter().copied());
