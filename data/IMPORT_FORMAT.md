@@ -4,6 +4,24 @@ A world is a folder of UTF-8 CSV files with a header row. Column order does
 not matter; unknown columns are ignored; optional columns may be absent or
 empty. Load with `pw-cli new --import <folder>`.
 
+## Layouts and what happens to bad data
+
+`pw-import` detects the layout of the folder:
+
+* **Pack** (this document): `nations.csv`, `competitions.csv`, `clubs.csv`, `players.csv`, ...
+* **Transfermarkt-style archive**: `countries.csv`, `competitions.csv` (with `competition_code`/`sub_type`), `clubs.csv`,
+  `players.csv`, optional `transfers.csv`, `games.csv`, `appearances.csv`, `game_lineups.csv`, and an optional
+  `Staff list.csv` (Windows-1252, `;`-separated). See `docs/DB_INTEGRATION_AUDIT.md` for the mapping.
+
+Both go through the same steps: parse → validate → resolve identities and foreign keys → build the world.
+
+* A row that cannot be used (no date of birth, unknown club, impossible age, duplicate id) is **dropped and reported**;
+  it is never replaced by a default. `World::origins.unresolved` keeps the first rows with reasons.
+* A missing optional value stays unknown in the import, and the world build fills it by a stated rule. Each fact group of
+  each imported person is labelled `imported`, `inferred`, `generated` or `unknown` (`World::origins`).
+* Nothing merges people by name. Identity is the source id; same name and birth date under two ids is reported.
+* Source ids are kept and searchable (`World::origins.find(source, id)`).
+
 Dates: `YYYY-MM-DD` or `DD/MM/YYYY`. Money: whole units of one base currency
 (use the currency of your export consistently). Attributes: FM's 1–20 scale;
 if a file's attribute values exceed 20 the whole file is read as 1–100 and

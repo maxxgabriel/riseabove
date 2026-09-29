@@ -62,8 +62,9 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
     let comp = &w.comps[fx.comp];
     // Derbies, title races and relegation fights raise the stakes.
     let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, fx)).min(1.0);
-    let home = selection::select_in(w, fx.home, fx.comp, w.date, imp, comp.rules.bench, 0);
-    let away = selection::select_in(w, fx.away, fx.comp, w.date, imp, comp.rules.bench, 0);
+    // Each manager knows who the opposition is and what his own next match is.
+    let home = selection::select_ctx(w, fx.home, fx.comp, w.date, &selection::context_for(w, fx, fx.home, imp), comp.rules.bench, 0);
+    let away = selection::select_ctx(w, fx.away, fx.comp, w.date, &selection::context_for(w, fx, fx.away, imp), comp.rules.bench, 0);
     let (home, away) = match (home, away) {
         (Some(h), Some(a)) => (h, a),
         (None, _) => return Outcome::Walkover { fixture: f, home_forfeits: true },
