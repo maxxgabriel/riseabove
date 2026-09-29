@@ -65,6 +65,7 @@ pub mod pressroom;
 pub mod records;
 pub mod renown;
 pub mod reputation;
+pub mod returns;
 pub mod responses;
 pub mod save;
 pub mod schedule;
@@ -253,6 +254,7 @@ impl Sim {
 
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
+        prof!("returns::pre_match", returns::pre_match(w));
         prof!("officials::pre_match", officials::pre_match(w));
         prof!("matchday::play_today", matchday::play_today(w));
         prof!("officials::daily", officials::daily(w));
@@ -397,4 +399,5 @@ fn compact(w: &mut World) {
     w.reports.retain(|uid, r| keep.contains(uid) || external.iter().any(|&p| r.line(p).is_some()));
     let today = w.date;
     w.social.prune(today, today.add_days(-3 * 365));
+    w.ext.decisions.compact(today.add_days(-2 * 365));
 }

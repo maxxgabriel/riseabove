@@ -33,6 +33,7 @@ pub fn check(w: &World) -> Vec<Breach> {
     injuries(w, &mut v);
     staff(w, &mut v);
     fixtures(w, &mut v);
+    rulings(w, &mut v);
     provenance(w, &mut v);
     v
 }
@@ -157,6 +158,23 @@ fn provenance(w: &World, v: &mut Vec<Breach>) {
     for (p, o) in w.players.origin.iter_enumerated() {
         if o.date > w.date {
             breach(v, "origin.future", format!("player {} created on day {} but today is {}", p.0, o.date.0, w.date.0));
+        }
+    }
+}
+
+/// A rushed return always has a ruling behind it, and never lingers past its window.
+fn rulings(w: &World, v: &mut Vec<Breach>) {
+    let mut open: Vec<_> = w.ext.medical.rushed.iter().collect();
+    open.sort_by_key(|(p, _)| **p);
+    for (p, r) in open {
+        match w.ext.decisions.get(r.ruling) {
+            None => breach(v, "ruling.missing", format!("player {} rushed back under ruling {} that does not exist", p.0, r.ruling)),
+            Some(x) if x.subject != *p => breach(v, "ruling.subject", format!("ruling {} is about player {}, not {}", r.ruling, x.subject.0, p.0)),
+            Some(x) if x.outcome != pw_world::ruling::Outcome::Pending => breach(v, "ruling.resolved_but_open", format!("ruling {} is resolved but player {} is still in its window", r.ruling, p.0)),
+            _ => {}
+        }
+        if r.from.days_until(w.date) > crate::returns::WINDOW_DAYS + 7 {
+            breach(v, "ruling.stale", format!("player {} rush from day {} was never concluded", p.0, r.from.0));
         }
     }
 }

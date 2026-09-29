@@ -13,7 +13,7 @@ use pw_data::BodyRegion;
 use pw_world::decision::{Decision, DecisionKind, MindKind};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::medical::{Case, Chronic, Fragility, Treatment};
-use pw_world::{PlayerStatus, SquadStatus, StaffRole, World};
+use pw_world::{PlayerStatus, StaffRole, World};
 
 use crate::consider;
 
@@ -74,6 +74,7 @@ pub fn on_injury(w: &mut World, p: PlayerId, injury: u16, days: u16) -> u16 {
     w.medical.open.insert(p, case);
     let vis = if club.is_some() { Visibility::Club(club) } else { Visibility::Public };
     w.events.push(today, vis, EventKind::Diagnosed { player: p, injury, estimate, treatment: Treatment::Conservative });
+    crate::returns::on_new_injury(w, p, slot);
 
     // A serious injury in an operable region: surgery or rehabilitation.
     if long_injury && surgical(region) && truth >= 42 {
@@ -174,38 +175,10 @@ pub fn weekly(w: &mut World) {
             w.events.push(today, vis, EventKind::InjurySetback { player: p, days: add });
             continue;
         }
-
-        // Rushing back: late in recovery, when the club needs the player and
-        // the player is willing, a less careful medical room signs them off.
-        if !case.rushed && f32::from(remaining) <= f32::from(total) * 0.3 && remaining >= 4 && club.is_some() {
-            let status = w.players.cold[p].status;
-            let needed = matches!(status, SquadStatus::Star | SquadStatus::Important);
-            let pressure = w.clubs[club].board.satisfaction < 40 || w.clubs[club].manager.get().is_some_and(|m| w.staff[m].philosophy.archetype == pw_world::Archetype::Pragmatist);
-            let who = w.players.cold[p].person;
-            let willing = match w.medical.willing_to_rush.get(&p) {
-                Some(&b) => b,
-                None => w.people[who].mind == MindKind::Ai && consider::hid(w, who, Hidden::Ambition) + consider::hid(w, who, Hidden::Pressure) > 26.0,
-            };
-            let careful = q / 20.0;
-            let roll = (hash_key(&[w.seed, u64::from(p.0), today.0 as u64, 0x7a5]) % 1000) as f32 / 1000.0;
-            if needed && willing && (pressure || roll > careful) && roll < 0.6 {
-                let h = &mut w.players.hot[p];
-                h.injury_days = 0;
-                h.injury = 0;
-                h.injury_total = 0;
-                h.condition = h.condition.min(75);
-                h.sharpness = h.sharpness.min(40);
-                if let Some(c) = w.medical.open.get_mut(&p) {
-                    c.rushed = true;
-                }
-                w.events.push(today, Visibility::Club(club), EventKind::RushedBack { player: p });
-                close(w, p);
-            }
-        }
     }
 }
 
-fn close(w: &mut World, p: PlayerId) {
+pub(crate) fn close(w: &mut World, p: PlayerId) {
     let today = w.date;
     let Some(mut case) = w.medical.open.remove(&p) else { return };
     case.actual = case.date.days_until(today).max(0) as u16;

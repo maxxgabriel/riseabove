@@ -597,6 +597,10 @@ pub enum EventKind {
     RushedBack {
         player: PlayerId,
     },
+    /// A material decision was made; the ruling holds who believed and backed what.
+    Ruling {
+        ruling: u32,
+    },
     ChronicCondition {
         player: PlayerId,
     },

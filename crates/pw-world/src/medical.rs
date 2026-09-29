@@ -5,7 +5,7 @@
 //! region, a chronic condition that needs managing — raises the hazard of the
 //! next one and shapes how managers use the player.
 
-use pw_core::{ClubId, Date, PlayerId};
+use pw_core::{ClubId, Date, EventId, PlayerId, StaffId};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
@@ -107,4 +107,53 @@ impl Medical {
     pub fn serious_recent(&self, p: PlayerId, today: Date, days: i32) -> usize {
         self.history_of(p).iter().filter(|c| c.actual >= 42 && c.date.days_until(today) <= days).count()
     }
+}
+
+/// Where a case sits on the way back, from how much of it is truly left.
+/// Derived, never stored: no hot state per player.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+pub enum ReturnStage {
+    Rehab,
+    Individual,
+    PartialTeam,
+    FullTraining,
+    BenchReady,
+    MatchReady,
+}
+
+impl ReturnStage {
+    /// `left` is the fraction of the case still to run (1 = just injured).
+    pub fn of(left: f32) -> ReturnStage {
+        match left {
+            x if x > 0.8 => ReturnStage::Rehab,
+            x if x > 0.6 => ReturnStage::Individual,
+            x if x > 0.4 => ReturnStage::PartialTeam,
+            x if x > 0.2 => ReturnStage::FullTraining,
+            x if x > 0.08 => ReturnStage::BenchReady,
+            _ => ReturnStage::MatchReady,
+        }
+    }
+}
+
+/// A player cleared before the body was ready. While the window lasts, the
+/// hazard is raised in proportion to how much was left, so a recurrence
+/// emerges from the ordinary injury machinery rather than from a script.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct RushedReturn {
+    pub ruling: u32,
+    pub event: EventId,
+    pub from: Date,
+    /// Fraction of the case that was truly left when they were cleared.
+    pub left: f32,
+    pub region: u8,
+    pub manager: StaffId,
+}
+
+/// Owned by `pw_sim::returns`.
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct MedicalExt {
+    pub rushed: FxHashMap<PlayerId, RushedReturn>,
+    /// A manager's learned readiness to rush players back, moved only by how
+    /// past rushes turned out (not by whether they were sound).
+    pub rush_bias: FxHashMap<StaffId, i8>,
 }
