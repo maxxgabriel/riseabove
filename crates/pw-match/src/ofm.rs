@@ -18,6 +18,9 @@ use rand::rngs::StdRng;
 use crate::pitch::{N_ZONES, zone_id};
 use crate::types::*;
 
+/// `injury_risk` at which OFM's contact injuries stand unthinned (a typical, slightly worn player).
+const CONTACT_RISK_REF: f32 = 1.5;
+
 pub fn simulate(inp: &MatchInput) -> MatchResult {
     let home = team(&inp.home, inp);
     let away = team(&inp.away, inp);
@@ -338,6 +341,16 @@ fn convert(inp: &MatchInput, rep: ofm_engine::MatchReport) -> MatchResult {
             EventType::SecondHalfStart | EventType::GoalKick | EventType::PenaltyAwarded => None,
         };
 
+        // OFM injures whoever was fouled, at a flat rate. A contact injury only
+        // stands if the player's own body (workload, fatigue, wear, age,
+        // fragility: `injury_risk`) lets it; a robust player shrugs it off.
+        let contact_injury_stands = e.event_type == EventType::Injury
+            && p.is_some_and(|i| {
+                let risk = sheets[i].0.injury_risk;
+                pw_core::Rng::keyed(&[inp.seed, 0x1a7, u64::from(sheets[i].0.id.0)]).f32() < (risk / CONTACT_RISK_REF).min(1.0)
+            });
+        let kind = if e.event_type == EventType::Injury && !contact_injury_stands { None } else { kind };
+
         // Per-event bookkeeping the OFM report does not aggregate for us.
         let st = &mut stats[side as usize];
         match e.event_type {
@@ -381,7 +394,7 @@ fn convert(inp: &MatchInput, rep: ofm_engine::MatchReport) -> MatchResult {
                 }
             }
             EventType::Injury => {
-                if let Some(i) = p {
+                if let (Some(i), true) = (p, contact_injury_stands) {
                     who[i].line.injured = true;
                 }
             }
@@ -470,6 +483,15 @@ fn convert(inp: &MatchInput, rep: ofm_engine::MatchReport) -> MatchResult {
         w.line.off_at = w.off.unwrap_or(0);
         w.line.is_keeper = w.pos == Some(Pos::GK);
         let stamina = sheet.attrs.get(Attr::Stamina);
+        // Non-contact injuries come from the body itself, so they follow risk and tiredness.
+        if w.line.minutes > 0 && !w.line.injured {
+            let exposure = f32::from(w.line.minutes) / 90.0;
+            let p = inp.tuning.ofm_noncontact_injury * exposure * sheet.injury_risk * (1.0 + (100.0 - sheet.condition).max(0.0) / 100.0);
+            if pw_core::Rng::keyed(&[inp.seed, 0x1a8, u64::from(sheet.id.0)]).f32() < p {
+                w.line.injured = true;
+                w.line.injury_noncontact = true;
+            }
+        }
         w.line.condition_end = (sheet.condition - f32::from(w.line.minutes) * (0.45 - stamina * 0.012)).clamp(15.0, 100.0) as u8;
     }
 

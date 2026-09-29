@@ -261,9 +261,9 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
 }
 
 /// Record an injury that happened in a match (the engine only flags it).
-pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng) {
-    let mech = [Mechanism::Contact, Mechanism::NonContact];
-    if let Some((k, d)) = sample_injury(&w.data.injuries, &mech, rng) {
+pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng, noncontact: bool) {
+    let mech: &[Mechanism] = if noncontact { &[Mechanism::NonContact, Mechanism::Overuse] } else { &[Mechanism::Contact] };
+    if let Some((k, d)) = sample_injury(&w.data.injuries, mech, rng) {
         let h = &mut w.players.hot[p];
         h.injury = k as u16 + 1;
         h.injury_days = d;

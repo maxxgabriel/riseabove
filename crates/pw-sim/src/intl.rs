@@ -845,7 +845,7 @@ fn apply(w: &mut World, fx: IntlFixture, r: MatchResult) {
             c.rep.home = (f32::from(c.rep.home) + bump * 1.5).min(10_000.0) as u16;
         }
         if line.injured {
-            crate::health::match_injury(w, p, &mut rng);
+            crate::health::match_injury(w, p, &mut rng, line.injury_noncontact);
             // The club manager does not forget whose game broke his player.
             if let (Some(cm), Some(side)) = (w.manager_of_player(p), w.intl.sides.get(&(n, fx.level))) {
                 let nm = w.staff[side.manager].person;

@@ -208,7 +208,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
             w.events.push(today, Visibility::Public, EventKind::Suspended { player: p, matches });
         }
         if line.injured {
-            health::match_injury(w, p, &mut rng);
+            health::match_injury(w, p, &mut rng, line.injury_noncontact);
         }
         let pom = r.pom == p;
         w.stats.record(fx.comp, club, season, line, pom);

@@ -83,6 +83,9 @@ pub struct MatchTuning {
     pub finish_bias: f32,
     /// Injury probability per contact/sprint exposure at neutral risk.
     pub injury_exposure: f32,
+    /// OFM backend: chance per 90 minutes of a non-contact injury at neutral risk. OFM's own
+    /// injuries are contact-only (a fouled player), blind to workload, fatigue and history.
+    pub ofm_noncontact_injury: f32,
     /// OFM backend: probability an on-target shot beats the keeper.
     pub ofm_conversion: f32,
     /// OFM backend: condition lost per minute (drives fatigue substitutions).
@@ -107,6 +110,7 @@ impl Default for MatchTuning {
             shot_bias: 1.0,
             finish_bias: 1.0,
             injury_exposure: 0.0009,
+            ofm_noncontact_injury: 0.006,
             ofm_conversion: 0.225,
             ofm_fatigue: 0.45,
         }
