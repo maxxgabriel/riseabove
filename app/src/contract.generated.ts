@@ -238,6 +238,143 @@ export interface PersonReq {
   id: number;
 }
 
+export interface StepRow {
+  date: number;
+  kind: string;
+  target: string | null;
+  why: string | null;
+  recorded: boolean;
+}
+
+export interface CreationView {
+  date: number | null;
+  region: string;
+  provider: string;
+  institution: string | null;
+  age: number | null;
+  first_env: string;
+  first_finder: Named | null;
+  why: string;
+  provenance: string;
+}
+
+export interface EvidenceRow {
+  rule: string;
+  holds: boolean;
+  detail: number | null;
+}
+
+export interface EligibilityRow {
+  body_kind: string;
+  body: string;
+  eligible: boolean;
+  reason: string;
+  evidence: EvidenceRow[];
+}
+
+export interface TierRow {
+  level: string;
+  games: number;
+  proof: string;
+}
+
+export interface KnownBy {
+  org: string;
+  looks: number;
+  years: number;
+  how: string;
+  first: number;
+  last: number;
+  first_by: string | null;
+}
+
+export interface VouchView {
+  from: string;
+  basis: string;
+  strength: string;
+  credibility: string;
+  date: number;
+}
+
+export interface WatchRow {
+  org: string;
+  by: string;
+  games_left: number;
+  since: number;
+}
+
+export interface RecognitionView {
+  standing: string;
+  evidence: TierRow[];
+  known_by: KnownBy[];
+  vouch: VouchView | null;
+  watching: WatchRow[];
+  buzz: boolean;
+}
+
+export interface PathwayView {
+  available: boolean;
+  reason: string | null;
+  player: Named;
+  steps: StepRow[];
+  creation: CreationView | null;
+  eligibility: EligibilityRow[];
+  recognition: RecognitionView | null;
+}
+
+export interface RegionOutputRow {
+  region: string;
+  kind: string;
+  professionals: number;
+  top_tier: number;
+  internationals: number;
+  senior_apps: number;
+  value: number;
+}
+
+export interface RegionOutputView {
+  available: boolean;
+  rows: RegionOutputRow[];
+  note: string;
+}
+
+export interface SegmentRegard {
+  segment: string;
+  level: number;
+  exports: number;
+  successes: number;
+  visits: number;
+  provenance: string;
+}
+
+export interface MarketRow {
+  name: string;
+  nations: string[];
+  segments: SegmentRegard[];
+}
+
+export interface ExportView {
+  available: boolean;
+  markets: MarketRow[];
+  note: string;
+}
+
+export interface CalendarRow {
+  event: string;
+  when: string;
+}
+
+export interface ScenarioView {
+  available: boolean;
+  source: string;
+  calendar: CalendarRow[];
+  clubs_imported: number;
+  clubs_seeded: number;
+  clubs_generated: number;
+  clubs_unknown: number;
+  note: string;
+}
+
 /** Every method: whether it is a query or a command, and its request and response types where they are declared. */
 export interface ApiMethods {
   "app.info": { kind: "query"; req: Record<string, unknown>; res: AppInfo };
@@ -311,6 +448,10 @@ export interface ApiMethods {
   "me.football": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.plan": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "me.contract": { kind: "query"; req: Record<string, unknown>; res: unknown };
+  "pathway.player": { kind: "query"; req: PersonReq; res: PathwayView };
+  "ecosystem.regions": { kind: "query"; req: Record<string, unknown>; res: RegionOutputView };
+  "ecosystem.export": { kind: "query"; req: Record<string, unknown>; res: ExportView };
+  "ecosystem.scenario": { kind: "query"; req: Record<string, unknown>; res: ScenarioView };
 }
 
 /** The methods whose response type is declared here. */
@@ -321,4 +462,8 @@ export type TypedMethod =
   | "person.attributes"
   | "me.people"
   | "me.rumours"
+  | "pathway.player"
+  | "ecosystem.regions"
+  | "ecosystem.export"
+  | "ecosystem.scenario"
 ;

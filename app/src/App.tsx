@@ -20,6 +20,8 @@ import { Portal } from "./pages/Portal";
 import { Compare } from "./pages/Compare";
 import { Bookmarks } from "./pages/Bookmarks";
 import { Diagnostics } from "./pages/Diagnostics";
+import { Ecosystem } from "./pages/Ecosystem";
+import { Database } from "./pages/Database";
 import { Help } from "./pages/Help";
 import { Settings } from "./pages/Settings";
 import { Overview } from "./pages/Overview";
@@ -98,6 +100,10 @@ function Page() {
       return <Help />;
     case "diagnostics":
       return <Diagnostics />;
+    case "development":
+      return <Ecosystem />;
+    case "database":
+      return <Database />;
     case "inhabit":
       return <Inhabit />;
     case "match":
@@ -166,6 +172,7 @@ export function App() {
     return <div className="boot"><Spinner size={22} /></div>;
   }
   if (!st.open) {
+    if (route.segs[0] === "database") return <Database />;
     return <Start />;
   }
   return (

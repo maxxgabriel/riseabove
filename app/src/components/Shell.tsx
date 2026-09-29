@@ -30,6 +30,8 @@ function useNav(): { top: NavItem[]; groups: { label: string; items: NavItem[] }
     { label: "Society", to: "/society", icon: "chat" },
     { label: "Events", to: "/events", icon: "pulse" },
     { label: "History", to: "/history", icon: "clock" },
+    { label: "Development", to: "/development", icon: "globe" },
+    { label: "Database", to: "/database", icon: "list" },
   ];
   const groups = [];
   if (inhabiting) {

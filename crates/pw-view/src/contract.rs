@@ -436,6 +436,153 @@ contract! {
     }
 }
 
+contract! {
+    /// One step of a route, with why it happened where that was recorded.
+    pub struct StepRow {
+        pub date: i32,
+        pub kind: String,
+        pub target: Option<String>,
+        pub why: Option<String>,
+        /// False for a step that happened before reasons were kept: the reason is unknown, not absent.
+        pub recorded: bool,
+    }
+
+    /// How a player came to exist in the world.
+    pub struct CreationView {
+        /// Unknown for a record derived from an older save.
+        pub date: Option<i32>,
+        pub region: String,
+        pub provider: String,
+        pub institution: Option<String>,
+        pub age: Option<u8>,
+        pub first_env: String,
+        pub first_finder: Option<Named>,
+        pub why: String,
+        pub provenance: String,
+    }
+
+    pub struct EvidenceRow {
+        pub rule: String,
+        pub holds: bool,
+        pub detail: Option<i32>,
+    }
+
+    /// One judgement: a rule set applied to a player, with the evidence and the reason.
+    pub struct EligibilityRow {
+        pub body_kind: String,
+        pub body: String,
+        pub eligible: bool,
+        pub reason: String,
+        pub evidence: Vec<EvidenceRow>,
+    }
+
+    pub struct TierRow {
+        pub level: String,
+        pub games: u32,
+        pub proof: String,
+    }
+
+    /// What one organisation holds of one player.
+    pub struct KnownBy {
+        pub org: String,
+        pub looks: u8,
+        pub years: u8,
+        pub how: String,
+        pub first: i32,
+        pub last: i32,
+        pub first_by: Option<String>,
+    }
+
+    /// A coach's recommendation, with its cause.
+    pub struct VouchView {
+        pub from: String,
+        pub basis: String,
+        pub strength: String,
+        pub credibility: String,
+        pub date: i32,
+    }
+
+    pub struct WatchRow {
+        pub org: String,
+        pub by: String,
+        pub games_left: u8,
+        pub since: i32,
+    }
+
+    /// Who knows the player and on what basis. Omniscient view only: this is what organisations hold, not what the player knows.
+    pub struct RecognitionView {
+        pub standing: String,
+        pub evidence: Vec<TierRow>,
+        pub known_by: Vec<KnownBy>,
+        pub vouch: Option<VouchView>,
+        pub watching: Vec<WatchRow>,
+        pub buzz: bool,
+    }
+
+    pub struct PathwayView {
+        pub available: bool,
+        pub reason: Option<String>,
+        pub player: Named,
+        pub steps: Vec<StepRow>,
+        pub creation: Option<CreationView>,
+        pub eligibility: Vec<EligibilityRow>,
+        pub recognition: Option<RecognitionView>,
+    }
+
+    pub struct RegionOutputRow {
+        pub region: String,
+        pub kind: String,
+        pub professionals: u32,
+        pub top_tier: u32,
+        pub internationals: u32,
+        pub senior_apps: u32,
+        pub value: i64,
+    }
+
+    pub struct RegionOutputView {
+        pub available: bool,
+        pub rows: Vec<RegionOutputRow>,
+        pub note: String,
+    }
+
+    pub struct SegmentRegard {
+        pub segment: String,
+        pub level: u32,
+        pub exports: u16,
+        pub successes: u16,
+        pub visits: u16,
+        pub provenance: String,
+    }
+
+    pub struct MarketRow {
+        pub name: String,
+        pub nations: Vec<String>,
+        pub segments: Vec<SegmentRegard>,
+    }
+
+    pub struct ExportView {
+        pub available: bool,
+        pub markets: Vec<MarketRow>,
+        pub note: String,
+    }
+
+    pub struct CalendarRow {
+        pub event: String,
+        pub when: String,
+    }
+
+    pub struct ScenarioView {
+        pub available: bool,
+        pub source: String,
+        pub calendar: Vec<CalendarRow>,
+        pub clubs_imported: u32,
+        pub clubs_seeded: u32,
+        pub clubs_generated: u32,
+        pub clubs_unknown: u32,
+        pub note: String,
+    }
+}
+
 /// Which view is looking. The omniscient view is the debug view and says so.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "mode", rename_all = "snake_case")]
@@ -559,6 +706,10 @@ pub fn manifest() -> Vec<MethodSpec> {
         q("me.football"),
         c("me.plan"),
         q("me.contract"),
+        typed(q("pathway.player"), Some("PersonReq"), "PathwayView"),
+        typed(q("ecosystem.regions"), None, "RegionOutputView"),
+        typed(q("ecosystem.export"), None, "ExportView"),
+        typed(q("ecosystem.scenario"), None, "ScenarioView"),
     ]
 }
 
@@ -626,6 +777,23 @@ pub fn declarations() -> Vec<String> {
         RumourRow::declaration(),
         RumoursView::declaration(),
         PersonReq::declaration(),
+        StepRow::declaration(),
+        CreationView::declaration(),
+        EvidenceRow::declaration(),
+        EligibilityRow::declaration(),
+        TierRow::declaration(),
+        KnownBy::declaration(),
+        VouchView::declaration(),
+        WatchRow::declaration(),
+        RecognitionView::declaration(),
+        PathwayView::declaration(),
+        RegionOutputRow::declaration(),
+        RegionOutputView::declaration(),
+        SegmentRegard::declaration(),
+        MarketRow::declaration(),
+        ExportView::declaration(),
+        CalendarRow::declaration(),
+        ScenarioView::declaration(),
     ]
 }
 

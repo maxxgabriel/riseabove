@@ -7,6 +7,7 @@ pub mod life;
 pub mod matchp;
 pub mod me;
 pub mod newsroom;
+pub mod pathway;
 pub mod person;
 pub mod social;
 pub mod threads;

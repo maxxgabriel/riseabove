@@ -31,6 +31,7 @@ const PAGES: { title: string; to: string; icon: IconName; words: string }[] = [
   { title: "Saves and world", to: "/saves", icon: "save", words: "save load world saves" },
   { title: "Settings", to: "/settings", icon: "sliders", words: "settings preferences theme" },
   { title: "Help", to: "/help", icon: "help", words: "help glossary keys shortcuts" },
+  { title: "Development", to: "/development", icon: "globe", words: "development regions pathway scouting export abroad scenario calendar" },
   { title: "Diagnostics", to: "/diagnostics", icon: "info", words: "diagnostics capabilities" },
 ];
 const ME_PAGES: typeof PAGES = [

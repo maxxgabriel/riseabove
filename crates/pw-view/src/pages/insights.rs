@@ -253,6 +253,35 @@ pub fn person(c: &Ctx, args: &Value) -> ApiResult<Value> {
     Ok(n.finish(args))
 }
 
+
+/// Why the latest step happened and, for the omniscient view, who is backing him: read from the pathway records, never invented.
+/// A step that happened before reasons were kept has no note, rather than a guessed one.
+fn pathway_notes(c: &Ctx, n: &mut Notes, p: PlayerId, me: bool, who: &str, name: &str) {
+    let w = c.w;
+    if !w.ext.ecosystem.is_configured() || !(c.observer() || me) || !w.ext.ecosystem.story.contains_key(&p) {
+        return;
+    }
+    if let Some(r) = w.ext.pathway.of(p).last()
+        && r.date.days_until(w.date) <= 180
+        && !matches!(r.why, pw_world::pathway::Why::Emerged)
+    {
+        let why = r.why.text();
+        let text = if me { format!("{who} {}.", why.replacen("was ", "were ", 1)) } else { format!("{name} {why}.") };
+        n.add("pathway", Tone::Info, 6, "How the latest step came about", text, "the pathway record");
+    }
+    if c.observer()
+        && let Some(v) = w.ext.recog.vouch.get(&p)
+    {
+        let by = match v.from {
+            pw_world::recog::Source::Club(l) => format!("the coaches of {}", w.youth.local[l].name),
+            pw_world::recog::Source::Institution(i) => format!("the coaches of {}", w.minor.institutions[i as usize].name),
+            pw_world::recog::Source::District(r) => format!("the selectors of {}", w.ext.ecosystem.regions[r].name),
+            pw_world::recog::Source::Person(x) => c.person_name(x),
+        };
+        n.add("pathway", Tone::Info, 4, "A coach is backing him", format!("{by} rate {name} among the best they know. How far that counts is each scout's call, and the recommendation lapses if he stops earning it."), "the recommendation on record");
+    }
+}
+
 fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
     let w = c.w;
     let h = &w.players.hot[p];
@@ -269,6 +298,8 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
     let year = today.year();
     let age = w.age(p);
     let first_team = h.team.is_some() && w.teams[h.team].kind == TeamKind::First;
+
+    pathway_notes(c, n, p, me, &who, &name);
 
     // Results the viewer has not revealed are left out of everything below.
     let hidden: Vec<Date> = c.concealed_fixtures().into_iter().filter(|f| f.involves(h.team)).map(|f| f.date).collect();

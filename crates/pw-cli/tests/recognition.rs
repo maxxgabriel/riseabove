@@ -5,6 +5,15 @@ use pw_data::DataPack;
 use pw_import::india::{self, IndiaScale};
 use pw_sim::{recognition, Sim};
 use pw_world::ecosystem::Tier;
+use pw_world::recog::{Learned, Org};
+
+/// This club's own people have watched the child on `n` different days (a club knows a child only through its own looks).
+fn looked_at(s: &mut Sim, club: pw_core::ClubId, p: pw_core::PlayerId, n: u32) {
+    for _ in 0..n {
+        s.world.date = s.world.date.add_days(30);
+        recognition::sighted_by(&mut s.world, Org::Club(club), pw_core::PersonId::NONE, p, Learned::Watched);
+    }
+}
 
 fn world(seed: u64) -> Sim {
     Sim::new(india::build(DataPack::builtin(), seed, IndiaScale::TINY))
@@ -31,9 +40,7 @@ fn one_huge_game_at_grassroots_is_not_recognition() {
     assert!(recognition::standing(&s.world, p) < 0.03, "standing {}", recognition::standing(&s.world, p));
     assert!(!recognition::recognised_by(&s.world, club, p));
     // Even with a scout having looked twice, one game is no sample.
-    if let Some(r) = s.world.ext.ecosystem.repute.get_mut(&p) {
-        r.sightings = 3;
-    }
+    looked_at(&mut s, club, p, 3);
     assert!(!recognition::recognised_by(&s.world, club, p));
 }
 
@@ -45,7 +52,7 @@ fn a_season_at_grassroots_alone_cannot_carry_to_the_top_academies() {
     for _ in 0..60 {
         recognition::credit(&mut s.world, p, Tier::Grassroots, 8.6, 1.0);
     }
-    s.world.ext.ecosystem.repute.get_mut(&p).unwrap().sightings = 6;
+    looked_at(&mut s, club, p, 6);
     let st = recognition::standing(&s.world, p);
     assert!(st < 0.35, "grassroots-only standing should be capped, got {st}");
     assert!(!recognition::recognised_by(&s.world, club, p), "the best academy invited a child on park football alone");

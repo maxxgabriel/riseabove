@@ -251,7 +251,9 @@ fn regions(w: &mut World, year: i32) {
     for (&p, s) in &w.ext.ecosystem.story {
         let c = &w.players.cold[p];
         if c.senior_apps >= 10 && w.players.hot[p].status != PlayerStatus::Retired && w.age(p) <= 27 && !s.home.is_none() {
-            *produced.entry(s.home).or_default() += 1.0 + f32::from(c.caps.min(20)) / 10.0;
+            // Quality, not headcount: a regular at the top of the pyramid and an international count for more than a regular lower down.
+            let top = w.players.hot[p].club.is_some() && crate::statepath::tier_of(w, w.players.hot[p].club) <= 1;
+            *produced.entry(s.home).or_default() += 1.0 + f32::from(c.caps.min(20)) / 10.0 + if top { 0.5 } else { 0.0 };
             let e = counts.entry(s.home).or_default();
             e.0 += 1;
             e.1 += i64::from(c.caps > 0);
@@ -867,4 +869,50 @@ pub fn travel_effects(w: &World, home: pw_core::TeamId, away: pw_core::TeamId, i
     for p in input.away.xi.iter_mut().chain(input.away.bench.iter_mut()) {
         p.condition = (p.condition - hit).max(30.0);
     }
+}
+
+/// What a region has produced, measured by quality as well as number (the India brief, item 21). Derived on demand from the
+/// players and their careers; nothing is stored, so there is nothing to migrate.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Output {
+    pub region: RegionId,
+    /// Players from here who have become senior regulars (ten or more competitive appearances) and are not retired.
+    pub professionals: u32,
+    /// Of those, ones now at the top of the national pyramid.
+    pub top_tier: u32,
+    /// Of those, ones who have been capped.
+    pub internationals: u32,
+    /// Competitive senior appearances between them.
+    pub senior_apps: u32,
+    /// Their combined market value.
+    pub value: i64,
+}
+
+/// Output by home region (districts and their states), sorted by region. Only regions that have produced someone appear.
+pub fn region_output(w: &World) -> Vec<Output> {
+    let mut by: pw_world::FxHashMap<RegionId, Output> = Default::default();
+    for (&p, s) in &w.ext.ecosystem.story {
+        let c = &w.players.cold[p];
+        let h = &w.players.hot[p];
+        if h.status == PlayerStatus::Retired || c.senior_apps < 10 || s.home.is_none() {
+            continue;
+        }
+        let top = h.club.is_some() && crate::statepath::tier_of(w, h.club) <= 1;
+        let state = w.ext.ecosystem.state_of(s.home);
+        let mut regions = vec![s.home];
+        if state.is_some() && state != s.home {
+            regions.push(state);
+        }
+        for r in regions {
+            let o = by.entry(r).or_insert(Output { region: r, ..Output::default() });
+            o.professionals += 1;
+            o.top_tier += u32::from(top);
+            o.internationals += u32::from(c.caps > 0);
+            o.senior_apps += u32::from(c.senior_apps);
+            o.value += i64::from(c.value);
+        }
+    }
+    let mut v: Vec<Output> = by.into_values().collect();
+    v.sort_by_key(|o| o.region);
+    v
 }

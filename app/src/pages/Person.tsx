@@ -15,6 +15,7 @@ import { Async, usePageTitle } from "./common";
 import { tintOf } from "../color";
 import { ClubCrest } from "../components/Crest";
 import { useClubColors } from "../crest";
+import { PathwayPanel } from "./Ecosystem";
 import { DEFAULT_TINT, Stage, StageHeader, StageTabs, type MetaBit } from "../components/Stage";
 import { Icon } from "../ui/Icon";
 
@@ -243,6 +244,7 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
       <div className="split player-layout">
       <div className="stack">
         <Insights method="insight.person" args={{ id: p.id }} />
+        <PathwayPanel id={p.id} quiet />
         {pl.condition && (
           <Section title="Right now" aside={pl.availability.detail || undefined}>
             <div className="card meters">
