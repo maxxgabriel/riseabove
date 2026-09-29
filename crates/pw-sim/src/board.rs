@@ -103,7 +103,9 @@ pub fn appoint(w: &mut World, club: ClubId) {
         .filter(|(_, s)| crate::affairs::coaching_level(w, s.person) >= crate::affairs::required_level(w.clubs[club].reputation))
         .filter(|(_, s)| i32::from(s.reputation) <= rep + 1500)
         .map(|(id, s)| {
-            let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 };
+            let fit = -((i32::from(s.reputation) - rep).abs() as f32) / 1000.0 + s.role_rating(StaffRole::Manager) / 4.0 + if w.people[s.person].nation == nation { 0.5 } else { 0.0 }
+                // The seats' own taste: the style the board wants, weighted more where the owner leaves football to others.
+                + style_taste(w, club, s.philosophy.mentality);
             (id, fit)
         })
         .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));
@@ -184,4 +186,12 @@ fn new_manager(w: &mut World, club: ClubId) -> StaffId {
     });
     w.people[person].staff = id;
     id
+}
+
+/// How well a candidate's approach matches what this club's board wants (−0.3 … 0.3).
+fn style_taste(w: &World, club: ClubId, mentality: i8) -> f32 {
+    let Some(g) = w.governance.get(&club) else { return 0.0 };
+    let gap = (i32::from(mentality) - i32::from(g.policy.style_mandate)).abs() as f32;
+    let say = if g.owner.meddling < 40 { 1.0 } else { 0.6 };
+    (0.3 - 0.15 * gap) * say
 }
