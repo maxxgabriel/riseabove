@@ -28,7 +28,7 @@ fn move_pair(w: &World) -> (PlayerId, ClubId, ClubId) {
 }
 
 fn far() -> Environment {
-    Environment { climate: 3, humidity: 85, altitude: 2800, tz: 9, language: 77, culture: 9, pace: 80, physical: 20, tempo: 80, known: true }
+    Environment { climate: 3, humidity: 85, altitude: 2800, tz: 9, language: 77, culture: 9, pace: 80, physical: 20, tempo: 80, tax: 45, living: 140, known: true }
 }
 
 fn near_of(e: &Environment) -> Environment {

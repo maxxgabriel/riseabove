@@ -140,7 +140,7 @@ pub fn buyer_ceiling(d: &ClubDeal, willing: f64) -> f64 {
 pub fn seller_ask(w: &World, d: &ClubDeal, want: f64) -> f64 {
     let believed_max = f64::midpoint(d.seller_thinks_buyer_max.lo as f64, d.seller_thinks_buyer_max.hi as f64);
     // The seller opens at least at its reservation, and dares to ask more when it thinks the buyer can afford it.
-    let mut ask = (want * 1.05).max((believed_max * 0.97).min(want * 1.35));
+    let mut ask = (want * 1.05).max((believed_max * 0.97).min(want * 1.18));
     if d.signals.budget_claimed > 0 {
         let cred = f64::from(budget_claim_credibility(w, d));
         let claimed = d.signals.budget_claimed as f64;

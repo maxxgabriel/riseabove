@@ -51,6 +51,8 @@ pub struct MarketBook {
     pub loan_listed: FxHashMap<PlayerId, Date>,
     /// Players currently in contract talks (one set of talks at a time).
     pub talking: FxHashMap<PlayerId, pw_core::TalkId>,
+    /// Players who have noticed a teammate paid far more, and how much more they will ask for: 0..0.5 on top of their wage demand.
+    pub envy: FxHashMap<PlayerId, f32>,
 }
 
 impl MarketBook {

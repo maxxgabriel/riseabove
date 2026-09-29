@@ -107,6 +107,18 @@ pub fn terms(t: &Terms) -> String {
     if t.release_clause > 0 {
         s += &format!(", release clause {}", crate::fmt::money(t.release_clause));
     }
+    if t.loyalty_bonus > 0 {
+        s += &format!(", loyalty bonus {}", crate::fmt::money(t.loyalty_bonus));
+    }
+    if t.options.club_years > 0 {
+        s += &format!(", club option +{}", t.options.club_years);
+    }
+    if t.options.player_years > 0 {
+        s += &format!(", player option +{}", t.options.player_years);
+    }
+    if let Some((trigger, extra)) = t.options.auto {
+        s += &format!(", +{} year(s) on {}", extra, trigger.label());
+    }
     s
 }
 

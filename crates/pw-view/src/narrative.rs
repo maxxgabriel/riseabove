@@ -118,6 +118,7 @@ pub fn group_of(k: &E) -> Group {
         | AssessmentVindicated { .. }
         | SigningReviewed { .. }
         | PlanFailed { .. }
+        | ContractOption { .. }
         | Stagnated { .. }
         | CharacterChanged { .. } => Group::Career,
         _ => Group::Club,
@@ -189,6 +190,7 @@ pub fn label(k: &E) -> &'static str {
         AssessmentVindicated { .. } => "Judgement",
         SigningReviewed { .. } => "Signing review",
         PlanFailed { .. } => "Plan failed",
+        ContractOption { .. } => "Contract option",
         JoinedLocalClub { .. } => "Local club",
         ExamsSat { .. } => "Exams",
         NationalSquad { .. } => "Squad named",

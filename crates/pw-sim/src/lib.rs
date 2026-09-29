@@ -21,6 +21,7 @@ pub mod audit;
 pub mod awards;
 pub mod backfill;
 pub mod bargaining;
+pub mod clauses;
 pub mod board;
 pub mod boardroom;
 pub mod commerce;
@@ -58,6 +59,7 @@ pub mod mind;
 pub mod minor;
 pub mod morale;
 pub mod negotiation;
+pub mod package;
 pub mod newsroom;
 pub mod officials;
 pub mod people;
@@ -184,6 +186,9 @@ impl Sim {
         if first_of_month {
             prof!("dossier::monthly", dossier::monthly(w));
             prof!("boardroom::monthly", boardroom::monthly(w));
+            prof!("package::monthly", package::monthly(w));
+            prof!("clauses::release_clause_bids", clauses::release_clause_bids(w));
+            prof!("clauses::review_contracts", clauses::review_contracts(w));
             prof!("market::monthly", market::monthly(w));
             prof!("deals::shortlists", deals::shortlists(w));
             prof!("deals::monthly", deals::monthly(w));
@@ -296,6 +301,7 @@ impl Sim {
             prof!("media::weekly", media::weekly(w));
             prof!("reputation::weekly", reputation::weekly(w));
             prof!("finance::weekly", finance::weekly(w));
+            prof!("clauses::weekly", clauses::weekly(w));
         }
 
         // 12. Archive.

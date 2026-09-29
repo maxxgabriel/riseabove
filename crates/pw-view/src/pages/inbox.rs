@@ -242,6 +242,25 @@ fn chosen_label(c: &Ctx, d: &Decision, i: u8) -> String {
 
 // ---- terms and talks ---------------------------------------------------------------------------------
 
+/// The options on a contract in words: who holds them and what sets them off.
+pub fn options_text(o: &pw_world::contract::Options) -> Vec<(&'static str, String)> {
+    let years = |n: u8| format!("{} extra year{}", n, if n == 1 { "" } else { "s" });
+    let mut v = Vec::new();
+    if o.club_years > 0 {
+        v.push(("Club option", years(o.club_years)));
+    }
+    if o.player_years > 0 {
+        v.push(("Player option", years(o.player_years)));
+    }
+    if o.mutual_years > 0 {
+        v.push(("Mutual option", years(o.mutual_years)));
+    }
+    if let Some((trigger, extra)) = o.auto {
+        v.push(("Automatic extension", format!("{} on {}", years(extra), trigger.label())));
+    }
+    v
+}
+
 pub fn terms_rows(t: &Terms) -> Value {
     let mut rows = vec![json!({"label": "Wage per week", "money": t.wage}), json!({"label": "Length", "text": format!("{} year{}", t.years, if t.years == 1 { "" } else { "s" })})];
     if t.signing_fee > 0 {
@@ -255,6 +274,22 @@ pub fn terms_rows(t: &Terms) -> Value {
     }
     if t.clean_sheet_bonus > 0 {
         rows.push(json!({"label": "Clean sheet bonus", "money": t.clean_sheet_bonus}));
+    }
+    for (label, v) in [
+        ("Assist bonus", t.assist_bonus),
+        ("Loyalty bonus (each year)", t.loyalty_bonus),
+        ("Title bonus", t.title_bonus),
+        ("Promotion bonus", t.promotion_bonus),
+        ("Continental qualification bonus", t.continental_bonus),
+        ("Bonus per international cap", t.cap_bonus),
+        ("Release clause if relegated", t.relegation_release),
+    ] {
+        if v > 0 {
+            rows.push(json!({"label": label, "money": v}));
+        }
+    }
+    for (label, text) in options_text(&t.options) {
+        rows.push(json!({"label": label, "text": text}));
     }
     rows.push(if t.release_clause > 0 { json!({"label": "Release clause", "money": t.release_clause}) } else { json!({"label": "Release clause", "text": "None"}) });
     rows.push(json!({"label": "Promised role", "text": t.status.map_or("None".to_string(), |s| s.label().to_string())}));

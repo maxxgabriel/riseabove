@@ -541,6 +541,13 @@ pub enum EventKind {
         was_right: bool,
     },
     /// A club looked back on a signing: how it turned out, and whether the decision or the luck was to blame.
+    /// An option on a contract was taken up, or passed on.
+    ContractOption {
+        player: PlayerId,
+        club: ClubId,
+        kind: OptionKind,
+        taken: bool,
+    },
     /// A plan a club made turned out wrong, and it shows.
     PlanFailed {
         club: ClubId,
@@ -985,6 +992,7 @@ impl EventKind {
             | AssessmentVindicated { player, .. }
             | SigningReviewed { player, .. }
             | PlanFailed { player, .. }
+            | ContractOption { player, .. }
             | NationalSquad { player, .. }
             | InternationalDebut { player, .. }
             | ChoseNation { player, .. }
@@ -1119,7 +1127,7 @@ impl EventKind {
                 v.push(buyer);
                 v.push(seller);
             }
-            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } | AssessmentVindicated { club, .. } | SigningReviewed { club, .. } | PlanFailed { club, .. } => v.push(club),
+            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } | AssessmentVindicated { club, .. } | SigningReviewed { club, .. } | PlanFailed { club, .. } | ContractOption { club, .. } => v.push(club),
             PreContractSigned { club, .. } | TrialStarted { club, .. } | TrialEnded { club, .. } | LoanRecalled { club, .. } | OptionExercised { club, .. } => v.push(club),
             _ => {}
         }
@@ -1198,4 +1206,25 @@ macro_rules! causes {
         $(v.push($c);)*
         v
     }};
+}
+
+/// Who held an option on a contract.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum OptionKind {
+    Club,
+    Player,
+    Mutual,
+    /// An extension that a condition in the contract set off.
+    Automatic,
+}
+
+impl OptionKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            OptionKind::Club => "the club's option",
+            OptionKind::Player => "the player's option",
+            OptionKind::Mutual => "the mutual option",
+            OptionKind::Automatic => "the automatic extension",
+        }
+    }
 }

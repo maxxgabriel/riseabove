@@ -342,6 +342,7 @@ fn continental(w: &mut World, confed: Confed) {
         reset_state(w, c, s.year, group_start, s.end);
         let entrants = continental_entrants(w, c, confed, rank, s.year);
         w.comps[c].state.entrants = entrants;
+        crate::clauses::on_continental_entry(w, c);
         let mut rng = Rng::keyed(&[w.seed, stream::DRAW, u64::from(c.0), s.year as u64]);
         match w.comps[c].format {
             Format::Groups { groups, size, .. } => {

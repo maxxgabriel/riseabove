@@ -9,6 +9,7 @@ use smallvec::SmallVec;
 
 use crate::contract::SquadStatus;
 use crate::dossier::{Confidence, RiskKind, Span};
+use crate::negotiation::{Lever, Priority, Terms};
 
 /// The people or bodies whose opinion can matter to a signing.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
@@ -281,6 +282,40 @@ pub struct Boardroom {
     pub scramble: FxHashMap<ClubId, (pw_core::PosGroup, Date)>,
     /// Signings that may have blocked a promising youngster (section 4.23).
     pub blocked: Vec<Blocked>,
+    /// Important contracts, kept so they can be understood and judged later (section 5.19).
+    pub contracts: Vec<ContractFile>,
+    /// The last event this book has read for clause payments and triggers.
+    pub event_cursor: u32,
+}
+
+/// What lay behind an important contract: what the club believed, what it conceded, what the player and agent wanted, what was
+/// promised (locked design 5.19). Judged a season on by what was known at the time as well as by how it turned out (5.18).
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ContractFile {
+    pub club: ClubId,
+    pub player: PlayerId,
+    pub date: Date,
+    pub terms: Terms,
+    /// What the club thought he was worth in fees, and what it intended him to be.
+    pub believed_worth: Money,
+    pub role: SquadStatus,
+    /// Risks the evaluators had flagged.
+    pub risks: SmallVec<[RiskKind; 4]>,
+    /// Other interest in him at the time, and the alternatives the club had.
+    pub competing: u8,
+    pub alternatives: u8,
+    /// The voice that approved terms outside the club's usual structure, if they were.
+    pub exception: Option<Voice>,
+    /// Levers each side moved on, in order (true = the player's side).
+    pub concessions: SmallVec<[(Lever, bool); 6]>,
+    pub priorities: [Priority; 2],
+    /// A status or minutes promise was made.
+    pub promised: Option<SquadStatus>,
+    /// What the deal commits the club to in all, and that as a share of its yearly revenue, in percent.
+    pub commitment: Money,
+    pub burden_pct: u8,
+    pub apps_at: u16,
+    pub outcome: Option<Outcome>,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]

@@ -458,7 +458,9 @@ pub fn wage_ceiling(w: &World, club: ClubId) -> Money {
     }
     wages.sort_unstable();
     let median = wages[wages.len() / 2] as f32;
-    (median * g.policy.wage_cap_mult) as Money
+    // New ownership, investment, a place in Europe: a club that has grown bolder abandons its old ceiling (section 5.7).
+    let bold = (w.boardroom.appetite_of(club) - 0.5).clamp(0.0, 0.45) * 1.5;
+    (median * g.policy.wage_cap_mult * (1.0 + bold)) as Money
 }
 
 /// Owners and chairmen judge managers through their own temperament too.

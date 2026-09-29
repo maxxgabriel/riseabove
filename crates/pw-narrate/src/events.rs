@@ -137,6 +137,13 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         ScholarshipOffered { player: p, club: c } => format!("{} was offered a scholarship by {}.", pl(p), club(w, c)),
         JoinedLocalClub { player: p, local } => format!("{} signed up with {}.", pl(p), w.youth.local[local].name),
         AcademyTrialStarted { player: p, club: c } => format!("{} began a trial with the {} academy.", pl(p), club(w, c)),
+        ContractOption { player: p, club: c, kind, taken } => {
+            if taken {
+                format!("{} used {} on {}'s contract.", club(w, c), kind.label(), pl(p))
+            } else {
+                format!("{} was not taken up on {}'s contract.", kind.label(), pl(p))
+            }
+        }
         PlanFailed { player: p, club: c, kind } => format!("{} {} in the case of {}.", club(w, c), kind.label(), pl(p)),
         SigningReviewed { player: p, club: c, verdict, overruled } => {
             let base = format!("{} looked back on signing {}: {}.", club(w, c), pl(p), verdict.label());

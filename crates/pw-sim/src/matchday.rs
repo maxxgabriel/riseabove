@@ -208,6 +208,10 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
                 h.ban = h.ban.saturating_add(1);
             }
         }
+        if senior[side] {
+            let conceded = if side == 0 { r.away_goals } else { r.home_goals };
+            crate::clauses::match_bonuses(w, p, line.minutes, line.goals, line.assists, conceded == 0);
+        }
         if let Some(&(_, straight)) = red_players.iter().find(|(x, _)| *x == p) {
             let prof = pw_world::rules::profile(w, w.clubs[club].nation);
             let matches = if straight { prof.red_ban_straight } else { prof.red_ban_second_yellow };

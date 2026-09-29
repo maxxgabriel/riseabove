@@ -97,6 +97,10 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
                 "start": k.start.0, "end": k.end.0, "days_left": k.days_left(w.date),
                 "release_clause": k.release_clause, "promised_status": k.promised_status.map(|s| s.label()),
                 "appearance_bonus": k.appearance_bonus, "goal_bonus": k.goal_bonus,
+                "assist_bonus": k.assist_bonus, "clean_sheet_bonus": k.clean_sheet_bonus, "loyalty_bonus": k.loyalty_bonus,
+                "title_bonus": k.title_bonus, "promotion_bonus": k.promotion_bonus, "continental_bonus": k.continental_bonus, "cap_bonus": k.cap_bonus,
+                "relegation_release": k.relegation_release,
+                "options": crate::pages::inbox::options_text(&k.options).into_iter().map(|(l, t)| json!({"label": l, "text": t})).collect::<Vec<_>>(),
                 "yearly_rise": k.yearly_rise, "relegation_cut": k.relegation_cut,
                 "kind": format!("{:?}", k.kind),
             })

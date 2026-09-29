@@ -879,6 +879,7 @@ fn cap(w: &mut World, p: PlayerId, n: NationId, level: Level, competitive: bool,
         pc.caps = pc.caps.saturating_add(1);
         pc.intl_goals = pc.intl_goals.saturating_add(u16::from(goals));
         crate::honours::on_cap(w, p, n);
+        crate::clauses::on_cap(w, p);
     }
     if debut {
         let ev = w.events.push(today, Visibility::Public, EventKind::InternationalDebut { player: p, nation: n, level });

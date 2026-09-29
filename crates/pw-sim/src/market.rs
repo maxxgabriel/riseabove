@@ -64,8 +64,10 @@ pub fn true_worth(w: &World, p: PlayerId) -> Money {
 
 /// What a club believes a player is worth, from its own reading of him (its scouts' reports, its own coaches' eyes).
 pub fn fair_value(w: &World, club: ClubId, p: PlayerId) -> Money {
-    let (ca, _, pa, _) = crate::scouting::view(w, club, p);
-    price_formula(w, p, ca, pa)
+    let (ca, band, pa, pa_band) = crate::scouting::view(w, club, p);
+    // A club that has not seen him well knows it may be wrong, and the price curve punishes an overestimate far more than it rewards
+    // an underestimate: careful buyers shade what they think he is by how unsure they are (the winner's curse).
+    price_formula(w, p, ca - 0.4 * band.clamp(0.0, 15.0), (pa - 0.3 * pa_band.clamp(0.0, 20.0)).max(ca - 0.4 * band.clamp(0.0, 15.0)))
 }
 
 /// The wage curve before any club's means are applied: weekly money for a player of this ability.
@@ -140,6 +142,7 @@ pub fn new_contract(w: &World, p: PlayerId, club: ClubId, premium: f32) -> Contr
         relegation_cut: 20,
         appearance_bonus: wage / 10,
         goal_bonus: if c.best_pos.group() == PosGroup::Att { wage / 5 } else { wage / 10 },
+        ..Contract::default()
     }
 }
 

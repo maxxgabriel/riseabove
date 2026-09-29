@@ -90,6 +90,8 @@ pub fn inferred_environment(code: &str, confed: Confed) -> Environment {
         pace: pace as u8,
         physical: physical as u8,
         tempo: pick(10, 40, 68) as u8,
+        tax: pick(11, 10, 45) as u8,
+        living: pick(12, 65, 140) as u8,
         known: false,
     }
 }
@@ -114,13 +116,16 @@ pub struct Environment {
     pub pace: u8,
     pub physical: u8,
     pub tempo: u8,
+    /// Income tax on wages, percent, and the cost of living against a typical place (100 = typical): what the same gross wage is worth.
+    pub tax: u8,
+    pub living: u8,
     /// Whether this came from real data. `false` is an inference from region and must be treated as one.
     pub known: bool,
 }
 
 impl Default for Environment {
     fn default() -> Self {
-        Self { climate: 0, humidity: 55, altitude: 100, tz: 0, language: 0, culture: 0, pace: 50, physical: 50, tempo: 50, known: false }
+        Self { climate: 0, humidity: 55, altitude: 100, tz: 0, language: 0, culture: 0, pace: 50, physical: 50, tempo: 50, tax: 30, living: 100, known: false }
     }
 }
 

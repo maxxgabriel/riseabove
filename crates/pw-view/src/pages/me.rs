@@ -83,6 +83,31 @@ fn my_fixtures<'a>(c: &Ctx<'a>, from: Date, to: Date) -> Vec<&'a pw_world::Fixtu
 }
 
 pub(crate) fn contract_rows(c: &Ctx, k: &Contract) -> Value {
+    let mut rows = contract_base_rows(c, k);
+    if let Value::Array(v) = &mut rows {
+        for (label, m) in [
+            ("Assist bonus", k.assist_bonus),
+            ("Clean sheet bonus", k.clean_sheet_bonus),
+            ("Loyalty bonus (each year)", k.loyalty_bonus),
+            ("Title bonus", k.title_bonus),
+            ("Promotion bonus", k.promotion_bonus),
+            ("Continental qualification bonus", k.continental_bonus),
+            ("Bonus per international cap", k.cap_bonus),
+            ("Release clause if relegated", k.relegation_release),
+        ] {
+            if m > 0 {
+                v.push(json!({"label": label, "money": m}));
+            }
+        }
+        for (label, text) in crate::pages::inbox::options_text(&k.options) {
+            let used = if k.options.used { " (decided)" } else { "" };
+            v.push(json!({"label": label, "text": format!("{text}{used}")}));
+        }
+    }
+    rows
+}
+
+fn contract_base_rows(c: &Ctx, k: &Contract) -> Value {
     json!([
         {"label": "Wage per week", "money": k.current_wage(c.w.date).max(k.wage)},
         {"label": "Runs until", "date": k.end.0},
