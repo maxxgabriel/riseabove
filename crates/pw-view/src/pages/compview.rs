@@ -211,7 +211,7 @@ pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
 
     let head = json!({
         "id": id.0, "name": comp.name, "short": comp.short_name, "kind": crate::tables::kind_text(comp.kind), "kind_key": kind_key(comp.kind), "tier": comp.tier,
-        "teams": st.entrants.len(), "season": c.season_label(id, st.season), "stage": stage_label,
+        "teams": st.entrants.len(), "season": c.season_label(id, if st.season > 0 { st.season } else { w.date.year() }), "stage": stage_label,
         "prev": prev, "next": next, "meta": meta,
     });
     if args.get("light").and_then(Value::as_bool).unwrap_or(false) {
@@ -253,7 +253,14 @@ pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
         Format::Groups { groups, .. } => groups,
         _ => 0,
     };
-    let left = if (comp.is_league() || matches!(st.stage, Stage::Groups)) && !st.table.is_empty() {
+    let left = if comp.is_league() && st.table.is_empty() && !st.entrants.is_empty() {
+        // Before the first round the table does not exist yet: the entrants, in name order, with nothing played.
+        let mut names: Vec<(String, TeamId)> = st.entrants.iter().map(|&t| (c.team_name(t), t)).collect();
+        names.sort();
+        let rows: Vec<Value> = names.iter().enumerate().map(|(i, (_, t))| json!({"pos": i + 1, "team": team(c, *t), "played": 0, "gd": 0, "points": 0, "zone": Value::Null})).collect();
+        let total = rows.len();
+        json!({"kind": "table", "title": "Table", "rows": rows, "total": total, "shown": total})
+    } else if (comp.is_league() || matches!(st.stage, Stage::Groups)) && !st.table.is_empty() {
         let (rows, _) = crate::tables::visible_table(c, id);
         let mine = st.entrants.iter().copied().find(|&t| c.w.teams[t].club == c.my_club()).and_then(|t| rows.iter().find(|r| r.team == t)).map_or(0, |r| r.group);
         let group = if groups > 1 { mine } else { 0 };

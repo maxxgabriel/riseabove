@@ -392,6 +392,8 @@ export interface ApiMethods {
   "persp.observe": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "persp.inhabit": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "person.create": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "route.options": { kind: "query"; req: Record<string, unknown>; res: unknown };
+  "route.begin": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "table.query": { kind: "query"; req: TableReq; res: TableResp };
   "search": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "overview": { kind: "query"; req: Record<string, unknown>; res: unknown };

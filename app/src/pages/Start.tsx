@@ -21,6 +21,12 @@ interface Inspect {
   error?: string;
 }
 
+const INDIA_SCALES = [
+  { id: "tiny", label: "Six states", note: "The pyramid and the district pools of six states. Quick to build." },
+  { id: "regional", label: "Twelve states", note: "Twelve states with eight-club state leagues." },
+  { id: "full", label: "All of India", note: "Every state and union territory in the pack. Slower to build and to run." },
+];
+
 const SCALES = [
   { id: "tiny", label: "Tiny", note: "8 clubs in one nation. Fast to try things." },
   { id: "small", label: "Small", note: "64 clubs in two nations, about 4,200 people." },
@@ -43,7 +49,8 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
   const st = useStatus();
   const saves = useApi<SavesResp>("world.saves");
   const [scale, setScale] = useState("small");
-  const [kind, setKind] = useState<"synthetic" | "import">("synthetic");
+  const [indiaScale, setIndiaScale] = useState("tiny");
+  const [kind, setKind] = useState<"synthetic" | "india" | "import">("synthetic");
   const [dir, setDir] = useState("");
   const [inspect, setInspect] = useState<Inspect | null>(null);
   const [busy, setBusy] = useState(false);
@@ -176,10 +183,26 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
             onChange={setKind}
             options={[
               { id: "synthetic", label: "Test world" },
+              { id: "india", label: "India pathway" },
               { id: "import", label: "Import a dataset" },
             ]}
           />
-          {kind === "synthetic" ? (
+          {kind === "india" ? (
+            <>
+              <p className="muted">Football in India from the ground up: children in districts, schools and universities, state leagues, the national pyramid, and the scouts and coaches who notice them. Start anywhere on the route.</p>
+              <div className="scale-list" role="radiogroup" aria-label="Size">
+                {INDIA_SCALES.map((s) => (
+                  <button key={s.id} role="radio" aria-checked={indiaScale === s.id} className="scale" onClick={() => setIndiaScale(s.id)}>
+                    <strong>{s.label}</strong>
+                    <span>{s.note}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="start-actions">
+                <Button variant="primary" disabled={working} onClick={() => begin("world.new", { kind: "india", scale: indiaScale })}>Create world</Button>
+              </div>
+            </>
+          ) : kind === "synthetic" ? (
             <>
               <p className="muted">A generated league system with invented people, useful for trying everything out. Real data can be imported from a folder of CSV files.</p>
               <div className="scale-list" role="radiogroup" aria-label="Size">

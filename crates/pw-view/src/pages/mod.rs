@@ -9,6 +9,7 @@ pub mod me;
 pub mod newsroom;
 pub mod pathway;
 pub mod person;
+pub mod route;
 pub mod social;
 pub mod threads;
 pub mod world;
