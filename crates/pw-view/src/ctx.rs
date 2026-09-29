@@ -34,9 +34,20 @@ impl<'a> Ctx<'a> {
         Self { s, w: s.w() }
     }
 
+    /// The omniscient debug view: nobody is inhabited and the public-only view is not chosen. Every place that shows engine truth
+    /// (true ability, hidden attributes, private terms, internal books) is gated on this and on nothing else (locked design 8.8).
     #[inline]
     pub fn observer(&self) -> bool {
-        self.s.my_person().is_none()
+        self.s.my_person().is_none() && !self.s.public_view
+    }
+
+    /// Which view this is, for the client to label: `omniscient` (debug), `public`, or `inhabit`.
+    pub fn view_mode(&self) -> &'static str {
+        match (self.s.my_person(), self.s.public_view) {
+            (Some(_), _) => "inhabit",
+            (None, true) => "public",
+            (None, false) => "omniscient",
+        }
     }
 
     pub fn me(&self) -> Option<PersonId> {
@@ -129,6 +140,11 @@ impl<'a> Ctx<'a> {
     /// Body state (condition, sharpness, morale): own, or observer.
     pub fn sees_condition(&self, p: PlayerId) -> bool {
         self.observer() || self.is_me(p)
+    }
+
+    /// The medical record: the club's own doctors, the man himself, or the omniscient view. Everyone else can see that a man is out.
+    pub fn sees_medical(&self, p: PlayerId) -> bool {
+        self.observer() || self.is_me(p) || self.same_club(self.w.players.hot[p].club)
     }
 
     pub fn sees_value(&self, p: PlayerId) -> bool {

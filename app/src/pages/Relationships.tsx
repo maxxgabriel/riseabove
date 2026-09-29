@@ -3,14 +3,15 @@ import { Dt, EntityLink } from "../components/links";
 import { navigate, useRoute } from "../router";
 import { useApi } from "../store";
 import type { Named } from "../types";
-import { Badge, Empty, Meter, Progress, Tabs } from "../ui/ui";
+import { Badge, Empty, Progress, Tabs } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
 interface Person {
   who: Named;
   role: string;
   label: string;
-  affinity: number;
+  tone: "pos" | "warn" | "neg";
+  evidence: { text: string; date: number }[];
   trust: string;
   respect: string;
   since: number;
@@ -32,7 +33,7 @@ interface Rumour {
   kind: string;
   date: number;
   via: string;
-  confidence: number;
+  sureness: string;
   text: string;
   club?: Named;
 }
@@ -84,7 +85,7 @@ function People() {
                       Trust: {p.trust}. Respect: {p.respect}. Last spoke <Dt d={p.last} year={false} />.
                     </div>
                   </div>
-                  <Meter value={Math.max(0, Math.min(100, 50 + p.affinity / 2))} label={p.label} tone={p.affinity >= 25 ? "pos" : p.affinity <= -25 ? "neg" : "warn"} />
+                  <Badge tone={p.tone}>{p.label}</Badge>
                   <TalkButton who={p.who} />
                 </li>
               ))}
@@ -156,7 +157,7 @@ function Heard() {
                 <li key={i}>
                   <div className="grow">
                     <div>{r.club ? <><EntityLink r={r.club}>{r.club.name}</EntityLink>{r.text.slice(r.club.name.length)}</> : r.text}</div>
-                    <div className="hint">From {r.via} · <Dt d={r.date} year={false} /> · you are about {r.confidence}% sure</div>
+                    <div className="hint">From {r.via} · <Dt d={r.date} year={false} /> · you are {r.sureness}</div>
                   </div>
                 </li>
               ))}

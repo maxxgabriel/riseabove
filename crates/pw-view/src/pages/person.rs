@@ -182,7 +182,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "age": person.age(w.date), "dob": person.dob.0, "nations": nations,
         "status": status, "roles": roles, "player": player_json, "staff": staff_json,
         "is_me": is_me, "can_inhabit": can_inhabit,
-        "perspective": if c.observer() { "observer" } else { "inhabit" },
+        "perspective": match c.view_mode() { "omniscient" => "observer", m => m },
         "provenance": if c.observer() { provenance(c, id) } else { Value::Null },
     }))
 }

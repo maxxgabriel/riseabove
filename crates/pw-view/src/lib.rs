@@ -7,6 +7,7 @@
 
 mod advance;
 mod ctx;
+mod debug;
 mod fmt;
 mod model;
 mod narrative;
@@ -167,8 +168,9 @@ impl Api {
 
             "persp.observe" => {
                 self.not_while_advancing()?;
+                let public = args.get("public").and_then(Value::as_bool).unwrap_or(false);
                 self.with_mut(|s| {
-                    s.observe();
+                    s.observe(public);
                     Ok(json!({"ok": true}))
                 })
             }
@@ -262,7 +264,7 @@ impl Api {
                 let awaiting = me.map_or(0, |m| s.w().decisions.pending_for(m).filter(|(_, d)| d.answer.is_none()).count());
                 json!({
                     "open": true, "name": s.meta.name, "date": s.today().0, "revision": s.revision,
-                    "perspective": match me { None => json!({"mode": "observer"}), Some(person) => json!({
+                    "perspective": match me { None => json!({"mode": if s.public_view { "public" } else { "observer" }, "omniscient": !s.public_view}), Some(person) => json!({
                         "mode": "inhabit", "person": person.0, "name": c.person_name(person),
                         "club": c.my_club().get().map(|cl| c.club_name(cl)),
                     }) },

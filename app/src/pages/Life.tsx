@@ -21,7 +21,7 @@ interface SelfResp {
   hint: string | null;
   mood: Factor[];
   wellbeing: Factor[];
-  told: { text: string; date: number; confidence: number }[];
+  told: { text: string; date: number; sureness: string }[];
   career: { apps: number; goals: number; caps: number; position: string; status: string; clubs: number } | null;
   stress: Word;
   sleep: Word;

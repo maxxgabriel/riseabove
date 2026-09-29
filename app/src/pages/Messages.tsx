@@ -51,7 +51,7 @@ interface ThreadMessage {
   decision?: { id: string; state: string; title: string };
   press?: { club: Named; date: number; number: number; of: number };
   answered_with?: string;
-  confidence?: number;
+  sureness?: string;
   meeting?: DecisionDetail["meeting"];
   parts?: Part[];
   label?: string;
@@ -234,7 +234,7 @@ function MessageCard({ m, onDone }: { m: ThreadMessage; threadTitle: string; onD
       ) : (
         <p>{prose(m.text)}</p>
       )}
-      {m.kind === "tell" && m.confidence != null && <div className="hint">You are about {m.confidence}% sure this is right. People pass things on imperfectly.</div>}
+      {m.kind === "tell" && m.sureness != null && <div className="hint">You are {m.sureness} that this is right. People pass things on imperfectly.</div>}
       {m.kind === "question" && m.answered_with && <div className="note"><Icon name="check" size={15} /><span>You answered: {m.answered_with.toLowerCase()}.</span></div>}
       {m.replied ? (
         <div className="note"><Icon name="check" size={15} /><span>You replied: {m.replied.label}. <span className="hint"><Dt d={m.replied.date} year={false} /></span></span></div>

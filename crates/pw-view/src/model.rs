@@ -289,3 +289,14 @@ impl ApiError {
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
+
+/// How sure someone is of what they have heard, in words: uncertain knowledge is never turned into a false percentage (locked design 8.5).
+pub fn sureness(confidence: u8) -> &'static str {
+    match confidence {
+        90.. => "almost certain",
+        70..=89 => "fairly sure",
+        50..=69 => "only half sure",
+        30..=49 => "doubtful",
+        _ => "hardly sure at all",
+    }
+}

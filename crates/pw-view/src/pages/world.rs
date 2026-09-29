@@ -204,7 +204,7 @@ pub fn diagnostics(c: &Ctx) -> ApiResult<Value> {
         },
         "timings": {"samples": t.len(), "avg_ms": avg, "worst_ms": worst, "recent": t.iter().rev().take(60).rev().map(|x| json!([x.0, f64::from(x.1) / 1000.0])).collect::<Vec<_>>()},
         "revision": c.s.revision,
-        "perspective": if c.observer() { "observer" } else { "inhabit" },
+        "perspective": match c.view_mode() { "omniscient" => "observer", m => m },
         "capabilities": capabilities(),
     }))
 }

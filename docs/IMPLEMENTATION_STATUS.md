@@ -86,8 +86,8 @@ handed a `Look` (football evidence only: shots, chances, possession, territory, 
 and answers with a `Call` (new instructions, role changes, substitutions). `pw-sim/src/coach.rs` runs observe → diagnose → adapt;
 `pw-sim/src/tactics.rs` holds the manager as tactician, the belief dossier, response choice, execution, learning and history.
 
-| Idea | Status | Evidence |
-| --- | --- | --- |
+| Idea | Status | Evidence | Tested |
+| --- | --- | --- | --- |
 | Pre-match belief with uncertainty, not engine parameters (§7.2) | **IMPLEMENTED** | `tactics::dossier` (history of how the opponent was seen to play + club memory + preparation quality, fuzzed; confidence Low..VeryHigh) | `tests/tactics.rs` dossier, preparation tests |
 | Deliberate surprise (§7.2) | **IMPLEMENTED** | `tactics::prepare`, rate follows adaptability and preparation | tactics.rs |
 | Observation ≠ diagnosis, several hypotheses, confidence, rejected explanation (§7.4) | **IMPLEMENTED** | `coach::signs`, `diag_weights`, `Trace::{believed, rejected, confidence}` | tactics.rs (same evidence read differently; man blamed for a leak in the shape) |
@@ -134,9 +134,23 @@ exposes it — see the section 8 perspective firewall work), wrongdoing propagat
 ## 8. Perspective firewall — PARTIAL
 
 `pw-view::Ctx` is the single reading path: pages take a read-only `&World` scoped by perspective; actions queue typed `Intent`s
-(`Session::act`). Tests: hidden state and concealed results for inhabited people. Open: sort and filter leaks on lists (§8.6),
-relationship pages show numeric internals (§8.7), observer mode shows true CA/PA ("Under the hood", by design as the omniscient
-mode but not yet an isolated debug path). Provenance on the person page is observer-only.
+(`Session::act`). Three views exist and are labelled (`world.status.perspective`, `Ctx::view_mode`): `inhabit`, `public` (a non-inhabiting
+observer without the truth: `persp.observe {"public": true}`) and `observer` = the **omniscient debug view** (`omniscient: true`, the
+default, unchanged for the app). Every read of engine truth is gated on `Ctx::observer()`, which is true in the omniscient view alone; the
+only door to mutate a world from outside is `Api::debug_mutate_world` (`pw-view/src/debug.rs`, doc-hidden, for tests).
+
+| Rule | Status | Evidence |
+| --- | --- | --- |
+| Sort/filter/search cannot leak hidden truth (§8.6) | **IMPLEMENTED** | fixed: position sort used true CA as tie-break (`tables/players.rs`); `min_ca`/`expiring_days` filters and truth sorts are refused outside the omniscient view | `crates/pw-view/tests/firewall.rs` (`player_lists_are_not_ordered_by_true_ability`, `filters_and_sorts_by_hidden_truth_are_refused...`, `a_search_cannot_be_used...`) |
+| Non-interference: hidden truth changes, nothing a public or inhabited viewer sees moves (§8.10) | **IMPLEMENTED** for what is reachable through the API | `audit_public_view`, `audit_inhabited_view`: ability, potential, others' personality, how everyone feels about the viewer, journalists' and referees' private numbers changed; ~640 lists (every table, every sortable column both ways, all columns) and pages compared | firewall.rs |
+| Relationships as evidence and tone, not soul meters (§8.7) | **IMPLEMENTED** (`me.people`: label, tone, trust/respect words, evidence memories; no affinity number) | `relationship_pages_show_evidence_and_tone...` (also: how others feel about the viewer moves nothing he can read) |
+| Uncertain knowledge in words, not false percentages (§8.5) | **PARTIAL** | rumours, told-by-others and grapevine tells now carry `sureness`; some staff statements still quote a stated forecast (“about 60%”), and `Word.value` numbers for the viewer's own condition remain |
+| Injury diagnosis private to the club (§8.10) | **IMPLEMENTED** in the player list | strangers see “Injured”, not the diagnosis or days (`Ctx::sees_medical`) |
+| Debug omniscience separate and labelled (§8.8) | **PARTIAL** | separate labelled view and a single gate; observer is still the default view the desktop app opens in, and the app has no switch for the public view |
+| Reviewed list of files that read engine truth (§8.9) | **IMPLEMENTED** | `engine_truth_is_read_only_in_the_files_that_gate_it` fails when a new file reads true ability, personality, relationship internals, private books or medical state |
+| Enforced by types (`VisiblePlayer`, ... §8.9) | **NOT IMPLEMENTED** | pages still build JSON from `&World`; the gate is `Ctx`, the guard is the test above |
+
+Provenance on the person page is omniscient-view only.
 
 ## 9. Typed API contracts — NOT IMPLEMENTED
 

@@ -169,7 +169,7 @@ fn message_json(c: &Ctx, m: &Message) -> Value {
         }
         MsgSource::Tell { info, .. } => {
             if let Some((_, sure)) = pw_narrate::grapevine::belief(w, info, me) {
-                v["confidence"] = json!(sure);
+                v["sureness"] = json!(crate::model::sureness(sure));
             }
         }
         MsgSource::Meeting { event } => {

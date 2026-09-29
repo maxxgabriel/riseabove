@@ -48,6 +48,9 @@ pub struct Session {
     pub revision: u64,
     /// Rolling per-day timings for diagnostics.
     pub timings: Vec<(i32, u32)>,
+    /// Watching from the outside as the public does, not as the omniscient debug view. Never saved: a loaded game starts in the
+    /// default observer view (locked design 8.8).
+    pub public_view: bool,
 }
 
 /// The save layout: the same first two fields as the text client's, so either program can open
@@ -68,7 +71,7 @@ struct TextClientSave {
 impl Session {
     pub fn new(world: World, name: String) -> Self {
         let meta = Meta::fresh(name, world.date);
-        Self { game: Game::new(world), meta, revision: 1, timings: Vec::new() }
+        Self { game: Game::new(world), meta, revision: 1, timings: Vec::new(), public_view: false }
     }
 
     pub fn w(&self) -> &World {
@@ -98,7 +101,7 @@ impl Session {
     fn assemble(world: World, session: pw_career::Session, meta: Meta) -> Self {
         let mut game = Game::new(world);
         game.session = session;
-        Self { game, meta, revision: 1, timings: Vec::new() }
+        Self { game, meta, revision: 1, timings: Vec::new(), public_view: false }
     }
 
     /// The inhabited person, if any.
@@ -112,8 +115,10 @@ impl Session {
         person.player.get()
     }
 
-    pub fn observe(&mut self) {
+    /// Stop inhabiting. With `public` the view is what the public can see; without it, the omniscient debug view.
+    pub fn observe(&mut self, public: bool) {
         self.game.release();
+        self.public_view = public;
         self.revision += 1;
     }
 
@@ -126,6 +131,7 @@ impl Session {
             return Err(ApiError::State("That person cannot be inhabited.".into()));
         }
         self.meta.last_viewed = self.game.sim.world.date.0;
+        self.public_view = false;
         self.revision += 1;
         Ok(())
     }

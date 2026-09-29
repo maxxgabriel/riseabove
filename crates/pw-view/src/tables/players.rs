@@ -72,8 +72,13 @@ pub fn avail_cell(c: &Ctx, p: PlayerId) -> (Cell, Key) {
         PlayerStatus::Amateur => (Cell::text("Amateur").tone(Tone::Muted), Key::Num(0.25)),
         PlayerStatus::Active => {
             if h.injury != 0 {
-                let name = health::injury_name(c.w, h.injury);
-                (Cell::text(format!("Injured · {} d", h.injury_days)).tone(Tone::Neg).with_sub(name.to_string()).with_num(f64::from(h.injury_days)), Key::Num(100.0 + f64::from(h.injury_days)))
+                // That a man is injured is plain to see; the diagnosis and the days are the club's business.
+                if c.sees_medical(p) {
+                    let name = health::injury_name(c.w, h.injury);
+                    (Cell::text(format!("Injured · {} d", h.injury_days)).tone(Tone::Neg).with_sub(name.to_string()).with_num(f64::from(h.injury_days)), Key::Num(100.0 + f64::from(h.injury_days)))
+                } else {
+                    (Cell::text("Injured").tone(Tone::Neg), Key::Num(100.0))
+                }
             } else if h.ban > 0 {
                 (Cell::text(format!("Suspended · {}", h.ban)).tone(Tone::Warn).with_num(f64::from(h.ban)), Key::Num(50.0 + f64::from(h.ban)))
             } else {
@@ -320,7 +325,7 @@ impl Players {
             "age" => num(f64::from(person.age(w.date))),
             "pos" => {
                 let t = pos_text(c, p);
-                (Cell::text(t.clone()), Key::Num(cold.best_pos.idx() as f64 * 100.0 + f64::from(255 - cold.ca.min(200))))
+                (Cell::text(t.clone()), Key::Num(cold.best_pos.idx() as f64))
             }
             "nation" => {
                 let n = c.nation_name(person.nation);

@@ -13,7 +13,7 @@ use serde_json::{Value, json};
 
 use super::me::named;
 use crate::ctx::Ctx;
-use crate::model::{ApiError, ApiResult, Ref};
+use crate::model::{ApiError, ApiResult, Ref, sureness};
 use crate::session::Session;
 
 fn need(c: &Ctx) -> ApiResult<PersonId> {
@@ -55,7 +55,7 @@ pub fn self_view(c: &Ctx) -> ApiResult<Value> {
             _ => None,
         };
         if let Some(text) = text {
-            told.push(json!({"text": text, "date": b.date.0, "confidence": b.confidence}));
+            told.push(json!({"text": text, "date": b.date.0, "sureness": sureness(b.confidence)}));
         }
     }
     told.sort_by(|a, b| b["date"].as_i64().cmp(&a["date"].as_i64()));
@@ -191,9 +191,18 @@ pub fn people(c: &Ctx) -> ApiResult<Value> {
         .take(40)
         .map(|(p, r)| {
             let why = w.social.defining_memory(me, p, today, grudge).map(|m| json!({"text": format!("They {}", m.kind.text()), "date": m.date.0}));
+            // Recent things that shaped it: the evidence, not the score (locked design 8.7).
+            let mut mem: Vec<&pw_world::social::Memory> = w.social.recall(me, p).collect();
+            mem.sort_by_key(|m| std::cmp::Reverse(m.date));
+            let evidence: Vec<Value> = mem.iter().take(3).map(|m| json!({"text": format!("They {}", m.kind.text()), "date": m.date.0})).collect();
+            let tone = match r.affinity {
+                25.. => "pos",
+                ..=-25 => "neg",
+                _ => "warn",
+            };
             json!({
-                "who": named(Ref::person(p), c.person_name(p)), "role": role_of(c, me, p), "label": r.label(), "affinity": r.affinity,
-                "trust": level(r.trust), "respect": level(r.respect), "since": r.since.0, "last": r.last.0, "why": why,
+                "who": named(Ref::person(p), c.person_name(p)), "role": role_of(c, me, p), "label": r.label(), "tone": tone,
+                "trust": level(r.trust), "respect": level(r.respect), "since": r.since.0, "last": r.last.0, "why": why, "evidence": evidence,
             })
         })
         .collect();
@@ -240,17 +249,17 @@ pub fn rumours(c: &Ctx) -> ApiResult<Value> {
         let via = channel_text(c, &b.channel);
         match b.kind {
             BeliefKind::ClubInterested { club } => rows.push(json!({
-                "kind": "interest", "date": b.date.0, "via": via, "confidence": b.confidence, "club": named(Ref::club(club), c.club_name(club)),
+                "kind": "interest", "date": b.date.0, "via": via, "sureness": sureness(b.confidence), "club": named(Ref::club(club), c.club_name(club)),
                 "text": format!("{} are interested in you.", c.club_name(club)),
             })),
             BeliefKind::BidMade { club, fee } => rows.push(json!({
-                "kind": "bid", "date": b.date.0, "via": via, "confidence": b.confidence, "club": named(Ref::club(club), c.club_name(club)), "fee": fee,
+                "kind": "bid", "date": b.date.0, "via": via, "sureness": sureness(b.confidence), "club": named(Ref::club(club), c.club_name(club)), "fee": fee,
                 "text": format!("{} made a bid for you.", c.club_name(club)),
             })),
             BeliefKind::Rumour { story } => {
                 let s = &w.media.stories[story];
                 rows.push(json!({
-                    "kind": "rumour", "date": b.date.0, "via": pw_narrate::press::outlet_name(w, s), "confidence": b.confidence,
+                    "kind": "rumour", "date": b.date.0, "via": pw_narrate::press::outlet_name(w, s), "sureness": sureness(b.confidence),
                     "text": c.headline(s),
                 }));
             }
