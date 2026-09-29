@@ -294,6 +294,55 @@ pub struct Repute {
     pub spikes: u8,
     /// A coach, teacher or selector who vouches for them (0 none).
     pub sponsor: u8,
+    /// Times a club abroad has sent someone to watch them.
+    pub foreign: u8,
+    /// Talk about them, 0–100: only makes scouts look, never makes them good. Fades fast.
+    pub buzz: u8,
+}
+
+/// On what ground a player may play for a state side.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Basis {
+    /// Grew up in the state.
+    Birth,
+    /// Registered with a club based in the state.
+    Club,
+    /// At school or university in the state.
+    Institution,
+    /// Has developed in the state for at least `residence_years`.
+    Residence,
+}
+
+impl Basis {
+    pub fn parse(s: &str) -> Option<Basis> {
+        match s {
+            "birth" => Some(Basis::Birth),
+            "club" => Some(Basis::Club),
+            "institution" => Some(Basis::Institution),
+            "residence" => Some(Basis::Residence),
+            _ => None,
+        }
+    }
+}
+
+/// Who may represent a state side. Data, not code: read from the pack and changeable per world.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Eligibility {
+    pub min_age: u8,
+    pub max_age: u8,
+    /// Grounds that qualify, in order of preference (the first that applies is the player's own state).
+    pub bases: Vec<Basis>,
+    pub residence_years: u8,
+    /// Players of the top division are with their clubs and cannot be called.
+    pub exclude_top_division: bool,
+    /// A player who has played for one state in a year cannot play for another the same year.
+    pub one_state_per_year: bool,
+}
+
+impl Default for Eligibility {
+    fn default() -> Self {
+        Eligibility { min_age: 17, max_age: 34, bases: vec![Basis::Birth, Basis::Club, Basis::Institution, Basis::Residence], residence_years: 2, exclude_top_division: true, one_state_per_year: true }
+    }
 }
 
 /// Owned by `pw_sim::ecosystem`. Empty unless a nation has been given an ecosystem.
@@ -302,6 +351,8 @@ pub struct Ecosystem {
     pub regions: IdVec<RegionId, Region>,
     pub zones: Vec<String>,
     pub languages: Vec<String>,
+    /// Given names and surnames by language index, so children drawn from a place carry that place's names.
+    pub lang_names: Vec<(Vec<crate::NameId>, Vec<crate::NameId>)>,
     /// State associations, keyed by the state's region.
     pub assoc: FxHashMap<RegionId, Association>,
     /// Each association's name (the pack's real names).
@@ -321,6 +372,17 @@ pub struct Ecosystem {
     pub repute: FxHashMap<PlayerId, Repute>,
     /// The state-team championship of the current year, while it runs.
     pub tournament: Option<Tournament>,
+    pub eligibility: Eligibility,
+    /// How much the football world abroad thinks of the country's players, 0–100. Moves slowly with
+    /// how Indian players do abroad; it decides how many foreign scouts turn up.
+    pub export: f32,
+    /// How much two states care about beating each other, 0–100, keyed with the lower id first. Built by
+    /// closeness and by meetings that mattered; fades without them.
+    pub rivalry: FxHashMap<(RegionId, RegionId), f32>,
+    /// Foreign scouting visits so far (metric).
+    pub foreign_looks: u32,
+    /// Which state a player played for in a given year (one state per year).
+    pub represented: FxHashMap<PlayerId, (i32, RegionId)>,
     /// Winners of the state championship so far: (state, year).
     pub tournament_titles: Vec<(RegionId, i32)>,
     /// Year the last yearly update ran.
@@ -350,6 +412,20 @@ impl Ecosystem {
         let dx = f32::from(ra.x) - f32::from(rb.x);
         let dy = f32::from(ra.y) - f32::from(rb.y);
         ((dx * dx + dy * dy).sqrt() / 100.0).min(1.0)
+    }
+
+    pub fn rivalry_of(&self, a: RegionId, b: RegionId) -> f32 {
+        let k = if a <= b { (a, b) } else { (b, a) };
+        self.rivalry.get(&k).copied().unwrap_or(0.0)
+    }
+
+    pub fn bump_rivalry(&mut self, a: RegionId, b: RegionId, by: f32) {
+        if a == b || a.is_none() || b.is_none() {
+            return;
+        }
+        let k = if a <= b { (a, b) } else { (b, a) };
+        let e = self.rivalry.entry(k).or_insert(0.0);
+        *e = (*e + by).min(100.0);
     }
 
     pub fn region_of_club(&self, c: ClubId) -> RegionId {

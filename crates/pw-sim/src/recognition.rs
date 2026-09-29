@@ -64,6 +64,40 @@ pub fn credit(w: &mut World, p: PlayerId, tier: Tier, rating: f32, strength: f32
         r.spikes = r.spikes.saturating_add(1);
     }
     ev.games += 1.0;
+    let (games, proof_now) = (ev.games, proof_of(ev));
+    breakout(w, p, tier, spike, games, proof_now);
+}
+
+/// Talk spreads faster than truth. A single spectacular game can travel (a clip, a post) in a place where people
+/// are online and the game was at a level that gets filmed; a long steady run gets noticed on its merits, more slowly.
+/// Buzz makes scouts look; it adds nothing to what the player has actually shown, and fades within a year.
+fn breakout(w: &mut World, p: PlayerId, tier: Tier, spike: bool, games: f32, proof_now: f32) {
+    let region = region_of(w, p);
+    let (prox, commercial) = if region.is_some() {
+        let eco = &w.ext.ecosystem;
+        (eco.regions[region].pro_proximity / 100.0, eco.assoc.get(&eco.state_of(region)).map_or(0.4, |a| a.commercial / 100.0))
+    } else {
+        (0.3, 0.3)
+    };
+    let media = 0.5 * prox + 0.5 * commercial;
+    let key = [u64::from(p.0), games as u64, tier.ix() as u64, 0xb2e];
+    let (chance, earned) = if spike && games < 4.0 {
+        ((0.01 + 0.08 * media) * tier.weight().sqrt(), false)
+    } else if games >= 10.0 && proof_now >= 0.45 {
+        (0.03 * media * tier.weight().sqrt(), true)
+    } else {
+        return;
+    };
+    if w.roll(pw_core::rng::stream::YOUTH, &key) >= chance {
+        return;
+    }
+    let r = w.ext.ecosystem.repute.entry(p).or_default();
+    if r.buzz >= 30 {
+        return;
+    }
+    r.buzz = (r.buzz + 40).min(100);
+    let today = w.date;
+    w.events.push(today, pw_world::event::Visibility::Public, pw_world::event::EventKind::Breakout { player: p, tier: tier.ix() as u8, earned });
 }
 
 /// What a level's evidence is worth in its own right (no level weighting): steady, believable, unbroken.
@@ -176,6 +210,8 @@ pub fn attention(w: &World, p: PlayerId, tier: Tier) -> f32 {
     if r.sightings > 0 {
         x += 0.4;
     }
+    // Talk gets a scout to look, and a scout who has heard of a spike still discounts it (below).
+    x += 0.012 * f32::from(r.buzz);
     // One big game among few is not a pattern, and scouts know it.
     if ev.games < 4.0 && ev.peak > 1.0 {
         x -= 0.5;
@@ -259,6 +295,7 @@ pub fn yearly(w: &mut World) {
             empty &= e.games < 0.5;
         }
         r.spikes = r.spikes.saturating_sub(1);
+        r.buzz = (f32::from(r.buzz) * 0.4) as u8;
         if empty && r.sightings == 0 {
             w.ext.ecosystem.repute.remove(&p);
         }

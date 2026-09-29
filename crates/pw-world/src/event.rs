@@ -603,6 +603,13 @@ pub enum EventKind {
         kind: u8,
         target: u32,
     },
+    /// A young player's name spread beyond their own pitch: a clip that travelled (`earned` false) or a run of
+    /// steady football that people finally noticed (`earned` true). `tier` is the level (`ecosystem::Tier`).
+    Breakout {
+        player: PlayerId,
+        tier: u8,
+        earned: bool,
+    },
     /// A material decision was made; the ruling holds who believed and backed what.
     Ruling {
         ruling: u32,
@@ -980,6 +987,7 @@ impl EventKind {
             | InjurySetback { player, .. }
             | RushedBack { player }
             | PathwayStep { player, .. }
+            | Breakout { player, .. }
             | ChronicCondition { player }
             | PlayerSettled { player, .. }
             | LeaderEmerged { player, .. }

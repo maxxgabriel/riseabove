@@ -43,6 +43,17 @@ struct Pack {
     state: Vec<StateRow>,
     university: Vec<UniRow>,
     club: Vec<ClubRow>,
+    eligibility: Option<EligRow>,
+}
+
+#[derive(Deserialize)]
+struct EligRow {
+    min_age: u8,
+    max_age: u8,
+    bases: Vec<String>,
+    residence_years: u8,
+    exclude_top_division: bool,
+    one_state_per_year: bool,
 }
 
 #[derive(Deserialize)]
@@ -169,6 +180,20 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
     eco.languages = data.languages.clone();
     eco.last_year = start.year();
     eco.federation = Some(assoc(&mut rng, 0.5, 0.5));
+    {
+        let pools: Vec<(Vec<pw_world::NameId>, Vec<pw_world::NameId>)> = (0..data.languages.len())
+            .map(|l| {
+                let (f, sn) = names(name_group(l as u8));
+                (f.iter().map(|x| w.names.intern(x)).collect(), sn.iter().map(|x| w.names.intern(x)).collect())
+            })
+            .collect();
+        w.ext.ecosystem.lang_names = pools;
+    }
+    let eco = &mut w.ext.ecosystem;
+    if let Some(e) = &data.eligibility {
+        let bases: Vec<_> = e.bases.iter().filter_map(|b| pw_world::ecosystem::Basis::parse(b)).collect();
+        eco.eligibility = pw_world::ecosystem::Eligibility { min_age: e.min_age, max_age: e.max_age, bases, residence_years: e.residence_years, exclude_top_division: e.exclude_top_division, one_state_per_year: e.one_state_per_year };
+    }
 
     // ------------------------------------------------------------ regions
     let mut state_region: Vec<(String, RegionId)> = Vec::new();
@@ -382,6 +407,55 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
                 w.people[person].last = l;
                 if !is_foreign {
                     w.ext.ecosystem.story.insert(p, PlayerStory { home: region, dev: region, provider: Provider::Community, found_by: pw_core::PersonId::NONE, found_club: ClubId::NONE, found_on: start });
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------ overseas
+    // A few clubs abroad, so that being seen can lead somewhere: their scouts come to Indian events when the
+    // country's export reputation is high enough, and Indian players who go there are what raises it.
+    for (n, (nat, code)) in [(foreign[1], "ESP"), (foreign[3], "JPN"), (foreign[4], "KOR")].into_iter().enumerate() {
+        let league = builder::add_comp(&mut w, &format!("{code} Premier Division"), &format!("{code} PD"), nat, None, CompKind::League, 1, TeamKind::First, 6, 0, 0, 6000, Format::League { rounds: 2 }, 20_000_000);
+        for k in 0..6usize {
+            let rep = 6800u16 - (k as u16) * 380 - (n as u16) * 200;
+            let name = format!("{code} {} {}", ["Athletic", "United", "Sporting", "Real", "City", "Albion"][k], ["Norte", "Sur", "Este", "Oeste", "Centro", "Puerto"][(k + n) % 6]);
+            let club = builder::add_club(
+                &mut w,
+                ClubSpec {
+                    name: &name,
+                    short: "",
+                    nation: nat,
+                    city: &code,
+                    league,
+                    reputation: rep,
+                    balance: i64::from(rep) * 9_000,
+                    stadium: "",
+                    capacity: u32::from(rep) * 5 + 3_000,
+                    facilities: builder::default_facilities(rep),
+                    colors: [rng.next_u32() & 0xffffff, 0xffffff],
+                    founded: 1900 + rng.below(100) as u16,
+                    extra_teams: &[TeamKind::U18],
+                },
+            );
+            let target = ability_target(rep);
+            let teams: Vec<TeamId> = w.clubs[club].teams.to_vec();
+            for t in teams {
+                let count = if w.teams[t].kind == TeamKind::First { 24 } else { 18 };
+                for i in 0..count {
+                    let ages = if w.teams[t].kind == TeamKind::First { (18, 34) } else { (15, 17) };
+                    let age = rng.range_i32(ages.0, ages.1);
+                    let dob = start.add_days(-(age * 365 + rng.range_i32(0, 364)));
+                    let pos = if i < 2 { pw_core::Pos::GK } else { pw_sim::generate::random_position(&mut rng) };
+                    let pa = rng.normal_ms(target + 10.0, 14.0).clamp(30.0, 190.0);
+                    let ca = (pa * pw_sim::generate::ca_share_at(age as f32) * rng.normal_ms(1.0, 0.07)).clamp(15.0, pa);
+                    let contract = Contract { club, kind: if age < 17 { ContractKind::Youth } else { ContractKind::Professional }, wage: 0, start, end: Date::from_ymd(2027 + rng.range_i32(0, 3), 6, 30), yearly_rise: 3, ..Default::default() };
+                    let np = pw_sim::people::NewPlayer { nation: nat, dob, pos, ca, pa: pa as u8, club, team: t, contract, source: pw_world::player::PlayerSource::SyntheticFixture };
+                    let p = pw_sim::people::spawn_player(&mut w, np, &mut rng);
+                    let (f, l) = person_names(&mut w, 18, &mut rng);
+                    let person = w.players.cold[p].person;
+                    w.people[person].first = f;
+                    w.people[person].last = l;
                 }
             }
         }

@@ -198,6 +198,7 @@ pub fn label(k: &E) -> &'static str {
         RushedBack { .. } => "Rushed back",
         Ruling { .. } => "Decision",
         PathwayStep { .. } => "Pathway",
+        Breakout { .. } => "Breakout",
         ChronicCondition { .. } => "Chronic condition",
         PlayerSettled { .. } => "Settled",
         DressingRoomSplit { .. } => "Dressing room",

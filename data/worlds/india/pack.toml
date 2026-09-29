@@ -1022,3 +1022,14 @@ city = "Gangtok"
 state = "SK"
 tier = 0
 rep = 3200
+
+# Who may play for a state side (state associations and the Santosh Trophy's shape). Changeable per world.
+# bases in order of preference: birth (grew up there), club (registered with a club there),
+# institution (school or university there), residence (developed there for residence_years).
+[eligibility]
+min_age = 17
+max_age = 34
+bases = ["birth", "club", "institution", "residence"]
+residence_years = 2
+exclude_top_division = true
+one_state_per_year = true

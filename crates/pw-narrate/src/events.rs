@@ -196,6 +196,13 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
                 _ => format!("{} moved on to {}.", pl(p), k.label()),
             }
         }
+        Breakout { player: p, earned, .. } => {
+            if earned {
+                format!("People were beginning to talk about {}: a season of steady football had got around.", pl(p))
+            } else {
+                format!("A clip of {} went round: one afternoon, and suddenly people were asking who he was.", pl(p))
+            }
+        }
         RushedBack { player: p } => format!("{} was passed fit ahead of schedule.", pl(p)),
         ChronicCondition { player: p } => format!("{} now has a condition that will need managing.", pl(p)),
         PlayerSettled { player: p, club: c } => format!("{} has settled in at {}.", pl(p), club(w, c)),

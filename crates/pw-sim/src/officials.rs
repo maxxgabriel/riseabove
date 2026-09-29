@@ -35,11 +35,25 @@ fn new_referee(w: &mut World, nation: NationId, tier: u8, key: u64) -> u32 {
         mind: MindKind::Ai,
     });
     let id = w.officials.referees.len() as u32;
+    // Where the association is strong, referees come through better trained; where it is weak, they do not.
+    let mut region = pw_core::RegionId::NONE;
+    let mut schooling = 0.0;
+    {
+        let eco = &w.ext.ecosystem;
+        let mut states: Vec<pw_core::RegionId> = eco.assoc.keys().copied().filter(|&r| eco.regions[r].nation == nation).collect();
+        if !states.is_empty() {
+            states.sort();
+            let weights: Vec<f32> = states.iter().map(|&r| eco.regions[r].population_k as f32).collect();
+            let r = states[rng.weighted(&weights).min(states.len() - 1)];
+            region = r;
+            schooling = (eco.assoc[&r].referee_dev - 50.0) * 0.25;
+        }
+    }
     let base = match tier {
         1 => 72.0,
         2 => 62.0,
         _ => 52.0,
-    };
+    } + schooling;
     w.officials.referees.push(Referee {
         id,
         person,
@@ -55,6 +69,7 @@ fn new_referee(w: &mut World, nation: NationId, tier: u8, key: u64) -> u32 {
         wrong: 0,
         active: true,
         since: today,
+        region,
     });
     w.officials.by_nation.entry(nation).or_default().push(id);
     w.officials.by_person.insert(person, id);

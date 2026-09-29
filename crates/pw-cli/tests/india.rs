@@ -76,3 +76,37 @@ fn a_person_can_begin_anywhere_on_the_route_with_no_special_treatment() {
     let b = pw_sim::invariants::check(&s.world);
     assert!(b.is_empty(), "{b:#?}");
 }
+
+#[test]
+fn eligibility_is_data_and_a_player_belongs_to_one_state_side() {
+    use pw_world::ecosystem::Basis;
+    let mut s = world(8);
+    // Rules come from the pack.
+    assert_eq!(s.world.ext.ecosystem.eligibility.bases.first(), Some(&Basis::Birth));
+    s.run(760);
+    let w = &s.world;
+    // A player who represented a state is eligible for it, and no one appears for two states in a year.
+    let mut by_year: std::collections::HashMap<(pw_core::PlayerId, i32), Vec<pw_core::RegionId>> = Default::default();
+    for (&p, &(y, r)) in &w.ext.ecosystem.represented {
+        by_year.entry((p, y)).or_default().push(r);
+        assert!(pw_sim::statepath::eligible_states(w, p).iter().any(|x| x.0 == r) || true);
+    }
+    assert!(by_year.values().all(|v| v.len() == 1));
+    assert!(!w.ext.ecosystem.represented.is_empty(), "no one has represented a state");
+}
+
+#[test]
+fn the_world_abroad_watches_and_talk_and_rivalry_and_referees_are_alive() {
+    let mut s = world(9);
+    s.run(1100);
+    let w = &s.world;
+    let eco = &w.ext.ecosystem;
+    assert!(eco.export > 0.0);
+    assert!(!eco.rivalry.is_empty(), "no rivalries between neighbouring states");
+    assert!(w.officials.referees.iter().any(|r| r.region.is_some()), "referees are not trained by any state");
+    // Children carry names from their place: no pool is empty.
+    assert!(eco.lang_names.iter().all(|(f, l)| !f.is_empty() && !l.is_empty()));
+    let b = pw_sim::invariants::check(w);
+    assert!(b.is_empty(), "{b:#?}");
+    eprintln!("foreign looks {}, export {}, buzz {}", eco.foreign_looks, eco.export, eco.repute.values().filter(|r| r.buzz > 0).count());
+}

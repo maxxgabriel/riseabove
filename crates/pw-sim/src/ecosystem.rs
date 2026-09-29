@@ -119,12 +119,43 @@ pub fn yearly(w: &mut World) {
         associations(w, year);
         regions(w, year);
         crate::recognition::yearly(w);
+        export_reputation(w);
     }
     pools(w, year, first);
+    rivalries(w, first);
     if first {
         // Children who exist at the start go to school in their district straight away.
         crate::life::sync(w);
         crate::minor::assign(w);
+    }
+}
+
+/// Yearly: neighbouring states start with some edge between them, meetings that mattered add to it, and it
+/// fades. Where it runs hot, football matters more to people on both sides.
+fn rivalries(w: &mut World, first: bool) {
+    let mut states: Vec<RegionId> = w.ext.ecosystem.assoc.keys().copied().collect();
+    states.sort();
+    if first {
+        for (i, &a) in states.iter().enumerate() {
+            for &b in &states[i + 1..] {
+                let near = 1.0 - w.ext.ecosystem.travel_burden(a, b) / 0.25;
+                if near > 0.0 {
+                    w.ext.ecosystem.bump_rivalry(a, b, 12.0 * near);
+                }
+            }
+        }
+        return;
+    }
+    for v in w.ext.ecosystem.rivalry.values_mut() {
+        *v *= 0.9;
+    }
+    w.ext.ecosystem.rivalry.retain(|_, v| *v >= 1.0);
+    let hot: Vec<(RegionId, RegionId, f32)> = w.ext.ecosystem.rivalry.iter().filter(|(_, v)| **v >= 30.0).map(|(k, v)| (k.0, k.1, *v)).collect();
+    for (a, b, v) in hot {
+        for r in [a, b] {
+            let reg = &mut w.ext.ecosystem.regions[r];
+            reg.culture = (reg.culture + 0.03 * v).min(98.0);
+        }
     }
 }
 
@@ -149,6 +180,12 @@ fn associations(w: &mut World, year: i32) {
         nudge(&mut a.scouting, 15.0 + 0.4 * a.finance + 0.2 * a.coach_ed, 0.05);
         nudge(&mut a.grassroots_reach, 20.0 + 0.5 * a.youth_invest, 0.06);
         nudge(&mut a.referee_dev, 20.0 + 0.4 * a.coach_ed + 0.2 * a.admin, 0.05);
+        // What the state's referees actually turn out to be feeds back into how it is seen to run the whistle.
+        let acc: Vec<f32> = w.officials.referees.iter().filter(|x| x.active && x.region == r).map(|x| f32::from(x.accuracy)).collect();
+        if acc.len() >= 3 {
+            let mean = acc.iter().sum::<f32>() / acc.len() as f32;
+            nudge(&mut a.referee_dev, mean * 0.8 + 10.0, 0.04);
+        }
         nudge(&mut a.commercial, 20.0 + 0.3 * a.comp_quality + 0.2 * a.finance, 0.04);
     }
 }
@@ -285,7 +322,15 @@ fn materialise(w: &mut World, r: RegionId, reg: &pw_world::ecosystem::Region, ag
     let np = NewPlayer { nation: reg.nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: pw_core::TeamId::NONE, contract: Contract::default(), source };
     let p = spawn_player(w, np, rng);
     let who = w.players.cold[p].person;
-    // Names follow the region's language; the name pools live with the builder, so keep what the world gave.
+    // Names follow the region's language (the pools come with the world's data).
+    if let Some((firsts, lasts)) = w.ext.ecosystem.lang_names.get(usize::from(reg.language))
+        && !firsts.is_empty()
+        && !lasts.is_empty()
+    {
+        let (f, l) = (firsts[rng.index(firsts.len())], lasts[rng.index(lasts.len())]);
+        w.people[who].first = f;
+        w.people[who].last = l;
+    }
     w.players.hot[p].status = PlayerStatus::Amateur;
     if let Some(l) = local {
         w.youth.join(p, l);
@@ -524,6 +569,58 @@ fn camps(w: &mut World) {
         }
     }
     w.ext.ecosystem.camp.retain(|_, (y, _)| *y >= year - 3);
+    let called: Vec<PlayerId> = cands.iter().take(40).map(|x| x.1).collect();
+    foreign_eyes(w, pw_world::ecosystem::Tier::Academy, &called);
+}
+
+/// Yearly: how the world abroad regards the country's players. It follows how the ones who left are doing,
+/// slowly, and never jumps: a few good exports open doors for the next, and nothing else does.
+fn export_reputation(w: &mut World) {
+    let Some(home) = w.ext.ecosystem.regions.iter().next().map(|r| r.nation) else { return };
+    let mut good = 0.0f32;
+    for (p, h) in w.players.hot.iter_enumerated() {
+        if h.status == PlayerStatus::Retired || h.club.is_none() || w.clubs[h.club].nation == home || w.people[w.players.cold[p].person].nation != home {
+            continue;
+        }
+        good += ((f32::from(w.players.cold[p].ca) - 90.0) / 40.0).max(0.0);
+    }
+    let target = 10.0 + 65.0 * (1.0 - (-good / 8.0).exp());
+    let e = &mut w.ext.ecosystem.export;
+    *e = if *e <= 0.0 { 12.0 } else { *e + 0.15 * (target - *e) };
+}
+
+/// Clubs abroad send people to the events where Indian players are on show (the state championship, the
+/// national camps). How many come, and whom they notice, follows the country's export reputation and each
+/// player's evidence at that level: a foreign scout at a state game is looking at a handful of players.
+pub fn foreign_eyes(w: &mut World, tier: pw_world::ecosystem::Tier, pool: &[PlayerId]) {
+    let Some(home) = w.ext.ecosystem.regions.iter().next().map(|r| r.nation) else { return };
+    let export = w.ext.ecosystem.export.max(8.0) / 100.0;
+    let year = w.date.year() as u64;
+    let today = w.date;
+    let mut clubs: Vec<ClubId> = w.clubs.iter_enumerated().filter(|(_, c)| c.nation != home && c.reputation >= 3000).map(|(id, _)| id).collect();
+    clubs.sort();
+    for club in clubs {
+        let Some(scout) = scout_of(w, club) else { continue };
+        // Whether this club sends anyone at all.
+        let rep = f32::from(w.clubs[club].reputation) / 10_000.0;
+        if w.roll(stream::INTL, &[u64::from(club.0), year, tier.ix() as u64, 0xf0e]) >= 0.05 + 0.5 * export * (1.0 - 0.5 * rep) {
+            continue;
+        }
+        let mut cands: Vec<(f32, PlayerId)> = pool.iter().copied().filter(|&p| w.age(p) >= 16).map(|p| (crate::recognition::attention(w, p, tier), p)).collect();
+        cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
+        for (a, p) in cands.into_iter().take(2) {
+            if w.roll(stream::INTL, &[u64::from(club.0), u64::from(p.0), year, 0xf0f]) >= a {
+                continue;
+            }
+            w.knowledge.observe(club, p, 90, today);
+            let r = crate::scouting::judge(w, scout, club, p, 300);
+            w.scouting.file(club, p, r);
+            if let Some(rep) = w.ext.ecosystem.repute.get_mut(&p) {
+                rep.foreign = rep.foreign.saturating_add(1);
+            }
+            w.ext.ecosystem.foreign_looks += 1;
+        }
+    }
 }
 
 /// What being in a national camp is worth when the youth sides are named (not permanent status).

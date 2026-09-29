@@ -24,6 +24,7 @@ use pw_world::ruling::{Outcome, Ruling, RulingKind};
 use pw_world::{CompKind, PlayerStatus, TeamKind, World};
 
 use crate::hungarian;
+use pw_world::ecosystem::Basis;
 
 /// What a club must show to take a place in the national pyramid (a first draft of licensing).
 pub struct Licence {
@@ -149,13 +150,49 @@ pub fn season_end(w: &mut World, n: NationId, year: i32) {
 
 // ------------------------------------------------------------------ the state championship
 
-/// Which state a player represents: where they grew up, else where their club is. Rules as data come later.
-fn state_for(w: &World, p: PlayerId) -> RegionId {
-    if let Some(s) = w.ext.ecosystem.story.get(&p) {
-        return w.ext.ecosystem.state_of(s.home);
+/// Every state a player may represent under the world's eligibility rules, with the ground, in the
+/// order of preference. Rules are data (`Ecosystem::eligibility`), so a world can change them.
+pub fn eligible_states(w: &World, p: PlayerId) -> Vec<(RegionId, Basis)> {
+    let eco = &w.ext.ecosystem;
+    let rules = &eco.eligibility;
+    let mut out: Vec<(RegionId, Basis)> = Vec::new();
+    let add = |r: RegionId, b: Basis, out: &mut Vec<(RegionId, Basis)>| {
+        if r.is_some() && !out.iter().any(|x| x.0 == r) {
+            out.push((r, b));
+        }
+    };
+    for &basis in &rules.bases {
+        match basis {
+            Basis::Birth => {
+                if let Some(s) = eco.story.get(&p) {
+                    add(eco.state_of(s.home), basis, &mut out);
+                }
+            }
+            Basis::Club => {
+                let club = w.players.hot[p].club;
+                if club.is_some() {
+                    add(eco.state_of(eco.region_of_club(club)), basis, &mut out);
+                }
+            }
+            Basis::Institution => {
+                if let Some(&i) = w.minor.member_of.get(&p)
+                    && let Some(prof) = eco.inst.get(&i)
+                {
+                    add(eco.state_of(prof.region), basis, &mut out);
+                }
+            }
+            Basis::Residence => {
+                if let Some(s) = eco.story.get(&p) {
+                    let st = eco.state_of(s.dev);
+                    let since = eco.route(p).iter().find(|x| eco.state_of(x.region) == st).map(|x| x.date);
+                    if since.is_some_and(|d| d.days_until(w.date) >= i32::from(rules.residence_years) * 365) {
+                        add(st, basis, &mut out);
+                    }
+                }
+            }
+        }
     }
-    let club = w.players.hot[p].club;
-    if club.is_some() { w.ext.ecosystem.state_of(w.ext.ecosystem.region_of_club(club)) } else { RegionId::NONE }
+    out
 }
 
 /// A club's tier in the national pyramid (1 top) or 9 outside it.
@@ -164,20 +201,27 @@ fn tier_of(w: &World, club: ClubId) -> u8 {
     if l.is_some() { w.comps[l].tier } else { 9 }
 }
 
-fn select_squad(w: &World, state: RegionId, india: NationId, year: i32) -> Vec<PlayerId> {
+fn select_squad(w: &World, state: RegionId, india: NationId, year: i32, fill: bool, taken: &pw_world::FxHashSet<PlayerId>) -> Vec<PlayerId> {
+    let rules = &w.ext.ecosystem.eligibility;
     let a = w.ext.ecosystem.assoc.get(&state).copied();
     let scouting = a.map_or(40.0, |a| a.scouting);
     let sigma = (14.0 - scouting / 10.0).max(3.0);
     let mut seen: Vec<(f32, PlayerId, bool)> = Vec::new();
     for (p, h) in w.players.hot.iter_enumerated() {
-        if !matches!(h.status, PlayerStatus::Active | PlayerStatus::Amateur | PlayerStatus::FreeAgent) || h.injury_days > 14 || w.age(p) < 17 || w.age(p) > 34 {
+        if !matches!(h.status, PlayerStatus::Active | PlayerStatus::Amateur | PlayerStatus::FreeAgent) || h.injury_days > 14 || w.age(p) < u32::from(rules.min_age) || w.age(p) > u32::from(rules.max_age) || taken.contains(&p) || (rules.one_state_per_year && w.ext.ecosystem.represented.get(&p).is_some_and(|&(y, r)| y == year && r != state)) {
             continue;
         }
-        if w.people[w.players.cold[p].person].nation != india || state_for(w, p) != state {
+        if w.people[w.players.cold[p].person].nation != india {
+            continue;
+        }
+        // Their own state picks first; a state short of players may then call anyone else who qualifies for it.
+        let ok = eligible_states(w, p);
+        let qualifies = if fill { ok.iter().any(|x| x.0 == state) } else { ok.first().is_some_and(|x| x.0 == state) };
+        if !qualifies {
             continue;
         }
         // Top-flight players are with their clubs.
-        if h.club.is_some() && tier_of(w, h.club) == 1 {
+        if rules.exclude_top_division && h.club.is_some() && tier_of(w, h.club) == 1 {
             continue;
         }
         // Selectors only pick who they have seen.
@@ -272,10 +316,36 @@ fn open(w: &mut World) {
     let mut states: Vec<RegionId> = w.ext.ecosystem.assoc.keys().copied().collect();
     states.sort();
     let mut squads: Vec<(RegionId, Vec<PlayerId>)> = Vec::new();
-    for s in states {
-        let sq = select_squad(w, s, india, year);
+    let mut taken: pw_world::FxHashSet<PlayerId> = Default::default();
+    let mut picks: Vec<(RegionId, Vec<PlayerId>)> = Vec::new();
+    for &s in &states {
+        let sq = select_squad(w, s, india, year, false, &taken);
+        taken.extend(sq.iter().copied());
+        picks.push((s, sq));
+    }
+    // Second call: states that could not raise a side fill it from anyone else who qualifies and is free.
+    for (s, sq) in &mut picks {
+        if sq.len() < 22 {
+            let more = select_squad(w, *s, india, year, true, &taken);
+            for p in more {
+                if sq.len() >= 22 {
+                    break;
+                }
+                taken.insert(p);
+                sq.push(p);
+            }
+        }
+    }
+    for (s, sq) in picks {
         if sq.len() >= 14 {
             squads.push((s, sq));
+        }
+    }
+    if w.ext.ecosystem.eligibility.one_state_per_year {
+        for (s, sq) in &squads {
+            for &p in sq {
+                w.ext.ecosystem.represented.insert(p, (year, *s));
+            }
         }
     }
     if squads.len() < 4 {
@@ -338,7 +408,8 @@ fn play(w: &mut World) {
                     decisive: ko,
                     first_leg: None,
                     away_goals_rule: false,
-                    importance: 0.75,
+                    // Between states that care about the result it matters more to the players.
+                    importance: 0.75 + 0.2 * world.ext.ecosystem.rivalry_of(sa.0, sb.0) / 100.0,
                     referee_strictness: 1.0,
                     max_subs: 5,
                     lod: Lod::Standard,
@@ -387,6 +458,13 @@ fn play(w: &mut World) {
         crate::almanac::report(w, &ctx, &r, [Scope::Region(states[0]), Scope::Region(states[1])], [&squads[0], &squads[1]], hash_key(&[u64::from(states[0].0), u64::from(states[1].0), today.0 as u64]));
         let t = w.ext.ecosystem.tournament.as_mut().unwrap();
         let (hg, ag) = (r.home_goals, r.away_goals);
+        {
+            let (sa, sb) = (t.squads[a].0, t.squads[b].0);
+            let close = if hg.abs_diff(ag) <= 1 { 3.0 } else { 0.0 };
+            let by = if ko { 4.0 } else { 2.0 } + close;
+            w.ext.ecosystem.bump_rivalry(sa, sb, by);
+        }
+        let t = w.ext.ecosystem.tournament.as_mut().unwrap();
         if ko {
             let win = match r.winner() {
                 Some(0) => a,
@@ -487,6 +565,13 @@ fn schedule_round(t: &mut Tournament, date: Date) {
 }
 
 fn finish(w: &mut World, nation: NationId, year: i32, winner: RegionId, scorers: &pw_world::FxHashMap<PlayerId, u16>) {
+    // Foreign clubs watch the tournament's leading scorers and the winners' stars.
+    {
+        let mut top: Vec<(u16, PlayerId)> = scorers.iter().map(|(&p, &g)| (g, p)).collect();
+        top.sort_by(|a, b| b.cmp(a));
+        let pool: Vec<PlayerId> = top.into_iter().take(30).map(|x| x.1).collect();
+        crate::ecosystem::foreign_eyes(w, pw_world::ecosystem::Tier::State, &pool);
+    }
     let today = w.date;
     let event = 1u16;
     // Top scorer of the tournament.
