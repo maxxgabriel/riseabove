@@ -482,7 +482,7 @@ pub fn yearly(w: &mut World) {
         let rec = record.get(&src).copied().unwrap_or_default().record();
         for (i, &(score, p, quality, basis)) in g.iter().enumerate() {
             let pct = i as f32 / (n - 1) as f32;
-            if pct < 0.75 || score < 0.35 {
+            if pct < 0.90 || score < 0.35 {
                 continue;
             }
             let credibility = (0.15 + 0.45 * quality + 0.4 * (0.5 + 0.5 * rec)).clamp(0.05, 1.0);
@@ -518,9 +518,14 @@ pub fn yearly(w: &mut World) {
             w.ext.ecosystem.repute.remove(&p);
         }
     }
-    // What an organisation knew of a player who has retired, or last saw years ago, is dropped.
+    // Organisations forget: a single look fades within eighteen months, a name only heard is gone in half a year, and even a well-known
+    // player is dropped three years after anyone last saw him. Someone who has retired is forgotten at once. This keeps what a
+    // world remembers (and what a save holds) in proportion to the football being watched, not to how long it has run.
     let hot = &w.players.hot;
-    w.ext.recog.acquaint.retain(|&(_, p), a| a.last.days_until(today) <= 5 * 365 && hot[p].status != PlayerStatus::Retired);
+    w.ext.recog.acquaint.retain(|&(_, p), a| {
+        let age = a.last.days_until(today);
+        hot[p].status != PlayerStatus::Retired && age <= 3 * 365 && !(a.sightings <= 1 && age > 548) && !(a.sightings == 0 && age > 200)
+    });
     w.ext.recog.vouch.retain(|p, _| hot[*p].status != PlayerStatus::Retired);
 }
 

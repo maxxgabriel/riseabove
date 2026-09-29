@@ -135,10 +135,10 @@ fn a_recommendation_has_a_cause_and_only_the_clearly_best_of_a_group_get_one() {
     let v = s.world.ext.recog.vouch.get(&star).copied().expect("the clearly best child of his coach's group is recommended");
     assert_eq!(v.from, Source::Institution(inst), "the recommendation comes from the place that coaches him");
     assert!(matches!(v.basis, VouchBasis::Trained { months } if months > 0), "and rests on a relationship: {:?}", v.basis);
-    assert!(v.strength >= 0.75 && v.credibility > 0.0 && v.credibility <= 1.0);
+    assert!(v.strength >= 0.90 && v.credibility > 0.0 && v.credibility <= 1.0);
     let others_with: usize = group.iter().filter(|p| **p != star && s.world.ext.recog.vouch.contains_key(p)).count();
     assert!(others_with < group.len() - 1, "a coach does not vouch for everyone");
-    assert!(s.world.ext.recog.vouch.get(&group[1]).is_none_or(|x| x.strength >= 0.75), "nobody below the coach's top quarter is recommended");
+    assert!(s.world.ext.recog.vouch.get(&group[1]).is_none_or(|x| x.strength >= 0.90), "nobody below the coach's top tenth is recommended");
     // Same inputs, same result: nothing here is random.
     let mut t = world(5);
     let (_, g2) = a_group(&t);
@@ -498,4 +498,53 @@ fn a_region_is_measured_by_what_it_produced_not_only_how_many() {
     let mut sorted = out.clone();
     sorted.sort_by_key(|o| o.region);
     assert_eq!(out, sorted, "sorted by region so the report is stable");
+}
+
+/// Discovery outcomes for calibration (the brief wants great players sometimes missed and mediocre ones sometimes taken):
+/// `cargo test -p pw-cli --test india_ecosystem discovery_outcomes -- --ignored --nocapture`. Reads hidden ability, which only a test may.
+#[test]
+#[ignore = "report"]
+fn discovery_outcomes() {
+    use pw_world::ecosystem::StageKind;
+    for seed in [41u64, 42] {
+        let mut s = world(seed);
+        s.run(1500);
+        let w = &s.world;
+        let mut rows: Vec<(u8, bool, bool, bool, u8)> = Vec::new(); // (pa, looked at by anyone, academy, pro, age)
+        for &p in w.ext.ecosystem.story.keys() {
+            let age = w.age(p) as u8;
+            // Only children the pools drew as the world ran (the starting population was placed, not discovered), old enough to have been.
+            if age < 15 || w.ext.pathway.created.get(&p).is_none_or(|c| c.why != Draw::Competitive) {
+                continue;
+            }
+            let looked = w.ext.recog.acquaint.keys().any(|(_, q)| *q == p);
+            let stages = w.ext.ecosystem.stages.get(&p);
+            let has = |k: StageKind| stages.is_some_and(|v| v.iter().any(|x| x.kind == k));
+            rows.push((w.players.cold[p].pa, looked, has(StageKind::Academy), w.players.cold[p].senior_apps >= 10, age));
+        }
+        rows.sort_by_key(|r| std::cmp::Reverse(r.0));
+        let n = rows.len().max(1);
+        let top = &rows[..n / 10];
+        let bottom = &rows[n - n / 2..];
+        let share = |v: &[(u8, bool, bool, bool, u8)], f: fn(&(u8, bool, bool, bool, u8)) -> bool| v.iter().filter(|r| f(r)).count() as f32 / v.len().max(1) as f32;
+        eprintln!(
+            "seed {seed}: {n} drawn players 15+; top-decile PA: never looked at {:.0}%, academy {:.0}%, 10+ senior apps {:.0}%; bottom half PA: academy {:.0}%, 10+ senior apps {:.0}%",
+            100.0 * (1.0 - share(top, |r| r.1)),
+            100.0 * share(top, |r| r.2),
+            100.0 * share(top, |r| r.3),
+            100.0 * share(bottom, |r| r.2),
+            100.0 * share(bottom, |r| r.3)
+        );
+        let vouched = w.ext.recog.vouch.len();
+        let watched = w.ext.recog.acquaint.values().filter(|a| a.how == Learned::Watched).count();
+        let buzz = w.ext.recog.acquaint.values().filter(|a| a.how == Learned::Buzz).count();
+        let out = pw_sim::ecosystem::region_output(w);
+        eprintln!(
+            "seed {seed}: vouches {vouched}, acquaintances {} (watched {watched}, only heard {buzz}), referral records {}, regions with output {}, regard abroad {:?}",
+            w.ext.recog.acquaint.len(),
+            w.ext.recog.referrals.len(),
+            out.len(),
+            (0..2u8).map(|m| Segment::ALL.map(|g| w.ext.recog.regard(m, g).round() as i32)).collect::<Vec<_>>()
+        );
+    }
 }

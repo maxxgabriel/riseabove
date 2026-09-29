@@ -181,8 +181,16 @@ Pipeline parse → validate → resolve → assemble (`pw-import`); provenance p
 saved; unresolved rows kept with reasons; ability from combined evidence sampled from a posterior, never from price alone;
 population calibration and determinism tested (`real_archive.rs` for the local archive, `archive.rs` for fixtures).
 Limits: the club-standing prior is still derived from squad value plus last league position (correlated evidence, §11.14);
-single source per fact so no disagreement resolution (§11.16); after the first month prices sit within a factor of about 1.7 of
-the imported ones (median 1.3) — economy calibration is still open; personality is generated, never inferred (§11.10).
+single source per fact so no cross-source disagreement resolution (§11.16); the final real-archive first-month price check
+has median new/recorded price 1.20 (p10 0.30, p90 4.58) — economy calibration is still open; personality is generated, never inferred (§11.10).
+
+Local database follow-up (`pw-import::database`, `pw-view::database`, `app/src/pages/Database.tsx`): all 13 archive CSVs and
+48 FM23 exports are accessible through a paged observer source browser, connected automatically after archive import or manually.
+External lazy indexes support exact ID relationships, name search and world-profile links without putting raw source rows in saves.
+Missing values use dated valuation and lineup evidence where available; unsupported history stays unknown and literal zero remains
+a recorded value. The real archive passes all three structural/calibration/first-month tests. FM23 binary player, contract and
+club-league schemas remain unresolved; FM name exports are source records, not a playable imported FM world.
+Coverage, estimation rules, measured index costs and verification are in [DATABASE_INTEGRATION.md](DATABASE_INTEGRATION.md).
 
 ## 12. Documentation — IMPLEMENTED
 
@@ -228,7 +236,7 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
   federation or foreign market that has actually looked. `recognised_by(club, p)` reads that club's own looks, not a global count.
   State selectors pick from their own league, their district and championship acquaintances, and a small chance of report.
 * **Causal recommendations** (IMPLEMENTED, tested): yearly, a coach (school, local club or district selectors) recommends a child who is in
-  the top quarter of the group they coach and has real evidence. It records the cause (`Trained{months}` / `Watched{games}`), strength (rank
+  the top tenth of the group they coach and has real evidence. It records the cause (`Trained{months}` / `Watched{games}`), strength (rank
   in the group), credibility (coaching quality, record). Each organisation decides its own trust (`vouch_weight`), moved by referral outcomes
   recorded at trial decisions and when university places end. No random roll.
 * **Physical maturity is not quality** (IMPLEMENTED, not separately tested): attention and scout readings of young players lean on build
