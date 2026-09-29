@@ -69,6 +69,26 @@ pub fn weekly(w: &mut World) {
     let hot: &[pw_world::PlayerHot] = &w.players.hot;
     let people = &w.people;
     let team_kind: Vec<TeamKind> = w.teams.iter().map(|t| t.kind).collect();
+    // Players outside professional teams develop where they are: their school or university, else their district.
+    let story = &w.ext.ecosystem.story;
+    let regions = &w.ext.ecosystem.regions;
+    let member = &w.minor.member_of;
+    let insts = &w.minor.institutions;
+    let inst_profile = &w.ext.ecosystem.inst;
+    let local_env = |p: pw_core::PlayerId| -> Option<([f32; N_CURVE_GROUPS], f32)> {
+        let s = story.get(&p)?;
+        if s.dev.is_none() {
+            return None;
+        }
+        let r = &regions[s.dev];
+        let (mut coach, mut fac) = (r.coach_density / 20.0, r.facilities / 100.0);
+        if let Some(&i) = member.get(&p) {
+            coach = coach.max(f32::from(insts[i as usize].coaching));
+            fac = fac.max(inst_profile.get(&i).map_or(0.0, |x| x.facilities / 100.0));
+        }
+        let q = 0.6 + 0.8 * (coach.clamp(1.0, 20.0) / 20.0);
+        Some(([q; N_CURVE_GROUPS], 0.85 + 0.3 * fac.clamp(0.0, 1.0)))
+    };
 
     w.players.cold.par_iter_mut().enumerate().for_each(|(i, c)| {
         let h = &hot[i];
@@ -82,7 +102,8 @@ pub fn weekly(w: &mut World) {
             let e = &env[h.team.0 as usize];
             (e.coach, e.facility, e.unit, e.emphasis)
         } else {
-            ([0.75; N_CURVE_GROUPS], 0.85, [8.0; 4], [1.0; N_CURVE_GROUPS])
+            let (c, f) = local_env(pw_core::PlayerId(i as u32)).unwrap_or(([0.75; N_CURVE_GROUPS], 0.85));
+            (c, f, [8.0; 4], [1.0; N_CURVE_GROUPS])
         };
         // The specialist for this player's unit matters a little: a good striker coach helps strikers.
         let unit_mult = 0.9 + 0.2 * unit[match c.best_pos.group() {

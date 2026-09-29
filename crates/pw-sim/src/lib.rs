@@ -30,6 +30,7 @@ pub mod decisions;
 pub mod development;
 pub mod dressing;
 pub mod economy;
+pub mod ecosystem;
 pub mod evolution;
 pub mod facts;
 pub mod finance;
@@ -161,6 +162,7 @@ impl Sim {
         }
         if today.month() == 7 && today.day() == 1 {
             prof!("officials::season_review", officials::season_review(w));
+            prof!("ecosystem::yearly", ecosystem::yearly(w));
             prof!("evolution::yearly", evolution::yearly(w));
             prof!("economy::yearly", economy::yearly(w));
             prof!("governance::yearly", governance::yearly(w));
@@ -341,6 +343,7 @@ pub fn prepare(w: &mut World) {
     managers::ensure(w);
     scouting::ensure(w);
     youth::ensure(w);
+    ecosystem::yearly(w);
     minor::ensure(w);
     officials::ensure(w);
     intl::ensure(w);

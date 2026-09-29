@@ -176,6 +176,25 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             },
             None => "A decision was made.".to_string(),
         },
+        PathwayStep { player: p, kind, target } => {
+            use pw_world::ecosystem::StageKind as K;
+            let k = K::from_code(kind);
+            let place = match k {
+                K::Academy | K::Released | K::Professional | K::SemiPro | K::Trial => club(w, pw_core::ClubId(target)),
+                K::School | K::University => w.minor.institutions.get(target as usize).map_or_else(|| "an institution".to_string(), |i| i.name.clone()),
+                _ => String::new(),
+            };
+            match k {
+                K::Academy => format!("{} joined the {} academy.", pl(p), place),
+                K::Released => format!("{} was released by {}.", pl(p), place),
+                K::University => format!("{} took up a place at {}.", pl(p), place),
+                K::School => format!("{} started playing for {}.", pl(p), place),
+                K::Trial => format!("{} went on trial at {}.", pl(p), place),
+                K::StateTeam => format!("{} was picked for the state side.", pl(p)),
+                K::NationalCamp => format!("{} was called to a national identification camp.", pl(p)),
+                _ => format!("{} moved on to {}.", pl(p), k.label()),
+            }
+        }
         RushedBack { player: p } => format!("{} was passed fit ahead of schedule.", pl(p)),
         ChronicCondition { player: p } => format!("{} now has a condition that will need managing.", pl(p)),
         PlayerSettled { player: p, club: c } => format!("{} has settled in at {}.", pl(p), club(w, c)),

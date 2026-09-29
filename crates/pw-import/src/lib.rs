@@ -2,6 +2,7 @@
 //! synthetic fixture used only by tests and benchmarks.
 
 pub mod builder;
+pub mod india;
 mod csvimport;
 mod positions;
 pub mod synthetic;

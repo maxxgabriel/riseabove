@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use crate::medical::MedicalExt;
 use crate::ruling::DecisionMemory;
 use crate::academy::AcademyExt;
+use crate::ecosystem::Ecosystem;
 use crate::stafflife::StaffExt;
 use crate::training::TrainingExt;
 
@@ -19,6 +20,8 @@ use crate::training::TrainingExt;
 pub struct Extensions {
     /// Owner: `pw_sim::returns` and `pw_sim::medical`.
     pub medical: MedicalExt,
+    /// Owner: `pw_sim::ecosystem`. Regions, associations, participation pools and the routes players take.
+    pub ecosystem: Ecosystem,
     /// Owner: `pw_sim::pathway`.
     pub academy: AcademyExt,
     /// Owner: `pw_sim::stafflife`.

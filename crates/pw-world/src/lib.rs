@@ -18,6 +18,7 @@ pub mod culture;
 pub mod deals;
 pub mod decision;
 pub mod dressing;
+pub mod ecosystem;
 pub mod event;
 pub mod ext;
 pub mod evolution;

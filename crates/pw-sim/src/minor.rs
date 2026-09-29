@@ -171,6 +171,9 @@ pub fn assign(w: &mut World) {
         let Some(options) = schools.get(&town) else { continue };
         let k = pw_core::rng::hash_key(&[w.seed, stream::MINOR, u64::from(who.0)]) as usize % options.len();
         w.minor.join(p, options[k]);
+        crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::School, options[k]);
+        let region = w.ext.ecosystem.inst.get(&options[k]).map_or(pw_core::RegionId::NONE, |i| i.region);
+        crate::ecosystem::set_dev_region(w, p, region);
     }
     // University: school leavers aged 18–19 with qualifications, not professionals.
     let leavers: Vec<PlayerId> = w

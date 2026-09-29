@@ -39,7 +39,8 @@ fn head_of_youth(w: &World, club: ClubId) -> Option<PersonId> {
 /// Local football around every professional club, academies with their own
 /// character, and age-group sides for clubs that run them.
 pub fn ensure(w: &mut World) {
-    if !w.youth.local.is_empty() {
+    // Worlds that were given their own grassroots clubs (an ecosystem) still need academies around the professional clubs.
+    if !w.youth.academies.is_empty() || (!w.youth.local.is_empty() && !w.ext.ecosystem.is_configured()) {
         return;
     }
     let clubs: Vec<ClubId> = w.clubs.ids().collect();
@@ -297,6 +298,24 @@ fn in_reach(w: &World, academy: &Academy, l: LocalClubId) -> f32 {
     if academy.feeders.contains(&l) {
         return 1.0;
     }
+    // Worlds with an ecosystem measure nearness by regions and how much of the district's football is watched at all.
+    let eco = &w.ext.ecosystem;
+    if eco.is_configured()
+        && let (Some(&lr), Some(&ar)) = (eco.local_region.get(&l), eco.club_region.get(&academy.club))
+    {
+        if academy.feeders.contains(&l) {
+            return 1.0;
+        }
+        let base = match academy.reach {
+            Reach::Local => 0.6,
+            Reach::Regional => 0.7,
+            Reach::National => 0.5,
+            Reach::International => 0.5,
+        };
+        let near = (1.0 - 1.3 * eco.travel_burden(lr, ar)).max(0.03);
+        let coverage = 0.4 + 0.9 * eco.regions[lr].scouting_coverage / 100.0;
+        return (base * near * coverage).clamp(0.0, 1.0);
+    }
     let same_city = local.city == home.city || local.city == home.short_name;
     let same_nation = local.nation == home.nation;
     match academy.reach {
@@ -379,6 +398,8 @@ fn watch(w: &mut World, scout: pw_core::StaffId, club: ClubId, l: LocalClubId) {
         w.knowledge.observe(club, p, 60, today);
         let r = crate::scouting::judge(w, scout, club, p, w.youth.local[l].standing);
         w.scouting.file(club, p, r);
+        let finder = w.staff[scout].person;
+        crate::ecosystem::note_found(w, p, finder, club);
     }
 }
 
@@ -482,6 +503,7 @@ pub fn start_trial(w: &mut World, club: ClubId, p: PlayerId) {
         return;
     }
     w.youth.trials.push(AcademyTrial { player: p, club, from: today, until: today.add_days(21) });
+    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Trial, club.0);
     w.knowledge.observe(club, p, 270, today);
     w.events.push(today, Visibility::Person(w.players.cold[p].person), EventKind::AcademyTrialStarted { player: p, club });
 }
@@ -531,6 +553,9 @@ fn join_academy(w: &mut World, club: ClubId, team: TeamId, p: PlayerId) {
     w.teams[team].squad.push(p);
     w.history.start_spell(p, club, today, false, 0);
     w.events.push(today, Visibility::Public, EventKind::AcademyJoined { player: p, club });
+    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Academy, club.0);
+    let region = w.ext.ecosystem.region_of_club(club);
+    crate::ecosystem::set_dev_region(w, p, region);
     if let Some(h) = head_of_youth(w, club) {
         let who = w.players.cold[p].person;
         let compat = consider::compat(w, who, h);
@@ -630,6 +655,7 @@ pub fn release(w: &mut World, club: ClubId, p: PlayerId) {
     w.youth.released.entry(p).or_default().push(Release { club, date: today, age: age as u8 });
     let causes: Causes = pw_world::causes![Cause::Fact(Fact::FormSlump { player: p })];
     let ev = w.events.push_caused(today, Visibility::Person(who), EventKind::AcademyReleased { player: p, club }, causes);
+    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Released, club.0);
     if let Some(h) = head_of_youth(w, club) {
         let compat = consider::compat(w, who, h);
         w.social.remember(who, h, MemoryKind::Refused, today, ev, false, 1.2, compat);

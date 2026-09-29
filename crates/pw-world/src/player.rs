@@ -317,10 +317,14 @@ pub enum PlayerSource {
     GrassrootsCohort,
     /// Created for a human to inhabit.
     HumanCreated,
+    /// Drawn from a region's aggregate participation pool when a child became competitive or noticed.
+    RegionalPool,
+    /// A player who entered organised football late (an adult from the amateur game).
+    LateEntry,
 }
 
 impl PlayerSource {
-    pub const ALL: [PlayerSource; 5] = [PlayerSource::DatabaseImport, PlayerSource::SyntheticFixture, PlayerSource::AcademyIntake, PlayerSource::GrassrootsCohort, PlayerSource::HumanCreated];
+    pub const ALL: [PlayerSource; 7] = [PlayerSource::DatabaseImport, PlayerSource::SyntheticFixture, PlayerSource::AcademyIntake, PlayerSource::GrassrootsCohort, PlayerSource::HumanCreated, PlayerSource::RegionalPool, PlayerSource::LateEntry];
 
     pub const fn label(self) -> &'static str {
         match self {
@@ -329,6 +333,8 @@ impl PlayerSource {
             PlayerSource::AcademyIntake => "academy intake",
             PlayerSource::GrassrootsCohort => "grassroots cohort",
             PlayerSource::HumanCreated => "created for a human",
+            PlayerSource::RegionalPool => "regional participation pool",
+            PlayerSource::LateEntry => "late entry",
         }
     }
 }

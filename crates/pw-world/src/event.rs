@@ -597,6 +597,12 @@ pub enum EventKind {
     RushedBack {
         player: PlayerId,
     },
+    /// A step on a player's route through football: joining a school, an academy, a university, a state team.
+    PathwayStep {
+        player: PlayerId,
+        kind: u8,
+        target: u32,
+    },
     /// A material decision was made; the ruling holds who believed and backed what.
     Ruling {
         ruling: u32,
@@ -973,6 +979,7 @@ impl EventKind {
             | Diagnosed { player, .. }
             | InjurySetback { player, .. }
             | RushedBack { player }
+            | PathwayStep { player, .. }
             | ChronicCondition { player }
             | PlayerSettled { player, .. }
             | LeaderEmerged { player, .. }
