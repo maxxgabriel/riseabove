@@ -33,10 +33,12 @@ Gaps against the locked rules (these are the design's own priority targets):
 * professional accuracy is judged on claim-time truth (`Story::grounded`): `newsroom.rs::close_thread` scores journalists, their source ties and
   corrections that way, while a separate public record follows what audiences saw come to pass (§2.3, §2.11) — **IMPLEMENTED**
   (three scenario tests). Outlet-level public credibility (`media.rs::settle_credibility`) stays outcome-based on purpose (it is the public's view).
-* one flat `credibility` per outlet and per journalist; no topic or club-specific credibility (§2.7) — **OPEN**
-* `socialnet.rs::believes` is partly contextual (personal outlet trust, credulity, knowledge, desirability, corroboration) but
-  ignores journalist identity, topic and prior belief (§2.9) — **PARTIAL**
-* belief and sharing as separate decisions (§2.10) — **NEEDS AUDIT**
+* credibility is contextual: each journalist keeps a record per club and kind of story (`JournalistProfile::ledger`, `public_trust`), and
+  `socialnet.rs::believes` uses it (falling back on the outlet with little evidence), together with personal outlet trust, credulity,
+  knowledge, desirability and corroboration — **IMPLEMENTED**; prior belief about the subject and source inference are still missing
+* belief and sharing are separate decisions: `socialnet.rs::pass_on` (spite, humour and news value add to belief rather than follow it) —
+  **IMPLEMENTED**
+* both are pinned by `crates/pw-cli/tests/media_belief.rs`
 * truth/framing/intent/manipulation kept apart (§2.4), directional persistent media relationships with causes (§2.13-15),
   media–media rivalries (§2.18) — **NOT IMPLEMENTED** as designed
 

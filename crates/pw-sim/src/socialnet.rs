@@ -473,6 +473,12 @@ pub fn believes(w: &World, a: AccountId, story: pw_core::StoryId) -> f32 {
     let acc = &w.net.accounts[a as usize];
     let s = &w.media.stories[story];
     let outlet_cred = if s.outlet.is_some() { f32::from(w.media.outlets[s.outlet].credibility) / 100.0 } else { 0.4 };
+    // Trust in this journalist on this club and kind of story, from what the public has seen of their record there; with little
+    // on record it leans on the outlet (locked design §2.7, §2.9).
+    let source_cred = w.media.journalist_profiles.get(&s.journalist).and_then(|j| j.public_trust(s.club, pw_world::media::topic_of(s.kind))).map_or(outlet_cred, |(t, n)| {
+        let weight = (n as f32 / 4.0).min(1.0);
+        outlet_cred * (1.0 - weight) + t * weight
+    });
     let own = w.net.outlet_trust.get(&(a, s.outlet.0)).map_or(0.0, |&t| f32::from(t) / 100.0);
     let credulity = f32::from(acc.persona.credulity) / 100.0;
     let know = f32::from(acc.persona.knowledge) / 100.0;
@@ -493,7 +499,22 @@ pub fn believes(w: &World, a: AccountId, story: pw_core::StoryId) -> f32 {
         ClaimType::Speculation => -0.1,
         _ => 0.0,
     };
-    (0.3 + outlet_cred * (0.3 + know * 0.3) + own + credulity * 0.25 + desirable + corroborated + claim).clamp(0.0, 1.0)
+    (0.3 + source_cred * (0.3 + know * 0.3) + own + credulity * 0.25 + desirable + corroborated + claim).clamp(0.0, 1.0)
+}
+
+/// How likely an account is to pass a story on, whatever it believes of it (locked design §2.10). People share what they doubt because
+/// it is funny or hurts a rival, and say nothing about what they believe. Belief adds to the chance without deciding it.
+pub fn pass_on(w: &World, a: AccountId, story: pw_core::StoryId) -> f32 {
+    let acc = &w.net.accounts[a as usize];
+    if acc.kind == AccountKind::RumourMill {
+        return 1.0;
+    }
+    let p = acc.persona;
+    let s = &w.media.stories[story];
+    let rival_hurt = s.club == acc.rival && s.tone < 0;
+    let fun = f32::from(p.humour) / 100.0 * f32::from(s.news) / 100.0;
+    let spite = if rival_hurt { f32::from(p.hostility) / 100.0 } else { 0.0 };
+    (0.08 + 0.30 * spite + 0.35 * fun + 0.35 * (believes(w, a, story) - 0.5).max(0.0)).clamp(0.0, 1.0)
 }
 
 /// Choose what an account says about a frame, from the frame's valence for
@@ -505,8 +526,25 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
     let low = w.net.opinion(a, about).map_or(0, |o| o.low);
     let mut refs: SmallVec<[u32; 2]> = SmallVec::new();
     if let Frame::Story { story } = f {
-        if acc.kind == AccountKind::RumourMill || believes(w, a, story) > 0.6 && roll < 0.5 {
-            return Some((Concept::Relay, PersonId::NONE, refs));
+        let belief = believes(w, a, story);
+        let s = &w.media.stories[story];
+        let rival_hurt = s.club == acc.rival && s.tone < 0;
+        let own_hurt = s.club == acc.club && s.tone < 0;
+        if roll < pass_on(w, a, story) {
+            let concept = if belief >= 0.5 || acc.kind == AccountKind::RumourMill {
+                Concept::Relay
+            } else if p.humour > 60 {
+                Concept::Sarcasm
+            } else if rival_hurt {
+                Concept::Mock
+            } else {
+                Concept::Question
+            };
+            return Some((concept, PersonId::NONE, refs));
+        }
+        // Not passing it on: a worried fan of the club says so; someone who believes it and is not touched by it says nothing.
+        if belief > 0.6 && !own_hurt && roll > 0.6 {
+            return None;
         }
         return Some((if club_val < 0 { Concept::Worry } else { Concept::Question }, PersonId::NONE, refs));
     }

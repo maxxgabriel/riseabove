@@ -227,6 +227,37 @@ pub struct SourceTie {
     pub last_used: Date,
 }
 
+/// What kind of story a journalist's record is kept for (credibility is contextual, locked design §2.7).
+pub fn topic_of(kind: StoryKind) -> u8 {
+    match kind {
+        StoryKind::TransferRumour | StoryKind::TransferNews => 0,
+        StoryKind::Injury => 1,
+        StoryKind::Discipline | StoryKind::Unhappy => 2,
+        StoryKind::ManagerPressure | StoryKind::ManagerChange => 3,
+        StoryKind::Praise | StoryKind::Criticism => 4,
+        _ => 5,
+    }
+}
+
+/// A journalist's record on one club and one kind of story: what the public saw and what was true when published.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct TopicRecord {
+    pub club: ClubId,
+    pub topic: u8,
+    pub public_hits: u8,
+    pub public_misses: u8,
+    pub hits: u8,
+    pub misses: u8,
+}
+
+impl TopicRecord {
+    fn evidence(&self) -> u16 {
+        u16::from(self.public_hits) + u16::from(self.public_misses)
+    }
+}
+
+const MAX_RECORDS: usize = 24;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JournalistProfile {
     /// 0–100 each.
@@ -246,6 +277,8 @@ pub struct JournalistProfile {
     /// What audiences saw: reported things that came to pass, and ones that did not. An honest report can end up here as a miss.
     pub public_hits: u16,
     pub public_misses: u16,
+    /// The same, per club and kind of story: trusted on one club's transfers and not on another's.
+    pub ledger: Vec<TopicRecord>,
     /// When they started covering each club on their beat.
     pub beat_since: SmallVec<[(ClubId, Date); 4]>,
     pub ties: SmallVec<[SourceTie; 8]>,
@@ -255,6 +288,33 @@ pub struct JournalistProfile {
 }
 
 impl JournalistProfile {
+    /// Record how a claim on `club` about `topic` turned out: `honest` (true when published) and `came_true` (what the public saw).
+    pub fn record(&mut self, club: ClubId, topic: u8, honest: bool, came_true: bool) {
+        let i = match self.ledger.iter().position(|r| r.club == club && r.topic == topic) {
+            Some(i) => i,
+            None => {
+                if self.ledger.len() >= MAX_RECORDS
+                    && let Some(weakest) = self.ledger.iter().enumerate().min_by_key(|(_, r)| r.evidence()).map(|(i, _)| i)
+                {
+                    self.ledger.swap_remove(weakest);
+                }
+                self.ledger.push(TopicRecord { club, topic, public_hits: 0, public_misses: 0, hits: 0, misses: 0 });
+                self.ledger.len() - 1
+            }
+        };
+        let r = &mut self.ledger[i];
+        if came_true { r.public_hits = r.public_hits.saturating_add(1) } else { r.public_misses = r.public_misses.saturating_add(1) }
+        if honest { r.hits = r.hits.saturating_add(1) } else { r.misses = r.misses.saturating_add(1) }
+    }
+
+    /// How far the public has reason to trust this journalist on this club and topic: 0..1 and how much evidence stands behind it.
+    /// `None` when nothing is on record.
+    pub fn public_trust(&self, club: ClubId, topic: u8) -> Option<(f32, u16)> {
+        let r = self.ledger.iter().find(|r| r.club == club && r.topic == topic)?;
+        let n = r.evidence();
+        Some(((f32::from(r.public_hits) + 1.0) / (n as f32 + 2.0), n))
+    }
+
     pub fn tie(&self, p: PersonId) -> Option<&SourceTie> {
         self.ties.iter().find(|t| t.person == p)
     }

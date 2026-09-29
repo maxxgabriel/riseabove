@@ -116,6 +116,7 @@ pub fn ensure_profiles(w: &mut World) {
             misses: 0,
             public_hits: 0,
             public_misses: 0,
+            ledger: Vec::new(),
             beat_since,
             ties: SmallVec::new(),
             employers: [(outlet, today.add_days(-365 * years_in))].into_iter().collect(),
@@ -856,6 +857,7 @@ pub(crate) fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
             } else {
                 p.public_misses = p.public_misses.saturating_add(1);
             }
+            p.record(s.club, pw_world::media::topic_of(s.kind), honest, came_true);
             // The person who told them is judged on what they said, not on how events turned out.
             if s.leaker.is_some()
                 && let Some(t) = p.ties.iter_mut().find(|t| t.person == s.leaker)
@@ -1302,6 +1304,7 @@ mod tests {
                 misses: 0,
                 public_hits: 0,
                 public_misses: 0,
+                ledger: Vec::new(),
                 beat_since: Default::default(),
                 ties: [SourceTie { person: SOURCE, since: Date::from_ymd(2025, 1, 1), strength: 60, reliability: 50, hits: 0, misses: 0, last_used: Date::from_ymd(2026, 7, 1) }].into_iter().collect(),
                 employers: Default::default(),
