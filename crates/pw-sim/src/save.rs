@@ -31,11 +31,15 @@ const HEADER: usize = 8 + 4 + 8;
 ///
 /// * 1: the unversioned development format (`PWSAVE01`).
 /// * 2: first versioned format (development only).
-/// * 3: provenance book, position-level squad plans, professional/public journalist records. Schemas 1 and 2 were development
-///   formats whose world shape changed without steps; they cannot be upgraded, and say so.
-pub const SCHEMA_VERSION: u32 = 3;
+/// * 3: provenance book, position-level squad plans, professional/public journalist records (development only).
+/// * 4: the first supported format. Everything up to 3 was a development format: the world model changed between them without
+///   migration steps, so they cannot be upgraded and are refused with a plain message. Schema 4 adds the tactical book and life state
+///   (`World::tactics`, `World::lifestate`), settling-in causes, and the boardroom, adaptation, contract-package and social-attention
+///   books of the development builds. From here on every change to a serialised type bumps this number and registers a [`Step`];
+///   `crates/pw-cli/tests/fixtures/golden_micro.pws` is a schema-4 save that every later build must still open.
+pub const SCHEMA_VERSION: u32 = 4;
 /// The oldest schema this build can still upgrade from.
-pub const OLDEST_SUPPORTED: u32 = 3;
+pub const OLDEST_SUPPORTED: u32 = 4;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SaveError {

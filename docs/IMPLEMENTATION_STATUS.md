@@ -168,11 +168,19 @@ Provenance on the person page is omniscient-view only.
 
 ## 10. Saves — PARTIAL
 
-Current schema is **3**; schemas 1 and 2 were development formats and are refused with a plain message (tested).
+Current schema is **4**, and `OLDEST_SUPPORTED` is 4: schemas 1-3 were development formats (the world model changed between them without
+migration steps), so they are refused with a plain message, untouched (tested: `fixture.rs::an_older_development_schema_is_refused...`, unit
+tests in `save.rs`). From 4 on every serialised change bumps the number and registers a `Step`.
 **IMPLEMENTED**: explicit schema version, sequential migration steps (`pw-sim::save::Step`), backup before upgrade, atomic write,
-checksum, clear too-new / unsupported errors, listing shows compatibility; unit tests for the framework. **Missing**: post-migration
-validation hook, save metadata (created schema, migration history), a deterministic legacy-init helper (`stable_seed(world, migration,
-entity)`), old-save fixtures in CI, ID-preservation checks. No real migration exists yet (schema 2 is the first versioned one).
+checksum, metadata (created schema, migration history, seed, provenance), clear too-new / unsupported errors, listing shows compatibility,
+`stable_seed` for migrations, post-load validation and census (`validate.rs`); unit tests for the framework.
+**Golden fixture**: `crates/pw-cli/tests/fixtures/golden_micro.pws` (schema 4, micro world, 90 days, 430 KB) with
+`crates/pw-cli/tests/fixture.rs`: it must load (or upgrade), validate, simulate 30 days audit-clean, save and reload with the same
+identities and continue exactly as the original (compared semantically: a reloaded map iterates in another order, so compressed bytes differ).
+The test fails when the schema moves without a migration for the fixture; regenerate only for a deliberate break (`WRITE_GOLDEN=1`).
+**Missing**: no real migration exists yet (nothing has changed since 4); a census check that no id moves *during simulation* is not
+possible (people who leave the game are removed, 532 -> 525 in 30 days on the fixture), so ID preservation is checked across save/load
+and migration only; the app's saves folder from before this bump lists as unsupported.
 
 ## 11. Imported data — IMPLEMENTED (with stated limits)
 
