@@ -169,6 +169,10 @@ pub struct World {
     pub playthrough: u64,
     /// What each club's people believe about players: dossiers, evaluators' track records.
     pub dossiers: crate::dossier::Dossiers,
+    /// Who has a say in signings, clubs' appetite for risk, case files of important deals.
+    pub boardroom: crate::boardroom::Boardroom,
+    /// Players settling in after a move.
+    pub adaptation: crate::adaptation::Adaptations,
 }
 
 impl World {
@@ -236,6 +240,8 @@ impl World {
             prepared: false,
             playthrough: 0,
             dossiers: Default::default(),
+            boardroom: Default::default(),
+            adaptation: Default::default(),
         }
     }
 

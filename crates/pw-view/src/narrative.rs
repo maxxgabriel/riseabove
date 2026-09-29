@@ -116,6 +116,8 @@ pub fn group_of(k: &E) -> Group {
         | JoinedLocalClub { .. }
         | AcademyTrialStarted { .. }
         | AssessmentVindicated { .. }
+        | SigningReviewed { .. }
+        | PlanFailed { .. }
         | Stagnated { .. }
         | CharacterChanged { .. } => Group::Career,
         _ => Group::Club,
@@ -185,6 +187,8 @@ pub fn label(k: &E) -> &'static str {
         AddOnPaid { .. } | SellOnPaid { .. } => "Clause paid",
         AcademyJoined { .. } | AcademyReleased { .. } | ScholarshipOffered { .. } | AcademyTrialStarted { .. } => "Academy",
         AssessmentVindicated { .. } => "Judgement",
+        SigningReviewed { .. } => "Signing review",
+        PlanFailed { .. } => "Plan failed",
         JoinedLocalClub { .. } => "Local club",
         ExamsSat { .. } => "Exams",
         NationalSquad { .. } => "Squad named",

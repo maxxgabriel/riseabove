@@ -395,7 +395,16 @@ pub fn seller_reservation(w: &World, seller: ClubId, p: PlayerId) -> Money {
     };
     let fin = &w.clubs[seller].finance;
     let cash = if fin.balance < 0 { 0.92 } else if fin.debt > 0 { 0.96 } else { 1.0 };
-    let v = (internal * asking_factor(w, p) * replacement * cash) as Money;
+    // A seller who believes in a young player more than the market does may knowingly hold out for his future (section 3.29).
+    let gamble = if w.age(p) <= 22 {
+        let (_, _, seller_pa, _) = crate::scouting::view(w, seller, p);
+        let gap = (seller_pa - public_view(w, p).1).max(0.0);
+        let taste = w.clubs[seller].manager.get().map_or(0.5, |m| crate::boardroom::tendency(w, w.staff[m].person));
+        1.0 + (gap / 60.0).min(0.3) * (0.4 + 0.6 * taste)
+    } else {
+        1.0
+    };
+    let v = (internal * asking_factor(w, p) * replacement * cash * gamble) as Money;
     if c.contract.release_clause > 0 { v.min(c.contract.release_clause) } else { v }
 }
 
@@ -459,6 +468,8 @@ fn landing_team(w: &World, p: PlayerId, club: ClubId) -> TeamId {
 
 pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fee: Money, contract: Contract) {
     let today = w.date;
+    // He starts settling from where he is now, before the move changes what he knows.
+    crate::adaptation::begin(w, p, seller, buyer);
     remove_from_team(w, p);
     // Leaving the amateur game for a professional club.
     w.youth.leave(p);
@@ -488,6 +499,11 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
     if seller.is_some() {
         w.clubs[seller].market.listed.retain(|&x| x != p);
         w.events.push(today, Visibility::Public, EventKind::Transfer { player: p, from: seller, to: buyer, fee });
+        // The selling club rethinks its squad at once and, with the window open, starts on a replacement (section 3.11).
+        crate::planning::plan(w, seller);
+        if w.nations[w.clubs[seller].nation].season.window_open(today) {
+            crate::deals::pursue(w, seller);
+        }
     }
     let ev = w.events.push(today, Visibility::Public, EventKind::ContractSigned { player: p, club: buyer, wage: contract.wage, until: contract.end, renewal: false });
     w.history.start_spell(p, buyer, today, false, fee);
@@ -506,6 +522,7 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
 
 pub fn execute_loan(w: &mut World, p: PlayerId, loan: Loan) {
     let today = w.date;
+    crate::adaptation::begin(w, p, loan.parent, loan.club);
     remove_from_team(w, p);
     let team = w.clubs[loan.club].first_team();
     w.teams[team].squad.push(p);

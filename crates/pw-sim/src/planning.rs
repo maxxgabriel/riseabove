@@ -35,7 +35,7 @@ pub fn project(ca: f32, pa: f32, age: f32, years: f32) -> f32 {
 }
 
 /// Chance a player with an expiring contract stays: what the club thinks of him, and how old he is.
-fn renewal_chance(status: SquadStatus, age: f32) -> f32 {
+pub fn renewal_chance(status: SquadStatus, age: f32) -> f32 {
     let base = match status {
         SquadStatus::Star => 0.9,
         SquadStatus::Important => 0.85,
@@ -111,6 +111,7 @@ pub fn plan(w: &mut World, club: ClubId) {
     let mut needs: SmallVec<[PlanNeed; 6]> = SmallVec::new();
     let mut sell: SmallVec<[PlayerId; 6]> = SmallVec::new();
     let mut promote: SmallVec<[PlayerId; 4]> = SmallVec::new();
+    let mut counted: Vec<pw_world::deals::CountedOn> = Vec::new();
     // Everyone as the club sees him, for the wage and resale passes.
     let mut seen: Vec<(PlayerId, f32)> = Vec::with_capacity(squad.len());
 
@@ -151,6 +152,7 @@ pub fn plan(w: &mut World, club: ClubId) {
         for &p in prospects.iter().take(2) {
             if promote.len() < 4 {
                 promote.push(p);
+                counted.push(pw_world::deals::CountedOn { club, player: p, date: today, expected: quality - 5.0 });
             }
         }
         let available = members.len() as u8 - injured.min(members.len() as u8);
@@ -280,6 +282,12 @@ pub fn plan(w: &mut World, club: ClubId) {
     for &p in &sell {
         if !w.clubs[club].market.listed.contains(&p) {
             w.clubs[club].market.listed.push(p);
+        }
+    }
+    // The academy players this plan leaned on, to check a year on whether they were ready (section 4.23).
+    for c in counted {
+        if w.deals.counted_on.len() < 4000 && !w.deals.counted_on.iter().any(|x| x.club == c.club && x.player == c.player) {
+            w.deals.counted_on.push(c);
         }
     }
     w.deals.plans.insert(club, SquadPlan { built: today, groups, needs, sell, promote, homegrown_gap, wage_headroom });

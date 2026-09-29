@@ -83,6 +83,8 @@ pub struct Factors {
     pub leadership: f32,
     /// How much resting him now protects him for a bigger match coming soon.
     pub rest_need: f32,
+    /// The manager's plan for bringing a newcomer in keeps him out of the eleven for now, 0..1.
+    pub hold: f32,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -348,6 +350,7 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
                     edge: ((a(Attr::Concentration, 2) + a(Attr::Composure, 3) + a(Attr::Bravery, 4)) / 60.0).clamp(0.0, 1.0),
                     leadership: (leadership / 20.0).clamp(0.0, 1.0),
                     rest_need,
+                    hold: crate::adaptation::hold(w, p),
                 },
                 keeper: c.familiarity[Pos::GK.idx()] >= 12,
                 leadership,
@@ -375,6 +378,8 @@ fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, st: &Style, ct
         - wt.rotation * rotation
         // A bigger match soon rests the players it would cost most (stars first, then anyone who just played).
         - 0.5 * st.rest * f.rest_need
+        // A newcomer being brought in gently: out of the eleven for now, less so in the games that matter most.
+        - 0.9 * f.hold * (1.0 - 0.4 * imp)
         // Caution about injury exposure matters least in the matches that matter most.
         - st.caution * f.risk * (1.15 - imp)
         - st.strictness * f.indiscipline
@@ -503,18 +508,26 @@ pub fn player_sheet(w: &World, p: PlayerId) -> PlayerSheet {
     let h = &w.players.hot[p];
     let c = &w.players.cold[p];
     let person = &w.people[c.person];
+    // A player still settling in brings less to the pitch than his attributes say: his body and clock, his grasp of the system, his head.
+    let (body, execution, mind) = crate::adaptation::effect(w, p);
+    let mut familiarity = c.familiarity;
+    if execution < 1.0 {
+        for f in &mut familiarity {
+            *f = (f32::from(*f) * execution).round() as u8;
+        }
+    }
     PlayerSheet {
         id: p,
         attrs: c.attrs,
         hidden: person.hidden,
         traits: c.traits,
-        familiarity: c.familiarity,
+        familiarity,
         left_foot: c.left_foot,
         right_foot: c.right_foot,
         height: c.height,
         condition: f32::from(h.condition),
-        sharpness: f32::from(h.sharpness),
-        morale: f32::from(h.morale),
+        sharpness: f32::from(h.sharpness) * body,
+        morale: f32::from(h.morale) * mind,
         injury_risk: health::hazard_mult(w, p),
     }
 }

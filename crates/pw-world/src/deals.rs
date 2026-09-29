@@ -191,6 +191,8 @@ pub enum DealEnd {
     Rules,
     WindowClosed,
     Hijacked,
+    /// The seller would only sell once it had a replacement, and the replacement fell through.
+    ReplacementFailed,
 }
 
 impl DealEnd {
@@ -204,6 +206,7 @@ impl DealEnd {
             DealEnd::Rules => "registration rules",
             DealEnd::WindowClosed => "the window closed",
             DealEnd::Hijacked => "another club beat them to it",
+            DealEnd::ReplacementFailed => "the seller's replacement fell through, so it pulled out",
         }
     }
 }
@@ -219,6 +222,70 @@ pub enum DealLine {
     MedicalFailed,
     FeeRenegotiated(Money),
     Ended(DealEnd),
+    /// The seller will only agree once its replacement is signed.
+    AwaitingReplacement(PlayerId),
+    /// The replacement signed, so the seller became flexible.
+    ReplacementSigned,
+    Signalled(Signal),
+}
+
+/// Things one side says to move the other (section 3.14). Never shown as a game, only as their effects and, later, as what turned out true.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Signal {
+    /// The seller says others are bidding.
+    RivalInterest,
+    /// The buyer says its budget is spent.
+    BudgetGone,
+    /// The buyer says it will walk away.
+    WalkAway,
+    /// The buyer takes its time.
+    Delay,
+}
+
+/// Where a piece of information came from, which bounds how far it is believed (section 3.28).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Source {
+    /// The club's own scouts and staff.
+    Own,
+    /// Passed on by a player's agent.
+    Agent,
+    /// Said by the other side in the negotiation.
+    Claim,
+    /// Worked out from what is public (injuries, results, reputation).
+    Inference,
+}
+
+/// What one side thinks the other could pay or accept: a range, never the exact figure (section 3.13).
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct Limit {
+    pub lo: Money,
+    pub hi: Money,
+}
+
+/// A belief about a competing bid, with where it came from and how far it is trusted.
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+pub struct RivalInfo {
+    /// The bidder, if known.
+    pub club: ClubId,
+    /// The fee it is said to have offered, 0 if unstated.
+    pub claimed: Money,
+    pub source: Source,
+    /// 0..1 how much the recipient believes it.
+    pub reliability: f32,
+    pub date: Date,
+    /// For audit and for judging bluffs afterwards: whether a rival bid really existed when this was passed on.
+    pub real: bool,
+}
+
+/// Signals used in one negotiation.
+#[derive(Clone, Copy, Default, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Signals {
+    pub rivals_claimed: bool,
+    pub budget_claimed: Money,
+    pub walked: bool,
+    pub delays: u8,
+    /// Something said was false and the other side found out.
+    pub caught: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -240,6 +307,15 @@ pub struct ClubDeal {
     pub log: Vec<(Date, DealLine)>,
     pub talk: TalkId,
     pub event: EventId,
+    /// The replacement the seller is waiting for before it lets him go (none = not waiting), and since when.
+    pub awaiting: PlayerId,
+    pub awaiting_since: Date,
+    pub signals: Signals,
+    /// What each side believes about the other's limit.
+    pub buyer_thinks_seller_min: Limit,
+    pub seller_thinks_buyer_max: Limit,
+    /// What the buyer has heard about competing bids.
+    pub rival_info: SmallVec<[RivalInfo; 2]>,
 }
 
 impl ClubDeal {
@@ -311,6 +387,19 @@ pub struct Deals {
     pub loans: FxHashMap<PlayerId, LoanTerms>,
     pub pre_contracts: Vec<PreContract>,
     pub trials: Vec<Trial>,
+    /// An exceptional chance each club has noticed outside its plan, and when (section 4.10).
+    pub opportunities: FxHashMap<ClubId, (PlayerId, Date)>,
+    /// Academy players the club counted on being ready, to check later whether they were (section 4.23).
+    pub counted_on: Vec<CountedOn>,
+}
+
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+pub struct CountedOn {
+    pub club: ClubId,
+    pub player: PlayerId,
+    pub date: Date,
+    /// The level the club expected him to have reached.
+    pub expected: f32,
 }
 
 impl Deals {

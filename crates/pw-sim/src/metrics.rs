@@ -45,6 +45,24 @@ pub struct Snapshot {
     pub transfers: u32,
     pub loans: u32,
     pub fees_total: f64,
+    /// Sellers that held a deal until they had a replacement, how many got it, how many collapsed for lack of it (per period).
+    pub chain_waits: u32,
+    pub chain_done: u32,
+    pub chain_failed: u32,
+    /// Bargaining: signals used, and deals in which something said was found to be false.
+    pub signals: u32,
+    pub bluffs_caught: u32,
+    /// Important signings the club talked itself out of, and signings judged in the period.
+    pub cases_declined: u32,
+    pub cases_judged: u32,
+    /// Players settling in now, players whose settling took far too long this period, and plans that failed this period.
+    pub settling: usize,
+    pub struggled: u32,
+    pub plan_failures: u32,
+    /// Clubs' appetite for risk: lowest, mean, highest.
+    pub appetite_min: f32,
+    pub appetite_mean: f32,
+    pub appetite_max: f32,
     pub fee_median: f64,
     pub fee_p90: f64,
     pub fee_max: f64,
@@ -183,6 +201,33 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
             EventKind::ManagerSacked { .. } => s.sackings += 1,
             _ => {}
         }
+    }
+    // Bargaining and the boardroom.
+    for d in w.deals.deals.iter().filter(|d| d.opened >= since || d.log.last().is_some_and(|l| l.0 >= since)) {
+        for (date, line) in &d.log {
+            if *date < since {
+                continue;
+            }
+            match line {
+                pw_world::deals::DealLine::AwaitingReplacement(_) => s.chain_waits += 1,
+                pw_world::deals::DealLine::ReplacementSigned => s.chain_done += 1,
+                pw_world::deals::DealLine::Ended(pw_world::deals::DealEnd::ReplacementFailed) => s.chain_failed += 1,
+                pw_world::deals::DealLine::Signalled(_) => s.signals += 1,
+                _ => {}
+            }
+        }
+        s.bluffs_caught += u32::from(d.signals.caught);
+    }
+    s.settling = w.adaptation.current.len();
+    s.struggled = w.adaptation.done.values().filter(|d| d.struggled && d.date >= since).count() as u32;
+    s.plan_failures = w.events.since(since).iter().filter(|e| matches!(e.kind, EventKind::PlanFailed { .. })).count() as u32;
+    s.cases_declined = w.boardroom.cases.iter().filter(|c| c.state == pw_world::boardroom::CaseState::Declined && c.date >= since).count() as u32;
+    s.cases_judged = w.boardroom.cases.iter().filter(|c| c.outcome.is_some_and(|o| o.date >= since)).count() as u32;
+    if !w.boardroom.appetite.is_empty() {
+        let v: Vec<f32> = w.boardroom.appetite.values().map(|a| a.level).collect();
+        s.appetite_min = v.iter().copied().fold(1.0, f32::min);
+        s.appetite_max = v.iter().copied().fold(0.0, f32::max);
+        s.appetite_mean = v.iter().sum::<f32>() / v.len() as f32;
     }
     s.fees_total = fees.iter().sum();
     s.fee_median = pct(&mut fees.clone(), 0.5).unwrap_or(0.0);
@@ -360,10 +405,10 @@ fn money(v: f64) -> String {
 /// A plain-text table of the run, one row per year.
 pub fn render(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  active  first  resv  youth  adult<1st  free  amat  sqd  sqdMax  age  meanCA  balMed   revMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
+    s.push_str("year  active  first  resv  youth  adult<1st  free  amat  sqd  sqdMax  age  meanCA  balMed   revMed   inDebt  wage/rev  wageMed  fee50  fee90   feeMax  settle(n/s) planfail chain(w/d/f) sig  apt(min/mean/max)  xfers  loans  retire  intake  fame99  famSat  mgrs(u)  saveMB\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>5} {:>5.1} {:>6} {:>4.1} {:>7.1} {:>7} {:>8} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
+            "{:>4} {:>7} {:>6} {:>5} {:>6} {:>9} {:>5} {:>5} {:>5.1} {:>6} {:>4.1} {:>7.1} {:>7} {:>8} {:>7} {:>8.2} {:>8} {:>6} {:>6} {:>8} {:>6}/{:<4} {:>8} {:>3}/{}/{} {:>4} {:>4.2}/{:.2}/{:.2} {:>6} {:>6} {:>7} {:>7} {:>7.0} {:>6.1}% {:>4}({:<3}) {:>7.1}\n",
             r.year,
             r.active_players,
             r.in_first_teams,
@@ -384,6 +429,16 @@ pub fn render(run: &[Snapshot]) -> String {
             money(r.fee_median),
             money(r.fee_p90),
             money(r.fee_max),
+            r.settling,
+            r.struggled,
+            r.plan_failures,
+            r.chain_waits,
+            r.chain_done,
+            r.chain_failed,
+            r.signals,
+            r.appetite_min,
+            r.appetite_mean,
+            r.appetite_max,
             r.transfers,
             r.loans,
             r.retirements,

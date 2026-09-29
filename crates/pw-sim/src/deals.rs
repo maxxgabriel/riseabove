@@ -68,13 +68,57 @@ pub fn shortlists(w: &mut World) {
                 let grade = w.scouting.of(club, p).last().map_or(3.0, |r| f32::from(r.grade));
                 let youth = if w.age(p) <= 23 { (pa - ca).max(0.0) * 0.3 } else { 0.0 };
                 let available = if w.market.requests.contains_key(&p) || w.market.listed.contains_key(&p) { 4.0 } else { 0.0 };
-                let score = ca + youth + (grade - 3.0) * 4.0 + crate::managers::wants(w, club, p) * 6.0 + available - band * 0.15 - (price as f32 / 1e6).sqrt();
+                // Suits the way this manager wants to play (section 4.11), and how long until he is useful (section 4.22).
+                let fit = crate::dossier::system_fit(w, club, p) * 5.0;
+                let wait = (crate::adaptation::quick_weeks(w, p, club) / 26.0).min(1.0) * crate::adaptation::impatience(w, club, p) * 8.0;
+                let score = ca + youth + (grade - 3.0) * 4.0 + crate::managers::wants(w, club, p) * 6.0 + available + fit - wait - band * 0.15 - (price as f32 / 1e6).sqrt();
                 cands.push((p, score));
             }
             cands.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
             let targets: SmallVec<[(PlayerId, f32); 5]> = cands.into_iter().take(5).collect();
             let failures = w.deals.shortlists.get(&(club, need.group)).map_or(0, |s| s.failures);
             w.deals.shortlists.insert((club, need.group), Shortlist { updated: today, targets, failures });
+        }
+        notice_opportunity(w, club);
+    }
+}
+
+/// Outside its plan, a club can still notice a player far better than it expected to afford, priced well under what it thinks he is
+/// worth (section 4.10). Planned and opportunistic recruitment are told apart: this one has no need behind it.
+fn notice_opportunity(w: &mut World, club: ClubId) {
+    let today = w.date;
+    let rep = w.clubs[club].reputation;
+    let ideal = market::ideal_ca(rep);
+    let budget = w.clubs[club].finance.transfer_budget as f32;
+    let mut best: Option<(PlayerId, f32)> = None;
+    for (p, seen) in w.knowledge.known(club).take(400) {
+        if seen.minutes < 300 {
+            continue;
+        }
+        let h = &w.players.hot[p];
+        if h.club == club || h.club.is_none() || h.status != PlayerStatus::Active || w.players.cold[p].loan.is_some() || w.age(p) > 31 {
+            continue;
+        }
+        let (ca, ..) = scouting::view(w, club, p);
+        if ca < ideal + 4.0 {
+            continue;
+        }
+        let price = market::asking_price(w, p) as f32;
+        let fair = market::fair_value(w, club, p) as f32;
+        if price > fair * 0.6 || price > budget * 0.9 {
+            continue;
+        }
+        let bargain = fair - price;
+        if best.is_none_or(|b| bargain > b.1) {
+            best = Some((p, bargain));
+        }
+    }
+    match best {
+        Some((p, _)) => {
+            w.deals.opportunities.insert(club, (p, today));
+        }
+        None => {
+            w.deals.opportunities.remove(&club);
         }
     }
 }
@@ -92,9 +136,22 @@ pub fn pursue(w: &mut World, club: ClubId) -> bool {
             if w.players.hot[p].club == club || w.players.hot[p].status != PlayerStatus::Active {
                 continue;
             }
-            enquire(w, club, p, Some(need.group));
-            return true;
+            if enquire(w, club, p, Some(need.group)) {
+                return true;
+            }
         }
+    }
+    // No need left to work on: an exceptional chance may still be taken.
+    if let Some(&(p, noticed)) = w.deals.opportunities.get(&club)
+        && noticed.days_until(today) <= 30
+        && !w.deals.active(club, p)
+        && !w.market.on_cooldown(club, p, today)
+        && !w.market.talking.contains_key(&p)
+        && w.players.hot[p].club != club
+        && w.players.hot[p].status == PlayerStatus::Active
+    {
+        w.deals.opportunities.remove(&club);
+        return enquire(w, club, p, None);
     }
     false
 }
@@ -126,6 +183,8 @@ fn collapse(w: &mut World, i: usize, why: DealEnd) {
         let x = &mut w.deals.deals[i];
         x.state = DealState::Collapsed;
         x.end = Some(why);
+        // Whatever it was waiting for no longer matters.
+        x.awaiting = PlayerId::NONE;
     }
     log(w, i, DealLine::Ended(why));
     w.market.cooldown.insert((d.buyer, d.player), today.add_days(if why == DealEnd::NotForSale { 150 } else { 60 }));
@@ -134,28 +193,37 @@ fn collapse(w: &mut World, i: usize, why: DealEnd) {
     {
         s.failures = s.failures.saturating_add(1);
     }
+    crate::boardroom::on_collapsed(w, d.buyer, d.player);
     let vis = if matches!(why, DealEnd::NotForSale | DealEnd::SellerRefused) { Visibility::Club(d.buyer) } else { Visibility::Public };
     w.events.push_caused(today, vis, EventKind::DealCollapsed { player: d.player, buyer: d.buyer, seller: d.seller, reason: why }, pw_world::causes![Cause::Event(d.event)]);
 }
 
 /// An enquiry: is the player available, and at roughly what price?
-pub fn enquire(w: &mut World, buyer: ClubId, p: PlayerId, need: Option<PosGroup>) {
+/// Returns whether an approach was made: the club may decide, internally, not to.
+pub fn enquire(w: &mut World, buyer: ClubId, p: PlayerId, need: Option<PosGroup>) -> bool {
     let today = w.date;
     let seller = w.players.hot[p].club;
     if seller.is_none() || seller == buyer {
-        return;
+        return false;
+    }
+    // The buyer opens from its own reading of the player, not from the public estimate.
+    let value = market::fair_value(w, buyer, p);
+    let budget = w.clubs[buyer].finance.transfer_budget;
+    let opening_guess = ((value as f32 * 0.85).min(budget as f32 * 1.1)) as Money;
+    // Whether the club goes ahead is decided by whoever holds the power there, not by the shortlist alone.
+    if !crate::boardroom::consider_target(w, buyer, p, need, opening_guess, budget) {
+        w.market.cooldown.insert((buyer, p), today.add_days(45));
+        return false;
     }
     let causes: Causes = pw_world::causes![Cause::Fact(Fact::Tracking { club: buyer, player: p, minutes: consider::club_tracking(w, buyer, p) })];
     let ev = w.events.push_caused(today, Visibility::Club(seller), EventKind::Interest { player: p, club: buyer }, causes);
     let urg = urgency(w, buyer, need);
-    // The buyer opens from its own reading of the player, not from the public estimate.
-    let value = market::fair_value(w, buyer, p);
-    let budget = w.clubs[buyer].finance.transfer_budget;
     let mut rng = Rng::keyed(&[w.seed, stream::MARKET, u64::from(buyer.0), u64::from(p.0), today.0 as u64]);
     let opening = ((value as f32 * rng.range_f32(0.75, 0.95)).min(budget as f32 * 1.1)) as Money;
     // Poorer clubs spread the cost.
     let instalments = if w.clubs[buyer].finance.balance < opening * 2 { 3 } else { 1 };
     let terms = DealTerms { fee: (opening / 50_000).max(1) * 50_000, instalments, add_ons: SmallVec::new(), sell_on: 0, buyback: 0, loan: None };
+    let (seller_min, buyer_max) = crate::bargaining::initial_limits(w, buyer, seller, p);
     w.deals.deals.push(ClubDeal {
         buyer,
         seller,
@@ -172,7 +240,16 @@ pub fn enquire(w: &mut World, buyer: ClubId, p: PlayerId, need: Option<PosGroup>
         log: vec![(today, DealLine::Enquired)],
         talk: pw_core::TalkId::NONE,
         event: ev,
+        awaiting: PlayerId::NONE,
+        awaiting_since: today,
+        signals: Default::default(),
+        buyer_thinks_seller_min: seller_min,
+        seller_thinks_buyer_max: buyer_max,
+        rival_info: SmallVec::new(),
     });
+    let i = w.deals.deals.len() - 1;
+    crate::bargaining::agent_tip(w, i);
+    true
 }
 
 /// Daily: every deal whose turn has come moves one step.
@@ -232,6 +309,12 @@ fn valuation(w: &World, d: &ClubDeal) -> f64 {
     if w.media.rivalry(d.seller, d.buyer) >= 50 {
         v *= 1.4;
     }
+    // Public facts that raise the buyer's need (injuries in that position) show in the price the seller thinks it can ask.
+    v *= crate::bargaining::buyer_need_premium(w, d);
+    // A seller that has lined up its replacement lets him go for a little less.
+    if d.log.iter().any(|(_, l)| matches!(l, DealLine::ReplacementSigned)) {
+        v *= 0.96;
+    }
     // Close to the deadline a club that wants the money takes less.
     let left = window_days_left(w, d.seller);
     let wants_money = w.market.requests.contains_key(&d.player) || w.market.listed.contains_key(&d.player) || crate::governance::selling_stance(w, d.seller) < 0.9;
@@ -255,7 +338,13 @@ fn seller_turn(w: &mut World, i: usize) {
         collapse(w, i, DealEnd::Hijacked);
         return;
     }
+    // A seller with no cover for a first-choice player lets him go only once it has signed his replacement (section 3.11).
+    if chain_wait(w, i) {
+        return;
+    }
+    let d = w.deals.deals[i].clone();
     let want = valuation(w, &d);
+    crate::bargaining::learn_from_bid(&mut w.deals.deals[i], d.terms.fee);
     if d.terms.value() >= want {
         let x = &mut w.deals.deals[i];
         x.state = DealState::Medical;
@@ -279,7 +368,11 @@ fn seller_turn(w: &mut World, i: usize) {
         _ => 0,
     };
     let buyback = if young && policy == Some(TransferStyle::Homegrown) { (want * 2.5) as Money } else { 0 };
-    let ask = DealTerms { fee: ((want * 1.05) as Money / 50_000).max(1) * 50_000, instalments: d.terms.instalments.min(2), add_ons: SmallVec::new(), sell_on, buyback, loan: None };
+    // The seller may say others are bidding; what it asks then reflects what it believes the buyer can pay, and what the buyer believes it.
+    crate::bargaining::seller_signals(w, i);
+    let d = w.deals.deals[i].clone();
+    let asking = crate::bargaining::seller_ask(w, &d, want);
+    let ask = DealTerms { fee: (asking as Money / 50_000).max(1) * 50_000, instalments: d.terms.instalments.min(2), add_ons: SmallVec::new(), sell_on, buyback, loan: None };
     w.events.push(today, Visibility::Club(d.seller), EventKind::BidRejected { player: d.player, club: d.buyer, fee: d.terms.fee });
     let fee = ask.fee;
     let x = &mut w.deals.deals[i];
@@ -294,6 +387,19 @@ fn buyer_turn(w: &mut World, i: usize) {
     let today = w.date;
     let Some(ask) = d.ask.clone() else { return };
     let urg = urgency(w, d.buyer, d.need);
+    // A buyer in no hurry and with somewhere else to go can take its time; the seller reads that as weakness.
+    {
+        let left = window_days_left(w, d.buyer);
+        let has_other = d.need.and_then(|g| w.deals.shortlists.get(&(d.buyer, g))).is_some_and(|s| s.targets.iter().any(|(q, _)| *q != d.player));
+        let mut rng = Rng::keyed(&[w.seed, stream::MARKET, u64::from(d.buyer.0), u64::from(d.player.0), 0xb3, today.0 as u64]);
+        if has_other && left > 10 && urg < 0.8 && d.signals.delays < 2 && rng.chance(0.25) {
+            let x = &mut w.deals.deals[i];
+            x.signals.delays += 1;
+            x.next = today.add_days(3);
+            x.log.push((today, DealLine::Signalled(pw_world::deals::Signal::Delay)));
+            return;
+        }
+    }
     // The ceiling comes from the buyer's own valuation, its urgency and what else it could do: a buyer with other strong targets
     // can walk away, one whose alternatives are gone pays more (locked design §3.9, §3.12).
     let value = market::fair_value(w, d.buyer, d.player) as f64;
@@ -302,6 +408,9 @@ fn buyer_turn(w: &mut World, i: usize) {
     let fee_band = d.need.and_then(|g| planning::need_detail(w, d.buyer, g)).map_or(w.clubs[d.buyer].finance.transfer_budget, |n| n.fee_band);
     let budget = w.clubs[d.buyer].finance.transfer_budget.max(fee_band) as f64;
     let willing = (value * (1.0 + 0.35 * f64::from(urg)).min(1.6) * leverage).min(budget * 1.1);
+    // What it has heard about rival bids raises the ceiling by how far it believes them.
+    let willing = crate::bargaining::buyer_ceiling(&d, willing).min(budget * 1.15);
+    crate::bargaining::learn_from_counter(&mut w.deals.deals[i], d.terms.fee, ask.fee);
     if ask.value() <= willing {
         let x = &mut w.deals.deals[i];
         x.terms = ask.clone();
@@ -314,10 +423,11 @@ fn buyer_turn(w: &mut World, i: usize) {
         collapse(w, i, DealEnd::BuyerWithdrew);
         return;
     }
-    // Raise, and bridge the gap with structure the budget can bear.
+    // Say something to move the seller, then raise, bridging the gap with structure the budget can bear.
+    crate::bargaining::buyer_signals(w, i, ask.fee, willing, alternatives);
+    let d = w.deals.deals[i].clone();
     let mut t = d.terms.clone();
-    let gap = ask.fee as f64 - t.fee as f64;
-    t.fee = ((t.fee as f64 + gap * 0.5).min(willing) as Money / 50_000).max(1) * 50_000;
+    t.fee = (crate::bargaining::next_bid(&d, ask.fee, willing) as Money / 50_000).max(1) * 50_000;
     if (ask.fee as f64) > budget {
         t.instalments = 3;
     }
@@ -334,6 +444,59 @@ fn buyer_turn(w: &mut World, i: usize) {
     x.urgency = urg;
     x.next = today.add_days(2);
     log(w, i, DealLine::Raised(fee));
+}
+
+/// Whether the seller would be left without a comparable player at his position if he went.
+fn cover_needed(w: &World, d: &ClubDeal) -> bool {
+    let c = &w.players.cold[d.player];
+    if !matches!(c.status, SquadStatus::Star | SquadStatus::Important | SquadStatus::Regular) {
+        return false;
+    }
+    let belief = scouting::view(w, d.seller, d.player).0;
+    let group = c.best_pos.group();
+    let team = w.clubs[d.seller].first_team();
+    let cover = w.teams[team].squad.iter().filter(|&&q| q != d.player && w.players.cold[q].best_pos.group() == group && w.players.hot[q].available() && scouting::view(w, d.seller, q).0 >= belief - 6.0).count();
+    cover == 0
+}
+
+/// Replacement chains (section 3.11): the seller will sell once it has a replacement. It starts (or waits on) its own pursuit, and the
+/// deal either accelerates when that lands or falls apart when it does not. Returns true while the deal is being held.
+fn chain_wait(w: &mut World, i: usize) -> bool {
+    let d = w.deals.deals[i].clone();
+    let today = w.date;
+    if d.awaiting.is_some() {
+        let t = d.awaiting;
+        if w.players.hot[t].club == d.seller {
+            let x = &mut w.deals.deals[i];
+            x.awaiting = PlayerId::NONE;
+            log(w, i, DealLine::ReplacementSigned);
+            return false;
+        }
+        let pursuing = w.deals.deals.iter().any(|o| o.buyer == d.seller && o.player == t && o.is_open());
+        if !pursuing || d.awaiting_since.days_until(today) > 21 {
+            collapse(w, i, DealEnd::ReplacementFailed);
+            return true;
+        }
+        w.deals.deals[i].next = today.add_days(3);
+        return true;
+    }
+    // Once the wait is over (or was never needed) the deal is not held again.
+    if d.log.iter().any(|(_, l)| matches!(l, DealLine::ReplacementSigned | DealLine::AwaitingReplacement(_))) || !cover_needed(w, &d) {
+        return false;
+    }
+    let group = w.players.cold[d.player].best_pos.group();
+    let existing = w.deals.deals.iter().find(|o| o.buyer == d.seller && o.is_open() && o.need == Some(group)).map(|o| o.player);
+    let target = existing.or_else(|| {
+        let list = w.deals.shortlists.get(&(d.seller, group))?.targets.clone();
+        list.into_iter().map(|(q, _)| q).find(|&q| q != d.player && !w.deals.active(d.seller, q) && !w.market.on_cooldown(d.seller, q, today) && w.players.hot[q].club != d.seller && w.players.hot[q].status == PlayerStatus::Active && enquire(w, d.seller, q, Some(group)))
+    });
+    let Some(t) = target else { return false };
+    let x = &mut w.deals.deals[i];
+    x.awaiting = t;
+    x.awaiting_since = today;
+    x.next = today.add_days(4);
+    log(w, i, DealLine::AwaitingReplacement(t));
+    true
 }
 
 /// The medical: history and body wear can end a deal or cut the fee.
@@ -385,6 +548,8 @@ pub fn on_completed(w: &mut World, p: PlayerId, buyer: ClubId) {
     let Some(i) = w.deals.deals.iter().position(|d| d.player == p && d.buyer == buyer && d.state == DealState::Terms) else { return };
     let d = w.deals.deals[i].clone();
     w.deals.deals[i].state = DealState::Done;
+    crate::bargaining::settle_bluffs(w, i, d.terms.fee);
+    crate::boardroom::on_signed(w, buyer, p, d.terms.fee);
     let n = Money::from(d.terms.instalments.max(1));
     let part = d.terms.fee / n;
     for k in 1..n {

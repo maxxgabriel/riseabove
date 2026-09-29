@@ -38,6 +38,7 @@ pub fn daily(w: &mut World) {
         if crate::deals::honour_pre_contract(w, p) {
             continue;
         }
+        crate::boardroom::on_expiry(w, p);
         release(w, p);
     }
 }

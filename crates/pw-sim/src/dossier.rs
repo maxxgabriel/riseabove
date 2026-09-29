@@ -242,8 +242,37 @@ fn risks(w: &World, club: ClubId, p: PlayerId, ev: &Evidence, age: f32) -> Small
     {
         out.push(Risk { kind: RiskKind::Consistency, level: ((10.5 - b) / 7.0).clamp(0.0, 1.0), known: true });
     }
-    out.truncate(4);
+    // A move from elsewhere: how far it takes him from what he knows, read from public facts and blurred by the staff's own judgement.
+    if w.players.hot[p].club != club && w.players.hot[p].club.is_some() {
+        let r = crate::adaptation::readiness(w, club, p);
+        let worst = r.risks.iter().copied().max().unwrap_or(pw_world::adaptation::Level::Low);
+        if worst >= pw_world::adaptation::Level::Moderate {
+            out.push(Risk { kind: RiskKind::Adaptation, level: if worst == pw_world::adaptation::Level::High { 0.75 } else { 0.4 }, known: r.confidence >= Confidence::Medium });
+        }
+    }
+    out.truncate(5);
     out
+}
+
+/// Whether the player suits the way this club's manager wants to play (section 4.11): pressing, build-up or direct play, read from the
+/// attributes as the club's people see them. -1 (all wrong) .. +1 (made for it).
+pub fn system_fit(w: &World, club: ClubId, p: PlayerId) -> f32 {
+    let Some(m) = w.clubs[club].manager.get() else { return 0.0 };
+    let phil = &w.staff[m].philosophy;
+    let band = w.dossiers.get(club, p).map_or(3.0, |d| d.current.band / 6.0).clamp(0.8, 4.0);
+    let c = &w.players.cold[p];
+    let group = |attrs: &[Attr], salt: u64| -> f32 {
+        // truth-ok: the club reads attributes through its own uncertainty, never directly.
+        attrs.iter().enumerate().map(|(i, &a)| perceive(c.attr(a), band, Observer::Club(club), p, 6000 + salt * 16 + i as u64)).sum::<f32>() / attrs.len() as f32
+    };
+    let press = (f32::from(phil.press) - 50.0) / 50.0;
+    let direct = (f32::from(phil.directness) - 50.0) / 50.0;
+    let tempo = (f32::from(phil.tempo) - 50.0) / 50.0;
+    let engine = (group(&[Attr::Stamina, Attr::WorkRate, Attr::Aggression, Attr::Acceleration], 1) - 10.0) / 10.0;
+    let build = (group(&[Attr::Passing, Attr::Vision, Attr::FirstTouch, Attr::Technique], 2) - 10.0) / 10.0;
+    let aerial = (group(&[Attr::Heading, Attr::JumpingReach, Attr::Strength], 3) - 10.0) / 10.0;
+    let quick = (group(&[Attr::Pace, Attr::Acceleration, Attr::Dribbling], 4) - 10.0) / 10.0;
+    (press * engine + (-direct) * build + direct * aerial * 0.6 + tempo * quick * 0.6).clamp(-1.0, 1.0)
 }
 
 /// The positions he has actually played and trained at, best first (what a club can see, not a hidden best position).

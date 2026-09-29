@@ -540,6 +540,20 @@ pub enum EventKind {
         club: ClubId,
         was_right: bool,
     },
+    /// A club looked back on a signing: how it turned out, and whether the decision or the luck was to blame.
+    /// A plan a club made turned out wrong, and it shows.
+    PlanFailed {
+        club: ClubId,
+        player: PlayerId,
+        kind: crate::boardroom::PlanFailure,
+    },
+    SigningReviewed {
+        player: PlayerId,
+        club: ClubId,
+        verdict: crate::boardroom::Verdict,
+        /// Someone at the club had opposed it and been overruled.
+        overruled: bool,
+    },
     ExamsSat {
         person: PersonId,
         passed: bool,
@@ -969,6 +983,8 @@ impl EventKind {
             | JoinedLocalClub { player, .. }
             | AcademyTrialStarted { player, .. }
             | AssessmentVindicated { player, .. }
+            | SigningReviewed { player, .. }
+            | PlanFailed { player, .. }
             | NationalSquad { player, .. }
             | InternationalDebut { player, .. }
             | ChoseNation { player, .. }
@@ -1103,7 +1119,7 @@ impl EventKind {
                 v.push(buyer);
                 v.push(seller);
             }
-            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } | AssessmentVindicated { club, .. } => v.push(club),
+            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } | AssessmentVindicated { club, .. } | SigningReviewed { club, .. } | PlanFailed { club, .. } => v.push(club),
             PreContractSigned { club, .. } | TrialStarted { club, .. } | TrialEnded { club, .. } | LoanRecalled { club, .. } | OptionExercised { club, .. } => v.push(club),
             _ => {}
         }

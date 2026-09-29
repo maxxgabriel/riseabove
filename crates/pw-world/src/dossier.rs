@@ -83,6 +83,8 @@ pub enum RiskKind {
     Attitude,
     /// Level judged to swing from match to match.
     Consistency,
+    /// A move that takes him a long way from what he knows: climate, clock, football, language, life.
+    Adaptation,
 }
 
 /// A risk the evaluators see. `None` in the dossier's risk list means nothing is flagged; a risk that could not be assessed at all is

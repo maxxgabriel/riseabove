@@ -24,6 +24,7 @@ pub fn add_nation(w: &mut World, code: &str, name: &str, confed: Confed, reputat
         season: NationSeason::default(),
         first_names: Vec::new(),
         last_names: Vec::new(),
+        env: pw_world::nation::inferred_environment(code, confed),
     })
 }
 

@@ -14,12 +14,15 @@ macro_rules! prof {
     }};
 }
 
+pub mod adaptation;
 pub mod affairs;
 pub mod agents;
 pub mod audit;
 pub mod awards;
 pub mod backfill;
+pub mod bargaining;
 pub mod board;
+pub mod boardroom;
 pub mod commerce;
 pub mod consider;
 pub mod contracts;
@@ -180,6 +183,7 @@ impl Sim {
         // 3. Club management and the slow rhythms of life.
         if first_of_month {
             prof!("dossier::monthly", dossier::monthly(w));
+            prof!("boardroom::monthly", boardroom::monthly(w));
             prof!("market::monthly", market::monthly(w));
             prof!("deals::shortlists", deals::shortlists(w));
             prof!("deals::monthly", deals::monthly(w));
@@ -275,6 +279,7 @@ impl Sim {
         if monday {
             prof!("development::weekly", development::weekly(w));
             prof!("medical::weekly", medical::weekly(w));
+            prof!("adaptation::weekly", adaptation::weekly(w));
             prof!("grapevine::feelings", grapevine::feelings(w));
             prof!("incidents::weekly", incidents::weekly(w));
             prof!("newsroom::weekly", newsroom::weekly(w));
