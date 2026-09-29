@@ -56,3 +56,23 @@ fn state_football_feeds_the_pyramid_and_the_state_championship_is_played() {
     let b = pw_sim::invariants::check(w);
     assert!(b.is_empty(), "{b:#?}");
 }
+
+#[test]
+fn a_person_can_begin_anywhere_on_the_route_with_no_special_treatment() {
+    use pw_sim::ecosystem::{Start, begin};
+    let mut s = world(8);
+    let w = &mut s.world;
+    let district = w.ext.ecosystem.regions.iter_enumerated().find(|(_, r)| r.kind == pw_world::ecosystem::RegionKind::District).map(|x| x.0).unwrap();
+    for (i, start) in [Start::SchoolStandout, Start::ReleasedAcademy, Start::UniversityFreshman, Start::UniversityStar, Start::StateLeague, Start::SemiPro].into_iter().enumerate() {
+        let p = begin(w, start, district, i as u64).unwrap_or_else(|| panic!("no place to start {start:?}"));
+        assert_eq!(w.age(p) as i32, start.age());
+        assert!(!w.ext.ecosystem.route(p).is_empty(), "{start:?} left no route");
+        let o = w.players.origin[p];
+        assert_eq!(o.source, pw_world::player::PlayerSource::HumanCreated);
+    }
+    let b = pw_sim::invariants::check(w);
+    assert!(b.is_empty(), "{b:#?}");
+    s.run(120);
+    let b = pw_sim::invariants::check(&s.world);
+    assert!(b.is_empty(), "{b:#?}");
+}

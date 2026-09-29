@@ -14,6 +14,7 @@
 
 use pw_core::rng::stream;
 use pw_core::{ClubId, LocalClubId, PersonId, PlayerId, RegionId, Rng};
+use pw_world::minor::InstKind;
 use pw_world::ecosystem::{Pool, PlayerStory, Provider, RegionKind, Stage, StageKind, POOL_FIRST_AGE};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::player::PlayerSource;
@@ -263,17 +264,22 @@ fn pools(w: &mut World, year: i32, first: bool) {
     }
 }
 
-/// A child or young adult leaves the mass and becomes a player with a home, a route and a recorded origin.
-fn materialise(w: &mut World, r: RegionId, reg: &pw_world::ecosystem::Region, age: i32, local: Option<LocalClubId>, source: PlayerSource, rng: &mut Rng) {
-    let today = w.date;
-    let dob = today.add_days(-(age * 365 + rng.range_i32(0, 364)));
-    let years = dob.age_years(today);
+/// Potential and current ability for someone drawn from a region's pool: the same draw for everyone, human or not.
+fn draw_talent(reg: &pw_world::ecosystem::Region, years: f32, rng: &mut Rng) -> (f32, f32) {
     let mut pa = rng.normal_ms(68.0 + 0.06 * reg.culture + 0.05 * reg.coach_density, 20.0);
     if rng.chance(0.004) {
         pa += rng.range_f32(25.0, 60.0);
     }
     let pa = pa.clamp(30.0, 190.0);
     let ca = (pa * crate::generate::ca_share_at(years) * rng.normal_ms(1.0, 0.1)).clamp(8.0, pa);
+    (pa, ca)
+}
+
+/// A child or young adult leaves the mass and becomes a player with a home, a route and a recorded origin.
+fn materialise(w: &mut World, r: RegionId, reg: &pw_world::ecosystem::Region, age: i32, local: Option<LocalClubId>, source: PlayerSource, rng: &mut Rng) {
+    let today = w.date;
+    let dob = today.add_days(-(age * 365 + rng.range_i32(0, 364)));
+    let (pa, ca) = draw_talent(reg, dob.age_years(today), rng);
     let pos = crate::generate::random_position(rng);
     let np = NewPlayer { nation: reg.nation, dob, pos, ca, pa: pa as u8, club: ClubId::NONE, team: pw_core::TeamId::NONE, contract: Contract::default(), source };
     let p = spawn_player(w, np, rng);
@@ -524,4 +530,122 @@ pub fn metrics(w: &World) -> DevMetrics {
         camp_called: e.camp.len(),
         state_titles: e.tournament_titles.len(),
     }
+}
+
+// ---------------------------------------------------------------------------
+// Starting somewhere else on the route (for a person a human will inhabit)
+// ---------------------------------------------------------------------------
+
+/// Where on the route a new person begins. Talent is never chosen: it is drawn from the region's
+/// pool like everyone's, and hidden. Everything after the start follows the ordinary systems.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Start {
+    /// Fifteen or sixteen, standing out at a school in the district.
+    SchoolStandout,
+    /// Eighteen, released by an academy near home.
+    ReleasedAcademy,
+    /// Eighteen, just arrived at a university on a tuition scholarship.
+    UniversityFreshman,
+    /// Twenty-one, three years into a university place.
+    UniversityStar,
+    /// Twenty, playing in the state's premier league.
+    StateLeague,
+    /// Twenty-two, in the national fourth tier.
+    SemiPro,
+}
+
+impl Start {
+    pub const fn age(self) -> i32 {
+        match self {
+            Start::SchoolStandout => 16,
+            Start::ReleasedAcademy | Start::UniversityFreshman => 18,
+            Start::StateLeague => 20,
+            Start::UniversityStar => 21,
+            Start::SemiPro => 22,
+        }
+    }
+}
+
+/// Create a person at a place on the route, in the given district (or the first district if none is given).
+/// Returns `None` if the world has no suitable place (no school, university or club there).
+pub fn begin(w: &mut World, start: Start, region: RegionId, salt: u64) -> Option<PlayerId> {
+    if !w.ext.ecosystem.is_configured() {
+        return None;
+    }
+    let today = w.date;
+    let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, 0x57a27, salt]);
+    let region = if region.is_some() { region } else { RegionId(w.ext.ecosystem.regions.iter_enumerated().find(|(_, r)| r.kind == RegionKind::District)?.0.0) };
+    let reg = w.ext.ecosystem.regions[region].clone();
+    let state = w.ext.ecosystem.state_of(region);
+    let age = start.age();
+    let dob = today.add_days(-(age * 365 + rng.range_i32(0, 364)));
+    let (pa, ca) = draw_talent(&reg, dob.age_years(today), &mut rng);
+    let pos = crate::generate::random_position(&mut rng);
+    let base = |club, team, contract| NewPlayer { nation: reg.nation, dob, pos, ca, pa: pa as u8, club, team, contract, source: PlayerSource::HumanCreated };
+    // The club of a given league tier nearest the region's state.
+    let club_in = |w: &World, min_tier: u8, max_tier: u8| -> Option<ClubId> {
+        w.clubs
+            .iter_enumerated()
+            .filter(|(id, c)| {
+                let l = c.league;
+                l.is_some() && (min_tier..=max_tier).contains(&w.comps[l].tier) && w.comps[l].team_kind == pw_world::TeamKind::First && w.ext.ecosystem.state_of(w.ext.ecosystem.region_of_club(*id)) == state
+            })
+            .map(|(id, _)| id)
+            .next()
+    };
+    let p = match start {
+        Start::StateLeague | Start::SemiPro => {
+            let (lo, hi) = if start == Start::StateLeague { (50, 51) } else { (4, 4) };
+            let club = club_in(w, lo, hi)?;
+            let team = w.clubs[club].first_team();
+            let contract = Contract { club, kind: pw_world::contract::ContractKind::Professional, wage: 0, start: today, end: today.add_months(24), yearly_rise: 3, ..Default::default() };
+            let p = spawn_player(w, base(club, team, contract), &mut rng);
+            let wage = crate::market::wage_demand(w, p, club);
+            w.players.cold[p].contract.wage = wage;
+            p
+        }
+        _ => {
+            let p = spawn_player(w, base(ClubId::NONE, pw_core::TeamId::NONE, Contract::default()), &mut rng);
+            w.players.hot[p].status = PlayerStatus::Amateur;
+            p
+        }
+    };
+    let who = w.players.cold[p].person;
+    w.ext.ecosystem.story.insert(p, PlayerStory { home: region, dev: region, provider: Provider::Community, found_by: PersonId::NONE, found_club: ClubId::NONE, found_on: today });
+    let place = |w: &mut World, kind: InstKind| -> Option<u32> {
+        let mut c: Vec<(f32, u32)> = w.ext.ecosystem.inst.iter().filter(|(i, _)| w.minor.institutions[**i as usize].kind == kind).map(|(i, pr)| (w.ext.ecosystem.travel_burden(region, pr.region), *i)).collect();
+        c.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+        c.first().map(|x| x.1)
+    };
+    match start {
+        Start::SchoolStandout => {
+            let s = place(w, InstKind::School)?;
+            w.minor.join(p, s);
+            w.youth.school.insert(who, pw_world::youth::School::default());
+            note(w, p, StageKind::School, s);
+        }
+        Start::ReleasedAcademy => {
+            let mut academies: Vec<(f32, ClubId)> = w.youth.academies.keys().map(|&c| (w.ext.ecosystem.travel_burden(region, w.ext.ecosystem.region_of_club(c)), c)).collect();
+            academies.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+            let club = academies.first()?.1;
+            w.players.cold[p].youth_club = club;
+            w.youth.released.entry(p).or_default().push(pw_world::youth::Release { club, date: today.add_days(-60), age: 17 });
+            w.ext.ecosystem.stages.entry(p).or_default().push(Stage { date: today.add_days(-365 * 3), kind: StageKind::Academy, target: club.0, region });
+            w.ext.ecosystem.stages.entry(p).or_default().push(Stage { date: today.add_days(-60), kind: StageKind::Released, target: club.0, region });
+            w.players.hot[p].morale = 35;
+        }
+        Start::UniversityFreshman | Start::UniversityStar => {
+            let u = place(w, InstKind::University)?;
+            w.minor.join(p, u);
+            let year = today.year() - if start == Start::UniversityStar { 2 } else { 0 };
+            w.minor.enrolled.insert(p, year);
+            w.ext.ecosystem.scholarship.insert(p, pw_world::ecosystem::Scholarship { inst: u, tier: if start == Start::UniversityStar { 2 } else { 1 }, from: today });
+            let r = w.ext.ecosystem.inst[&u].region;
+            set_dev_region(w, p, r);
+            note(w, p, StageKind::University, u);
+        }
+        Start::StateLeague | Start::SemiPro => note(w, p, if start == Start::SemiPro { StageKind::SemiPro } else { StageKind::StateLeague }, w.players.hot[p].club.0),
+    }
+    crate::life::sync(w);
+    Some(p)
 }
