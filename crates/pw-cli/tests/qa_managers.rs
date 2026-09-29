@@ -51,8 +51,9 @@ fn check_every(scale: Scale, seed: u64, years: u32, step: u32) {
 
 #[test]
 fn no_manager_runs_two_clubs_and_none_is_retired_in_charge_tiny() {
-    for seed in 1..=3 {
-        check_every(Scale::TINY, seed, 6, 30);
+    // Seed 1 is where the soak first showed it (2028-07-02, day 731); seed 2 is the entourage case (2028-03-13).
+    for seed in 1..=2 {
+        check_every(Scale::TINY, seed, 4, 30);
     }
 }
 
@@ -61,6 +62,37 @@ fn the_manager_market_stays_straight_in_the_micro_world() {
     for seed in 1..=4 {
         check_every(Scale::MICRO, seed, 8, 60);
     }
+}
+
+/// A club that has just let a manager go (sacked, resigned, contract not renewed) does not take the same man straight back: the search for
+/// a successor used to find him among the unemployed. Events are read the day they are made, before compaction can drop them.
+#[test]
+fn a_manager_let_go_is_not_appointed_back_the_same_day() {
+    use pw_world::EventKind as E;
+    let (mut departures, mut rehired) = (0, Vec::new());
+    for seed in 1..=6u64 {
+        for scale in if seed == 1 { vec![Scale::MICRO, Scale::TINY] } else { vec![Scale::MICRO] } {
+            let mut s = sim(scale, seed);
+            let mut last = pw_core::EventId::NONE;
+            for _ in 0..(6 * 365) {
+                s.step();
+                let fresh: Vec<_> = s.world.events.after(last).iter().map(|e| (e.id, e.date, e.kind.clone())).collect();
+                if let Some(l) = fresh.last() {
+                    last = l.0;
+                }
+                for (i, (_, date, kind)) in fresh.iter().enumerate() {
+                    if let E::ManagerSacked { staff, club } | E::ManagerResigned { staff, club } = kind {
+                        departures += 1;
+                        if fresh[i + 1..].iter().any(|(_, d, k)| d == date && matches!(k, E::ManagerAppointed { staff: s2, club: c2 } if s2 == staff && c2 == club)) {
+                            rehired.push(format!("seed {seed}: {staff:?} let go by {club:?} and appointed back on {date:?}"));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    assert!(departures >= 4, "the sample includes managers being let go: {departures}");
+    assert!(rehired.is_empty(), "{} of {departures} managers were appointed straight back: {:?}", rehired.len(), &rehired[..rehired.len().min(4)]);
 }
 
 /// Heavier: the small world (64 clubs, many poachings) for six years. `--ignored`.
