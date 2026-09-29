@@ -24,7 +24,9 @@ use pw_core::rng::{Rng, stream};
 use pw_core::{ClubId, CompId, Date, LocalClubId, NationId, RegionId, TeamId};
 use pw_data::DataPack;
 use pw_world::contract::ContractKind;
-use pw_world::ecosystem::{Association, Climate, InstProfile, PlayerStory, Provider, Region, RegionKind};
+use pw_world::ecosystem::{Association, Climate, InstProfile, PlayerStory, Provider, Region, RegionKind, StageKind};
+use pw_world::pathway::{Creation, Draw};
+use pw_world::scenario::{CalEvent, CalRule, DataOrigin, MarketDef, RecognitionTuning, ScoutingTuning};
 use pw_world::minor::{InstKind, Institution};
 use pw_world::nation::Confed;
 use pw_world::youth::{LocalClub, LocalLevel};
@@ -44,6 +46,28 @@ struct Pack {
     university: Vec<UniRow>,
     club: Vec<ClubRow>,
     eligibility: Option<EligRow>,
+    /// Tuning of how evidence becomes recognition (initial values; see `pw_world::scenario`).
+    recognition: Option<RecognitionTuning>,
+    scouting: Option<ScoutingTuning>,
+    #[serde(default)]
+    calendar: Vec<CalRow>,
+    #[serde(default)]
+    market: Vec<MarketRow>,
+}
+
+#[derive(Deserialize)]
+struct CalRow {
+    event: String,
+    months: Vec<u8>,
+    #[serde(default)]
+    day: u8,
+}
+
+#[derive(Deserialize)]
+struct MarketRow {
+    key: String,
+    nations: Vec<String>,
+    start: f32,
 }
 
 #[derive(Deserialize)]
@@ -189,6 +213,21 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
             .collect();
         w.ext.ecosystem.lang_names = pools;
     }
+    // The scenario's own tuning and calendar: generic code implements the concepts, this pack configures them.
+    {
+        let sc = &mut w.ext.scenario;
+        sc.source = "data/worlds/india/pack.toml".into();
+        if let Some(r) = &data.recognition {
+            sc.recognition = r.clone();
+        }
+        if let Some(s) = &data.scouting {
+            sc.scouting = s.clone();
+        }
+        if !data.calendar.is_empty() {
+            sc.calendar = data.calendar.iter().map(|c| CalRule { event: CalEvent::parse(&c.event).unwrap_or_else(|| panic!("india pack: unknown calendar event {}", c.event)), months: c.months.clone(), day: c.day }).collect();
+        }
+        sc.markets = data.market.iter().map(|m| MarketDef { key: m.key.clone(), nations: m.nations.clone(), start: m.start }).collect();
+    }
     let eco = &mut w.ext.ecosystem;
     if let Some(e) = &data.eligibility {
         let bases: Vec<_> = e.bases.iter().filter_map(|b| pw_world::ecosystem::Basis::parse(b)).collect();
@@ -296,7 +335,7 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         lang: u8,
     }
     let mut made: Vec<Made> = Vec::new();
-    let mut spawn = |w: &mut World, rng: &mut Rng, name: &str, city: &str, key: &str, tier: u8, rep: u16, league: CompId, extra: &[TeamKind]| {
+    let mut spawn = |w: &mut World, rng: &mut Rng, name: &str, city: &str, key: &str, tier: u8, rep: u16, league: CompId, extra: &[TeamKind], origin: DataOrigin| {
         let region = district_near(key, city);
         let club = builder::add_club(
             w,
@@ -318,6 +357,7 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         );
         let lang = state_ix(key).map_or(0, |i| states[i].lang);
         w.ext.ecosystem.club_region.insert(club, region);
+        w.ext.scenario.club_origin.insert(club, origin);
         made.push(Made { club, tier, key: key.to_string(), region, rep, lang });
     };
     let big: &[TeamKind] = &[TeamKind::U21, TeamKind::U18];
@@ -334,7 +374,7 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
             4 => (pyramid[3], small),
             _ => (CompId::NONE, big),
         };
-        spawn(&mut w, &mut rng, &c.name, &c.city, &c.state, c.tier, c.rep, league, extra);
+        spawn(&mut w, &mut rng, &c.name, &c.city, &c.state, c.tier, c.rep, league, extra, DataOrigin::ScenarioSeed);
     }
     // Fill each tier from the states' own districts, so divisions are full and every club sits somewhere real.
     let suffix = ["FC", "United", "Athletic", "Sporting", "Rovers"];
@@ -348,7 +388,7 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
             counts[tier] += 1;
             k += 1;
             let extra = if tier <= 3 { big } else { small };
-            spawn(&mut w, &mut rng, &name, d, &s.key, tier as u8, rep, pyramid[tier - 1], extra);
+            spawn(&mut w, &mut rng, &name, d, &s.key, tier as u8, rep, pyramid[tier - 1], extra, DataOrigin::Generated);
         }
     }
     // State leagues: generated district clubs under each state's association.
@@ -362,7 +402,7 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
                 let (dname, _) = &ds[(k + offset) % ds.len()];
                 let name = format!("{dname} {}{}", suffix[(k + offset) % suffix.len()], if k >= ds.len() { format!(" {}", k / ds.len() + 1) } else { String::new() });
                 let rep = rep0.saturating_sub(k as u16 * 25);
-                spawn(&mut w, &mut rng, &name, dname, key, 5, rep, league, if league == *prem { small } else { &[] });
+                spawn(&mut w, &mut rng, &name, dname, key, 5, rep, league, if league == *prem { small } else { &[] }, DataOrigin::Generated);
             }
         }
     }
@@ -407,6 +447,13 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
                 w.people[person].last = l;
                 if !is_foreign {
                     w.ext.ecosystem.story.insert(p, PlayerStory { home: region, dev: region, provider: Provider::Community, found_by: pw_core::PersonId::NONE, found_club: ClubId::NONE, found_on: start });
+                    // Made to populate the first year: recorded as that, with nothing about how he was found or where he learned.
+                    let first_env = match (kind, tier) {
+                        (TeamKind::First, 5) => StageKind::StateLeague,
+                        (TeamKind::First, _) => StageKind::Professional,
+                        _ => StageKind::Academy,
+                    };
+                    w.ext.pathway.created.insert(p, Creation { date: start, region, provider: Provider::Community, institution: None, age: Some(age as u8), first_env, first_finder: pw_core::PersonId::NONE, why: Draw::WorldStart, legacy: false });
                 }
             }
         }
@@ -438,6 +485,7 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
                     extra_teams: &[TeamKind::U18],
                 },
             );
+            w.ext.scenario.club_origin.insert(club, DataOrigin::Generated);
             let target = ability_target(rep);
             let teams: Vec<TeamId> = w.clubs[club].teams.to_vec();
             for t in teams {

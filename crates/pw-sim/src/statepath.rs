@@ -16,6 +16,8 @@ use pw_core::rng::{hash_key, stream};
 use pw_core::{ClubId, CompId, Date, Mentality, NationId, PlayerId, Pos, RegionId, Slot, Tactics, TeamId};
 use pw_match::{Lod, MatchInput, PlayerSheet, TeamSheet, simulate};
 use pw_world::ecosystem::{StageKind, Tournament};
+use pw_world::recog::{Learned, Org};
+use pw_world::scenario::CalEvent;
 use pw_world::event::{EventKind, Visibility};
 use pw_world::knowledge::{Observer, perceive};
 use pw_world::player::{familiarity_factor, raw_ability};
@@ -139,6 +141,11 @@ pub fn season_end(w: &mut World, n: NationId, year: i32) {
         let Some(&(_, home)) = prem.iter().find(|x| x.0 == state) else { continue };
         swap_league(w, t, p, fourth);
         swap_league(w, drop, fourth, home);
+        // Everyone in the promoted squad goes up with the club: that is why each has a step at this level.
+        let up_club = w.teams[t].club;
+        for x in w.teams[t].squad.clone() {
+            crate::ecosystem::why_only(w, x, StageKind::Professional, pw_world::pathway::Why::Promotion { club: up_club });
+        }
         w.clubs[w.teams[t].club].reputation = w.clubs[w.teams[t].club].reputation.saturating_add(150);
         w.clubs[club].reputation = w.clubs[club].reputation.saturating_sub(150);
         w.events.push(w.date, Visibility::Public, EventKind::Promoted { comp: fourth, team: t });
@@ -157,7 +164,7 @@ pub fn eligible_states(w: &World, p: PlayerId) -> Vec<(RegionId, Basis)> {
 }
 
 /// A club's tier in the national pyramid (1 top) or 9 outside it.
-fn tier_of(w: &World, club: ClubId) -> u8 {
+pub(crate) fn tier_of(w: &World, club: ClubId) -> u8 {
     let l = w.clubs[club].league;
     if l.is_some() { w.comps[l].tier } else { 9 }
 }
@@ -178,8 +185,17 @@ fn select_squad(w: &World, state: RegionId, india: NationId, year: i32, fill: bo
         if !crate::eligibility::judge_state(w, p, state, year, fill).eligible {
             continue;
         }
-        // Selectors only pick who they have seen.
-        let seen_p = 0.30 + 0.60 * scouting / 100.0;
+        // Selectors only pick who they know of. They follow their own state's league and its university teams, and remember whom
+        // they watched at district trials and earlier championships; a player none of that reaches is heard of only by report.
+        let looks = crate::recognition::looks_by(w, Org::State(state), p);
+        let in_own_league = h.club.is_some() && w.ext.ecosystem.state_of(w.ext.ecosystem.region_of_club(h.club)) == state;
+        let seen_p = if in_own_league {
+            0.70 + 0.25 * scouting / 100.0
+        } else if looks > 0 {
+            0.45 + 0.05 * f32::from(looks.min(4)) + 0.25 * scouting / 100.0
+        } else {
+            0.08 + 0.25 * scouting / 100.0
+        };
         if (hash_key(&[w.seed, stream::INTL, u64::from(state.0), u64::from(p.0), year as u64, 0x5a1]) % 1000) as f32 / 1000.0 > seen_p {
             continue;
         }
@@ -248,7 +264,7 @@ pub fn daily(w: &mut World) {
         return;
     }
     let today = w.date;
-    if today.month() == 2 && today.day() == 1 && w.ext.ecosystem.tournament.is_none() {
+    if w.ext.scenario.due(CalEvent::StateChampionship, today.month(), today.day()) && w.ext.ecosystem.tournament.is_none() {
         open(w);
     }
     let Some(t) = w.ext.ecosystem.tournament.as_ref() else { return };
@@ -310,6 +326,7 @@ fn open(w: &mut World) {
         for &p in sq {
             w.intl.duty.insert(p);
             crate::ecosystem::note(w, p, StageKind::StateTeam, s.0);
+            crate::recognition::sighted_by(w, Org::State(*s), pw_core::PersonId::NONE, p, Learned::Came);
         }
     }
     let per = 4usize;
@@ -415,7 +432,9 @@ fn play(w: &mut World) {
         {
             let (sa, sb) = (t.squads[a].0, t.squads[b].0);
             let close = if hg.abs_diff(ag) <= 1 { 3.0 } else { 0.0 };
-            let by = if ko { 4.0 } else { 2.0 } + close;
+            // Neighbours' meetings weigh more: the memory of a derby is local. Nothing exists before the first meeting.
+            let near = (1.0 - w.ext.ecosystem.travel_burden(sa, sb) / 0.25).max(0.0);
+            let by = if ko { 4.0 } else { 2.0 } + close + 3.0 * near;
             w.ext.ecosystem.bump_rivalry(sa, sb, by);
         }
         let t = w.ext.ecosystem.tournament.as_mut().unwrap();
@@ -460,6 +479,8 @@ pub(crate) fn notice(w: &mut World, p: PlayerId, minutes: u8) {
         let prob = ((0.10 + 0.05 * scouts).min(0.5)) * (0.45 + 0.55 * sample / (sample + 2.0));
         if (hash_key(&[w.seed, u64::from(c.0), u64::from(p.0), today.0 as u64, 0x5a2]) % 1000) as f32 / 1000.0 < prob {
             w.knowledge.observe(c, p, u16::from(minutes), today);
+            let by = crate::ecosystem::scout_of(w, c).map_or(pw_core::PersonId::NONE, |s| w.staff[s].person);
+            crate::recognition::sighted_by(w, Org::Club(c), by, p, Learned::Watched);
         }
     }
 }
@@ -524,7 +545,7 @@ fn finish(w: &mut World, nation: NationId, year: i32, winner: RegionId, scorers:
         let mut top: Vec<(u16, PlayerId)> = scorers.iter().map(|(&p, &g)| (g, p)).collect();
         top.sort_by(|a, b| b.cmp(a));
         let pool: Vec<PlayerId> = top.into_iter().take(30).map(|x| x.1).collect();
-        crate::ecosystem::foreign_eyes(w, pw_world::ecosystem::Tier::State, &pool);
+        crate::export::eyes(w, pw_world::recog::Segment::League, pw_world::ecosystem::Tier::State, &pool);
     }
     let today = w.date;
     let event = 1u16;

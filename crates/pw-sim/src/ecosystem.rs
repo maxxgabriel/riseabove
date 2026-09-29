@@ -17,7 +17,10 @@ use pw_core::{ClubId, LocalClubId, PersonId, PlayerId, RegionId, Rng};
 use pw_world::minor::InstKind;
 use pw_world::ecosystem::{Pool, PlayerStory, Provider, RegionKind, Stage, StageKind, POOL_FIRST_AGE};
 use pw_world::event::{EventKind, Visibility};
+use pw_world::pathway::{Creation, Draw, Reason, Why};
 use pw_world::player::PlayerSource;
+use pw_world::recog::{Learned, Org, Segment};
+use pw_world::scenario::CalEvent;
 use pw_world::{Contract, PlayerStatus, World};
 use smallvec::SmallVec;
 
@@ -34,12 +37,26 @@ fn nudge(x: &mut f32, target: f32, rate: f32) {
     *x = (*x + rate * (target - *x)).clamp(2.0, 98.0);
 }
 
-/// Record a step on a player's route (no-op in worlds without an ecosystem) and announce it to them.
-pub fn note(w: &mut World, p: PlayerId, kind: StageKind, target: u32) {
+/// Record a step on a player's route with the reason it happened (no-op in worlds without an ecosystem) and announce it to them.
+pub fn note_why(w: &mut World, p: PlayerId, kind: StageKind, target: u32, why: Why) {
     if !w.ext.ecosystem.is_configured() {
         return;
     }
     let today = w.date;
+    {
+        let v = w.ext.pathway.why.entry(p).or_default();
+        if v.len() >= 24 {
+            v.remove(0);
+        }
+        v.push(Reason { date: today, kind, why });
+    }
+    // The first school or university he is placed in is where he first played for an institution.
+    if matches!(kind, StageKind::School | StageKind::University)
+        && let Some(c) = w.ext.pathway.created.get_mut(&p)
+        && c.institution.is_none()
+    {
+        c.institution = Some(target);
+    }
     let region = w.ext.ecosystem.story.get(&p).map_or(RegionId::NONE, |s| s.dev);
     let v = w.ext.ecosystem.stages.entry(p).or_default();
     if v.len() >= 24 {
@@ -48,6 +65,40 @@ pub fn note(w: &mut World, p: PlayerId, kind: StageKind, target: u32) {
     v.push(Stage { date: today, kind, target, region });
     let who = w.players.cold[p].person;
     w.events.push(today, Visibility::Person(who), EventKind::PathwayStep { player: p, kind: kind.code(), target });
+}
+
+/// Keep why something happened without adding a step to the route (a transfer or promotion the club spells already show). Only
+/// for players who have an ecosystem story; nobody else has a pathway to explain.
+pub fn why_only(w: &mut World, p: PlayerId, kind: StageKind, why: Why) {
+    if !w.ext.ecosystem.story.contains_key(&p) {
+        return;
+    }
+    let today = w.date;
+    let v = w.ext.pathway.why.entry(p).or_default();
+    if v.len() >= 24 {
+        v.remove(0);
+    }
+    v.push(Reason { date: today, kind, why });
+}
+
+/// Record a step whose cause is the ordinary one for its kind. Call sites that know a more particular cause use `note_why`.
+pub fn note(w: &mut World, p: PlayerId, kind: StageKind, target: u32) {
+    let region = w.ext.ecosystem.story.get(&p).map_or(RegionId::NONE, |s| s.dev);
+    let why = match kind {
+        StageKind::District => Why::DistrictSelection { district: RegionId(target) },
+        StageKind::StateTeam => Why::StateSelection { state: RegionId(target) },
+        StageKind::NationalCamp => Why::CampCall,
+        StageKind::Academy => Why::AcademyInvite { club: ClubId(target) },
+        StageKind::Released => Why::ReleasedByAcademy { club: ClubId(target) },
+        StageKind::Trial => Why::ProfessionalTrial { club: ClubId(target) },
+        StageKind::University => Why::UniversityScholarship { inst: target, tier: w.ext.ecosystem.scholarship.get(&p).map_or(0, |s| s.tier) },
+        StageKind::SemiPro | StageKind::Professional | StageKind::StateLeague => Why::Signed { club: ClubId(target) },
+        StageKind::Grassroots | StageKind::School | StageKind::StateYouth => {
+            let _ = region;
+            Why::Enrolled
+        }
+    };
+    note_why(w, p, kind, target, why);
 }
 
 /// The first person outside the family to take a player seriously. Only the first counts.
@@ -59,6 +110,11 @@ pub fn note_found(w: &mut World, p: PlayerId, by: PersonId, club: ClubId) {
         s.found_by = by;
         s.found_club = club;
         s.found_on = today;
+        if let Some(c) = w.ext.pathway.created.get_mut(&p)
+            && c.first_finder.is_none()
+        {
+            c.first_finder = by;
+        }
     }
 }
 
@@ -119,7 +175,10 @@ pub fn yearly(w: &mut World) {
         associations(w, year);
         regions(w, year);
         crate::recognition::yearly(w);
-        export_reputation(w);
+        crate::export::yearly(w);
+    }
+    if first {
+        crate::export::seed(w);
     }
     pools(w, year, first);
     rivalries(w, first);
@@ -135,15 +194,10 @@ pub fn yearly(w: &mut World) {
 fn rivalries(w: &mut World, first: bool) {
     let mut states: Vec<RegionId> = w.ext.ecosystem.assoc.keys().copied().collect();
     states.sort();
+    // Rivalries and a region's football culture are memories: they grow out of matches actually played between states (see
+    // `statepath`), and fade without them. Nothing is set at the start; a world begins with neighbours, not enemies.
+    let _ = &states;
     if first {
-        for (i, &a) in states.iter().enumerate() {
-            for &b in &states[i + 1..] {
-                let near = 1.0 - w.ext.ecosystem.travel_burden(a, b) / 0.25;
-                if near > 0.0 {
-                    w.ext.ecosystem.bump_rivalry(a, b, 12.0 * near);
-                }
-            }
-        }
         return;
     }
     for v in w.ext.ecosystem.rivalry.values_mut() {
@@ -291,13 +345,13 @@ fn pools(w: &mut World, year: i32, first: bool) {
         for (age, k) in wanted {
             for _ in 0..k {
                 let target = if grass.is_empty() { None } else { Some(grass[rng.index(grass.len())]) };
-                materialise(w, r, &reg, age as i32, target, PlayerSource::RegionalPool, &mut rng);
+                materialise(w, r, &reg, age as i32, target, PlayerSource::RegionalPool, first, &mut rng);
             }
         }
         for _ in 0..late {
             let target = if amateur.is_empty() { None } else { Some(amateur[rng.index(amateur.len())]) };
             let age = rng.range_i32(18, 24);
-            materialise(w, r, &reg, age, target, PlayerSource::LateEntry, &mut rng);
+            materialise(w, r, &reg, age, target, PlayerSource::LateEntry, first, &mut rng);
         }
     }
 }
@@ -314,7 +368,7 @@ fn draw_talent(reg: &pw_world::ecosystem::Region, years: f32, rng: &mut Rng) -> 
 }
 
 /// A child or young adult leaves the mass and becomes a player with a home, a route and a recorded origin.
-fn materialise(w: &mut World, r: RegionId, reg: &pw_world::ecosystem::Region, age: i32, local: Option<LocalClubId>, source: PlayerSource, rng: &mut Rng) {
+fn materialise(w: &mut World, r: RegionId, reg: &pw_world::ecosystem::Region, age: i32, local: Option<LocalClubId>, source: PlayerSource, world_start: bool, rng: &mut Rng) {
     let today = w.date;
     let dob = today.add_days(-(age * 365 + rng.range_i32(0, 364)));
     let (pa, ca) = draw_talent(reg, dob.age_years(today), rng);
@@ -352,6 +406,10 @@ fn materialise(w: &mut World, r: RegionId, reg: &pw_world::ecosystem::Region, ag
     w.ext.ecosystem.story.insert(p, PlayerStory { home: r, dev: r, provider, found_by: PersonId::NONE, found_club: ClubId::NONE, found_on: today });
     let kind = if matches!(provider, Provider::School | Provider::PrivateSchool) { StageKind::School } else { StageKind::Grassroots };
     w.ext.ecosystem.stages.entry(p).or_insert_with(SmallVec::new).push(Stage { date: today, kind, target: r.0, region: r });
+    // How he came to exist: nobody appears unexplained. The institution is filled when a school takes him.
+    let why = if world_start { Draw::WorldStart } else { Draw::Competitive };
+    w.ext.pathway.created.insert(p, Creation { date: today, region: r, provider, institution: None, age: Some(age as u8), first_env: kind, first_finder: PersonId::NONE, why, legacy: false });
+    w.ext.pathway.why.entry(p).or_default().push(Reason { date: today, kind, why: Why::Emerged });
 }
 
 /// A player's route as read back: recorded steps and club spells together, oldest first.
@@ -372,7 +430,7 @@ pub fn route(w: &World, p: PlayerId) -> Vec<(pw_core::Date, StageKind, u32)> {
 // Being seen: district selection, school football, universities, national camps
 // ---------------------------------------------------------------------------
 
-fn scout_of(w: &World, club: ClubId) -> Option<pw_core::StaffId> {
+pub(crate) fn scout_of(w: &World, club: ClubId) -> Option<pw_core::StaffId> {
     let c = &w.clubs[club];
     c.staff.iter().copied().find(|&s| w.staff[s].role == pw_world::StaffRole::HeadOfYouth).or_else(|| c.staff.iter().copied().find(|&s| w.staff[s].role == pw_world::StaffRole::Scout))
 }
@@ -382,12 +440,18 @@ pub fn monthly(w: &mut World) {
     if !w.ext.ecosystem.is_configured() {
         return;
     }
-    match w.date.month() {
-        10 => district_selection(w),
-        1 => university_scouting(w),
-        5 => camps(w),
-        m if m >= 8 || m <= 4 => school_scouting(w),
-        _ => {}
+    crate::recognition::lapse_watches(w);
+    // What happens this month is the scenario's calendar, not the code's: a pack can move district selection or add a camp.
+    let month = w.date.month();
+    for event in w.ext.scenario.due_in_month(month) {
+        match event {
+            CalEvent::DistrictSelection => district_selection(w),
+            CalEvent::UniversityScouting => university_scouting(w),
+            CalEvent::NationalCamp => camps(w),
+            CalEvent::SchoolScouting => school_scouting(w),
+            // Daily and yearly events are dispatched by their own passes (`statepath::daily`, `university::yearly`).
+            CalEvent::StateChampionship | CalEvent::UniversityReview => {}
+        }
     }
 }
 
@@ -418,7 +482,8 @@ fn district_selection(w: &mut World) {
         let mut cands: Vec<(f32, PlayerId)> = by_district[&r]
             .iter()
             .filter_map(|&p| {
-                let sponsor = w.ext.ecosystem.repute.get(&p).map_or(0.0, |x| f32::from(x.sponsor.min(3)));
+                // A coach who tells a child to go is believed as much as the selectors believe that coach.
+                let sponsor = 3.0 * crate::recognition::vouch_weight(w, Some(Org::State(state)), p);
                 let attends = 0.06 + 0.40 * (reach / 100.0) * (0.4 + 0.6 * econ) + 0.12 * sponsor + 0.05 * (access / 100.0);
                 if w.roll(stream::YOUTH, &[u64::from(p.0), u64::from(r.0), year as u64, 0xa77]) >= attends.min(0.85) {
                     return None;
@@ -428,15 +493,18 @@ fn district_selection(w: &mut World) {
                 let a = crate::recognition::aspects(w, p);
                 let evidence = 18.0 * crate::recognition::proof(w, p, pw_world::ecosystem::Tier::Grassroots) + 26.0 * crate::recognition::proof(w, p, pw_world::ecosystem::Tier::School);
                 let day = perceive_ca(w, p, sigma * 2.0, 3_000_000 + r.0, 8000 + year as u64);
-                Some((day + evidence + 8.0 * a.maturity + 3.0 * a.sponsor, p))
+                Some((day + evidence + 8.0 * a.maturity + 3.0 * sponsor, p))
             })
             .collect();
         cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-        let picked: Vec<PlayerId> = cands.iter().take(16).map(|&(_, p)| p).collect();
+        let side = usize::from(w.ext.scenario.scouting.district_side);
+        let picked: Vec<PlayerId> = cands.iter().take(side).map(|&(_, p)| p).collect();
         let mean = if picked.is_empty() { 0.0 } else { picked.iter().map(|&p| f32::from(w.players.cold[p].ca)).sum::<f32>() / picked.len() as f32 }; // truth-ok: match performance simulates reality
         let cov = w.ext.ecosystem.regions[r].scouting_coverage / 100.0;
         for &p in &picked {
             note(w, p, StageKind::District, r.0);
+            // The state's selectors watched the district trials: what the state side knows of him starts here.
+            crate::recognition::sighted_by(w, Org::State(state), PersonId::NONE, p, Learned::Came);
             // The district tournament is the right level for a district side: four games of real evidence.
             for g in 0..4u64 {
                 let mut rng = pw_core::Rng::keyed(&[w.seed, stream::YOUTH, u64::from(p.0), year as u64, 0xd1a + g]);
@@ -449,12 +517,13 @@ fn district_selection(w: &mut World) {
             for &club in &academies {
                 let ar = w.ext.ecosystem.region_of_club(club);
                 let near = w.ext.ecosystem.travel_burden(ar, r) < 0.3 || matches!(w.youth.academies[&club].reach, pw_world::youth::Reach::National | pw_world::youth::Reach::International);
-                let p_look = (0.05 + 0.30 * cov) * (0.4 + 1.2 * attn);
+                let st = &w.ext.scenario.scouting;
+                let p_look = (st.district_look_base + st.district_look_coverage * cov) * (0.4 + 1.2 * attn);
                 if near && w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(p.0), year as u64, 0xd15]) < p_look {
                     w.knowledge.observe(club, p, 60, w.date);
-                    crate::recognition::sighted(w, p);
                     if let Some(s) = scout_of(w, club) {
                         let finder = w.staff[s].person;
+                        crate::recognition::sighted_by(w, Org::Club(club), finder, p, Learned::Watched);
                         note_found(w, p, finder, club);
                     }
                 }
@@ -485,7 +554,9 @@ fn school_scouting(w: &mut World) {
             let region = w.ext.ecosystem.inst[&i].region;
             let cov = w.ext.ecosystem.regions[region].scouting_coverage / 100.0;
             let near = (1.0 - 1.5 * w.ext.ecosystem.travel_burden(ar, region)).max(0.0);
-            let p_visit = 0.01 + 0.06 * cov * near;
+            let st = &w.ext.scenario.scouting;
+            let p_visit = st.school_visit_base + st.school_visit_coverage * cov * near;
+            let looks = usize::from(st.looks_per_visit);
             if w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(i), month, w.date.year() as u64, 0x5c0]) >= p_visit {
                 continue;
             }
@@ -498,19 +569,19 @@ fn school_scouting(w: &mut World) {
                 .iter()
                 .copied()
                 .filter(|&p| (12..=18).contains(&w.age(p)))
-                .map(|p| (crate::recognition::attention(w, p, pw_world::ecosystem::Tier::School), p))
+                .map(|p| (crate::recognition::attention_for(w, Some(Org::Club(club)), p, pw_world::ecosystem::Tier::School), p))
                 .collect();
             kids.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-            for (a, p) in kids.into_iter().take(2) {
+            for (a, p) in kids.into_iter().take(looks) {
                 if w.roll(stream::YOUTH, &[u64::from(club.0), u64::from(p.0), month, w.date.year() as u64, 0x5c1]) >= a {
                     continue;
                 }
-                crate::recognition::sighted(w, p);
+                let finder = w.staff[scout].person;
+                crate::recognition::sighted_by(w, Org::Club(club), finder, p, Learned::Watched);
                 w.knowledge.observe(club, p, 30, today);
                 let r = crate::scouting::judge(w, scout, club, p, 300);
                 w.scouting.file(club, p, r);
-                if w.ext.ecosystem.repute.get(&p).is_some_and(|x| x.sightings >= 2) {
-                    let finder = w.staff[scout].person;
+                if crate::recognition::looks_by(w, Org::Club(club), p) >= 2 {
                     note_found(w, p, finder, club);
                 }
             }
@@ -529,9 +600,11 @@ fn university_scouting(w: &mut World) {
         .collect();
     seen.sort();
     seen.dedup();
-    for p in seen {
-        crate::statepath::notice(w, p, 90);
+    for &p in &seen {
+        crate::university::watched_by_clubs(w, p, 90);
     }
+    // University football is barely seen abroad: only a market that already looks at it sends anyone.
+    crate::export::eyes(w, Segment::University, pw_world::ecosystem::Tier::Adult, &seen);
 }
 
 /// May: the national federation's identification camps: a hundred called, then forty, then twenty-five.
@@ -540,16 +613,21 @@ fn camps(w: &mut World) {
     let year = w.date.year();
     let scouting = w.ext.ecosystem.federation.map_or(50.0, |f| f.scouting);
     let sigma = (12.0 - scouting / 10.0).max(3.0);
+    let tuning = w.ext.scenario.scouting.clone();
+    let federation = w.ext.ecosystem.regions.iter().next().map(|r| r.nation);
     let mut cands: Vec<(f32, PlayerId)> = Vec::new();
     for (p, h) in w.players.hot.iter_enumerated() {
-        if h.status == PlayerStatus::Retired || !(14..=17).contains(&w.age(p)) {
+        if h.status == PlayerStatus::Retired || !(tuning.camp_age[0]..=tuning.camp_age[1]).contains(&(w.age(p) as u8)) {
             continue;
         }
         let Some(s) = w.ext.ecosystem.story.get(&p) else { continue };
         // Visible through an academy or youth league; less through a school or district side.
         let vis = if h.club.is_some() { 0.9 } else { 0.35 + 0.4 * w.ext.ecosystem.regions[s.dev].scouting_coverage / 100.0 };
         // Selectors call whom they have heard of: a sighting, a state or district game, an academy place.
-        let on_radar = h.club.is_some() || crate::recognition::best_tier(w, p).is_some_and(|t| t != pw_world::ecosystem::Tier::Grassroots) || w.ext.ecosystem.repute.get(&p).is_some_and(|r| r.sightings >= 1);
+        let on_radar = h.club.is_some()
+            || crate::recognition::best_tier(w, p).is_some_and(|t| t != pw_world::ecosystem::Tier::Grassroots)
+            || federation.is_some_and(|n| crate::recognition::looks_by(w, Org::Federation(n), p) >= 1)
+            || w.ext.ecosystem.repute.get(&p).is_some_and(|r| r.sightings >= 1);
         let seen_p = (0.10 + 0.6 * scouting / 100.0) * vis * if on_radar { 0.4 + 1.2 * crate::recognition::standing(w, p) } else { 0.05 };
         if w.roll(stream::INTL, &[u64::from(p.0), year as u64, 0xca3]) >= seen_p {
             continue;
@@ -557,71 +635,25 @@ fn camps(w: &mut World) {
         cands.push((perceive_ca(w, p, sigma * 2.0, 4_000_000, 9000 + year as u64), p));
     }
     cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-    for (rank, &(_, p)) in cands.iter().take(100).enumerate() {
+    let [first_cut, second_cut, third_cut] = tuning.camp_called.map(usize::from);
+    for (rank, &(_, p)) in cands.iter().take(first_cut).enumerate() {
         w.ext.ecosystem.camp.insert(p, (year, 1));
         note(w, p, StageKind::NationalCamp, 1);
+        if let Some(n) = federation {
+            // The federation's selectors have now seen him in person.
+            crate::recognition::sighted_by(w, Org::Federation(n), PersonId::NONE, p, Learned::Came);
+        }
         // Cuts, on a sharper second and third look.
-        if rank < 40 {
+        if rank < second_cut {
             w.ext.ecosystem.camp.insert(p, (year, 2));
         }
-        if rank < 25 {
+        if rank < third_cut {
             w.ext.ecosystem.camp.insert(p, (year, 3));
         }
     }
     w.ext.ecosystem.camp.retain(|_, (y, _)| *y >= year - 3);
-    let called: Vec<PlayerId> = cands.iter().take(40).map(|x| x.1).collect();
-    foreign_eyes(w, pw_world::ecosystem::Tier::Academy, &called);
-}
-
-/// Yearly: how the world abroad regards the country's players. It follows how the ones who left are doing,
-/// slowly, and never jumps: a few good exports open doors for the next, and nothing else does.
-fn export_reputation(w: &mut World) {
-    let Some(home) = w.ext.ecosystem.regions.iter().next().map(|r| r.nation) else { return };
-    let mut good = 0.0f32;
-    for (p, h) in w.players.hot.iter_enumerated() {
-        if h.status == PlayerStatus::Retired || h.club.is_none() || w.clubs[h.club].nation == home || w.people[w.players.cold[p].person].nation != home {
-            continue;
-        }
-        // How good the players who left look to the world: the market's reading of them, not their hidden ability.
-        good += ((crate::market::public_view(w, p).0 - 90.0) / 40.0).max(0.0);
-    }
-    let target = 10.0 + 65.0 * (1.0 - (-good / 8.0).exp());
-    let e = &mut w.ext.ecosystem.export;
-    *e = if *e <= 0.0 { 12.0 } else { *e + 0.15 * (target - *e) };
-}
-
-/// Clubs abroad send people to the events where Indian players are on show (the state championship, the
-/// national camps). How many come, and whom they notice, follows the country's export reputation and each
-/// player's evidence at that level: a foreign scout at a state game is looking at a handful of players.
-pub fn foreign_eyes(w: &mut World, tier: pw_world::ecosystem::Tier, pool: &[PlayerId]) {
-    let Some(home) = w.ext.ecosystem.regions.iter().next().map(|r| r.nation) else { return };
-    let export = w.ext.ecosystem.export.max(8.0) / 100.0;
-    let year = w.date.year() as u64;
-    let today = w.date;
-    let mut clubs: Vec<ClubId> = w.clubs.iter_enumerated().filter(|(_, c)| c.nation != home && c.reputation >= 3000).map(|(id, _)| id).collect();
-    clubs.sort();
-    for club in clubs {
-        let Some(scout) = scout_of(w, club) else { continue };
-        // Whether this club sends anyone at all.
-        let rep = f32::from(w.clubs[club].reputation) / 10_000.0;
-        if w.roll(stream::INTL, &[u64::from(club.0), year, tier.ix() as u64, 0xf0e]) >= 0.05 + 0.5 * export * (1.0 - 0.5 * rep) {
-            continue;
-        }
-        let mut cands: Vec<(f32, PlayerId)> = pool.iter().copied().filter(|&p| w.age(p) >= 16).map(|p| (crate::recognition::attention(w, p, tier), p)).collect();
-        cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-        for (a, p) in cands.into_iter().take(2) {
-            if w.roll(stream::INTL, &[u64::from(club.0), u64::from(p.0), year, 0xf0f]) >= a {
-                continue;
-            }
-            w.knowledge.observe(club, p, 90, today);
-            let r = crate::scouting::judge(w, scout, club, p, 300);
-            w.scouting.file(club, p, r);
-            if let Some(rep) = w.ext.ecosystem.repute.get_mut(&p) {
-                rep.foreign = rep.foreign.saturating_add(1);
-            }
-            w.ext.ecosystem.foreign_looks += 1;
-        }
-    }
+    let called: Vec<PlayerId> = cands.iter().take(second_cut).map(|x| x.1).collect();
+    crate::export::eyes(w, Segment::Youth, pw_world::ecosystem::Tier::Academy, &called);
 }
 
 /// What being in a national camp is worth when the youth sides are named (not permanent status).
@@ -753,6 +785,14 @@ pub fn begin(w: &mut World, start: Start, region: RegionId, salt: u64) -> Option
     };
     let who = w.players.cold[p].person;
     w.ext.ecosystem.story.insert(p, PlayerStory { home: region, dev: region, provider: Provider::Community, found_by: PersonId::NONE, found_club: ClubId::NONE, found_on: today });
+    let first_env = match start {
+        Start::SchoolStandout => StageKind::School,
+        Start::ReleasedAcademy => StageKind::Academy,
+        Start::UniversityFreshman | Start::UniversityStar => StageKind::University,
+        Start::StateLeague => StageKind::StateLeague,
+        Start::SemiPro => StageKind::SemiPro,
+    };
+    w.ext.pathway.created.insert(p, Creation { date: today, region, provider: Provider::Community, institution: None, age: Some(age as u8), first_env, first_finder: PersonId::NONE, why: Draw::Chosen, legacy: false });
     let place = |w: &mut World, kind: InstKind| -> Option<u32> {
         let mut c: Vec<(f32, u32)> = w.ext.ecosystem.inst.iter().filter(|(i, _)| w.minor.institutions[**i as usize].kind == kind).map(|(i, pr)| (w.ext.ecosystem.travel_burden(region, pr.region), *i)).collect();
         c.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
@@ -763,7 +803,7 @@ pub fn begin(w: &mut World, start: Start, region: RegionId, salt: u64) -> Option
             let s = place(w, InstKind::School)?;
             w.minor.join(p, s);
             w.youth.school.insert(who, pw_world::youth::School::default());
-            note(w, p, StageKind::School, s);
+            note_why(w, p, StageKind::School, s, Why::ChosenStart);
         }
         Start::ReleasedAcademy => {
             let mut academies: Vec<(f32, ClubId)> = w.youth.academies.keys().map(|&c| (w.ext.ecosystem.travel_burden(region, w.ext.ecosystem.region_of_club(c)), c)).collect();
@@ -783,9 +823,9 @@ pub fn begin(w: &mut World, start: Start, region: RegionId, salt: u64) -> Option
             w.ext.ecosystem.scholarship.insert(p, pw_world::ecosystem::Scholarship { inst: u, tier: if start == Start::UniversityStar { 2 } else { 1 }, from: today });
             let r = w.ext.ecosystem.inst[&u].region;
             set_dev_region(w, p, r);
-            note(w, p, StageKind::University, u);
+            note_why(w, p, StageKind::University, u, Why::ChosenStart);
         }
-        Start::StateLeague | Start::SemiPro => note(w, p, if start == Start::SemiPro { StageKind::SemiPro } else { StageKind::StateLeague }, w.players.hot[p].club.0),
+        Start::StateLeague | Start::SemiPro => note_why(w, p, if start == Start::SemiPro { StageKind::SemiPro } else { StageKind::StateLeague }, w.players.hot[p].club.0, Why::ChosenStart),
     }
     crate::life::sync(w);
     Some(p)

@@ -512,6 +512,7 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
     let ev = w.events.push(today, Visibility::Public, EventKind::ContractSigned { player: p, club: buyer, wage: contract.wage, until: contract.end, renewal: false });
     crate::adaptation::attach_cause(w, p, ev);
     w.history.start_spell(p, buyer, today, false, fee);
+    crate::ecosystem::why_only(w, p, pw_world::ecosystem::StageKind::Professional, if seller.is_some() { pw_world::pathway::Why::Transfer { to: buyer } } else { pw_world::pathway::Why::Signed { club: buyer } });
     w.knowledge.observe(buyer, p, 300, today);
     let requested = w.market.requests.remove(&p).is_some();
     w.market.listed.remove(&p);

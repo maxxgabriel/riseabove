@@ -65,6 +65,9 @@ pub fn compact_reports(w: &mut World) {
         pinned.extend(list.targets.iter().map(|&(player, _)| (club, player)));
     }
     pinned.extend(w.deals.deals.iter().filter(|d| d.is_open()).map(|d| (d.buyer, d.player)));
+    pinned.extend(w.deals.pre_contracts.iter().map(|p| (p.club, p.player)));
+    pinned.extend(w.deals.trials.iter().filter(|t| t.until > w.date).map(|t| (t.club, t.player)));
+    pinned.extend(w.youth.trials.iter().filter(|t| t.until > w.date).map(|t| (t.club, t.player)));
     for assignment in &w.scouting.assignments {
         if assignment.until > w.date && let Brief::Player(player) = assignment.brief {
             pinned.insert((assignment.club, player));
@@ -181,7 +184,14 @@ pub(crate) fn judge(w: &World, s: StaffId, club: ClubId, p: PlayerId, context: u
     let flair = (a(Attr::Flair) + a(Attr::Dribbling) - 20.0) / 10.0 * f32::from(b.flair) * 0.8;
     let home = if person.nation == prof.based { f32::from(b.home) * 0.6 } else { 0.0 };
     let weak_league = if context < 3000 { f32::from(b.context_blind) * 0.8 } else { 0.0 };
-    let skew = physical + flair + home + weak_league;
+    // A young player who has already grown looks better than he is; one who has not looks worse. Scouts who lean on athletic
+    // readings (the same bias as above) lean on this most, and it fades as the others catch up (by nineteen there is no gap).
+    let maturity = {
+        let age = person.dob.age_years(w.date);
+        let gap = ((19.0 - age) / 4.0).clamp(0.0, 1.0);
+        -f32::from(c.bio_offset) * 0.5 * gap * (1.0 + 0.15 * f32::from(b.physical)).max(0.25) // truth-ok: what a scout sees of a boy's build, not his ability
+    };
+    let skew = physical + flair + home + weak_league + maturity;
     let ca = (perceive(f32::from(c.ca), sigma * 6.0, Observer::Person(st.person.0), p, field::CA) + skew).clamp(1.0, 200.0);
     let age = person.dob.age_years(w.date);
     let youth = if age < 21.0 { f32::from(b.youth) * (21.0 - age) * 0.6 } else { 0.0 };

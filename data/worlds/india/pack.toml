@@ -1033,3 +1033,81 @@ bases = ["birth", "club", "institution", "residence"]
 residence_years = 2
 exclude_top_division = true
 one_state_per_year = true
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# Tuning of how being seen works. These are INITIAL VALUES, not football truths: they are read once at world start and any of
+# them may be recalibrated here without touching code (generic code implements the concepts; this pack configures them). The
+# defaults in `pw_world::scenario` are the same numbers, so removing a key falls back to them.
+
+[recognition]
+# What a performance at each level is worth to people deciding who to look at next:
+# grassroots, school, district, adult, academy, state.
+tier_weight = [0.10, 0.28, 0.55, 0.50, 0.70, 1.0]
+half_sample = 8.0          # games at a level before half of what they showed is believed
+game_cap = 1.0             # one game can never count for more than this
+look_gap_days = 10         # two sightings closer than this are one look
+attention_base = -2.9      # chance a scout singles a child out (logit scale): base and how far merit lifts it
+attention_merit = 2.6
+need_base = 0.05           # what an academy needs before inviting a child: base + sq * rep^2 + lin * rep
+need_sq = 0.34
+need_lin = 0.14
+feeder_discount = 0.6      # feeder sides are trusted a little more
+min_games = 6.0
+established_rep = 4500     # academies at or above this want more looks
+looks_established = 3
+looks_other = 2
+gate_above_park = 6500     # reputation from which an academy wants proof above the park
+gate_above_school = 8500   # ... and above school football
+vouch_prior_trust = 0.5    # how far a scout believes a coach with no history, and how far a record moves it
+vouch_record_weight = 0.4
+
+[scouting]
+school_visit_base = 0.01       # a club's chance in a month of visiting a school: base + coverage * nearness
+school_visit_coverage = 0.06
+district_look_base = 0.05      # academy people at a district side: base + coverage * regional scouting coverage
+district_look_coverage = 0.30
+district_side = 16             # players a district picks
+camp_called = [100, 40, 25]    # national camp: called, then kept at the second and third cut
+camp_age = [14, 17]
+foreign_min_rep = 3000         # clubs abroad below this send no one
+foreign_base = 0.05            # chance a market's club comes: base + share * that market's regard for the football on show
+foreign_share = 0.5
+looks_per_visit = 2            # players a scout who has come to watch singles out
+
+# When things happen. months are 1-12; day = 0 means throughout the month (the monthly pass), else on that day only.
+[[calendar]]
+event = "district_selection"
+months = [10]
+
+[[calendar]]
+event = "university_scouting"
+months = [1]
+
+[[calendar]]
+event = "national_camp"
+months = [5]
+
+[[calendar]]
+event = "school_scouting"
+months = [8, 9, 11, 12, 2, 3, 4]
+
+[[calendar]]
+event = "state_championship"
+months = [2]
+day = 1
+
+[[calendar]]
+event = "university_review"
+months = [7]
+
+# Markets abroad: groups of nations whose clubs look at the same things the same way. `start` is the regard (0-100) those clubs
+# begin with for this country's players: a scenario seed, labelled as one. Nations in no market do not look here at all.
+[[market]]
+key = "Spain"
+nations = ["ESP"]
+start = 10.0
+
+[[market]]
+key = "East Asia"
+nations = ["JPN", "KOR"]
+start = 14.0

@@ -102,6 +102,8 @@ pub enum Draw {
     Noticed,
     /// Placed in the world as a person to inhabit.
     Chosen,
+    /// Part of the population a world starts with (drawn to give its first year a past).
+    WorldStart,
     /// A save from before creation was recorded.
     Unrecorded,
 }

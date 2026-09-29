@@ -419,22 +419,22 @@ fn watch(w: &mut World, scout: pw_core::StaffId, club: ClubId, l: LocalClubId) {
     let mut drawn: Vec<(f32, PlayerId)> = members
         .into_iter()
         .map(|p| {
-            let a = crate::recognition::attention(w, p, tier);
+            let a = crate::recognition::attention_for(w, Some(pw_world::recog::Org::Club(club)), p, tier);
             let roll = w.roll(stream::YOUTH, &[u64::from(scout.0), u64::from(p.0), week, 0x3a7]);
             (if roll < a { a } else { 0.0 }, p)
         })
         .filter(|x| x.0 > 0.0)
         .collect();
     drawn.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-    for (_, p) in drawn.into_iter().take(2) {
-        crate::recognition::sighted(w, p);
+    let finder = w.staff[scout].person;
+    for (_, p) in drawn.into_iter().take(usize::from(w.ext.scenario.scouting.looks_per_visit)) {
+        crate::recognition::sighted_by(w, pw_world::recog::Org::Club(club), finder, p, pw_world::recog::Learned::Watched);
         // Part of one match: it takes several looks to add up to enough to invite a child.
         w.knowledge.observe(club, p, 25, today);
         let r = crate::scouting::judge(w, scout, club, p, w.youth.local[l].standing);
         w.scouting.file(club, p, r);
-        // Being noticed once is not being found: a scout has to have seen them more than in passing.
-        if w.ext.ecosystem.repute.get(&p).is_some_and(|r| r.sightings >= 2) {
-            let finder = w.staff[scout].person;
+        // Being noticed once is not being found: this club's scouts have to have seen him more than in passing.
+        if crate::recognition::looks_by(w, pw_world::recog::Org::Club(club), p) >= 2 {
             crate::ecosystem::note_found(w, p, finder, club);
         }
     }
@@ -540,7 +540,13 @@ pub fn start_trial(w: &mut World, club: ClubId, p: PlayerId) {
         return;
     }
     w.youth.trials.push(AcademyTrial { player: p, club, from: today, until: today.add_days(21) });
-    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Trial, club.0);
+    // Why he is here: a coach he was recommended by, when the academy believed that recommendation, or its own scouts' looks.
+    let org = pw_world::recog::Org::Club(club);
+    let why = match w.ext.recog.vouch.get(&p) {
+        Some(v) if crate::recognition::vouch_weight(w, Some(org), p) >= 0.45 => pw_world::pathway::Why::CoachRecommendation { from: v.from },
+        _ => pw_world::pathway::Why::ProfessionalTrial { club },
+    };
+    crate::ecosystem::note_why(w, p, pw_world::ecosystem::StageKind::Trial, club.0, why);
     w.knowledge.observe(club, p, 270, today);
     w.events.push(today, Visibility::Person(w.players.cold[p].person), EventKind::AcademyTrialStarted { player: p, club });
 }
@@ -560,6 +566,8 @@ fn decide_trial(w: &mut World, t: AcademyTrial) {
     let weakest = w.teams[team].squad.iter().map(|&x| judged_potential(w, t.club, x)).fold(f32::MAX, f32::min);
     let take = v >= bar(w, t.club) && (!full || v > weakest + 3.0);
     let who = w.players.cold[p].person;
+    // If a coach's word was behind the trial, how it went is remembered against that coach's side.
+    crate::recognition::referral_outcome(w, pw_world::recog::Org::Club(t.club), p, take);
     if !take {
         if let Some(h) = head_of_youth(w, t.club) {
             let compat = consider::compat(w, who, h);
@@ -590,7 +598,11 @@ fn join_academy(w: &mut World, club: ClubId, team: TeamId, p: PlayerId) {
     w.teams[team].squad.push(p);
     w.history.start_spell(p, club, today, false, 0);
     w.events.push(today, Visibility::Public, EventKind::AcademyJoined { player: p, club });
-    crate::ecosystem::note(w, p, pw_world::ecosystem::StageKind::Academy, club.0);
+    let why = match w.ext.ecosystem.story.get(&p) {
+        Some(s) if s.found_club == club && s.found_by.is_some() => pw_world::pathway::Why::ScoutRecommendation { scout: s.found_by, club },
+        _ => pw_world::pathway::Why::AcademyInvite { club },
+    };
+    crate::ecosystem::note_why(w, p, pw_world::ecosystem::StageKind::Academy, club.0, why);
     let region = w.ext.ecosystem.region_of_club(club);
     crate::ecosystem::set_dev_region(w, p, region);
     if let Some(h) = head_of_youth(w, club) {

@@ -13,8 +13,10 @@
 
 use pw_core::rng::stream;
 use pw_core::{PlayerId, RegionId};
+use pw_core::{ClubId, PersonId};
 use pw_world::ecosystem::{Scholarship, StageKind};
 use pw_world::event::{EventKind, Visibility};
+use pw_world::recog::{Learned, Org};
 use pw_world::knowledge::{Observer, perceive};
 use pw_world::minor::InstKind;
 use pw_core::Hidden;
@@ -76,10 +78,16 @@ pub fn recruit(w: &mut World) {
             let near = (1.0 - 0.8 * w.ext.ecosystem.travel_burden(prof.region, dev)).max(0.05);
             let released = w.youth.released.get(&p).is_some_and(|v| v.iter().any(|r| r.date.days_until(today) <= 400));
             let form = w.players.hot[p].form_avg().map_or(0.0, |f| ((f - 6.6) * 0.15).clamp(-0.1, 0.2));
-            let p_see = ((0.10 + 0.55 * cov) * (0.4 + 0.6 * prof.resources / 100.0) * near + form + if released { 0.25 } else { 0.0 }).clamp(0.0, 0.95);
+            // A university knows a boy through its own people: it has watched him before, or a coach it trusts sent word.
+            let org = Org::Institution(u);
+            let known = if crate::recognition::looks_by(w, org, p) >= 1 { 0.20 } else { 0.0 };
+            let word = 0.30 * crate::recognition::vouch_weight(w, Some(org), p);
+            let p_see = ((0.10 + 0.55 * cov) * (0.4 + 0.6 * prof.resources / 100.0) * near + form + if released { 0.25 } else { 0.0 } + known + word).clamp(0.0, 0.95);
             if w.roll(stream::MINOR, &[u64::from(u), u64::from(p.0), year, 0x5ee]) >= p_see {
                 continue;
             }
+            let how = if word > 0.0 { Learned::Recommended } else { Learned::Watched };
+            crate::recognition::sighted_by(w, org, PersonId::NONE, p, how);
             // What the coaches make of him: a reading, not the truth.
             let sigma = 3.0 + (20.0 - f32::from(inst.coaching)) * 0.4;
             let c = &w.players.cold[p];
@@ -152,9 +160,16 @@ pub fn yearly(w: &mut World) {
     }
     let season = w.date.year() - 1;
     // Scholarships end when studies do.
-    let gone: Vec<PlayerId> = w.ext.ecosystem.scholarship.iter().filter(|(p, s)| w.minor.member_of.get(p) != Some(&s.inst)).map(|(&p, _)| p).collect();
+    let mut gone: Vec<PlayerId> = w.ext.ecosystem.scholarship.iter().filter(|(p, s)| w.minor.member_of.get(p) != Some(&s.inst)).map(|(&p, _)| p).collect();
+    gone.sort();
     for p in gone {
-        w.ext.ecosystem.scholarship.remove(&p);
+        let inst = w.ext.ecosystem.scholarship.remove(&p).map(|s| s.inst);
+        // Nothing is guaranteed: a place is a chance. When it ends, how it went is recorded (a club took him, or nobody did), and the
+        // source that recommended him to this university is trusted a little more or less next time.
+        if let Some(inst) = inst {
+            let signed = w.players.hot[p].club.is_some();
+            crate::recognition::referral_outcome(w, Org::Institution(inst), p, signed);
+        }
     }
     let mut ids: Vec<u32> = w.ext.ecosystem.inst.keys().copied().collect();
     ids.sort();
@@ -193,5 +208,38 @@ pub fn yearly(w: &mut World) {
             i.coaching -= 1;
         }
         i.prestige = (f32::from(prestige) * 0.95 + 0.05 * (400.0 + 6.0 * w.ext.ecosystem.inst[&u].success)).clamp(50.0, 990.0) as u16;
+    }
+}
+
+/// Professional clubs and state selectors watch university football, each through its own people and only where it can reach:
+/// a club's scouts cover the university zone near it (a state, a city), not every campus in the country. A standout is seen by
+/// the clubs whose coverage includes his ground, and by nobody else (the India brief, item 15).
+pub(crate) fn watched_by_clubs(w: &mut World, p: PlayerId, minutes: u8) {
+    let today = w.date;
+    let Some(inst) = w.minor.member_of.get(&p).copied() else { return };
+    let Some(zone) = w.ext.ecosystem.inst.get(&inst).map(|i| i.region) else { return };
+    let sample = crate::recognition::games(w, p, pw_world::ecosystem::Tier::Adult) + crate::recognition::games(w, p, pw_world::ecosystem::Tier::State);
+    let mut clubs: Vec<ClubId> = w.clubs.ids().collect();
+    clubs.sort();
+    for c in clubs {
+        // Only clubs that sign senior players from the amateur game look at it.
+        if crate::statepath::tier_of(w, c) < 2 {
+            continue;
+        }
+        let scouts = w.clubs[c].staff.iter().filter(|&&s| w.staff[s].role == pw_world::StaffRole::Scout).count() as f32;
+        // Covering a zone: near enough to attend, or a club that scouts nationally.
+        let from = w.ext.ecosystem.region_of_club(c);
+        let reach = if from.is_some() && zone.is_some() { (1.0 - 2.5 * w.ext.ecosystem.travel_burden(from, zone)).max(0.0) } else { 0.3 };
+        let prob = ((0.06 + 0.05 * scouts).min(0.4)) * (0.15 + 0.85 * reach) * (0.45 + 0.55 * sample / (sample + 2.0));
+        if (pw_core::rng::hash_key(&[w.seed, u64::from(c.0), u64::from(p.0), today.0 as u64, 0x5a3]) % 1000) as f32 / 1000.0 < prob {
+            w.knowledge.observe(c, p, u16::from(minutes), today);
+            let by = crate::ecosystem::scout_of(w, c).map_or(PersonId::NONE, |s| w.staff[s].person);
+            crate::recognition::sighted_by(w, Org::Club(c), by, p, Learned::Watched);
+        }
+    }
+    // The state's selectors follow the university teams of their own state.
+    let state = w.ext.ecosystem.state_of(zone);
+    if state.is_some() {
+        crate::recognition::sighted_by(w, Org::State(state), PersonId::NONE, p, Learned::Watched);
     }
 }

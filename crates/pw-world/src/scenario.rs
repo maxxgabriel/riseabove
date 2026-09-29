@@ -5,12 +5,15 @@
 //! as it always did. The values are **initial tuning**, not football truths: they are read from the pack at world start and
 //! any of them may be recalibrated without touching code.
 
+use pw_core::ClubId;
 use serde::{Deserialize, Serialize};
 
+use crate::FxHashMap;
 use crate::ecosystem::TIERS;
 
 /// How evidence at each level of football becomes standing, and how much an organisation needs before it acts on a child.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RecognitionTuning {
     /// What a performance at each level is worth to people deciding who to look at next, indexed by `Tier`
     /// (grassroots, school, district, adult, academy, state).
@@ -111,6 +114,7 @@ pub struct CalRule {
 
 /// How much scouting there is and how far it reaches. Probabilities scale with the region's coverage.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ScoutingTuning {
     /// A club's chance in a month of visiting a school: `base + coverage * near`.
     pub school_visit_base: f32,
@@ -158,6 +162,27 @@ pub struct MarketDef {
     pub start: f32,
 }
 
+/// Where a piece of starting data came from. Nothing here is a fact about the real world unless it says `Imported`.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum DataOrigin {
+    /// Verified against a source and imported as such (a database export, a licensed dataset).
+    Imported,
+    /// Named by the scenario's pack as an identity, with its strengths and standing set as starting values: a seed, not a record.
+    ScenarioSeed,
+    /// Made up by the world builder to fill a place the pack does not name.
+    Generated,
+}
+
+impl DataOrigin {
+    pub const fn label(self) -> &'static str {
+        match self {
+            DataOrigin::Imported => "Imported",
+            DataOrigin::ScenarioSeed => "Scenario seed",
+            DataOrigin::Generated => "Generated",
+        }
+    }
+}
+
 /// The tuning and calendar a scenario runs under, and where they came from.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scenario {
@@ -167,11 +192,13 @@ pub struct Scenario {
     pub markets: Vec<MarketDef>,
     /// The pack these values came from, or empty when they are the built-in defaults.
     pub source: String,
+    /// Where each club's starting data came from. A club with no entry (a save that predates this) is of unknown origin, not generated.
+    pub club_origin: FxHashMap<ClubId, DataOrigin>,
 }
 
 impl Default for Scenario {
     fn default() -> Self {
-        Self { recognition: RecognitionTuning::default(), scouting: ScoutingTuning::default(), calendar: default_calendar(), markets: Vec::new(), source: String::new() }
+        Self { recognition: RecognitionTuning::default(), scouting: ScoutingTuning::default(), calendar: default_calendar(), markets: Vec::new(), source: String::new(), club_origin: FxHashMap::default() }
     }
 }
 
@@ -181,7 +208,7 @@ pub fn default_calendar() -> Vec<CalRule> {
         CalRule { event: CalEvent::DistrictSelection, months: vec![10], day: 0 },
         CalRule { event: CalEvent::UniversityScouting, months: vec![1], day: 0 },
         CalRule { event: CalEvent::NationalCamp, months: vec![5], day: 0 },
-        CalRule { event: CalEvent::SchoolScouting, months: vec![8, 9, 10, 11, 12, 1, 2, 3, 4], day: 0 },
+        CalRule { event: CalEvent::SchoolScouting, months: vec![8, 9, 11, 12, 2, 3, 4], day: 0 },
         CalRule { event: CalEvent::StateChampionship, months: vec![2], day: 1 },
         CalRule { event: CalEvent::UniversityReview, months: vec![7], day: 0 },
     ]

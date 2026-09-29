@@ -142,9 +142,24 @@ pub struct Regard {
     pub legacy: bool,
 }
 
+/// An organisation has sent someone to look at a player because it heard about him (buzz), and is watching him over several games
+/// before any judgement forms.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Watch {
+    pub org: Org,
+    pub player: PlayerId,
+    /// The person sent.
+    pub by: PersonId,
+    /// Games still to watch.
+    pub left: u8,
+    pub since: Date,
+}
+
 /// Owned by `pw_sim::recognition` and `pw_sim::foreign`.
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Recog {
+    /// Looks that talk has set going and that are not finished. Buzz starts one; only watching makes evidence.
+    pub watching: Vec<Watch>,
     /// What each organisation has of each player. Sparse: most pairs have nothing.
     pub acquaint: FxHashMap<(Org, PlayerId), Acquaintance>,
     /// Who vouches for a player (one recommendation, the strongest, per player).
