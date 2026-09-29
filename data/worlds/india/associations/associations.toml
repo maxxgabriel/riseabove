@@ -1,0 +1,401 @@
+[meta]
+dataset = "associations"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "AIFF, 32 state/UT associations named in the scenario pack, and the Services and Railways institutional boards."
+gaps = ["Not source-checked: exact official names/abbreviations; associations for Andaman & Nicobar, Lakshadweep and Dadra & Nagar Haveli and Daman & Diu not listed; suspension status of every association unknown."]
+
+[[association]]
+id = "assoc.aiff"
+name = "All India Football Federation"
+abbr = "AIFF"
+kind = "national"
+hq_city = "New Delhi"
+website = "https://www.the-aiff.com"
+aiff_member = false
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "Federation identity is well known; website not fetched in this session." }
+
+[[association]]
+id = "assoc.kfa"
+name = "Kerala Football Association"
+abbr = "KFA"
+kind = "state"
+state = "state.kl"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.ifa"
+name = "Indian Football Association"
+abbr = "IFA"
+kind = "state"
+state = "state.wb"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.gfa"
+name = "Goa Football Association"
+abbr = "GFA"
+kind = "state"
+state = "state.ga"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.fao"
+name = "Football Association of Odisha"
+abbr = "FAO"
+kind = "state"
+state = "state.od"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.fap"
+name = "Football Association of Punjab"
+abbr = "FAP"
+kind = "state"
+state = "state.pb"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source. The scenario pack called it 'Punjab Football Association'; the actual official name must be checked." }
+
+[[association]]
+id = "assoc.fam"
+name = "Football Association of Manipur"
+abbr = "FAM"
+kind = "state"
+state = "state.mn"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.mfa"
+name = "Mizoram Football Association"
+abbr = "MFA"
+kind = "state"
+state = "state.mz"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.mfa-ml"
+name = "Meghalaya Football Association"
+abbr = "MFA-ML"
+kind = "state"
+state = "state.ml"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.ksfa"
+name = "Karnataka State Football Association"
+abbr = "KSFA"
+kind = "state"
+state = "state.ka"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.tnfa"
+name = "Tamil Nadu Football Association"
+abbr = "TNFA"
+kind = "state"
+state = "state.tn"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.wifa"
+name = "Western India Football Association"
+abbr = "WIFA"
+kind = "state"
+state = "state.mh"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source. The scenario pack called it 'Maharashtra Football Association'; the actual official name must be checked." }
+
+[[association]]
+id = "assoc.afa"
+name = "Assam Football Association"
+abbr = "AFA"
+kind = "state"
+state = "state.as"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.fd"
+name = "Football Delhi"
+abbr = "FD"
+kind = "state"
+state = "state.dl"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.jfa"
+name = "Jharkhand Football Association"
+abbr = "JFA"
+kind = "state"
+state = "state.jh"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.nfa"
+name = "Nagaland Football Association"
+abbr = "NFA"
+kind = "state"
+state = "state.nl"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.sfa"
+name = "Sikkim Football Association"
+abbr = "SFA"
+kind = "state"
+state = "state.sk"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.tfa"
+name = "Tripura Football Association"
+abbr = "TFA"
+kind = "state"
+state = "state.tr"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.jkfa"
+name = "Jammu and Kashmir Football Association"
+abbr = "JKFA"
+kind = "state"
+state = "state.jk"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source. The scenario pack called it 'Jammu & Kashmir Football Association'; the actual official name must be checked." }
+
+[[association]]
+id = "assoc.tfa-ts"
+name = "Telangana Football Association"
+abbr = "TFA-TS"
+kind = "state"
+state = "state.ts"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.apfa"
+name = "Andhra Pradesh Football Association"
+abbr = "APFA"
+kind = "state"
+state = "state.ap"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.rfa"
+name = "Rajasthan Football Association"
+abbr = "RFA"
+kind = "state"
+state = "state.rj"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.gsfa"
+name = "Gujarat State Football Association"
+abbr = "GSFA"
+kind = "state"
+state = "state.gj"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.upfa"
+name = "Uttar Pradesh Football Association"
+abbr = "UPFA"
+kind = "state"
+state = "state.up"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.hfa"
+name = "Haryana Football Association"
+abbr = "HFA"
+kind = "state"
+state = "state.hr"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.hpfa"
+name = "Himachal Pradesh Football Association"
+abbr = "HPFA"
+kind = "state"
+state = "state.hp"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.mpfa"
+name = "Madhya Pradesh Football Association"
+abbr = "MPFA"
+kind = "state"
+state = "state.mp"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.ufa"
+name = "Uttarakhand Football Association"
+abbr = "UFA"
+kind = "state"
+state = "state.uk"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.bfa"
+name = "Bihar Football Association"
+abbr = "BFA"
+kind = "state"
+state = "state.br"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.cfa"
+name = "Chhattisgarh Football Association"
+abbr = "CFA"
+kind = "state"
+state = "state.cg"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.apfa-ar"
+name = "Arunachal Pradesh Football Association"
+abbr = "APFA-AR"
+kind = "state"
+state = "state.ar"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.pfa"
+name = "Puducherry Football Association"
+abbr = "PFA"
+kind = "state"
+state = "state.py"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.cfa-ch"
+name = "Chandigarh Football Association"
+abbr = "CFA-CH"
+kind = "state"
+state = "state.ch"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.lfa"
+name = "Ladakh Football Association"
+abbr = "LFA"
+kind = "state"
+state = "state.la"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.sscb"
+name = "Services Sports Control Board"
+abbr = "SSCB"
+kind = "institutional"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.rspb"
+name = "Railway Sports Promotion Board"
+abbr = "RSPB"
+kind = "institutional"
+parent = "assoc.aiff"
+aiff_member = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

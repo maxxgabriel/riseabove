@@ -1,0 +1,7 @@
+[meta]
+dataset = "partnerships"
+quality = "E"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Empty on purpose."
+gaps = ["No development partnership was verified. Real ones exist and must be researched with source and status; none is guessed."]

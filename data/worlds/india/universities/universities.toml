@@ -1,0 +1,238 @@
+[meta]
+dataset = "universities"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "33 real universities from the scenario pack, identity only."
+gaps = ["Football participation, AIU zone, type, facilities and achievements unrecorded.", "Many universities that play AIU football are missing.", "Scholarship counts from the pack are scenario seeds and are not carried here."]
+
+[[university]]
+id = "uni.calicut"
+name = "University of Calicut"
+city = "Malappuram"
+state = "state.kl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.mahatma-gandhi"
+name = "Mahatma Gandhi University"
+city = "Kottayam"
+state = "state.kl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.kerala"
+name = "University of Kerala"
+city = "Thiruvananthapuram"
+state = "state.kl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.kannur"
+name = "Kannur University"
+city = "Kannur"
+state = "state.kl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.adamas"
+name = "Adamas University"
+city = "Kolkata"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.calcutta"
+name = "University of Calcutta"
+city = "Kolkata"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.jadavpur"
+name = "Jadavpur University"
+city = "Kolkata"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.guru-nanak-dev"
+name = "Guru Nanak Dev University"
+city = "Amritsar"
+state = "state.pb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.lovely-professional"
+name = "Lovely Professional University"
+city = "Jalandhar"
+state = "state.pb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.chandigarh"
+name = "Chandigarh University"
+city = "Mohali"
+state = "state.pb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.guru-kashi"
+name = "Guru Kashi University"
+city = "Bathinda"
+state = "state.pb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.panjab"
+name = "Panjab University"
+city = "Chandigarh"
+state = "state.ch"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.iimt"
+name = "IIMT University"
+city = "Meerut"
+state = "state.up"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.aligarh-muslim"
+name = "Aligarh Muslim University"
+city = "Aligarh"
+state = "state.up"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.savitribai-phule-pune"
+name = "Savitribai Phule Pune University"
+city = "Pune"
+state = "state.mh"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.shivaji"
+name = "Shivaji University"
+city = "Kolhapur"
+state = "state.mh"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.mumbai"
+name = "University of Mumbai"
+city = "Mumbai"
+state = "state.mh"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.utkal"
+name = "Utkal University"
+city = "Bhubaneswar"
+state = "state.od"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.kiit"
+name = "KIIT"
+city = "Bhubaneswar"
+state = "state.od"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.madras"
+name = "University of Madras"
+city = "Chennai"
+state = "state.tn"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.annamalai"
+name = "Annamalai University"
+city = "Chidambaram"
+state = "state.tn"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.osmania"
+name = "Osmania University"
+city = "Hyderabad"
+state = "state.ts"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.bengaluru-city"
+name = "Bengaluru City University"
+city = "Bengaluru"
+state = "state.ka"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.goa"
+name = "Goa University"
+city = "Taleigao"
+state = "state.ga"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.rajasthan"
+name = "University of Rajasthan"
+city = "Jaipur"
+state = "state.rj"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.poornima"
+name = "Poornima University"
+city = "Jaipur"
+state = "state.rj"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.delhi"
+name = "University of Delhi"
+city = "New Delhi"
+state = "state.dl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.gauhati"
+name = "Gauhati University"
+city = "Guwahati"
+state = "state.as"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.manipur"
+name = "Manipur University"
+city = "Imphal"
+state = "state.mn"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.mizoram"
+name = "Mizoram University"
+city = "Aizawl"
+state = "state.mz"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.north-eastern-hill"
+name = "North-Eastern Hill University"
+city = "Shillong"
+state = "state.ml"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.sikkim"
+name = "Sikkim University"
+city = "Gangtok"
+state = "state.sk"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }
+
+[[university]]
+id = "uni.pondicherry"
+name = "Pondicherry University"
+city = "Puducherry"
+state = "state.py"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (identity from scenario pack, checked against general knowledge). Type, zone, football participation and any achievements are NOT recorded because they were not verified." }

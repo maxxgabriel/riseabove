@@ -1,0 +1,679 @@
+[meta]
+dataset = "geography.districts"
+quality = "D"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "112 real districts/cities the scenario pack already uses."
+gaps = ["Full district lists per state not compiled (about 780 nationally). Districts absent here must be researched before use."]
+
+[[district]]
+id = "district.kl.thiruvananthapuram"
+state = "state.kl"
+name = "Thiruvananthapuram"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.kl.ernakulam"
+state = "state.kl"
+name = "Ernakulam"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.kl.thrissur"
+state = "state.kl"
+name = "Thrissur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.kl.kozhikode"
+state = "state.kl"
+name = "Kozhikode"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.kl.malappuram"
+state = "state.kl"
+name = "Malappuram"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.kl.kannur"
+state = "state.kl"
+name = "Kannur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.wb.kolkata"
+state = "state.wb"
+name = "Kolkata"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.wb.howrah"
+state = "state.wb"
+name = "Howrah"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.wb.north-24-parganas"
+state = "state.wb"
+name = "North 24 Parganas"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.wb.darjeeling"
+state = "state.wb"
+name = "Darjeeling"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.wb.murshidabad"
+state = "state.wb"
+name = "Murshidabad"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.wb.bardhaman"
+state = "state.wb"
+name = "Bardhaman"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ga.north-goa"
+state = "state.ga"
+name = "North Goa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ga.south-goa"
+state = "state.ga"
+name = "South Goa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.od.khordha"
+state = "state.od"
+name = "Khordha"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.od.cuttack"
+state = "state.od"
+name = "Cuttack"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.od.mayurbhanj"
+state = "state.od"
+name = "Mayurbhanj"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.od.sundargarh"
+state = "state.od"
+name = "Sundargarh"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.od.ganjam"
+state = "state.od"
+name = "Ganjam"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.pb.amritsar"
+state = "state.pb"
+name = "Amritsar"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.pb.jalandhar"
+state = "state.pb"
+name = "Jalandhar"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.pb.ludhiana"
+state = "state.pb"
+name = "Ludhiana"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.pb.mohali"
+state = "state.pb"
+name = "Mohali"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.pb.hoshiarpur"
+state = "state.pb"
+name = "Hoshiarpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mn.imphal-west"
+state = "state.mn"
+name = "Imphal West"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mn.imphal-east"
+state = "state.mn"
+name = "Imphal East"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mn.thoubal"
+state = "state.mn"
+name = "Thoubal"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mn.bishnupur"
+state = "state.mn"
+name = "Bishnupur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mz.aizawl"
+state = "state.mz"
+name = "Aizawl"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mz.lunglei"
+state = "state.mz"
+name = "Lunglei"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mz.champhai"
+state = "state.mz"
+name = "Champhai"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ml.east-khasi-hills"
+state = "state.ml"
+name = "East Khasi Hills"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ml.west-khasi-hills"
+state = "state.ml"
+name = "West Khasi Hills"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ml.jaintia-hills"
+state = "state.ml"
+name = "Jaintia Hills"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ka.bengaluru-urban"
+state = "state.ka"
+name = "Bengaluru Urban"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ka.mysuru"
+state = "state.ka"
+name = "Mysuru"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ka.dakshina-kannada"
+state = "state.ka"
+name = "Dakshina Kannada"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ka.kodagu"
+state = "state.ka"
+name = "Kodagu"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ka.dharwad"
+state = "state.ka"
+name = "Dharwad"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tn.chennai"
+state = "state.tn"
+name = "Chennai"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tn.coimbatore"
+state = "state.tn"
+name = "Coimbatore"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tn.madurai"
+state = "state.tn"
+name = "Madurai"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tn.tiruchirappalli"
+state = "state.tn"
+name = "Tiruchirappalli"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tn.nilgiris"
+state = "state.tn"
+name = "Nilgiris"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mh.mumbai"
+state = "state.mh"
+name = "Mumbai"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mh.pune"
+state = "state.mh"
+name = "Pune"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mh.nagpur"
+state = "state.mh"
+name = "Nagpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mh.kolhapur"
+state = "state.mh"
+name = "Kolhapur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mh.nashik"
+state = "state.mh"
+name = "Nashik"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.as.kamrup-metropolitan"
+state = "state.as"
+name = "Kamrup Metropolitan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.as.dibrugarh"
+state = "state.as"
+name = "Dibrugarh"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.as.cachar"
+state = "state.as"
+name = "Cachar"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.as.nagaon"
+state = "state.as"
+name = "Nagaon"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.dl.new-delhi"
+state = "state.dl"
+name = "New Delhi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.dl.south-delhi"
+state = "state.dl"
+name = "South Delhi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.dl.north-delhi"
+state = "state.dl"
+name = "North Delhi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jh.east-singhbhum"
+state = "state.jh"
+name = "East Singhbhum"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jh.ranchi"
+state = "state.jh"
+name = "Ranchi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jh.simdega"
+state = "state.jh"
+name = "Simdega"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jh.khunti"
+state = "state.jh"
+name = "Khunti"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.nl.kohima"
+state = "state.nl"
+name = "Kohima"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.nl.dimapur"
+state = "state.nl"
+name = "Dimapur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.sk.gangtok"
+state = "state.sk"
+name = "Gangtok"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.sk.namchi"
+state = "state.sk"
+name = "Namchi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tr.west-tripura"
+state = "state.tr"
+name = "West Tripura"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.tr.south-tripura"
+state = "state.tr"
+name = "South Tripura"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jk.srinagar"
+state = "state.jk"
+name = "Srinagar"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jk.anantnag"
+state = "state.jk"
+name = "Anantnag"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.jk.jammu"
+state = "state.jk"
+name = "Jammu"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ts.hyderabad"
+state = "state.ts"
+name = "Hyderabad"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ts.warangal"
+state = "state.ts"
+name = "Warangal"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ts.karimnagar"
+state = "state.ts"
+name = "Karimnagar"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ap.visakhapatnam"
+state = "state.ap"
+name = "Visakhapatnam"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ap.krishna"
+state = "state.ap"
+name = "Krishna"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ap.guntur"
+state = "state.ap"
+name = "Guntur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ap.anantapur"
+state = "state.ap"
+name = "Anantapur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.rj.jaipur"
+state = "state.rj"
+name = "Jaipur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.rj.udaipur"
+state = "state.rj"
+name = "Udaipur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.rj.jodhpur"
+state = "state.rj"
+name = "Jodhpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.rj.ajmer"
+state = "state.rj"
+name = "Ajmer"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.gj.ahmedabad"
+state = "state.gj"
+name = "Ahmedabad"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.gj.surat"
+state = "state.gj"
+name = "Surat"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.gj.vadodara"
+state = "state.gj"
+name = "Vadodara"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.gj.rajkot"
+state = "state.gj"
+name = "Rajkot"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.up.lucknow"
+state = "state.up"
+name = "Lucknow"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.up.varanasi"
+state = "state.up"
+name = "Varanasi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.up.meerut"
+state = "state.up"
+name = "Meerut"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.up.gorakhpur"
+state = "state.up"
+name = "Gorakhpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.up.aligarh"
+state = "state.up"
+name = "Aligarh"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.up.prayagraj"
+state = "state.up"
+name = "Prayagraj"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.hr.gurugram"
+state = "state.hr"
+name = "Gurugram"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.hr.faridabad"
+state = "state.hr"
+name = "Faridabad"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.hr.rohtak"
+state = "state.hr"
+name = "Rohtak"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.hp.shimla"
+state = "state.hp"
+name = "Shimla"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.hp.kangra"
+state = "state.hp"
+name = "Kangra"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mp.bhopal"
+state = "state.mp"
+name = "Bhopal"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mp.indore"
+state = "state.mp"
+name = "Indore"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.mp.jabalpur"
+state = "state.mp"
+name = "Jabalpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.uk.dehradun"
+state = "state.uk"
+name = "Dehradun"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.uk.nainital"
+state = "state.uk"
+name = "Nainital"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.br.patna"
+state = "state.br"
+name = "Patna"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.br.gaya"
+state = "state.br"
+name = "Gaya"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.br.muzaffarpur"
+state = "state.br"
+name = "Muzaffarpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.br.bhagalpur"
+state = "state.br"
+name = "Bhagalpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.cg.raipur"
+state = "state.cg"
+name = "Raipur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.cg.bilaspur"
+state = "state.cg"
+name = "Bilaspur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.cg.bastar"
+state = "state.cg"
+name = "Bastar"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ar.papum-pare"
+state = "state.ar"
+name = "Papum Pare"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ar.tawang"
+state = "state.ar"
+name = "Tawang"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.py.puducherry"
+state = "state.py"
+name = "Puducherry"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.ch.chandigarh"
+state = "state.ch"
+name = "Chandigarh"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }
+
+[[district]]
+id = "district.la.leh"
+state = "state.la"
+name = "Leh"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Real district or city name carried over from the scenario pack; the state's full district list is NOT researched." }

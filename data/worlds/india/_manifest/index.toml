@@ -1,0 +1,114 @@
+[meta]
+dataset = "manifest"
+generated_by = "tools/build_india_reference.py"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "languages/languages.toml"
+researched = "Language list from general knowledge"
+sources = []
+effective = "2026-07-01"
+coverage = "22 languages"
+gaps = ["Not source-checked"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "geography/*.toml"
+researched = "States/UTs from general knowledge; districts carried from pack"
+sources = []
+effective = "2026-07-01"
+coverage = "36 states/UTs, 112 districts"
+gaps = ["Full district list missing"]
+confidence = "C/D"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "associations/associations.toml"
+researched = "Association names from general knowledge"
+sources = []
+effective = "2026-07-01"
+coverage = "36 bodies"
+gaps = ["Names unverified; AN/LD/DN missing"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "competitions/national.toml"
+researched = "National competition list from general knowledge"
+sources = []
+effective = "2026-07-01"
+coverage = "27 competitions"
+gaps = ["Formats/rules unverified"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "clubs/national.toml + competitions/membership.toml"
+researched = "Clubs and tiers carried from the scenario pack"
+sources = []
+effective = "2026-07-01"
+coverage = "46 clubs"
+gaps = ["Participant lists not researched"]
+confidence = "D"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "media/outlets.toml"
+researched = "Outlet list from general knowledge"
+sources = []
+effective = "2026-07-01"
+coverage = "54 outlets"
+gaps = ["Not source-checked", "Local/radio/campus/official club media missing"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "broadcasters/broadcasters.toml"
+researched = "Broadcaster identities only"
+sources = []
+effective = "2026-07-01"
+coverage = "5 platforms"
+gaps = ["Rights unknown"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "universities/universities.toml"
+researched = "University identities from pack"
+sources = []
+effective = "2026-07-01"
+coverage = "33"
+gaps = ["Most AIU universities missing"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "academies/ grassroots/ partnerships/"
+researched = "Small general-knowledge lists"
+sources = []
+effective = "2026-07-01"
+coverage = "9 academies, 3 programmes, 0 partnerships"
+gaps = ["Almost everything"]
+confidence = "C"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "development/ culture/ languages/terminology.toml"
+researched = "Small general-knowledge seeds"
+sources = []
+effective = "2026-07-01"
+coverage = "6 licences, 2 rivalries, 6 terms"
+gaps = ["Referee grades, rules, partnerships empty"]
+confidence = "C/E"
+last_checked = "2026-09-29"
+
+[[dataset]]
+path = "state_leagues/wb.toml"
+researched = "West Bengal leagues (CFL Premier and divisions, IFA Shield, Bengal Super League) researched via search and Wikipedia"
+sources = []
+effective = "2026-07-01"
+coverage = "Premier Division 2025/2026 lineup; lower divisions structure only"
+gaps = ["Lower division participants", "district leagues"]
+confidence = "B"
+last_checked = "2026-09-29"

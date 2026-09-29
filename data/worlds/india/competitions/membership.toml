@@ -1,0 +1,274 @@
+[meta]
+dataset = "competitions.membership"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-29"
+coverage = "Tier membership as seeded by the scenario pack."
+gaps = ["No verified 2025-26 or 2026-27 participant lists."]
+
+[[membership]]
+club = "club.mohun-bagan-sg"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.mohammedan"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.bengaluru"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.kerala-blasters"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.chennaiyin"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.goa"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.jamshedpur"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.mumbai-city"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.northeast-united"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.odisha"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.punjab"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.hyderabad"
+competition = "comp.isl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.inter-kashi"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.churchill-brothers"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.real-kashmir"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.sreenidi-deccan"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.rajasthan-united"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.neroca"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.trau"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.aizawl"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.shillong-lajong"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.delhi"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.dempo"
+competition = "comp.ifl"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.sudeva-delhi"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.kenkre"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.bhawanipore"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.fc-bengaluru-united"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.south-united"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.ara"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.zinc-football-academy"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.rangdajied-united"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.fc-madras"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.pfc-kerala"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.sesa-football-academy"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }
+
+[[membership]]
+club = "club.roots"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Tier is the scenario pack's Day-0 seed, NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Carried over from scenario pack." }

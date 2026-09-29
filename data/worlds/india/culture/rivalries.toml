@@ -1,0 +1,25 @@
+[meta]
+dataset = "culture.rivalries"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Two well-known rivalries only."
+gaps = ["Goa, Mizoram, Manipur and Meghalaya derbies not recorded."]
+
+[[rivalry]]
+id = "rivalry.kolkata-derby"
+name = "Kolkata Derby"
+a = "club.east-bengal"
+b = "club.mohun-bagan-sg"
+kind = "derby"
+basis = "Long-standing rivalry between two Kolkata clubs, widely documented."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[rivalry]]
+id = "rivalry.southern-derby"
+name = "Southern Derby"
+a = "club.bengaluru"
+b = "club.kerala-blasters"
+kind = "rivalry"
+basis = "Rivalry between Bengaluru FC and Kerala Blasters that developed in the ISL era."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

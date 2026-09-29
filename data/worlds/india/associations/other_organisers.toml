@@ -1,0 +1,43 @@
+[meta]
+dataset = "associations.organisers"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Non-AIFF organisers referenced by competitions."
+gaps = ["Names from general knowledge, unverified."]
+
+[[association]]
+id = "assoc.aiu"
+name = "Association of Indian Universities"
+abbr = "AIU"
+kind = "national"
+status = "active"
+aiff_member = false
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.sgfi"
+name = "School Games Federation of India"
+abbr = "SGFI"
+kind = "national"
+status = "active"
+aiff_member = false
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.gov-sports"
+name = "Ministry of Youth Affairs and Sports (Khelo India)"
+abbr = "MYAS"
+kind = "national"
+status = "active"
+aiff_member = false
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[association]]
+id = "assoc.ssb-organiser"
+name = "Subroto Mukerjee Sports Education Society"
+abbr = "SMSES"
+kind = "national"
+status = "active"
+aiff_member = false
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

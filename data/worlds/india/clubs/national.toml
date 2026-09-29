@@ -1,0 +1,421 @@
+[meta]
+dataset = "clubs.national"
+quality = "D"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "46 real clubs carried over from the scenario pack, identity only."
+gaps = ["Founded year, home ground, ownership, city detail, current status unverified.", "Many ISL/IFL/IFL2/IFL3 clubs missing (the pack listed only 44).", "Clubs may have been renamed, relocated, withdrawn or dissolved since the pack was written."]
+
+[[club]]
+id = "club.mohun-bagan-sg"
+name = "Mohun Bagan Super Giant"
+city = "Kolkata"
+state = "state.wb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.east-bengal"
+name = "East Bengal"
+city = "Kolkata"
+state = "state.wb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.mohammedan"
+name = "Mohammedan SC"
+city = "Kolkata"
+state = "state.wb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.bengaluru"
+name = "Bengaluru FC"
+city = "Bengaluru"
+state = "state.ka"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.kerala-blasters"
+name = "Kerala Blasters"
+city = "Kochi"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.chennaiyin"
+name = "Chennaiyin FC"
+city = "Chennai"
+state = "state.tn"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.goa"
+name = "FC Goa"
+city = "Margao"
+state = "state.ga"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.jamshedpur"
+name = "Jamshedpur FC"
+city = "Jamshedpur"
+state = "state.jh"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.mumbai-city"
+name = "Mumbai City FC"
+city = "Mumbai"
+state = "state.mh"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.northeast-united"
+name = "NorthEast United"
+city = "Guwahati"
+state = "state.as"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.odisha"
+name = "Odisha FC"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.punjab"
+name = "Punjab FC"
+city = "Mohali"
+state = "state.pb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.hyderabad"
+name = "Hyderabad FC"
+city = "Hyderabad"
+state = "state.ts"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.inter-kashi"
+name = "Inter Kashi"
+city = "Varanasi"
+state = "state.up"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.churchill-brothers"
+name = "Churchill Brothers"
+city = "Margao"
+state = "state.ga"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.real-kashmir"
+name = "Real Kashmir"
+city = "Srinagar"
+state = "state.jk"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.gokulam-kerala"
+name = "Gokulam Kerala"
+city = "Kozhikode"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.sreenidi-deccan"
+name = "Sreenidi Deccan"
+city = "Hyderabad"
+state = "state.ts"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.rajasthan-united"
+name = "Rajasthan United"
+city = "Jaipur"
+state = "state.rj"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.neroca"
+name = "NEROCA"
+city = "Imphal"
+state = "state.mn"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.trau"
+name = "TRAU FC"
+city = "Imphal"
+state = "state.mn"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.aizawl"
+name = "Aizawl FC"
+city = "Aizawl"
+state = "state.mz"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.shillong-lajong"
+name = "Shillong Lajong"
+city = "Shillong"
+state = "state.ml"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.delhi"
+name = "Delhi FC"
+city = "New Delhi"
+state = "state.dl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.dempo"
+name = "Dempo SC"
+city = "Panaji"
+state = "state.ga"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.sudeva-delhi"
+name = "Sudeva Delhi FC"
+city = "New Delhi"
+state = "state.dl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.kenkre"
+name = "Kenkre FC"
+city = "Mumbai"
+state = "state.mh"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.bhawanipore"
+name = "Bhawanipore FC"
+city = "Kolkata"
+state = "state.wb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.fc-bengaluru-united"
+name = "FC Bengaluru United"
+city = "Bengaluru"
+state = "state.ka"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.south-united"
+name = "South United FC"
+city = "Bengaluru"
+state = "state.ka"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.ara"
+name = "ARA FC"
+city = "Ahmedabad"
+state = "state.gj"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.zinc-football-academy"
+name = "Zinc Football Academy"
+city = "Udaipur"
+state = "state.rj"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.rangdajied-united"
+name = "Rangdajied United"
+city = "Shillong"
+state = "state.ml"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.kickstart"
+name = "Kickstart FC"
+city = "Bengaluru"
+state = "state.ka"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.fc-madras"
+name = "FC Madras"
+city = "Chennai"
+state = "state.tn"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.pfc-kerala"
+name = "PFC Kerala"
+city = "Kochi"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.sesa-football-academy"
+name = "SESA Football Academy"
+city = "Sanquelim"
+state = "state.ga"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.roots"
+name = "Roots FC"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.reliance-foundation-young-champs"
+name = "Reliance Foundation Young Champs"
+city = "Navi Mumbai"
+state = "state.mh"
+kind = "academy"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.minerva-academy"
+name = "Minerva Academy"
+city = "Mohali"
+state = "state.pb"
+kind = "academy"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.rkm-football-academy"
+name = "RKM Football Academy"
+city = "Narendrapur"
+state = "state.wb"
+kind = "academy"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.pune-krida-prabodhini"
+name = "Pune Krida Prabodhini"
+city = "Pune"
+state = "state.mh"
+kind = "academy"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.bhaichung-bhutia-football-schools"
+name = "Bhaichung Bhutia Football Schools"
+city = "Gangtok"
+state = "state.sk"
+kind = "academy"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "The club is real. Its current status, tier for 2026-27 and every other fact beyond name/city/state are unverified: the scenario pack listed it and general knowledge agrees it exists." }
+
+[[club]]
+id = "club.diamond-harbour"
+name = "Diamond Harbour FC"
+city = "Diamond Harbour"
+state = "state.wb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "Real club referenced by state_leagues/wb.toml; every fact beyond name/state is unverified." }
+
+[[club]]
+id = "club.united-sc"
+name = "United SC"
+city = "Kolkata"
+state = "state.wb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "Real club referenced by state_leagues/wb.toml; every fact beyond name/state is unverified." }
+
+[[club]]
+id = "club.namdhari"
+name = "Namdhari FC"
+city = "Bhaini Sahib"
+state = "state.pb"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "C", src = [], note = "Real club referenced by state_leagues/wb.toml; every fact beyond name/state is unverified." }

@@ -1,0 +1,49 @@
+[meta]
+dataset = "development.coach_education"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Level ladder only."
+gaps = ["Prerequisites, minimum ages, experience and which licence a head coach needs for each tier are not recorded.", "Whether AFC licence names/levels map one-to-one to these labels is unverified."]
+
+[[licence]]
+id = "licence.aiff-grassroots"
+name = "AIFF Grassroots Certificate"
+body = "AIFF"
+order = 1
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[licence]]
+id = "licence.aiff-d"
+name = "AIFF D Licence"
+body = "AIFF"
+order = 2
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[licence]]
+id = "licence.aiff-c"
+name = "AIFF C Licence"
+body = "AIFF"
+order = 3
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[licence]]
+id = "licence.aiff-b"
+name = "AIFF B Licence"
+body = "AIFF"
+order = 4
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[licence]]
+id = "licence.aiff-a"
+name = "AIFF A Licence"
+body = "AIFF"
+order = 5
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[licence]]
+id = "licence.aiff-pro"
+name = "AIFF Pro Licence"
+body = "AIFF"
+order = 6
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
