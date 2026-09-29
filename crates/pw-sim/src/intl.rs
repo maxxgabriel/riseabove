@@ -334,7 +334,7 @@ fn call_up(w: &mut World, key: (NationId, Level), pool: &[PlayerId], size: usize
         .map(|p| {
             let h = &w.players.hot[p];
             let c = &w.players.cold[p];
-            let est = fed_view(w, m, n, p);
+            let est = fed_view(w, m, n, p) + if level == Level::Senior { 0.0 } else { crate::ecosystem::camp_bonus(w, p) };
             let form = h.form_avg().map_or(0.0, |f| (f - 6.6) * 4.0);
             let caps = f32::from(w.intl.caps_for(p, n, level)).min(40.0);
             let loyal = if arch == Archetype::Loyalist { caps * 0.25 } else { caps * 0.08 };

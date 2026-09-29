@@ -412,7 +412,7 @@ fn play(w: &mut World) {
 }
 
 /// Clubs that watch state football see a standout: each notices with a chance that grows with its scouting.
-fn notice(w: &mut World, p: PlayerId, minutes: u8) {
+pub(crate) fn notice(w: &mut World, p: PlayerId, minutes: u8) {
     let today = w.date;
     let mut clubs: Vec<ClubId> = w.clubs.ids().collect();
     clubs.retain(|&c| {

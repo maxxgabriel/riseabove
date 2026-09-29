@@ -250,6 +250,8 @@ pub struct Ecosystem {
     pub stages: FxHashMap<PlayerId, SmallVec<[Stage; 8]>>,
     pub local_region: FxHashMap<LocalClubId, RegionId>,
     pub club_region: FxHashMap<ClubId, RegionId>,
+    /// National identification camps: (year, deepest stage reached 1–3).
+    pub camp: FxHashMap<PlayerId, (i32, u8)>,
     /// The state-team championship of the current year, while it runs.
     pub tournament: Option<Tournament>,
     /// Winners of the state championship so far: (state, year).

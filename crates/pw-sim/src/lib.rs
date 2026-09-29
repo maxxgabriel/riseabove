@@ -196,6 +196,7 @@ impl Sim {
             prof!("mind::monthly", mind::monthly(w));
             prof!("social::monthly", social::monthly(w));
             prof!("stafflife::monthly", stafflife::monthly(w));
+            prof!("ecosystem::monthly", ecosystem::monthly(w));
             prof!("staffing::monthly", staffing::monthly(w));
             prof!("governance::monthly", governance::monthly(w));
             prof!("managers::monthly", managers::monthly(w));
