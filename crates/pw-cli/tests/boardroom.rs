@@ -322,7 +322,8 @@ fn the_ask_never_drops_below_the_reservation_and_follows_belief_and_credible_sig
     d.seller_thinks_buyer_max = Limit { lo: 20_000_000, hi: 30_000_000 };
     let rich = bargaining::seller_ask(w, &d, want);
     assert!(modest >= want && rich >= want, "never below what the seller itself needs");
-    assert!(rich > modest * 1.2, "a seller who thinks the buyer is rich asks more: {rich} vs {modest}");
+    // The seller's daring is capped at 18% over what it needs (was 35% before 28e74cd) and floored at 5%, so the widest gap is ~12%.
+    assert!(rich > modest * 1.1, "a seller who thinks the buyer is rich asks more: {rich} vs {modest}");
 
     // A claim that the budget is gone, from a club with a clean record, brings the ask down but never below the reservation.
     let mut honest = w.clone();
