@@ -257,7 +257,7 @@ fn fed_view(w: &World, m: StaffId, n: NationId, p: PlayerId) -> f32 {
     let capped: u16 = w.intl.caps.get(&p).map_or(0, |v| v.iter().filter(|x| x.nation == n).map(|x| x.caps).sum());
     let minutes = (f32::from(capped) * 90.0 + club_rep / 10_000.0 * 1500.0 + if domestic { 700.0 } else { 0.0 }).min(60_000.0) as u16;
     let s = sigma(t, Some(Seen { minutes, last: w.date }), judging, w.date, c.rep.world >= t.famous_reputation);
-    perceive(f32::from(c.ca), s * 6.0, Observer::Person(w.staff[m].person.0), p, 3000 + u64::from(n.0)).clamp(1.0, 200.0)
+    perceive(f32::from(c.ca), s * 6.0, Observer::Person(w.staff[m].person.0), p, 3000 + u64::from(n.0)).clamp(1.0, 200.0) // truth-ok: a national manager's noisy reading
 }
 
 // ---------------------------------------------------------------------------
@@ -510,7 +510,7 @@ fn preferred_nation(w: &World, p: PlayerId, a: NationId, b: NationId) -> NationI
     let birth = w.people[who].nation;
     let loyal = consider::hid(w, who, pw_core::Hidden::Loyalty) / 20.0;
     let ambition = consider::hid(w, who, pw_core::Hidden::Ambition) / 20.0;
-    let ca = f32::from(w.players.cold[p].ca);
+    let ca = consider::self_view(w, p);
     let score = |n: NationId| -> f32 {
         let stature = f32::from(w.nations[n].reputation) / 10_000.0;
         // A strong country's squad is harder to get into.

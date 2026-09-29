@@ -167,6 +167,8 @@ pub struct World {
     /// Mixed into the seed when a playthrough begins, so two playthroughs of
     /// the same starting world diverge while one save replays exactly (S22).
     pub playthrough: u64,
+    /// What each club's people believe about players: dossiers, evaluators' track records.
+    pub dossiers: crate::dossier::Dossiers,
 }
 
 impl World {
@@ -233,6 +235,7 @@ impl World {
             followed: Vec::new(),
             prepared: false,
             playthrough: 0,
+            dossiers: Default::default(),
         }
     }
 

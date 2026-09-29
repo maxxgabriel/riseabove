@@ -103,7 +103,7 @@ pub fn pressure(w: &World, pr: Pressure, c: &Ctx) -> f32 {
             if c.pa.is_some() && c.pb.is_some() {
                 let (x, y) = (&w.players.cold[c.pa], &w.players.cold[c.pb]);
                 let same = x.best_pos.group() == y.best_pos.group();
-                let close = (i32::from(x.ca) - i32::from(y.ca)).abs() <= 10;
+                let close = (crate::market::public_view(w, c.pa).0 - crate::market::public_view(w, c.pb).0).abs() <= 10.0;
                 if same && close { 0.4 + consider::minutes_grievance(w, c.pa).max(consider::minutes_grievance(w, c.pb)) * 0.6 } else { 0.0 }
             } else {
                 0.0

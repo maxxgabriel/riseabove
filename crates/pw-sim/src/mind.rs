@@ -240,7 +240,7 @@ pub fn retirement_choice(w: &World, p: PlayerId, rng: &mut Rng) -> bool {
     }
     let body = consider::body_outlook(w, p);
     let unattached = (consider::days_unattached(w, p) as f32 / 240.0).min(1.5);
-    let level = f32::from(c.ca) / 200.0;
+    let level = consider::self_view(w, p) / 200.0;
     let ambition = consider::hid(w, who, Hidden::Ambition) / 20.0;
     let life = &w.lives[who];
     let secure = (life.finances.savings as f32 / (life.finances.spending.max(500) as f32 * 24.0)).min(1.5);

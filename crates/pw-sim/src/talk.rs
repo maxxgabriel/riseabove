@@ -427,7 +427,7 @@ fn position(w: &mut World, c: &mut Ctx, mood: f32) {
                 .unwrap_or(cold.best_pos)
         }
     };
-    let fit = pw_world::player::raw_ability(&cold.attrs, wanted, &w.data.weights) / f32::from(cold.ca.max(1));
+    let fit = pw_world::player::raw_ability(&cold.attrs, wanted, &w.data.weights) / f32::from(cold.ca.max(1)); // truth-ok: his own attributes against his own overall level, which he knows
     let give = manager_goodwill(w, c, mood) + (fit - 0.9) * 2.0 + c.rng.normal() * 0.1;
     if give > 0.3 {
         promise(w, c, PromiseKind::Position(wanted), 70);

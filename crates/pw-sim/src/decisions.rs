@@ -32,10 +32,11 @@ pub enum Proposal {
     },
 }
 
-/// Share of first-team minutes a player of ability `ca` could expect at `club`.
-pub fn expected_share(w: &World, club: ClubId, ca: u8, exclude: PlayerId) -> f32 {
+/// Share of first-team minutes a player who thinks he is of level `belief` could expect at `club`: he counts the squad members whose
+/// public standing is above his own opinion of himself, not their hidden ability (locked design 1.13).
+pub fn expected_share(w: &World, club: ClubId, belief: f32, exclude: PlayerId) -> f32 {
     let Some(team) = w.club_team(club, TeamKind::First) else { return 0.1 };
-    let rank = w.teams[team].squad.iter().filter(|&&p| p != exclude && w.players.cold[p].ca > ca).count();
+    let rank = w.teams[team].squad.iter().filter(|&&p| p != exclude && crate::market::public_view(w, p).0 > belief).count();
     match rank {
         0..=10 => 0.9 - rank as f32 * 0.03,
         11..=15 => 0.35,
@@ -56,7 +57,8 @@ pub fn move_utility(w: &World, p: PlayerId, club: ClubId, wage: Money) -> f32 {
     let cur = h.club;
     let rep = |cl: ClubId| if cl.is_some() { f32::from(w.clubs[cl].reputation) / 10_000.0 } else { 0.0 };
     let level = rep(club) - rep(cur);
-    let pt = expected_share(w, club, c.ca, p) - if cur.is_some() { expected_share(w, cur, c.ca, p) } else { 0.0 };
+    let me = consider::self_view(w, p);
+    let pt = expected_share(w, club, me, p) - if cur.is_some() { expected_share(w, cur, me, p) } else { 0.0 };
     let cur_wage = if cur.is_some() { c.contract.current_wage(w.date) } else { 0 };
     let money = (pw_core::math::ln((wage as f32 + 50.0) / (cur_wage as f32 + 50.0)) / 2.0).clamp(-1.0, 1.0);
     let years_here = if cur.is_some() { (c.joined.days_until(w.date) as f32 / 365.0).min(10.0) } else { 0.0 };
@@ -87,7 +89,8 @@ pub fn move_utility(w: &World, p: PlayerId, club: ClubId, wage: Money) -> f32 {
 fn ai_accepts_loan(w: &World, p: PlayerId, loan: &Loan) -> bool {
     let jitter = 0.05 * noise(&[w.seed, stream::MIND, u64::from(p.0), w.date.0 as u64]);
     let c = &w.players.cold[p];
-    let gain = expected_share(w, loan.club, c.ca, p) - expected_share(w, loan.parent, c.ca, p);
+    let me = consider::self_view(w, p);
+    let gain = expected_share(w, loan.club, me, p) - expected_share(w, loan.parent, me, p);
     let cost = consider::household_move_cost(w, c.person, w.clubs[loan.club].nation) * 0.3;
     gain - cost + jitter > 0.1
 }

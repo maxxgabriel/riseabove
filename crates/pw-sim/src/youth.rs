@@ -175,12 +175,12 @@ fn play_group(w: &mut World, members: &[PlayerId], judge: Option<ClubId>, key: u
     let mut rated: Vec<(PlayerId, f32)> = members
         .iter()
         .map(|&p| {
-            let seen = judge.map_or(f32::from(w.players.cold[p].ca), |c| crate::scouting::view(w, c, p).0);
+            let seen = judge.map_or_else(|| crate::market::public_view(w, p).0, |c| crate::scouting::view(w, c, p).0);
             (p, seen)
         })
         .collect();
     rated.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
-    let mean = rated.iter().map(|(p, _)| f32::from(w.players.cold[*p].ca)).sum::<f32>() / rated.len() as f32;
+    let mean = rated.iter().map(|(p, _)| f32::from(w.players.cold[*p].ca)).sum::<f32>() / rated.len() as f32; // truth-ok: match performance simulates reality
     for (rank, (p, _)) in rated.into_iter().enumerate() {
         let h = w.players.hot[p];
         if h.injury != 0 {
@@ -195,7 +195,7 @@ fn play_group(w: &mut World, members: &[PlayerId], judge: Option<ClubId>, key: u
             continue;
         }
         let mut rng = Rng::keyed(&[w.seed, stream::YOUTH, u64::from(p.0), key, today.0 as u64]);
-        let rating = (6.6 + (f32::from(w.players.cold[p].ca) - mean) / 12.0 + rng.normal() * 0.6).clamp(4.5, 9.5);
+        let rating = (6.6 + (f32::from(w.players.cold[p].ca) - mean) / 12.0 + rng.normal() * 0.6).clamp(4.5, 9.5); // truth-ok: match performance simulates reality
         let hh = &mut w.players.hot[p];
         hh.minutes_4w = hh.minutes_4w.saturating_add(minutes);
         hh.minutes_week = hh.minutes_week.saturating_add(minutes);

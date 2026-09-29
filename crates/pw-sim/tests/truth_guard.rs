@@ -4,7 +4,26 @@
 
 use std::path::PathBuf;
 
-const DECISION_MODULES: &[&str] = &["selection.rs", "planning.rs", "deals.rs", "market.rs", "negotiation.rs", "contracts.rs", "board.rs", "staffing.rs", "managers.rs"];
+const DECISION_MODULES: &[&str] = &[
+    "selection.rs",
+    "planning.rs",
+    "deals.rs",
+    "market.rs",
+    "negotiation.rs",
+    "contracts.rs",
+    "board.rs",
+    "staffing.rs",
+    "managers.rs",
+    // Player and agent decisions, academies, national squads, and how people compare themselves (locked design 1.13, 1.15).
+    "decisions.rs",
+    "consider.rs",
+    "mind.rs",
+    "agents.rs",
+    "youth.rs",
+    "intl.rs",
+    "social.rs",
+    "talk.rs",
+];
 
 fn reads_truth(line: &str) -> bool {
     let code = line.split("//").next().unwrap_or("");

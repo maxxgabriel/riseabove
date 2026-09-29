@@ -533,6 +533,13 @@ pub enum EventKind {
         player: PlayerId,
         club: ClubId,
     },
+    /// A year on, a club evaluator's old reading of a young player turned out far too low (or, rarely, spot on) for someone now well known.
+    AssessmentVindicated {
+        staff: StaffId,
+        player: PlayerId,
+        club: ClubId,
+        was_right: bool,
+    },
     ExamsSat {
         person: PersonId,
         passed: bool,
@@ -961,6 +968,7 @@ impl EventKind {
             | ScholarshipOffered { player, .. }
             | JoinedLocalClub { player, .. }
             | AcademyTrialStarted { player, .. }
+            | AssessmentVindicated { player, .. }
             | NationalSquad { player, .. }
             | InternationalDebut { player, .. }
             | ChoseNation { player, .. }
@@ -1095,7 +1103,7 @@ impl EventKind {
                 v.push(buyer);
                 v.push(seller);
             }
-            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } => v.push(club),
+            AcademyJoined { club, .. } | AcademyReleased { club, .. } | ScholarshipOffered { club, .. } | AcademyTrialStarted { club, .. } | AssessmentVindicated { club, .. } => v.push(club),
             PreContractSigned { club, .. } | TrialStarted { club, .. } | TrialEnded { club, .. } | LoanRecalled { club, .. } | OptionExercised { club, .. } => v.push(club),
             _ => {}
         }

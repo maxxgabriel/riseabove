@@ -27,6 +27,7 @@ pub mod culture;
 pub mod deals;
 pub mod decisions;
 pub mod development;
+pub mod dossier;
 pub mod dressing;
 pub mod economy;
 pub mod evolution;
@@ -178,6 +179,7 @@ impl Sim {
 
         // 3. Club management and the slow rhythms of life.
         if first_of_month {
+            prof!("dossier::monthly", dossier::monthly(w));
             prof!("market::monthly", market::monthly(w));
             prof!("deals::shortlists", deals::shortlists(w));
             prof!("deals::monthly", deals::monthly(w));

@@ -316,6 +316,10 @@ fn recommendations(w: &mut World) {
 /// What a club believes about a player: its reports if it has any (recent,
 /// well-founded reports weigh more; stale ones fade), else its general view.
 pub fn view(w: &World, club: ClubId, p: PlayerId) -> (f32, f32, f32, f32) {
+    // The club's people have formed a judgement (section 1.5); that is what the club believes.
+    if let Some(r) = crate::dossier::reading(w, club, p) {
+        return r;
+    }
     let reports = w.scouting.of(club, p);
     if reports.is_empty() {
         return crate::perception::club_view(w, club, p);
@@ -342,6 +346,10 @@ pub fn view(w: &World, club: ClubId, p: PlayerId) -> (f32, f32, f32, f32) {
 
 /// Do the club's scouts disagree about this player? (spread of CA estimates)
 pub fn disagreement(w: &World, club: ClubId, p: PlayerId) -> f32 {
+    if let Some(d) = w.dossiers.get(club, p) {
+        // Between everyone who has an opinion, not only the scouts.
+        return d.opinions.iter().map(|o| o.ca.mid).fold(f32::MIN, f32::max) - d.opinions.iter().map(|o| o.ca.mid).fold(f32::MAX, f32::min);
+    }
     let r = w.scouting.of(club, p);
     if r.len() < 2 {
         return 0.0;

@@ -44,13 +44,27 @@ pub fn compat(w: &World, a: PersonId, b: PersonId) -> i8 {
 
 // ------------------------------------------------------------ training & form
 
+/// What a player believes about his own level (locked design 1.13): his own impression, coloured by how highly he thinks of himself,
+/// pulled towards what the public says the more of a career he has behind him. Never his hidden ability; a confident player
+/// overrates himself, a modest one sells himself short, and both can be wrong about a move for that reason.
+pub fn self_view(w: &World, p: PlayerId) -> f32 {
+    let c = &w.players.cold[p];
+    let h = &w.people[c.person].hidden;
+    let esteem = ((h.f(Hidden::Ambition) + h.f(Hidden::Controversy)) / 40.0).clamp(0.0, 1.0);
+    let own = pw_world::knowledge::perceive(f32::from(c.ca), 6.0, pw_world::knowledge::Observer::Person(c.person.0), p, 3100) + 8.0 * (esteem - 0.4); // truth-ok: raw material of his own impression; noise and self-regard stand between it and belief
+    let experience = (f32::from(c.senior_apps) / 120.0).min(1.0) * 0.5;
+    (own * (1.0 - experience) + crate::market::public_view(w, p).0 * experience).clamp(1.0, 200.0)
+}
+
 /// What a player's coaches consider normal training for them (×10 scale):
-/// driven by professionalism, determination and ability.
+/// driven by professionalism, determination and ability as the coaches read it.
 pub fn training_norm(w: &World, p: PlayerId) -> f32 {
     let c = &w.players.cold[p];
     let prof = hid(w, c.person, Hidden::Professionalism);
     let det = c.attrs.get(Attr::Determination);
-    (58.0 + 0.6 * (prof - 10.0) + 0.5 * (det - 10.0) + 0.12 * (f32::from(c.ca) - 100.0).clamp(-40.0, 60.0)).clamp(40.0, 90.0)
+    let club = w.players.hot[p].club;
+    let ca = if club.is_some() { crate::scouting::view(w, club, p).0 } else { crate::market::public_view(w, p).0 };
+    (58.0 + 0.6 * (prof - 10.0) + 0.5 * (det - 10.0) + 0.12 * (ca - 100.0).clamp(-40.0, 60.0)).clamp(40.0, 90.0)
 }
 
 /// Current training against the player's norm, in rating points (−3..+3).

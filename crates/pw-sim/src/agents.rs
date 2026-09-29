@@ -111,7 +111,8 @@ pub fn hire(w: &mut World, p: PlayerId, a: AgentId) {
         return;
     }
     let c = &w.players.cold[p];
-    let prospect = f32::from(c.rep.current) + f32::from(c.pa.saturating_sub(c.ca)) * 25.0 + f32::from(c.ca) * 20.0;
+    let (read_ca, read_pa) = crate::market::public_view(w, p);
+    let prospect = f32::from(c.rep.current) + (read_pa - read_ca).max(0.0) * 25.0 + read_ca * 20.0;
     let bar = f32::from(agent.reputation) * 0.6;
     let full = agent.clients.len() >= usize::from(agent.capacity) + 4;
     if full || prospect < bar {
@@ -243,7 +244,7 @@ fn pitch(w: &mut World, a: AgentId, p: PlayerId, needy: &[ClubId], rng: &mut Rng
     };
     let c = &w.players.cold[p];
     let group = c.best_pos.group();
-    let level = f32::from(c.ca);
+    let level = crate::market::public_view(w, p).0;
     let current = w.players.hot[p].club;
     let candidates: Vec<ClubId> = needy
         .iter()

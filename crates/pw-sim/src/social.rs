@@ -158,7 +158,7 @@ fn teammates(w: &mut World, team: TeamId, squad: &[PlayerId], week: u64) {
             // Rivalry: same position, close in ability, both short of minutes.
             let ca = &w.players.cold[a];
             let cb = &w.players.cold[b];
-            if ca.best_pos == cb.best_pos && (i32::from(ca.ca) - i32::from(cb.ca)).abs() <= 8 {
+            if ca.best_pos == cb.best_pos && (crate::market::public_view(w, a).0 - crate::market::public_view(w, b).0).abs() <= 8.0 {
                 let short = consider::minutes_grievance(w, a).max(consider::minutes_grievance(w, b));
                 let mut rng = Rng::keyed(&[w.seed, stream::SOCIAL, u64::from(a.0), u64::from(b.0), week]);
                 if short > 0.3 && rng.chance(0.08 * short) {

@@ -16,6 +16,7 @@ pub mod contract;
 pub mod culture;
 pub mod deals;
 pub mod decision;
+pub mod dossier;
 pub mod dressing;
 pub mod event;
 pub mod evolution;
