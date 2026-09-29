@@ -53,6 +53,9 @@ impl Source for Stories {
         ];
         if c.observer() {
             v.push(Col::new("grounded", "Grounded", Fmt::Text, 90, &[INT, G]).left().help("Whether the claim matches the truth when it was printed. Readers cannot tell."));
+            v.push(Col::new("truth", "Truth", Fmt::Text, 130, &[INT]).left().help("Accurate, accurate at the time, misleading, manipulated or false: what the story was, apart from how it was framed. Readers cannot tell."));
+            v.push(Col::new("intent", "Writer's intent", Fmt::Text, 100, &[INT]).left().help("Why the journalist ran it this way; not the same as whether it was true."));
+            v.push(Col::new("aim", "Source's aim", Fmt::Text, 120, &[INT]).left().help("What the person who gave it to the journalist wanted."));
         }
         v
     }
@@ -85,6 +88,9 @@ impl Source for Stories {
             "headline" => Key::text(c.headline(s)),
             "kind" => Key::text(kind_word(s.kind)),
             "grounded" => Key::Num(if s.grounded { 1.0 } else { 0.0 }),
+            "truth" => Key::text(s.truth.label().to_string()),
+            "intent" => Key::text(format!("{:?}", s.intent)),
+            "aim" => Key::text(format!("{:?}", s.aim)),
             _ => Key::None,
         }
     }
@@ -103,6 +109,13 @@ impl Source for Stories {
                     Cell::text("No").tone(Tone::Warn)
                 }
             }
+            "truth" => Cell::text(s.truth.label()).tone(match s.truth {
+                pw_world::media::Truth::Accurate | pw_world::media::Truth::AccurateAtTime => Tone::Pos,
+                pw_world::media::Truth::Misleading => Tone::Warn,
+                _ => Tone::Neg,
+            }),
+            "intent" => Cell::text(format!("{:?}", s.intent)),
+            "aim" => Cell::text(format!("{:?}", s.aim)),
             _ => Cell::empty(),
         }
     }

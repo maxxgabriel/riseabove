@@ -54,6 +54,7 @@ pub mod managers;
 pub mod market;
 pub mod matchday;
 pub mod media;
+pub mod mediarel;
 pub mod medical;
 pub mod mind;
 pub mod minor;
@@ -299,6 +300,7 @@ impl Sim {
             prof!("minor::weekly", minor::weekly(w));
             prof!("agents::weekly", agents::weekly(w));
             prof!("media::weekly", media::weekly(w));
+            prof!("mediarel::weekly", mediarel::weekly(w));
             prof!("reputation::weekly", reputation::weekly(w));
             prof!("finance::weekly", finance::weekly(w));
             prof!("clauses::weekly", clauses::weekly(w));

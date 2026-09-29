@@ -116,6 +116,8 @@ pub fn ensure_profiles(w: &mut World) {
             misses: 0,
             public_hits: 0,
             public_misses: 0,
+            spin: 0,
+            fooled: 0,
             ledger: Vec::new(),
             beat_since,
             ties: SmallVec::new(),
@@ -562,6 +564,8 @@ fn run(w: &mut World, mut c: Candidate, j: PersonId, age_days: i32) -> Option<St
             0.0
         };
     }
+    // What the journalist thinks of the subject bends the tone before anything is written (locked design 2.16).
+    tone += crate::mediarel::tone_bias(w, j, c.person);
     let leaker = if c.info != u32::MAX { w.grapevine.chain(c.info, j).last().map_or(PersonId::NONE, |t| t.from) } else { PersonId::NONE };
     let source = if let Some(p) = w.net.post(c.post) {
         Cause::Fact(Fact::Viral { post: c.post, reposts: p.reposts })
@@ -604,6 +608,31 @@ fn run(w: &mut World, mut c: Candidate, j: PersonId, age_days: i32) -> Option<St
             news: (news * 100.0) as u8,
         },
     );
+    // What kind of story it is (locked design 2.2, 2.4): the facts, the framing, the writer's reasons and the source's aim are four
+    // separate things, and none of them is what the audience made of it.
+    {
+        let fidelity = if c.info != u32::MAX { w.grapevine.get(c.info).knower(j).map(|k| k.fidelity) } else { None };
+        let framing_gap = tone - f32::from(c.tone);
+        let overreach = i32::from(claim) - i32::from(v.confidence) >= 35;
+        let loaded = matches!(angle, Angle::Villain | Angle::Hero | Angle::Crisis | Angle::Conflict);
+        let truth = match fidelity {
+            Some(Fidelity::Planted) => pw_world::media::Truth::Manipulated,
+            Some(Fidelity::Garbled | Fidelity::Outdated) => pw_world::media::Truth::False,
+            _ if !grounded => pw_world::media::Truth::False,
+            Some(Fidelity::Exaggerated) => pw_world::media::Truth::Misleading,
+            _ if (loaded && framing_gap.abs() >= 25.0) || overreach => pw_world::media::Truth::Misleading,
+            _ => pw_world::media::Truth::Accurate,
+        };
+        let snapshot = w.media.stories[id].clone();
+        let intent = crate::mediarel::intent_for(w, &snapshot, framing_gap);
+        let aim = crate::mediarel::aim_of(w, &snapshot);
+        let s = &mut w.media.stories[id];
+        s.truth = truth;
+        s.intent = intent;
+        s.aim = aim;
+        crate::mediarel::on_story(w, id);
+        crate::mediarel::scooped(w, id);
+    }
     // The source who told them becomes (or stays) a source.
     if leaker.is_some() {
         add_tie(w, j, leaker, 40);
@@ -858,6 +887,12 @@ pub(crate) fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
                 p.public_misses = p.public_misses.saturating_add(1);
             }
             p.record(s.club, pw_world::media::topic_of(s.kind), honest, came_true);
+            // Getting the facts right and the picture wrong is not the same as being wrong, and being used is its own failing.
+            match s.truth {
+                pw_world::media::Truth::Misleading => p.spin = p.spin.saturating_add(1),
+                pw_world::media::Truth::Manipulated => p.fooled = p.fooled.saturating_add(1),
+                _ => {}
+            }
             // The person who told them is judged on what they said, not on how events turned out.
             if s.leaker.is_some()
                 && let Some(t) = p.ties.iter_mut().find(|t| t.person == s.leaker)
@@ -870,6 +905,20 @@ pub(crate) fn close_thread(w: &mut World, thread: u32, state: ThreadState) {
                     t.reliability = t.reliability.saturating_sub(12);
                 }
             }
+        }
+        if honest && !came_true && s.truth == pw_world::media::Truth::Accurate {
+            // True when it ran; events moved on (locked design 2.2).
+            w.media.stories[sid].truth = pw_world::media::Truth::AccurateAtTime;
+        }
+        if s.truth == pw_world::media::Truth::Manipulated && s.leaker.is_some() {
+            // Found to have been used: the source is not forgiven lightly.
+            if let Some(t) = w.media.journalist_profiles.get_mut(&s.journalist).and_then(|p| p.ties.iter_mut().find(|t| t.person == s.leaker)) {
+                t.reliability = t.reliability.saturating_sub(20);
+            }
+            crate::mediarel::adjust(w, pw_world::media::Party::Person(s.journalist), pw_world::media::Party::Person(s.leaker), pw_world::media::BondCause::Fooled, sid, -10, -8, -20, 10);
+        }
+        if !honest {
+            crate::mediarel::exposed(w, sid);
         }
         // The public's trust in the person follows what it saw.
         if let Some(j) = w.media.journalists.get_mut(&s.journalist) {
@@ -1076,6 +1125,10 @@ fn correction(w: &mut World, story: StoryId) {
         },
     );
     w.media.stories[id].refs.push(story);
+    // The person the story was about sees the outlet put it right, and thinks a little better of the journalist for it.
+    if s.person.is_some() {
+        crate::mediarel::adjust(w, pw_world::media::Party::Person(s.person), pw_world::media::Party::Person(s.journalist), pw_world::media::BondCause::Corrected, id, 3, 2, 2, -5);
+    }
 }
 
 /// Considered analysis the morning after a big match, by the outlet with
@@ -1304,6 +1357,8 @@ mod tests {
                 misses: 0,
                 public_hits: 0,
                 public_misses: 0,
+                spin: 0,
+                fooled: 0,
                 ledger: Vec::new(),
                 beat_since: Default::default(),
                 ties: [SourceTie { person: SOURCE, since: Date::from_ymd(2025, 1, 1), strength: 60, reliability: 50, hits: 0, misses: 0, last_used: Date::from_ymd(2026, 7, 1) }].into_iter().collect(),
@@ -1337,6 +1392,9 @@ mod tests {
             minute: 0,
             news: 50,
             refs: Default::default(),
+            truth: if grounded { pw_world::media::Truth::Accurate } else { pw_world::media::Truth::False },
+            intent: pw_world::media::Intent::Inform,
+            aim: pw_world::media::SourceAim::Genuine,
         });
         w.media.threads.push(StoryThread { id: 0, subject: ThreadSubject::Contract { player: PlayerId::NONE, club: ClubId::NONE }, opened: w.date, last: w.date, stories: vec![id], events: Default::default(), state: ThreadState::Open, closed: None });
         (w, 0)
@@ -1374,5 +1432,35 @@ mod tests {
         assert_eq!((a.hits, a.misses, a.public_hits, a.public_misses), (1, 0, 1, 0));
         let (b, _) = close(false, ThreadState::Collapsed);
         assert_eq!((b.hits, b.misses, b.public_hits, b.public_misses), (0, 1, 0, 1));
+    }
+
+    #[test]
+    fn spin_being_fooled_and_events_that_overtake_an_honest_story_are_told_apart() {
+        use pw_world::media::{BondCause, Party, Truth};
+        // True in every fact and misleading in effect: spin, not a miss.
+        let (mut w, t) = world_with_story(true);
+        w.media.stories[StoryId(0)].truth = Truth::Misleading;
+        close_thread(&mut w, t, ThreadState::Happened);
+        let p = &w.media.journalist_profiles[&J];
+        assert_eq!((p.hits, p.misses, p.spin, p.fooled), (1, 0, 1, 0));
+
+        // True when it ran and overtaken by events: still accurate, at the time.
+        let (mut w, t) = world_with_story(true);
+        close_thread(&mut w, t, ThreadState::Collapsed);
+        assert_eq!(w.media.stories[StoryId(0)].truth, Truth::AccurateAtTime);
+        assert_eq!(w.media.journalist_profiles[&J].misses, 0);
+
+        // Planted on them: they were used, the source is not forgiven lightly, and the relationship records why.
+        let (mut plain, t) = world_with_story(true);
+        close_thread(&mut plain, t, ThreadState::Happened);
+        let trust_plain = plain.media.journalist_profiles[&J].ties[0].reliability;
+        let (mut w, t) = world_with_story(true);
+        w.media.stories[StoryId(0)].truth = Truth::Manipulated;
+        close_thread(&mut w, t, ThreadState::Collapsed);
+        let p = &w.media.journalist_profiles[&J];
+        assert_eq!(p.fooled, 1);
+        assert!(p.ties[0].reliability + 15 < trust_plain, "{} vs {}", p.ties[0].reliability, trust_plain);
+        let b = w.media.bonds.get(&(Party::Person(J), Party::Person(SOURCE))).expect("a record of it");
+        assert!(b.trust < 0 && b.history.last().map(|r| r.cause) == Some(BondCause::Fooled));
     }
 }

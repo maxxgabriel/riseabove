@@ -138,6 +138,63 @@ impl ClaimType {
     }
 }
 
+/// Whether what a story says was so (locked design 2.2). Kept apart from how it is framed, why it was written, why someone gave it to
+/// the journalist, and how audiences took it.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Truth {
+    /// True when published and still true.
+    Accurate,
+    /// True when published; things changed afterwards. An honest report that events overtook.
+    AccurateAtTime,
+    /// Every fact holds and the picture is wrong: framing or emphasis does the misleading.
+    Misleading,
+    /// Shaped by a source with an aim, whether or not the content is literally true.
+    Manipulated,
+    /// Not so when it was published.
+    False,
+}
+
+impl Truth {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Truth::Accurate => "accurate",
+            Truth::AccurateAtTime => "accurate at the time",
+            Truth::Misleading => "misleading",
+            Truth::Manipulated => "manipulated",
+            Truth::False => "false",
+        }
+    }
+}
+
+/// Why the journalist and outlet ran it this way (locked design 2.4): a matter of the writer, not of the facts.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Intent {
+    Inform,
+    /// To draw an audience.
+    Engage,
+    /// To punish someone who has crossed them.
+    Punish,
+    /// To do a favour to a friend, a source or the club they lean towards.
+    Favour,
+}
+
+/// What the person who gave the journalist the story wanted from it (locked design 2.6).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum SourceAim {
+    /// Nothing but telling.
+    Genuine,
+    /// An agent lifting a client's price or profile.
+    RaiseValue,
+    /// A club official shaping how a matter is read.
+    ShapeNarrative,
+    /// A player forcing a move or a contract.
+    ForcePlayer,
+    /// Getting back at someone.
+    Damage,
+    /// Keeping a journalist friendly.
+    Friendship,
+}
+
 /// How a story is framed.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum Angle {
@@ -277,6 +334,9 @@ pub struct JournalistProfile {
     /// What audiences saw: reported things that came to pass, and ones that did not. An honest report can end up here as a miss.
     pub public_hits: u16,
     pub public_misses: u16,
+    /// Stories that were true in every fact and misleading in effect, and stories that turned out to have been planted on them.
+    pub spin: u16,
+    pub fooled: u16,
     /// The same, per club and kind of story: trusted on one club's transfers and not on another's.
     pub ledger: Vec<TopicRecord>,
     /// When they started covering each club on their beat.
@@ -442,6 +502,114 @@ pub struct Story {
     pub news: u8,
     /// Earlier stories it refers back to.
     pub refs: SmallVec<[StoryId; 2]>,
+    /// Whether it was so, why it was written, and what its source wanted, three separate things.
+    pub truth: Truth,
+    pub intent: Intent,
+    pub aim: SourceAim,
+}
+
+/// One end of a media relationship: a person (a journalist or the subject of coverage), a club, or an outlet.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Party {
+    Person(PersonId),
+    Club(ClubId),
+    Outlet(OutletId),
+}
+
+/// Why a relationship moved (locked design 2.15): kept so a feud is never a bare number.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum BondCause {
+    FairCoverage,
+    /// Harsh, and true.
+    HarshButTrue,
+    FalseStory,
+    MisleadingFraming,
+    Praised,
+    GaveInterview,
+    RefusedInterview,
+    Exclusive,
+    Leaked,
+    /// A confidence kept or broken.
+    KeptConfidence,
+    BrokeConfidence,
+    /// Planted a story on them.
+    Fooled,
+    Corrected,
+    Apologised,
+}
+
+impl BondCause {
+    pub const fn label(self) -> &'static str {
+        match self {
+            BondCause::FairCoverage => "fair coverage",
+            BondCause::HarshButTrue => "harsh coverage that was true",
+            BondCause::FalseStory => "a false story",
+            BondCause::MisleadingFraming => "a misleading picture",
+            BondCause::Praised => "praise",
+            BondCause::GaveInterview => "an interview given",
+            BondCause::RefusedInterview => "an interview refused",
+            BondCause::Exclusive => "an exclusive",
+            BondCause::Leaked => "a leak",
+            BondCause::KeptConfidence => "a confidence kept",
+            BondCause::BrokeConfidence => "a confidence broken",
+            BondCause::Fooled => "a story planted on them",
+            BondCause::Corrected => "a correction",
+            BondCause::Apologised => "an apology",
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+pub struct BondReason {
+    pub cause: BondCause,
+    pub date: Date,
+    pub story: StoryId,
+}
+
+/// How one party sees another in the media's world, in one direction. Respect (professional regard) and warmth (liking) are separate:
+/// a journalist can be respected and disliked (locked design 2.20).
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct MediaBond {
+    /// -100..=100.
+    pub respect: i8,
+    pub warmth: i8,
+    /// As a source or as a reporter.
+    pub trust: i8,
+    /// 0..100: a grievance that outlasts the mood.
+    pub grudge: u8,
+    pub since: Date,
+    pub last: Date,
+    pub history: SmallVec<[BondReason; 4]>,
+}
+
+impl MediaBond {
+    pub fn new(today: Date) -> Self {
+        Self { respect: 0, warmth: 0, trust: 0, grudge: 0, since: today, last: today, history: SmallVec::new() }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum FeudCause {
+    /// One got the story first.
+    Scooped,
+    /// One's story contradicted the other's.
+    Contradicted,
+    /// One was shown wrong, the other was right.
+    Discredited,
+    /// Went after the other's source.
+    PoachedSource,
+}
+
+/// Two journalists (and so their outlets) in competition (locked design 2.18, 2.19): it cools with time and flares again when
+/// they cover the same ground.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Feud {
+    pub a: PersonId,
+    pub b: PersonId,
+    pub heat: u8,
+    pub since: Date,
+    pub last: Date,
+    pub causes: SmallVec<[(FeudCause, Date); 4]>,
 }
 
 /// A fanbase's feeling about a person (11 §4), with the reasons it formed.
@@ -536,6 +704,9 @@ pub struct Media {
     pub journalist_profiles: FxHashMap<PersonId, JournalistProfile>,
     pub threads: Vec<StoryThread>,
     pub thread_index: FxHashMap<ThreadSubject, u32>,
+    /// Directional relationships between people, clubs and outlets, with the reasons they moved.
+    pub bonds: FxHashMap<(Party, Party), MediaBond>,
+    pub feuds: Vec<Feud>,
 }
 
 impl Media {

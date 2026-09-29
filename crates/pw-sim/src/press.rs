@@ -49,6 +49,11 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
     let nation = if club.is_some() { w.clubs[club].nation } else { w.people[speaker].nation };
     let key = hash_key(&[u64::from(speaker.0), u64::from(about.0), today.0 as u64]);
     let j = outlet_journalist(w, nation, club, key)?;
+    // Whether they will talk to this journalist at all: a grudge, a cold relationship, a club that has frozen the outlet out (locked design 2.17).
+    if w.people[speaker].mind == MindKind::Ai && !crate::mediarel::grants_access(w, speaker, j) {
+        crate::mediarel::spoke(w, speaker, j, StoryId::NONE, false);
+        return None;
+    }
     let subject_player = if about.is_some() { w.people[about].player } else { w.people[speaker].player };
     let tone: i8 = match stance {
         Stance::Praise | Stance::Support | Stance::Loyalty => 40,
@@ -58,6 +63,7 @@ pub fn speak(w: &mut World, speaker: PersonId, about: PersonId, stance: Stance) 
     };
     let about_or_self = if about.is_some() { about } else { speaker };
     let id = publish(w, j, StoryKind::Interview, subject_player, about_or_self, club, ClubId::NONE, 0, 90, true, Cause::Fact(Fact::Said { person: speaker }), PersonId::NONE, tone);
+    crate::mediarel::spoke(w, speaker, j, id, true);
     w.media.links.insert(id, StoryLink::Quote(Quote { speaker, about, stance }));
     let quote = w.pressroom.quotes.len() as u32;
     w.pressroom.quotes.push(pw_world::pressroom::QuoteRecord { id: quote, speaker, about, stance, topic: None, date: today, conference: u32::MAX, story: id });

@@ -224,7 +224,7 @@ pub(crate) fn publish(
         _ => None,
     };
     let minute = 420 + (pw_core::rng::hash_key(&[u64::from(journalist.0), w.date.0 as u64, kind as u64]) % 720) as u16;
-    publish_draft(
+    let id = publish_draft(
         w,
         Draft {
             journalist,
@@ -247,7 +247,9 @@ pub(crate) fn publish(
             minute,
             news: claim / 2,
         },
-    )
+    );
+    crate::mediarel::on_story(w, id);
+    id
 }
 
 /// Publish a story: the event, the record, its thread, what readers learn.
@@ -286,6 +288,9 @@ pub(crate) fn publish_draft(w: &mut World, d: Draft) -> StoryId {
         minute: d.minute,
         news: d.news,
         refs,
+        truth: if d.grounded { pw_world::media::Truth::Accurate } else { pw_world::media::Truth::False },
+        intent: pw_world::media::Intent::Inform,
+        aim: pw_world::media::SourceAim::Genuine,
     });
     if outlet.is_some()
         && let Some(p) = w.media.outlet_profiles.get_mut(&outlet)
