@@ -122,6 +122,13 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         TacticalChange { club: c, staff, formation } => {
             format!("{} switched {} to a {}.", w.staff_name(staff), club(w, c), w.data.formations.get(usize::from(formation)).map_or("new system", |f| f.name.as_str()))
         }
+        MatchTacticsChanged { club: c, manager, minute, half_time, response, .. } => {
+            let when = if half_time { "at half-time".to_string() } else if minute == 0 { "before kick-off".to_string() } else { format!("in minute {minute}") };
+            format!("{} ({}) {} {when}.", w.staff_name(manager), club(w, c), response.label())
+        }
+        PersonalMatterHandled { player: p, manager, handling, believed } => format!("{} was dealing with {}; {} {}.", pl(p), believed.label(), person(w, manager), handling.label()),
+        PerformedThroughStrain { player: p, kind, well } => format!("{} played {} while dealing with {}.", pl(p), if well { "brilliantly" } else { "badly" }, kind.label()),
+        MemoryReturned { player: p, scar } => format!("{} was reminded of {}.", pl(p), scar.label()),
         StaffFollowed { staff, manager, club: c } => format!("{} followed {} to {}.", w.staff_name(staff), w.staff_name(manager), club(w, c)),
         StaffLeft { staff, club: c } => format!("{} left the {} backroom staff.", w.staff_name(staff), club(w, c)),
         DealCollapsed { player: p, buyer, seller, reason } => format!("{}'s move from {} to {} collapsed: {}.", pl(p), club(w, seller), club(w, buyer), reason.label()),

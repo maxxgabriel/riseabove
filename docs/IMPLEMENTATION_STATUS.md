@@ -79,12 +79,57 @@ Persistent accounts with personas, groups, threads, chants, memes, reposts and r
 Whether opinion is multidimensional (§6.1-6.2), fame/attention/commercial appeal separate (§6.18), virality and appearance
 audiences (§6.16-6.22), mythology and history grounding (§6.29-6.33) is not yet verified against the code.
 
-## 7. Tactics and life state — PARTIAL / NEEDS AUDIT
+## 7. Tactics and life state — PARTIAL (core implemented)
 
-Match engine is the vendored OFM engine with its own in-match managers; selection, formations, promised roles and weekly
-morale/confidence/wellbeing exist. Observation → diagnosis → adaptation with staff input (§7.1-7.34) and a unified life-to-football
-state with temporal profiles (§7.35-7.54) are **NOT IMPLEMENTED** as specified; life sim (`life.rs`, `affairs.rs`) and mood
-factors exist and feed some state.
+**Tactical pipeline (§7.1-7.34).** `pw-match::Coach` is the seam: at half an hour, half-time, the hour and the last quarter each side is
+handed a `Look` (football evidence only: shots, chances, possession, territory, build-up losses, per-player duels/fouls/condition/booking)
+and answers with a `Call` (new instructions, role changes, substitutions). `pw-sim/src/coach.rs` runs observe → diagnose → adapt;
+`pw-sim/src/tactics.rs` holds the manager as tactician, the belief dossier, response choice, execution, learning and history.
+
+| Idea | Status | Evidence |
+| --- | --- | --- |
+| Pre-match belief with uncertainty, not engine parameters (§7.2) | **IMPLEMENTED** | `tactics::dossier` (history of how the opponent was seen to play + club memory + preparation quality, fuzzed; confidence Low..VeryHigh) | `tests/tactics.rs` dossier, preparation tests |
+| Deliberate surprise (§7.2) | **IMPLEMENTED** | `tactics::prepare`, rate follows adaptability and preparation | tactics.rs |
+| Observation ≠ diagnosis, several hypotheses, confidence, rejected explanation (§7.4) | **IMPLEMENTED** | `coach::signs`, `diag_weights`, `Trace::{believed, rejected, confidence}` | tactics.rs (same evidence read differently; man blamed for a leak in the shape) |
+| Multi-dimensional tactician, philosophy, no counter table (§7.5, 7.7) | **IMPLEMENTED** (compact) | `Profile` (prep, reading, adapt, patience, stubborn, comms, daring, ego); `applicability` is one input beside philosophy fit, lessons, memory, urgency | tactics.rs |
+| Staff observations that disagree, credibility (§7.12-7.13) | **IMPLEMENTED** | assistant/analyst/fitness observers, `Credit` per (manager, staff), right/ignored-right/heeded-wrong | tactics.rs |
+| Thresholds for change, half-time evidence, game state, aggregate (§7.15-7.17, 7.20) | **IMPLEMENTED** | `wanted` minutes vs evidence, `MatchCtx::urgency`, `SignKind::Scoreline` | tactics.rs |
+| Opponents react (§7.14) | **IMPLEMENTED** (compact) | a structural change by the other side waives patience (`Trace::reacting`) | tactics.rs |
+| Player capability / familiarity limits, training menu (§7.9-7.11, 7.22, 7.32) | **IMPLEMENTED** (compact) | `execution` (drill of target style, communication, understanding, fatigue, stress, setting), `Drill` per club, weekly rehearsal, new-manager reset; partial execution and confused instructions | tactics.rs |
+| Tactical memory, staff turnover (§7.23-7.24) | **IMPLEMENTED** | `OppMemory` per (club, opponent), halves when its author leaves | tactics.rs |
+| Post-match learning incl. wrong lessons (§7.29) | **IMPLEMENTED** | process verdict vs result verdict, lessons weighted by reading skill, `credited_luck`, `misreads` | tactics.rs |
+| Causal traces, public record with cause (§7.34) | **IMPLEMENTED** | `Trace`, `tactics::explain`, `EventKind::MatchTacticsChanged` caused by `Fact::Played` | tactics.rs |
+| Accepted vs unseen risk (§7.33) | **IMPLEMENTED** | `Trace::{saw_risk, took_risk}` | tactics.rs |
+| Reputation from history (§7.28) | **IMPLEMENTED** | `tactics::reputation`, counters only | tactics.rs |
+
+Not implemented: coaching licences and tactical schools feeding manager priors (§7.6, 7.25 — schools exist in `evolution.rs` but do not
+enter `Profile`), league-wide tactical evolution driven by matches (§7.26), career development of tactical traits (§7.27), media and
+player interpretations of a match differing from the internal one (§7.30), the human footballer's local tactical view and player feedback
+(§7.21, 7.31), set pieces, formation changes in match (only instructions, roles and substitutions change; the OFM backend maps
+instructions to its six play styles), `Lod::Standard` national-team matches (`intl.rs` is not coached). The coached path exists for the OFM
+backend (the default); the native backend takes only the pre-match states. Substitution *intents* are kept for the coach's own
+substitutions (`Trace`), not for the engine's fatigue rotation.
+
+**Life-to-football state (§7.35-7.54).** `pw-world/src/lifestate.rs`, `pw-sim/src/lifestate.rs`.
+
+| Idea | Status | Evidence |
+| --- | --- | --- |
+| Dynamic state carried into football; interpretation, not flat buffs (§7.35-7.36) | **IMPLEMENTED** | event → `interpret` (template bent by resilience, coping style, support) → eleven psychological channels → `football` → `Mind` (focus, calm, risk, drive, confidence) → attributes the engine reads for attention, composure, flair, work rate and form | `tests/lifestate.rs`; `pw-match/tests/coach.rs` (attentive side beats unfocused one) |
+| Positive and negative through one machinery, mixed effects (§7.37) | **IMPLEMENTED** | 20 `LoadKind`s (new child: excitement + motivation up, sleep down) | lifestate.rs |
+| State vs trait (§7.38) | **IMPLEMENTED** | `Temper` (stable) vs `channels` (current) | lifestate.rs |
+| Temporal profiles (§7.39) | **IMPLEMENTED** | onset, peak, `Tail::{Sharp, Steady, Lingering, Recurring}`, expected vs actual duration, reminders | lifestate.rs |
+| Trauma and major memories reactivate, odds not destiny (§7.40) | **IMPLEMENTED** (venue and big-penalty triggers) | `Scar`, `returning`, reaction drawn from temperament, fades with years, `MemoryReturned` | lifestate.rs |
+| Pressure need not hurt, the world notices (§7.41-7.42) | **IMPLEMENTED** (compact) | resilient stakes-sharpening in `football`; `PerformedThroughStrain` only where the context is public or the manager knows, attention + manager memory follow | lifestate.rs |
+| Support networks, misfires (§7.43) | **IMPLEMENTED** | `support` (partner, family, teammates, captain, manager, isolation), shorter loads, `misfired` | lifestate.rs |
+| Managers perceive imperfectly, choose (§7.44, 7.54) | **IMPLEMENTED** | `Known` (Unaware/Dip/Knows, believed severity), `Handling` chosen weighing care, importance, stakes; the choice is an event with memory effects | lifestate.rs |
+| State influences selection (§7.45) | **IMPLEMENTED** | `Factors::state` from the manager's belief only | lifestate.rs |
+| Match events feed back (§7.46) | **PARTIAL** | after each match: mistakes, own goals, missed penalties, dismissals, heavy defeats, triumphs, injuries, captain's softening, home crowd; *not* within the match (the OFM engine cannot be altered mid-play) | lifestate.rs |
+| Social discourse crosses into state and back (§7.49-7.50) | **IMPLEMENTED** (compact) | `attention::spark` → `on_attention` → `OnlineAbuse` / `Hype`; strain performance → attention | lifestate.rs |
+| Life events reach people (§7.37) | **IMPLEMENTED** | `lifestate::scan` reads `Life`, `CallUp`, `ContractSigned` events | lifestate.rs |
+
+Not implemented: contextual UI for player state with time-horizon wording (§7.47-7.48; the data exists in `Known`/`LoadKind` but no page
+exposes it — see the section 8 perspective firewall work), wrongdoing propagation and private-then-leaked incidents as one machinery
+(§7.51-7.53 — `incidents.rs` and `grapevine.rs` exist separately and do not yet produce `Load`s), national-team matches without minds.
 
 ## 8. Perspective firewall — PARTIAL
 

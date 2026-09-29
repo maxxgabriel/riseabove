@@ -2,13 +2,24 @@
 
 use pw_core::rng::{Rng, hash_key, stream};
 use pw_core::{ClubId, CompId, FixtureId, PlayerId, TeamId};
-use pw_match::{Ev, Lod, MatchInput, MatchResult, simulate};
+use pw_match::{Ev, Lod, MatchInput, MatchResult, simulate, simulate_with};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::{CompKind, FxHashSet, Score, TeamKind, World};
 use rayon::prelude::*;
 
+use crate::coach::{Logs, MatchCoach};
 use crate::health;
 use crate::selection::{self, Selection};
+use crate::tactics::{self, MatchCtx, Prep};
+
+/// What the people around a match thought and decided, kept until the result is applied.
+struct Thinking {
+    logs: Logs,
+    preps: [Option<Prep>; 2],
+    ctx: MatchCtx,
+    /// The instructions each side kicked off with, after its preparation.
+    kickoff: [pw_core::Tactics; 2],
+}
 
 enum Outcome {
     Played {
@@ -16,6 +27,7 @@ enum Outcome {
         home: Box<Selection>,
         away: Box<Selection>,
         result: Box<MatchResult>,
+        thinking: Option<Box<Thinking>>,
     },
     /// A side could not field eleven: awarded 3–0 (D2/D11 simplification).
     Walkover {
@@ -51,7 +63,7 @@ pub fn play_today(w: &mut World) {
     let outcomes: Vec<Outcome> = todo.par_iter().map(|&f| play_one(world, f, &watched)).collect();
     for o in outcomes {
         match o {
-            Outcome::Played { fixture, home, away, result } => apply(w, fixture, &home, &away, *result, &watched),
+            Outcome::Played { fixture, home, away, result, thinking } => apply(w, fixture, &home, &away, *result, &watched, thinking),
             Outcome::Walkover { fixture, home_forfeits } => walkover(w, fixture, home_forfeits),
         }
     }
@@ -65,7 +77,7 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
     // Each manager knows who the opposition is and what his own next match is.
     let home = selection::select_ctx(w, fx.home, fx.comp, w.date, &selection::context_for(w, fx, fx.home, imp), comp.rules.bench, 0);
     let away = selection::select_ctx(w, fx.away, fx.comp, w.date, &selection::context_for(w, fx, fx.away, imp), comp.rules.bench, 0);
-    let (home, away) = match (home, away) {
+    let (mut home, mut away) = match (home, away) {
         (Some(h), Some(a)) => (h, a),
         (None, _) => return Outcome::Walkover { fixture: f, home_forfeits: true },
         (_, None) => return Outcome::Walkover { fixture: f, home_forfeits: false },
@@ -78,6 +90,12 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
     // The appointed referee's strictness; unrefereed levels vary by match.
     let strict = crate::officials::strictness(w, fx).unwrap_or_else(|| 0.75 + 0.5 * (hash_key(&[w.seed, fx.uid, 0x7ef]) % 1000) as f32 / 1000.0);
     let lod = if watched.contains(&fx.home) || watched.contains(&fx.away) { Lod::Full } else { Lod::Standard };
+    // First teams have people around them: managers prepare against what they believe of the opponent, players carry their lives onto
+    // the pitch, staff read the game and the manager answers. Other sides are played by the engine's own managers.
+    let coached = w.teams[fx.home].kind == TeamKind::First && w.teams[fx.away].kind == TeamKind::First;
+    let ctx = MatchCtx::for_fixture(w, fx, imp, decisive, first_leg, strict);
+    let preps = if coached { tactics::prepare(w, [&mut home, &mut away], &ctx) } else { [None, None] };
+    let kickoff = [home.tactics, away.tactics];
     let input = MatchInput {
         seed: hash_key(&[w.seed, stream::MATCH, fx.uid]),
         home: selection::team_sheet(w, &home),
@@ -92,8 +110,15 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         lod,
         tuning: &w.data.tuning.matches,
     };
-    let result = Box::new(simulate(&input));
-    Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result }
+    if !coached {
+        let result = Box::new(simulate(&input));
+        return Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result, thinking: None };
+    }
+    let minds = crate::lifestate::minds_for(w, [&home, &away], fx, imp);
+    let mut coach = MatchCoach::new(w, fx, ctx, [&home, &away], minds);
+    let result = Box::new(simulate_with(&input, &mut coach));
+    let thinking = Box::new(Thinking { logs: coach.into_logs(), preps, ctx, kickoff });
+    Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result, thinking: Some(thinking) }
 }
 
 fn record_table(w: &mut World, comp: CompId, home: TeamId, away: TeamId, hg: u8, ag: u8) {
@@ -157,7 +182,7 @@ fn walkover(w: &mut World, f: FixtureId, home_forfeits: bool) {
     record_tie(w, f, hg, ag, None);
 }
 
-fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: MatchResult, watched: &FxHashSet<TeamId>) {
+fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: MatchResult, watched: &FxHashSet<TeamId>, thinking: Option<Box<Thinking>>) {
     let today = w.date;
     let fx = w.fixtures.get(f).clone();
     let (hg, ag) = (r.home_goals, r.away_goals);
@@ -273,6 +298,11 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
     crate::culture::after_result(w, &fx, hg, ag, r.pens, pw_core::EventId::NONE);
     crate::facts::record(w, &fx, f, &r);
     crate::officials::after_match(w, &fx, &r);
+    if let Some(t) = thinking {
+        let t = *t;
+        crate::lifestate::after_match(w, &fx, [home, away], &r, &t.ctx);
+        tactics::settle(w, &fx, t.logs, &t.preps, t.kickoff, &r);
+    }
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);

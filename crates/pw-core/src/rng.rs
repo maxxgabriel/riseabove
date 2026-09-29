@@ -73,6 +73,10 @@ pub mod stream {
     pub const NEWSROOM: u64 = 0x26;
     /// Responses of people in authority to incidents.
     pub const RESPONSE: u64 = 0x27;
+    /// Managers' and staffs' reading of matches.
+    pub const TACTICS: u64 = 0x28;
+    /// What people carry from their lives onto the pitch.
+    pub const LIFESTATE: u64 = 0x29;
 
     // Descriptive aliases for the subsystem names used in design documents.
     pub const IDENTITY_GENERATION: u64 = IDENTITY;
@@ -87,7 +91,7 @@ pub mod stream {
     pub const MARKET_BEHAVIOUR: u64 = MARKET;
 
     /// Every stream with its name, for debugging tools and documentation.
-    pub const ALL: [(u64, &str); 39] = [
+    pub const ALL: [(u64, &str); 41] = [
         (WORLDGEN, "worldgen"),
         (MATCH, "match_randomness"),
         (TRAINING, "training"),
@@ -127,6 +131,8 @@ pub mod stream {
         (MINOR, "minor_football"),
         (NEWSROOM, "newsroom"),
         (RESPONSE, "responses"),
+        (TACTICS, "tactics"),
+        (LIFESTATE, "life_state"),
     ];
 
     pub fn name(tag: u64) -> &'static str {

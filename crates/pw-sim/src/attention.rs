@@ -64,6 +64,8 @@ pub fn spark(w: &mut World, who: PersonId, cause: Cause, mag: f32) {
         r.fame = (f32::from(r.fame) + 300.0 * mag * cause.reach()).min(10_000.0) as u16;
         r.followers = r.followers.saturating_add((20_000.0 * mag * cause.reach()) as u32);
     }
+    // What people say and do reaches him, and he reads it in his own way (locked design 7.49).
+    crate::lifestate::on_attention(w, who, cause, mag);
 }
 
 /// A frame everyone saw: what kind of attention it draws, and how much.

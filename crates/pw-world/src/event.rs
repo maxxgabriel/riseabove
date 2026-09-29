@@ -561,6 +561,33 @@ pub enum EventKind {
         /// Someone at the club had opposed it and been overruled.
         overruled: bool,
     },
+    /// A manager changed how his side played during a match, and why he said he did.
+    MatchTacticsChanged {
+        club: ClubId,
+        manager: StaffId,
+        minute: u8,
+        half_time: bool,
+        response: crate::tactics::Response,
+        believed: crate::tactics::Diagnosis,
+    },
+    /// A manager decided what to do about a player who was struggling privately.
+    PersonalMatterHandled {
+        player: PlayerId,
+        manager: PersonId,
+        handling: crate::lifestate::Handling,
+        believed: crate::lifestate::LoadKind,
+    },
+    /// A player played well (or badly) through something heavy in his life.
+    PerformedThroughStrain {
+        player: PlayerId,
+        kind: crate::lifestate::LoadKind,
+        well: bool,
+    },
+    /// A major memory came back: the ground, the situation.
+    MemoryReturned {
+        player: PlayerId,
+        scar: crate::lifestate::ScarKind,
+    },
     ExamsSat {
         person: PersonId,
         passed: bool,
@@ -993,6 +1020,9 @@ impl EventKind {
             | SigningReviewed { player, .. }
             | PlanFailed { player, .. }
             | ContractOption { player, .. }
+            | PersonalMatterHandled { player, .. }
+            | PerformedThroughStrain { player, .. }
+            | MemoryReturned { player, .. }
             | NationalSquad { player, .. }
             | InternationalDebut { player, .. }
             | ChoseNation { player, .. }
@@ -1116,6 +1146,7 @@ impl EventKind {
             | ProjectCompleted { club, .. }
             | ManagerResigned { club, .. }
             | TacticalChange { club, .. }
+            | MatchTacticsChanged { club, .. }
             | StaffFollowed { club, .. }
             | StaffLeft { club, .. }
             | JoinedStaff { club, .. } => v.push(club),

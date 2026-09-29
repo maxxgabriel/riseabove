@@ -7,18 +7,36 @@
 
 use ofm_engine::ai::{self, AiPersonality, AiProfile};
 use ofm_engine::{
-    DefensiveLine, EventType, LiveMatchState, MatchConfig, MatchEvent as OfmEvent, PlayStyle, PlayerData, PlayerRole, Position, PressingIntensity, Side, TacticsBuildUpStyle, TacticsConfig,
-    TacticsPitchWidth, TeamData, Tempo, Zone,
+    DefensiveLine, EventType, LiveMatchState, MatchCommand, MatchConfig, MatchEvent as OfmEvent, MatchPhase, PlayStyle, PlayerData, PlayerRole, Position, PressingIntensity, Side, TacticsBuildUpStyle,
+    TacticsConfig, TacticsPitchWidth, TeamData, Tempo, Zone,
 };
+use smallvec::SmallVec;
 use pw_core::rng::hash2;
 use pw_core::{Attr, Hidden, Mentality, PlayerId, Pos, PosGroup, Role, Tactics};
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
+use crate::coach::{Call, Coach, Look, Mind, PlayerLook, SideLook, Tally};
 use crate::pitch::{N_ZONES, zone_id};
 use crate::types::*;
 
+#[path = "ofm_look.rs"]
+mod look;
+pub(crate) use look::with_minds;
+
 pub fn simulate(inp: &MatchInput) -> MatchResult {
+    run(inp, None)
+}
+
+/// The same match with people around it: minds walk out with the players, and the sides look at the game at the coach's windows.
+pub fn simulate_with(inp: &MatchInput, coach: &mut dyn Coach) -> MatchResult {
+    let minded = look::with_minds(inp, coach);
+    let result = run(&minded, Some(&mut *coach));
+    coach.finished(&result);
+    result
+}
+
+fn run(inp: &MatchInput, mut coach: Option<&mut dyn Coach>) -> MatchResult {
     let home = team(&inp.home, inp);
     let away = team(&inp.away, inp);
     let home_bench = inp.home.bench.iter().map(|p| player(p, bench_pos(p), None, inp)).collect();
@@ -42,6 +60,9 @@ pub fn simulate(inp: &MatchInput) -> MatchResult {
     let mut plan_rng = pw_core::Rng::keyed(&[inp.seed, 0x5ab5]);
     let total = [2 + plan_rng.below(3) as u8, 2 + plan_rng.below(3) as u8];
     let planned: [(u8, [u8; 2]); 4] = [(60, [1, 1]), (70, [total[0].min(2), total[1].min(2)]), (78, [total[0].min(3), total[1].min(3)]), (86, total)];
+    let mut live = [inp.home.tactics, inp.away.tactics];
+    let mut style = [play_style(&live[0]), play_style(&live[1])];
+    let (mut looked_at, mut half_time_seen) = (u8::MAX, false);
     let mut guard = 0;
     while !state.is_finished() && guard < 400 {
         let r = state.step_minute(&mut rng);
@@ -50,7 +71,12 @@ pub fn simulate(inp: &MatchInput) -> MatchResult {
         let carded = r.events.iter().any(|e| matches!(e.event_type, EventType::RedCard | EventType::SecondYellow | EventType::Injury));
         if carded || (r.minute >= 55 && r.minute.is_multiple_of(2)) {
             for (side, prof) in [(Side::Home, &profiles[0]), (Side::Away, &profiles[1])] {
-                for cmd in ai::ai_decide(&state, side, prof, &mut rng) {
+                let mut cmds = ai::ai_decide(&state, side, prof, &mut rng);
+                if coach.as_ref().is_some_and(|c| c.takes_over()) {
+                    // The coach reads the game; the engine's own manager keeps only what is plain tiredness.
+                    look::keep_tired_subs(&state, &mut cmds);
+                }
+                for cmd in cmds {
                     let _ = state.apply_command(cmd);
                 }
             }
@@ -59,7 +85,24 @@ pub fn simulate(inp: &MatchInput) -> MatchResult {
             planned_subs(&mut state, Side::Home, wanted[0]);
             planned_subs(&mut state, Side::Away, wanted[1]);
         }
+        if let Some(c) = coach.as_deref_mut() {
+            let half = r.phase == MatchPhase::HalfTime && !half_time_seen;
+            let window = !half && matches!(r.phase, MatchPhase::FirstHalf | MatchPhase::SecondHalf) && r.minute != looked_at && c.windows().contains(&r.minute);
+            if half || window {
+                half_time_seen |= half;
+                looked_at = r.minute;
+                let seen = look::look_at(&state.snapshot(), inp, &live, r.minute, half);
+                let calls = c.call(&seen);
+                for (s, call) in calls.iter().enumerate() {
+                    look::apply_call(&mut state, c, s as u8, call, &mut live[s], &mut style[s]);
+                }
+            }
+        }
         guard += 1;
+    }
+    if let Some(c) = coach.as_deref_mut() {
+        let seen = look::look_at(&state.snapshot(), inp, &live, 90, false);
+        c.full_time(&seen);
     }
     let report = state.into_report();
     convert(inp, report)

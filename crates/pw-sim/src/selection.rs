@@ -85,6 +85,8 @@ pub struct Factors {
     pub rest_need: f32,
     /// The manager's plan for bringing a newcomer in keeps him out of the eleven for now, 0..1.
     pub hold: f32,
+    /// What the manager believes of the man's state today: a strained player he knows of is worth less, a confident one in form a little more.
+    pub state: f32,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -351,6 +353,7 @@ fn candidates(w: &World, team: TeamId, comp: CompId, slots: &[Slot; 11], phil: &
                     leadership: (leadership / 20.0).clamp(0.0, 1.0),
                     rest_need,
                     hold: crate::adaptation::hold(w, p),
+                    state: crate::lifestate::selection_term(w, manager, p, ctx.importance),
                 },
                 keeper: c.familiarity[Pos::GK.idx()] >= 12,
                 leadership,
@@ -380,6 +383,8 @@ fn slot_score(c: &Candidate, i: usize, s: Slot, max_ability: f32, st: &Style, ct
         - 0.5 * st.rest * f.rest_need
         // A newcomer being brought in gently: out of the eleven for now, less so in the games that matter most.
         - 0.9 * f.hold * (1.0 - 0.4 * imp)
+        // What he believes of the man's life today, as the manager knows it.
+        + 0.5 * f.state
         // Caution about injury exposure matters least in the matches that matter most.
         - st.caution * f.risk * (1.15 - imp)
         - st.strictness * f.indiscipline

@@ -175,6 +175,10 @@ pub struct World {
     pub boardroom: crate::boardroom::Boardroom,
     /// Players settling in after a move.
     pub adaptation: crate::adaptation::Adaptations,
+    /// What staff saw and concluded in matches, what managers changed, what clubs remember of opponents, how drilled squads are.
+    pub tactics: crate::tactics::Tactical,
+    /// What people carry from their lives onto the pitch, and what their managers know of it.
+    pub lifestate: crate::lifestate::LifeStates,
 }
 
 impl World {
@@ -244,6 +248,8 @@ impl World {
             dossiers: Default::default(),
             boardroom: Default::default(),
             adaptation: Default::default(),
+            tactics: Default::default(),
+            lifestate: Default::default(),
         }
     }
 
