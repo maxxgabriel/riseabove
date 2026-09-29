@@ -1,4 +1,4 @@
-//! The golden save: a schema-4 world saved once and kept in the repository (`tests/fixtures/golden_micro.pws`). Every later build must
+//! The golden save: a schema-5 world saved once and kept in the repository (`tests/fixtures/golden_micro.pws`). Every later build must
 //! open it (directly, or through the migration steps that then exist), find it valid, simulate on from it, and save and reload it
 //! with every persistent identity intact (locked design 10).
 //!
@@ -94,13 +94,13 @@ fn an_older_development_schema_is_refused_with_a_plain_message_and_left_untouche
     };
     let p = temp("old");
     save::save_with(&sim.world, &p, &save::Info::of_world(&sim.world)).unwrap();
-    // A file from the last development format: the same container with the schema field of 3.
+    // A file from the last development format (schema 4, replaced when the extension state got its own envelope): the same container with the schema field of 4.
     let mut bytes = std::fs::read(&p).unwrap();
-    bytes[8..12].copy_from_slice(&3u32.to_le_bytes());
+    bytes[8..12].copy_from_slice(&4u32.to_le_bytes());
     std::fs::write(&p, &bytes).unwrap();
     let info = save::inspect(&p).unwrap();
-    assert_eq!((info.schema, info.compat), (3, Compat::Unsupported));
+    assert_eq!((info.schema, info.compat), (4, Compat::Unsupported));
     let err = save::load_world(&p).err().expect("refused").to_string();
-    assert!(err.contains("can no longer upgrade") && err.contains("oldest readable format is 4"), "{err}");
+    assert!(err.contains("can no longer upgrade") && err.contains("oldest readable format is 5"), "{err}");
     assert_eq!(std::fs::read(&p).unwrap(), bytes, "the file was not touched");
 }

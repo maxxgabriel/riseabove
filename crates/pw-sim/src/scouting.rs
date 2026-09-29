@@ -55,6 +55,41 @@ fn recruiter(w: &World, club: ClubId) -> Option<PersonId> {
     Some(w.staff[s].person)
 }
 
+/// A recruitment department's working report book. Keep explicit targets and its own players regardless of the general limit;
+/// older broad coverage falls back to the club's compact exposure record rather than retaining a full report on every opponent.
+pub const GENERAL_REPORT_LIMIT: usize = 1000;
+
+pub fn compact_reports(w: &mut World) {
+    let mut pinned = pw_world::FxHashSet::default();
+    for (&(club, _), list) in &w.deals.shortlists {
+        pinned.extend(list.targets.iter().map(|&(player, _)| (club, player)));
+    }
+    pinned.extend(w.deals.deals.iter().filter(|d| d.is_open()).map(|d| (d.buyer, d.player)));
+    for assignment in &w.scouting.assignments {
+        if assignment.until > w.date && let Brief::Player(player) = assignment.brief {
+            pinned.insert((assignment.club, player));
+        }
+    }
+    let mut books: pw_world::FxHashMap<ClubId, Vec<(Date, PlayerId)>> = pw_world::FxHashMap::default();
+    for (&(club, player), reports) in &w.scouting.reports {
+        let h = &w.players.hot[player];
+        if h.status == PlayerStatus::Retired {
+            continue;
+        }
+        if h.club == club || w.players.cold[player].contract.club == club || w.people[w.players.cold[player].person].mind == pw_world::MindKind::External {
+            pinned.insert((club, player));
+        } else if let Some(date) = reports.iter().map(|r| r.date).max() {
+            books.entry(club).or_default().push((date, player));
+        }
+    }
+    for (club, book) in books.iter_mut() {
+        book.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+        pinned.extend(book.iter().filter(|(_, p)| !pinned.contains(&(*club, *p))).take(GENERAL_REPORT_LIMIT).map(|&(_, p)| (*club, p)).collect::<Vec<_>>());
+    }
+    w.scouting.reports.retain(|key, _| pinned.contains(key) && w.players.hot[key.1].status != PlayerStatus::Retired);
+    w.scouting.reports.shrink_to_fit();
+}
+
 /// Monthly briefs from each club's recruitment leadership.
 pub fn assign(w: &mut World) {
     let today = w.date;

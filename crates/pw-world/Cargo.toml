@@ -9,5 +9,6 @@ pw-core.workspace = true
 pw-data.workspace = true
 pw-match.workspace = true
 serde.workspace = true
+bincode.workspace = true
 rustc-hash.workspace = true
 smallvec.workspace = true

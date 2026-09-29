@@ -32,14 +32,17 @@ const HEADER: usize = 8 + 4 + 8;
 /// * 1: the unversioned development format (`PWSAVE01`).
 /// * 2: first versioned format (development only).
 /// * 3: provenance book, position-level squad plans, professional/public journalist records (development only).
-/// * 4: the first supported format. Everything up to 3 was a development format: the world model changed between them without
-///   migration steps, so they cannot be upgraded and are refused with a plain message. Schema 4 adds the tactical book and life state
-///   (`World::tactics`, `World::lifestate`), settling-in causes, and the boardroom, adaptation, contract-package and social-attention
-///   books of the development builds. From here on every change to a serialised type bumps this number and registers a [`Step`];
-///   `crates/pw-cli/tests/fixtures/golden_micro.pws` is a schema-4 save that every later build must still open.
-pub const SCHEMA_VERSION: u32 = 4;
+/// * 4: a one-day development format (never released): the first candidate for "supported", replaced when the extension state
+///   (`World::ext`) moved into its own versioned envelope. It could not be upgraded because `ext` sits in the middle of the positional
+///   payload, which the career and view wrappers embed; no byte-level step can re-encode it without a frozen copy of the whole world.
+/// * 5: the first supported format. Everything up to 4 was a development format and is refused with a plain message. `World::ext` is
+///   `(EXT_VERSION, bytes)`: changes to the ecosystem, almanac, training, medical, academy and staff-life state (and the recognition,
+///   pathway and provenance state added to it) migrate through `pw_world::ext::steps` and `pw_sim::legacy::finish` without a new schema.
+///   A change to any *other* serialised type bumps this number and registers a [`Step`].
+///   `crates/pw-cli/tests/fixtures/golden_micro.pws` is a schema-5 save (extension layout 1) that every later build must still open.
+pub const SCHEMA_VERSION: u32 = 5;
 /// The oldest schema this build can still upgrade from.
-pub const OLDEST_SUPPORTED: u32 = 4;
+pub const OLDEST_SUPPORTED: u32 = 5;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SaveError {

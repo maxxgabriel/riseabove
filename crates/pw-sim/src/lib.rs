@@ -54,6 +54,7 @@ pub mod incidents;
 pub mod intents;
 pub mod interpret;
 pub mod intl;
+pub mod legacy;
 pub mod invariants;
 pub mod life;
 pub mod lifestate;
@@ -159,6 +160,8 @@ impl Sim {
             prepare(&mut world);
             world.prepared = true;
         }
+        // A world loaded from an older extension layout gets its new state initialised once, deterministically, from what it has.
+        legacy::finish(&mut world);
         Self { world }
     }
 
@@ -204,6 +207,7 @@ impl Sim {
 
         // 3. Club management and the slow rhythms of life.
         if first_of_month {
+            prof!("scouting::compact_reports", scouting::compact_reports(w));
             prof!("dossier::monthly", dossier::monthly(w));
             prof!("boardroom::monthly", boardroom::monthly(w));
             prof!("package::monthly", package::monthly(w));

@@ -115,6 +115,7 @@ pub struct World {
     /// Injury cases, histories, fragile regions, chronic conditions.
     pub medical: crate::medical::Medical,
     /// Domain state added by the simulation expansion (see `ext`).
+    #[serde(with = "crate::ext::envelope")]
     pub ext: crate::ext::Extensions,
     /// Dressing-room hierarchies, groups and integration, per club.
     pub rooms: crate::dressing::Rooms,
