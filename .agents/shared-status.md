@@ -5,3 +5,6 @@
 - India tuning (recognition weights/thresholds, scouting, calendar, export markets) lives in `data/worlds/india/pack.toml` and `Scenario` (`w.ext.scenario`), not in code.
 - Recognition is organisation-specific (`w.ext.recog.acquaint`); coach vouches have causes (`w.ext.recog.vouch`); export regard is per market x segment.
 - Branch of record for Agent A: `local/pathway-integration`.
+
+## 2026-09-30  Agent A
+- Pushed `local/pathway-integration` (India recognition/pathway/export engine, UI pages `Development` + pathway panel on player pages, tests `crates/pw-cli/tests/india_ecosystem.rs`). Agent B's data-only branch will be merged in at the final push.
