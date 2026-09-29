@@ -162,6 +162,12 @@ pub fn ensure_staff(w: &mut World) {
 
 pub fn new_staff(w: &mut World, club: ClubId, role: StaffRole, level: f32, rng: &mut Rng) -> StaffId {
     let nation = w.clubs[club].nation;
+    new_staff_at(w, club, nation, f32::from(w.clubs[club].reputation), role, level, rng)
+}
+
+/// A generated staff member. `club` may be `ClubId::NONE` for someone unemployed; `club_rep` then stands for the
+/// level they were last at.
+pub fn new_staff_at(w: &mut World, club: ClubId, nation: NationId, club_rep: f32, role: StaffRole, level: f32, rng: &mut Rng) -> StaffId {
     let (first, last) = pw_sim::people::random_name(w, nation, rng);
     let dob = w.date.add_days(-(365 * rng.range_i32(32, 62)));
     let person = w.people.push(Person {
@@ -191,19 +197,24 @@ pub fn new_staff(w: &mut World, club: ClubId, role: StaffRole, level: f32, rng: 
         youth_trust: rng.range_i32(20, 80) as u8,
         archetype: [Archetype::Pragmatist, Archetype::Developer, Archetype::Rotator, Archetype::Loyalist][rng.index(4)],
     };
-    let rep = (f32::from(w.clubs[club].reputation) * rng.range_f32(0.5, 0.9)) as u16;
-    let revenue = pw_sim::finance::season_revenue(w, club) as f32;
-    let wage_share = match role {
-        StaffRole::Manager => 0.006,
-        StaffRole::Assistant | StaffRole::DirectorOfFootball => 0.002,
-        _ => 0.0008,
+    let rep = (club_rep * rng.range_f32(0.5, 0.9)) as u16;
+    let wage = if club.is_some() {
+        let revenue = pw_sim::finance::season_revenue(w, club) as f32;
+        let wage_share = match role {
+            StaffRole::Manager => 0.006,
+            StaffRole::Assistant | StaffRole::DirectorOfFootball => 0.002,
+            _ => 0.0008,
+        };
+        (revenue * wage_share / 52.0) as i64
+    } else {
+        0
     };
     let id = w.staff.push(Staff {
         person,
         role,
         club,
         attrs,
-        wage: (revenue * wage_share / 52.0) as i64,
+        wage,
         contract_end: w.date.add_months(24),
         reputation: rep,
         philosophy: phil,

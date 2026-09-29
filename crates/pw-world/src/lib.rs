@@ -39,6 +39,7 @@ pub mod names;
 pub mod nation;
 pub mod negotiation;
 pub mod officials;
+pub mod origin;
 pub mod perf;
 pub mod person;
 pub mod player;

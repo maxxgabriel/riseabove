@@ -321,12 +321,17 @@ impl Api {
             }
             Err(e) => return Err(ApiError::State(format!("Cannot read that folder: {e}"))),
         };
-        match pw_import::load_dir(Path::new(dir), DataPack::builtin()) {
-            Ok((w, rep)) => Ok(json!({
-                "ok": true, "files": files,
-                "counts": {"nations": rep.nations, "competitions": rep.competitions, "clubs": rep.clubs, "players": rep.players, "staff": rep.staff},
-                "warnings": rep.warnings, "start": w.date.0,
-            })),
+        // Parsing and resolving is enough to say what a folder holds; the large per-match files are skipped for speed.
+        match pw_import::parse_dir(Path::new(dir), pw_import::LoadOptions { match_files: false }) {
+            Ok(set) => {
+                let warnings: Vec<String> = set.issues.sample.iter().filter(|i| i.severity != pw_import::Severity::Info).take(50).map(|i| format!("{} {}: {}", i.file, i.key, i.message)).collect();
+                let findings: Vec<Value> = set.issues.by_count().into_iter().take(30).map(|(code, n)| json!({"code": code, "count": n})).collect();
+                Ok(json!({
+                    "ok": true, "files": files,
+                    "counts": {"nations": set.nations.len(), "competitions": set.comps.len(), "clubs": set.clubs.len(), "players": set.players.len(), "staff": set.staff.len(), "unresolved": set.unresolved.len()},
+                    "warnings": warnings, "findings": findings, "start": set.start.map(|d| d.0),
+                }))
+            }
             Err(e) => Ok(json!({"ok": false, "files": files, "error": e.to_string()})),
         }
     }
@@ -430,7 +435,8 @@ fn build_world(req: &NewWorld) -> Result<(pw_world::World, String, Value), Strin
             let dir = req.dir.as_deref().ok_or("Choose a folder to import.")?;
             let (w, rep) = pw_import::load_dir(Path::new(dir), DataPack::builtin()).map_err(|e| e.to_string())?;
             let name = req.name.clone().unwrap_or_else(|| Path::new(dir).file_name().map_or("Imported world".into(), |s| s.to_string_lossy().to_string()));
-            let report = json!({"nations": rep.nations, "competitions": rep.competitions, "clubs": rep.clubs, "players": rep.players, "staff": rep.staff, "warnings": rep.warnings});
+            let findings: Vec<Value> = rep.findings.iter().take(30).map(|(code, n)| json!({"code": code, "count": n})).collect();
+            let report = json!({"nations": rep.nations, "competitions": rep.competitions, "clubs": rep.clubs, "players": rep.players, "staff": rep.staff, "unresolved": rep.unresolved, "warnings": rep.warnings, "findings": findings});
             Ok((w, name, report))
         }
     }

@@ -31,7 +31,7 @@ fn main() {
             Some("import") => {
                 let dir = PathBuf::from(args.get(2).cloned().unwrap_or_else(|| die("new import needs a folder")));
                 let (w, rep) = pw_import::load_dir_seeded(&dir, DataPack::builtin(), seed).unwrap_or_else(|e| die(&e.to_string()));
-                println!("Imported {} players, {} clubs. World seed {}.", rep.players, rep.clubs, pw_core::rng::seed_label(w.seed));
+                println!("Imported {} players, {} clubs ({} rows could not be placed). World seed {}.", rep.players, rep.clubs, rep.unresolved, pw_core::rng::seed_label(w.seed));
                 w
             }
             _ => {

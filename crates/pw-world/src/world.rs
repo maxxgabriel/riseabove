@@ -154,6 +154,8 @@ pub struct World {
     pub evolution: crate::evolution::Evolution,
     /// The world's past before the start date (imported or generated).
     pub backfill: crate::backfill::Backfill,
+    /// Where imported records came from and which facts the importer had to fill in.
+    pub origins: crate::origin::OriginBook,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
@@ -225,6 +227,7 @@ impl World {
             officials: Default::default(),
             evolution: Default::default(),
             backfill: Default::default(),
+            origins: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
             followed: Vec::new(),

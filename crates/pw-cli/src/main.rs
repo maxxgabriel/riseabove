@@ -62,7 +62,7 @@ fn main() {
             let t = Instant::now();
             let (w, rep) = pw_import::load_dir_seeded(&dir, DataPack::builtin(), a.seed).unwrap_or_else(|e| die(&e.to_string()));
             println!("world seed: {}", pw_core::rng::seed_label(w.seed));
-            println!("imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}", rep.nations, rep.competitions, rep.clubs, rep.players, rep.staff, t.elapsed());
+            println!("imported in {:.2?}: {}", t.elapsed(), rep.summary());
             for wmsg in rep.warnings.iter().take(20) {
                 println!("  warning: {wmsg}");
             }
