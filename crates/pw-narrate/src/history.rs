@@ -106,7 +106,9 @@ pub fn value(stat: Stat, v: i64) -> String {
 
 /// "the Riverton High School all-time scoring record".
 pub fn record_name(w: &World, k: RecordKey) -> String {
-    format!("the {} {}", scope(w, k.scope), k.stat.title())
+    let sc = scope(w, k.scope);
+    let article = if sc.starts_with("the ") { "" } else { "the " };
+    format!("{article}{sc} {}", k.stat.title())
 }
 
 fn stood(days: i32) -> Option<String> {

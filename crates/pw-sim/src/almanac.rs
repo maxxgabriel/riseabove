@@ -372,7 +372,7 @@ pub fn league_season(w: &mut World, comp: CompId, rows: &[TableRow]) {
         let mut scopes = ctx.shared.clone();
         scopes.push(Scope::Club(club));
         let h = Holder::Club(club);
-        offer(w, &scopes, lvl, Stat::MostGoalsInSeason, h, i64::from(r.gf), 60);
+        offer(w, &scopes, lvl, Stat::MostGoalsInSeason, h, i64::from(r.gf), 20);
         offer(w, &scopes, lvl, Stat::FewestConcededInSeason, h, i64::from(r.ga), 30);
         offer(w, &scopes, lvl, Stat::BestGoalDifference, h, i64::from(r.gd()), 30);
         offer(w, &scopes, lvl, Stat::WinsInSeason, h, i64::from(r.won), 18);
