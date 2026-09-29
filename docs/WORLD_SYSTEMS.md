@@ -1,3 +1,5 @@
+> **Historical report.** Written for branch `claude/kind-planck-t66j8f` (commit `401b7ae`). It may not describe the current code; see `IMPLEMENTATION_STATUS.md` and `docs/README.md`.
+
 # World Systems — what exists, how it connects, what was assumed
 
 Companion to `PRODUCT_NORTH_STAR.md`, `SYSTEMIC_SIMULATION_RULES.md` (S1–S27) and

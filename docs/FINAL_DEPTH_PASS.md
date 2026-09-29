@@ -1,3 +1,5 @@
+> **Historical report.** Written for branch `claude/kind-planck-t66j8f` (commit `401b7ae`). It may not describe the current code; see `IMPLEMENTATION_STATUS.md` and `docs/README.md`.
+
 # Final depth pass
 
 Written 2026-09-28, **not compiled yet**. After this pass, features are frozen. The next work is

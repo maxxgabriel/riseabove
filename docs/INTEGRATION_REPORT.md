@@ -1,3 +1,5 @@
+> **Historical report.** Written for branch `claude/kind-planck-t66j8f` (commit `401b7ae`). It may not describe the current code; see `IMPLEMENTATION_STATUS.md` and `docs/README.md`.
+
 # Integration report
 
 Date: 2026-09-28. Scope: the whole workspace after the media/social/history pass and the final depth
