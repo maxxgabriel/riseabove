@@ -178,6 +178,22 @@ impl<'a> Ctx<'a> {
         self.w.fixtures.iter().map(|(_, f)| f).filter(|f| self.s.meta.concealed.contains(&f.uid) && f.score.is_some()).collect()
     }
 
+    /// Appearances in matches the viewer has not revealed yet.
+    pub fn unrevealed_apps(&self, p: PlayerId) -> Vec<&'a pw_world::perf::App> {
+        let team = self.w.players.hot[p].team;
+        if self.s.meta.concealed.is_empty() || team.is_none() {
+            return Vec::new();
+        }
+        let dates: Vec<pw_core::Date> = self.concealed_fixtures().into_iter().filter(|f| f.involves(team)).map(|f| f.date).collect();
+        self.w.perf.recent.get(&p).into_iter().flatten().filter(|a| dates.contains(&a.date)).collect()
+    }
+
+    /// The last five match ratings, oldest first, without any from unrevealed matches.
+    pub fn visible_form(&self, p: PlayerId) -> Vec<f64> {
+        let skip = self.unrevealed_apps(p).iter().filter(|a| a.rating > 0).count();
+        self.w.players.hot[p].form.iter().skip(skip).filter(|&&r| r > 0).map(|&r| f64::from(r) / 10.0).rev().collect()
+    }
+
     /// A match report that would give away a result the viewer has not revealed yet.
     pub fn story_spoils(&self, s: &Story) -> bool {
         !self.s.meta.concealed.is_empty() && matches!(self.w.media.links.get(&s.id), Some(StoryLink::Fixture { uid, .. }) if self.s.meta.concealed.contains(uid))

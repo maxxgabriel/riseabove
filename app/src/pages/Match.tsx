@@ -1,3 +1,4 @@
+import { Insights } from "../components/Insights";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EntityLink, Dt } from "../components/links";
 import { dateLong, fmtInt, ordinal } from "../format";
@@ -5,8 +6,11 @@ import { href, useRoute } from "../router";
 import { act, notify, useApi } from "../store";
 import type { Named } from "../types";
 import { Icon } from "../ui/Icon";
-import { Badge, Button, Section, Segmented, Tabs } from "../ui/ui";
-import { Async, PageHead, usePageTitle } from "./common";
+import { Badge, Button, ErrorState, Section, Segmented, Skeleton, Tabs } from "../ui/ui";
+import { usePageTitle } from "./common";
+import { tintOf } from "../color";
+import { Crest } from "../components/Crest";
+import { DEFAULT_TINT, Stage } from "../components/Stage";
 
 interface Side {
   team: Named;
@@ -105,10 +109,21 @@ export function Match() {
   const q = useApi<MatchResp>(watching ? "match.watch" : "match", { uid });
   usePageTitle(q.data ? `${q.data.home.short} v ${q.data.away.short}` : undefined);
   useEffect(() => setWatching(false), [uid]);
+  const side = q.data ? (q.data.away.mine ? q.data.away : q.data.home) : null;
   return (
-    <div className="page">
-      <Async q={q}>{(m) => <MatchBody m={m} watching={watching} setWatching={setWatching} reload={q.reload} />}</Async>
-    </div>
+    <Stage tint={side ? tintOf(side.colors[0]) : DEFAULT_TINT}>
+      {q.error && !q.data ? (
+        <div className="stage-body">
+          <ErrorState error={q.error} onRetry={q.reload} />
+        </div>
+      ) : !q.data ? (
+        <div className="stage-body" aria-busy="true">
+          <Skeleton w="40%" h={48} />
+        </div>
+      ) : (
+        <MatchBody m={q.data} watching={watching} setWatching={setWatching} reload={q.reload} />
+      )}
+    </Stage>
   );
 }
 
@@ -142,24 +157,19 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
 
   return (
     <>
-      <PageHead
-        crumbs={[{ label: "Fixtures", to: "/fixtures" }, { label: m.comp.name, r: m.comp }]}
-        title={`${m.home.short} v ${m.away.short}`}
-        sub={
-          <span className="person-sub">
-            <span>{m.round}</span>
-            <span>{dateLong(m.date)}</span>
-            <span>{venueText(m)}</span>
-          </span>
-        }
-      />
-
-      <div className="card scoreboard" aria-live="polite">
+      <header className="match-head" aria-live="polite">
+        <h1 className="sr-only">{m.home.short} v {m.away.short}</h1>
+        <div className="match-meta">
+          <EntityLink r={m.comp}>{m.comp.name}</EntityLink>
+          <span>{m.round}</span>
+          <span>{dateLong(m.date)}</span>
+          {venueText(m) && <span>{venueText(m)}</span>}
+        </div>
         <TeamHead side={m.home} pos={m.pre.home.position} />
         <div className="scoreline">
           {hidden ? (
             <>
-              <div className="score num hidden-score" aria-label="Result hidden"><Icon name="lock" size={22} /></div>
+              <div className="score num hidden-score" aria-label="Result hidden"><Icon name="lock" size={28} /></div>
               <div className="hint">Result hidden</div>
             </>
           ) : live ? (
@@ -184,8 +194,9 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
           )}
         </div>
         <TeamHead side={m.away} pos={m.pre.away.position} right />
-      </div>
+      </header>
 
+      <div className="stage-body">
       {m.concealed && !watching && (
         <div className="note">
           <Icon name="lock" size={15} />
@@ -218,6 +229,7 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
         </div>
       )}
 
+      {!hidden && !played && <Insights method="insight.match" args={{ uid: m.uid }} title="Talking points" hideEmpty limit={6} />}
       {detail && (watching || (played && !hidden)) && (
         <>
           {watching && <Scrubber events={detail.events} minute={minute} setMinute={setMinute} onEnd={() => setRevealed(true)} />}
@@ -234,6 +246,8 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
       )}
 
       {(m.status !== "played" || hidden) && <Preview m={m} />}
+      {!hidden && played && <Insights method="insight.match" args={{ uid: m.uid }} title="Talking points" hideEmpty limit={6} />}
+      </div>
     </>
   );
 }
@@ -301,7 +315,7 @@ function venueText(m: MatchResp): string {
 function TeamHead({ side, pos, right }: { side: Side; pos: number | null; right?: boolean }) {
   return (
     <div className={`teamhead ${right ? "right" : ""}`}>
-      <span className="swatch" style={{ background: `linear-gradient(135deg, ${side.colors[0]} 50%, ${side.colors[1]} 50%)`, width: "2.4rem", height: "2.4rem" }} aria-hidden="true" />
+      <Crest name={side.team.name} colors={side.colors} id={side.club} size={64} />
       <div>
         <EntityLink r={{ k: "club", id: side.club }} className="teamhead-name">{side.team.name}</EntityLink>
         <div className="hint teamhead-sub">{pos ? <span>{ordinal(pos)} in the table</span> : null}{side.mine ? <Badge tone="you">Your team</Badge> : null}</div>

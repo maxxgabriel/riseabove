@@ -105,6 +105,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         };
         let loan = cold.loan.as_ref().map(|l| json!({"parent": Named::new(Ref::club(l.parent), c.club_name(l.parent)), "club": Named::new(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0}));
         let visible_state = c.sees_condition(p);
+        let held = c.unrevealed_apps(p);
         player_json = json!({
             "player_id": p.0,
             "best_pos": cold.best_pos.code(),
@@ -121,9 +122,9 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
                 "condition": h.condition, "sharpness": h.sharpness, "fitness": h.fitness, "fatigue": h.fatigue,
                 "morale": h.morale, "confidence": h.confidence, "wellbeing": h.wellbeing,
             }) } else { Value::Null },
-            "form": h.form.iter().filter(|&&r| r > 0).map(|&r| f64::from(r) / 10.0).collect::<Vec<_>>(),
+            "form": c.visible_form(p),
             "caps": cold.caps, "intl_goals": cold.intl_goals,
-            "senior_apps": cold.senior_apps, "senior_goals": cold.senior_goals,
+            "senior_apps": cold.senior_apps.saturating_sub(held.len() as u16), "senior_goals": cold.senior_goals.saturating_sub(held.iter().map(|a| u16::from(a.goals)).sum()),
             "joined": if h.club.is_some() { json!(cold.joined.0) } else { Value::Null },
             "youth_club": if cold.youth_club.is_some() { serde_json::to_value(Named::new(Ref::club(cold.youth_club), c.club_name(cold.youth_club))).unwrap() } else { Value::Null },
             "internal": if c.sees_internal_state() { json!({

@@ -206,7 +206,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "injured": h.injury != 0, "injury": if h.injury != 0 { json!(health::injury_name(w, h.injury)) } else { Value::Null }, "days": h.injury_days, "ban": h.ban,
         },
         "contract": contract, "league": position_in_league,
-        "form": h.form.iter().filter(|&&r| r > 0).map(|&r| f64::from(r) / 10.0).collect::<Vec<_>>(),
+        "form": c.visible_form(p),
         "minutes_4w": h.minutes_4w,
         "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
         "queued": c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).collect::<Vec<_>>(),

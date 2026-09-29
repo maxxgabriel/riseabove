@@ -13,7 +13,7 @@ pub fn stage_text(c: &Ctx, comp: CompId) -> String {
         Stage::NotStarted => "Not started".into(),
         Stage::League => "In progress".into(),
         Stage::Groups => "Group stage".into(),
-        Stage::Knockout(r) => format!("Knockout, round {}", u32::from(r) + 1),
+        Stage::Knockout(r) => crate::pages::compview::knockout_round_name(r),
         Stage::Finished => "Finished".into(),
     }
 }

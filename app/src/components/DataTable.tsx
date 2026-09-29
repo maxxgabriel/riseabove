@@ -7,6 +7,7 @@ import { useDataRevision } from "../store";
 import { useSettings } from "../settings";
 import type { Cell, Col, Row, SortSpec, TableReq, TableResp } from "../types";
 import { Icon } from "../ui/Icon";
+import { ClubCrest } from "./Crest";
 import { EntityLink, FormDots, Parts } from "./links";
 
 const PAGE = 80;
@@ -121,7 +122,19 @@ function CellView({ col, cell }: { col: Col; cell: Cell }) {
     );
   } else {
     const text = cell.s ?? (cell.n != null ? byFmt(col.fmt, cell.n) : "");
-    body = cell.r && text ? <EntityLink r={cell.r}>{text}</EntityLink> : text;
+    body =
+      cell.r && text ? (
+        cell.r.k === "club" ? (
+          <span className="withcrest">
+            <ClubCrest id={cell.r.id} name={text} size={15} />
+            <EntityLink r={cell.r}>{text}</EntityLink>
+          </span>
+        ) : (
+          <EntityLink r={cell.r}>{text}</EntityLink>
+        )
+      ) : (
+        text
+      );
   }
   if (cell.bar != null) {
     body = (

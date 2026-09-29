@@ -5,8 +5,13 @@ import { href } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named, Part } from "../types";
 import { Icon, type IconName } from "../ui/Icon";
-import { Badge, Button, KeyVal, Meter, Section } from "../ui/ui";
-import { Async, PageHead, usePageTitle } from "./common";
+import { Avatar, Badge, Button, KeyVal, Meter, Section } from "../ui/ui";
+import { Insights } from "../components/Insights";
+import { Async, usePageTitle } from "./common";
+import { tintOf } from "../color";
+import { ClubCrest } from "../components/Crest";
+import { useClubColors } from "../crest";
+import { DEFAULT_TINT, ResultsStrip, Stage, StageHeader, type TeamBit, type TickerItem } from "../components/Stage";
 
 interface FixtureBrief {
   uid: number;
@@ -54,15 +59,25 @@ export function Today() {
   usePageTitle("Today");
   const q = useApi<TodayResp>("me.today");
   const st = useStatus();
+  const club = q.data?.me.club ?? null;
+  const colors = useClubColors(club?.id);
   return (
-    <div className="page">
+    <Stage tint={colors ? tintOf(colors[0]) : DEFAULT_TINT}>
       <Async q={q}>
         {(t) => (
           <>
-            <PageHead
+            <StageHeader
+              crest={club ? <ClubCrest id={club.id} name={club.name} size={58} plain={false} /> : <Avatar initials={t.me.name.split(" ").map((w) => w[0]).join("").slice(0, 2)} size={58} you />}
               title="Today"
               sub={`${dateLong(t.date)}. You are ${t.me.name}${t.me.club ? `, ${t.me.position} at ${t.me.club.name}${t.me.team && t.me.team !== "First team" ? ` (${t.me.team})` : ""}` : `, without a club`}.`}
+              meta={[
+                ...(t.league ? [{ label: t.league.comp.name, value: <span>{ordinal(t.league.position)} <small>{t.league.points} pts</small></span> }] : []),
+                ...(t.next_match ? [{ label: "Next match", value: <span>{t.next_match.home ? "v" : "at"} {t.next_match.opponent.name} <small>{relativeDays(t.next_match.date, t.date)}</small></span> }] : []),
+                ...(t.contract ? [{ label: "Contract", value: <span>until <Dt d={t.contract.end} /></span> }] : []),
+              ]}
             />
+            <ResultsStrip items={strip(t)} />
+            <div className="stage-body">
             <div className="split">
               <div className="stack">
                 {t.decisions.length > 0 && (
@@ -115,6 +130,7 @@ export function Today() {
                     </a>
                   </Section>
                 )}
+                {t.next_match && <Insights method="insight.match" args={{ uid: t.next_match.uid }} title="Ahead of the match" limit={3} compact hideEmpty />}
                 <Section
                   title="Recent results"
                   aside={
@@ -196,6 +212,7 @@ export function Today() {
                     </div>
                   </Section>
                 )}
+                <Insights method="insight.person" args={{ id: t.me.person }} limit={4} compact hideEmpty aside={<a href={href(`/person/${t.me.person}`)}>All</a>} />
                 <Section title="Form">
                   <div className="card">
                     <KeyVal
@@ -233,12 +250,27 @@ export function Today() {
                 </Section>
               </aside>
             </div>
+            </div>
           </>
         )}
       </Async>
       <span hidden>{st.revision}</span>
-    </div>
+    </Stage>
   );
+}
+
+/** My team's recent results and the next match, as the strip under the header. */
+function strip(t: TodayResp): TickerItem[] {
+  const me = t.me.club;
+  if (!me) return [];
+  const mk = (f: FixtureBrief, status: TickerItem["status"]): TickerItem => {
+    const mine: TeamBit = { k: "club", id: me.id, name: me.name, full: me.name, me: true };
+    const opp: TeamBit = { k: "club", id: f.opponent.id, name: f.opponent.name, full: f.opponent.name, me: false };
+    const [h, a] = status === "ft" && f.score ? f.score.split(/[–-]/).map((x) => Number(x.trim())) : [null, null];
+    return { uid: f.uid, date: f.date, status, home: f.home ? mine : opp, away: f.home ? opp : mine, hs: h, as: a, pens: null };
+  };
+  const done = [...t.recent].reverse().map((f) => mk(f, f.concealed ? "held" : "ft"));
+  return t.next_match ? [...done, mk(t.next_match, "next")] : done;
 }
 
 export function focusText(f: { kind: string; value: string | null }): string {
