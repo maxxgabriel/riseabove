@@ -6,9 +6,13 @@ import { fmtInt, plural } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { useApi } from "../store";
 import type { Named } from "../types";
-import { Badge, IconButton, KeyVal, Section, Segmented, Tabs } from "../ui/ui";
+import { Badge, ErrorState, IconButton, KeyVal, Section, Segmented, Skeleton } from "../ui/ui";
 import { Insights } from "../components/Insights";
-import { Async, PageHead, usePageTitle } from "./common";
+import { usePageTitle } from "./common";
+import { brandFor, tintOf } from "../color";
+import { Crest } from "../components/Crest";
+import { Stage, StageHeader, StageTabs, type MetaBit } from "../components/Stage";
+import { CompOverview, type Head } from "./CompOverview";
 
 interface Tie {
   index: number;
@@ -48,53 +52,83 @@ interface CompResp {
   prize_pool: number | null;
 }
 
-type Tab = "table" | "fixtures" | "leaders" | "history" | "rules";
+type Tab = "overview" | "table" | "fixtures" | "leaders" | "history" | "rules";
 
 export function Comp() {
   const route = useRoute();
   const id = Number(route.segs[1]);
   const q = useApi<CompResp>("comp", { id });
+  const head = useApi<Head>("comp.overview", { id, light: true });
   usePageTitle(q.data?.name);
+  const tab = ((route.segs[2] as Tab) || "overview") as Tab;
+  const kind = head.data?.kind_key ?? q.data?.kind_key ?? "league";
+  const name = q.data?.name ?? head.data?.name ?? "";
+  const tint = tintOf(brandFor(kind, id, name)[0]);
   return (
-    <div className="page">
-      <Async q={q}>{(c) => <CompBody c={c} tab={(route.segs[2] as Tab) || (c.is_league || c.groups > 0 ? "table" : "table")} />}</Async>
-    </div>
+    <Stage tint={tint}>
+      {q.error && !q.data ? (
+        <div className="stage-body">
+          <ErrorState error={q.error} onRetry={q.reload} />
+        </div>
+      ) : (
+        <CompBody id={id} c={q.data ?? null} head={head.data ?? null} tab={tab} />
+      )}
+    </Stage>
   );
 }
 
-function CompBody({ c, tab }: { c: CompResp; tab: Tab }) {
-  const bookmarked = useIsBookmarked("comp", c.id);
-  const hasTable = c.is_league || c.groups > 0;
+function CompBody({ id, c, head, tab }: { id: number; c: CompResp | null; head: Head | null; tab: Tab }) {
+  const bookmarked = useIsBookmarked("comp", id);
+  const name = c?.name ?? head?.name ?? "";
+  const hasTable = c ? c.is_league || c.groups > 0 : true;
   const tabs: { id: Tab; label: string }[] = [
+    { id: "overview", label: "Overview" },
     { id: "table", label: hasTable ? "Table" : "Rounds" },
     { id: "fixtures", label: "Fixtures" },
     { id: "leaders", label: "Leaders" },
     { id: "history", label: "History" },
     { id: "rules", label: "Rules" },
   ];
+  const meta: MetaBit[] = (head?.meta ?? []).map((m) => ({
+    label: m.label,
+    value:
+      typeof m.value === "string" ? (
+        m.ref ? <EntityLink r={m.ref}>{m.value}</EntityLink> : m.value
+      ) : (
+        <>
+          <Crest name={m.value.full} colors={m.value.colors} id={m.value.id} size={17} plain />
+          <EntityLink r={m.value}>{m.value.name}</EntityLink>
+          {m.sub && <small>{m.sub}</small>}
+        </>
+      ),
+  }));
   return (
     <>
-      <PageHead
-        crumbs={[{ label: "Competitions", to: "/comps" }]}
-        title={c.name}
-        sub={
-          <span className="person-sub">
-            <span>{c.kind}</span>
-            {c.nation && <EntityLink r={c.nation}>{c.nation.name}</EntityLink>}
-            <span>Season {c.state.season}</span>
-            <span>{c.state.stage}</span>
-          </span>
-        }
-        actions={<IconButton icon="bookmark" label={bookmarked ? "Remove bookmark" : "Bookmark"} aria-pressed={bookmarked} className={bookmarked ? "on" : ""} onClick={() => toggleBookmark({ k: "comp", id: c.id, title: c.name, sub: c.kind })} />}
+      <StageHeader
+        crest={<Crest name={name || "…"} kind="comp" id={id} colors={brandFor(head?.kind_key ?? c?.kind_key ?? "league", id, name)} size={58} />}
+        title={name || <Skeleton w="14rem" h={36} />}
+        sub={head ? `${head.teams} ${head.teams === 1 ? "club" : "clubs"} · ${head.season} · ${head.stage}` : undefined}
+        subIcon="club"
+        meta={meta}
+        step={head ? { prev: head.prev, next: head.next, noun: "competition" } : undefined}
+        actions={<IconButton icon="bookmark" label={bookmarked ? "Remove bookmark" : "Bookmark"} aria-pressed={bookmarked} className={bookmarked ? "on" : ""} onClick={() => toggleBookmark({ k: "comp", id, title: name, sub: c?.kind ?? "" })} />}
       />
-      <Tabs tabs={tabs} value={tab} onChange={(t) => navigate(`/comp/${c.id}/${t}`)} label="Competition sections" />
-      {tab === "table" && (hasTable ? <TablePane c={c} /> : <Bracket c={c} />)}
-      {tab === "fixtures" && <Fixtures c={c} />}
-      {tab === "leaders" && <Leaders c={c} />}
-      {tab === "history" && (
-        <TableView id="comp-honours" table="honours" label="Past winners" filters={{ comp: c.id }} height={25} noPresets noColumns empty="No editions have finished yet." />
+      <StageTabs tabs={tabs} value={tab} onChange={(t) => navigate(`/comp/${id}${t === "overview" ? "" : `/${t}`}`)} label="Competition sections" />
+      {tab === "overview" ? (
+        <CompOverview id={id} tabTo={(t) => `/comp/${id}/${t}`} />
+      ) : !c ? (
+        <div className="stage-body" aria-busy="true">
+          <Skeleton w="40%" h={24} />
+        </div>
+      ) : (
+        <div className="stage-body">
+          {tab === "table" && (hasTable ? <TablePane c={c} /> : <Bracket c={c} />)}
+          {tab === "fixtures" && <Fixtures c={c} />}
+          {tab === "leaders" && <Leaders c={c} />}
+          {tab === "history" && <TableView id="comp-honours" table="honours" label="Past winners" filters={{ comp: c.id }} height={25} noPresets noColumns empty="No editions have finished yet." />}
+          {tab === "rules" && <Rules c={c} />}
+        </div>
       )}
-      {tab === "rules" && <Rules c={c} />}
     </>
   );
 }
@@ -311,23 +345,38 @@ export function Nation() {
   const tab = route.segs[2] ?? "overview";
   const q = useApi<NationResp>("nation", { id });
   usePageTitle(q.data?.name);
+  const n = q.data;
+  const [c1] = brandFor("nation", id, n?.name ?? "");
   return (
-    <div className="page">
-      <Async q={q}>
-        {(n) => (
-          <>
-            <PageHead
-              crumbs={[{ label: "Nations", to: "/nations" }]}
-              title={n.name}
-              sub={`${n.confed} · ${plural(n.clubs, "club")} · ${fmtInt(n.players)} players`}
-              actions={n.window_open ? <Badge tone="pos">Transfer window open</Badge> : <Badge tone="muted">Transfer window closed</Badge>}
-            />
-            <Tabs
-              value={tab}
-              onChange={(t) => navigate(`/nation/${n.id}${t === "overview" ? "" : `/${t}`}`)}
-              label="Nation sections"
-              tabs={[{ id: "overview", label: "Overview" }, { id: "clubs", label: "Clubs" }, { id: "people", label: "People" }]}
-            />
+    <Stage tint={tintOf(c1)}>
+      {q.error && !q.data ? (
+        <div className="stage-body">
+          <ErrorState error={q.error} onRetry={q.reload} />
+        </div>
+      ) : !n ? (
+        <div className="stage-body" aria-busy="true">
+          <Skeleton w="30%" h={40} />
+        </div>
+      ) : (
+        <>
+          <StageHeader
+            crest={<Crest name={n.name} kind="nation" id={n.id} size={58} />}
+            title={n.name}
+            sub={`${n.confed} · ${plural(n.clubs, "club")} · ${fmtInt(n.players)} players`}
+            subIcon="globe"
+            meta={[
+              { label: "Reputation", value: <span className="num">{fmtInt(n.reputation)}</span> },
+              { label: "Season", value: n.season.label },
+              { label: "Transfer window", value: n.window_open ? "Open" : "Closed" },
+            ]}
+          />
+          <StageTabs
+            value={tab}
+            onChange={(t) => navigate(`/nation/${n.id}${t === "overview" ? "" : `/${t}`}`)}
+            label="Nation sections"
+            tabs={[{ id: "overview", label: "Overview" }, { id: "clubs", label: "Clubs" }, { id: "people", label: "People" }]}
+          />
+          <div className="stage-body">
             {tab === "overview" && (
               <div className="grid-2">
                 <Section title="Competitions">
@@ -366,9 +415,9 @@ export function Nation() {
                 <a href={href(`/people?nation=${n.id}`)}>Open everyone from {n.name} in the people list</a>, where they can be filtered and sorted.
               </p>
             )}
-          </>
-        )}
-      </Async>
-    </div>
+          </div>
+        </>
+      )}
+    </Stage>
   );
 }

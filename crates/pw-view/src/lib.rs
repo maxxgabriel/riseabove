@@ -180,6 +180,8 @@ impl Api {
 
             "person" => self.with(|c| pages::person::get(c, &args)),
             "person.attributes" => self.with(|c| pages::person::attributes(c, &args)),
+            "crest.colors" => self.with(pages::compview::crest_colors),
+            "comp.overview" => self.with(|c| pages::compview::overview(c, &args)),
             "insight.club" => self.with(|c| pages::insights::club(c, &args)),
             "insight.comp" => self.with(|c| pages::insights::comp(c, &args)),
             "insight.match" => self.with(|c| pages::insights::matchup(c, &args)),

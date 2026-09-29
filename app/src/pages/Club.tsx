@@ -7,9 +7,12 @@ import { fmtInt, ordinal, plural } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named } from "../types";
-import { Badge, Button, IconButton, KeyVal, Meter, Section, Tabs } from "../ui/ui";
+import { Badge, Button, ErrorState, IconButton, KeyVal, Meter, Section, Skeleton } from "../ui/ui";
 import { Insights } from "../components/Insights";
-import { Async, PageHead, usePageTitle } from "./common";
+import { Async, usePageTitle } from "./common";
+import { tintOf } from "../color";
+import { Crest } from "../components/Crest";
+import { DEFAULT_TINT, Stage, StageHeader, StageTabs, type MetaBit } from "../components/Stage";
 import { BoardTab, FansTab, RoomTab, type Systems } from "./ClubInside";
 
 interface ClubResp {
@@ -46,15 +49,20 @@ export function Club() {
   const q = useApi<ClubResp>("club", { id });
   usePageTitle(q.data?.name);
   return (
-    <div className="page">
-      <Async q={q}>{(c) => <ClubBody c={c} tab={tab} reload={q.reload} />}</Async>
-    </div>
-  );
-}
-
-function Swatch({ colors }: { colors: [string, string] }) {
-  return (
-    <span className="swatch" aria-hidden="true" style={{ background: `linear-gradient(135deg, ${colors[0]} 50%, ${colors[1]} 50%)` }} />
+    <Stage tint={q.data ? tintOf(q.data.colors[0]) : DEFAULT_TINT}>
+      {q.error && !q.data ? (
+        <div className="stage-body">
+          <ErrorState error={q.error} onRetry={q.reload} />
+        </div>
+      ) : !q.data ? (
+        <div className="stage-body" aria-busy="true">
+          <Skeleton w="30%" h={40} />
+          <Skeleton w="60%" />
+        </div>
+      ) : (
+        <ClubBody c={q.data} tab={tab} reload={q.reload} />
+      )}
+    </Stage>
   );
 }
 
@@ -81,18 +89,24 @@ function ClubBody({ c, tab, reload }: { c: ClubResp; tab: Tab; reload: () => voi
       notify({ tone: "neg", text: (e as Error).message });
     }
   };
+  const meta: MetaBit[] = [];
+  if (c.league) meta.push({ label: "League", value: <><EntityLink r={c.league.comp}>{c.league.comp.name}</EntityLink>{c.league.position && <small>{ordinal(c.league.position)}</small>}</> });
+  if (c.manager) meta.push({ label: "Manager", value: <EntityLink r={c.manager.person}>{c.manager.person.name}</EntityLink> });
+  meta.push({ label: "Stadium", value: <span className="num">{fmtInt(c.capacity)}</span> });
+  meta.push({ label: "Founded", value: <span className="num">{c.founded}</span> });
   return (
     <>
-      <PageHead
-        crumbs={[{ label: "Clubs", to: "/clubs" }]}
-        title={<span className="person-title"><Swatch colors={c.colors} /><span>{c.name}{c.relation === "Your club" && <Badge tone="you">Your club</Badge>}</span></span>}
-        sub={
-          <span className="person-sub">
-            <span>{c.city}</span>
-            <EntityLink r={c.nation}>{c.nation.name}</EntityLink>
-            {c.league && <EntityLink r={c.league.comp}>{c.league.comp.name}</EntityLink>}
-          </span>
+      <StageHeader
+        crest={<Crest name={c.name} colors={c.colors} id={c.id} size={58} />}
+        title={
+          <>
+            {c.name}
+            {c.relation === "Your club" && <Badge tone="you">Your club</Badge>}
+          </>
         }
+        sub={[c.city, c.nation.name].filter(Boolean).join(" · ")}
+        subIcon="globe"
+        meta={meta}
         actions={
           <>
             <IconButton icon="bookmark" label={bookmarked ? "Remove bookmark" : "Bookmark"} aria-pressed={bookmarked} className={bookmarked ? "on" : ""} onClick={() => toggleBookmark({ k: "club", id: c.id, title: c.name, sub: c.league?.comp.name })} />
@@ -102,16 +116,18 @@ function ClubBody({ c, tab, reload }: { c: ClubResp; tab: Tab; reload: () => voi
           </>
         }
       />
-      <Tabs tabs={tabs} value={tab} onChange={(t) => navigate(`/club/${c.id}${t === "overview" ? "" : `/${t}`}`)} label="Club sections" />
-      {tab === "overview" && <Overview c={c} />}
-      {tab === "squad" && <Squad c={c} />}
-      {tab === "staff" && <TableView id="club-staff" table="staff" label="Staff" filters={{ club: c.id }} height={30} noun={["person", "people"]} noColumns />}
-      {tab === "fixtures" && <ClubFixtures c={c} />}
-      {tab === "finances" && c.finance && <Finances c={c} f={c.finance} />}
-      {tab === "board" && <Async q={sys}>{(s) => <BoardTab s={s} />}</Async>}
-      {tab === "fans" && <Async q={sys}>{(s) => <FansTab club={c.id} s={s} />}</Async>}
-      {tab === "room" && <Async q={sys}>{(s) => (s.room ? <RoomTab room={s.room} /> : <p className="muted">The dressing room is not open to you.</p>)}</Async>}
-      {tab === "history" && <History c={c} />}
+      <StageTabs tabs={tabs.filter((t) => !t.hidden)} value={tab} onChange={(t) => navigate(`/club/${c.id}${t === "overview" ? "" : `/${t}`}`)} label="Club sections" />
+      <div className="stage-body">
+        {tab === "overview" && <Overview c={c} />}
+        {tab === "squad" && <Squad c={c} />}
+        {tab === "staff" && <TableView id="club-staff" table="staff" label="Staff" filters={{ club: c.id }} height={30} noun={["person", "people"]} noColumns />}
+        {tab === "fixtures" && <ClubFixtures c={c} />}
+        {tab === "finances" && c.finance && <Finances c={c} f={c.finance} />}
+        {tab === "board" && <Async q={sys}>{(s) => <BoardTab s={s} />}</Async>}
+        {tab === "fans" && <Async q={sys}>{(s) => <FansTab club={c.id} s={s} />}</Async>}
+        {tab === "room" && <Async q={sys}>{(s) => (s.room ? <RoomTab room={s.room} /> : <p className="muted">The dressing room is not open to you.</p>)}</Async>}
+        {tab === "history" && <History c={c} />}
+      </div>
     </>
   );
 }

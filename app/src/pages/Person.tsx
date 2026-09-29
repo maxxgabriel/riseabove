@@ -7,11 +7,15 @@ import { ageAt, date, duration, fmtInt } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { useApi, useStatus } from "../store";
 import type { Named, Ref } from "../types";
-import { Avatar, Badge, Button, IconButton, KeyVal, Meter, Section, Tabs } from "../ui/ui";
+import { Avatar, Badge, Button, ErrorState, IconButton, KeyVal, Meter, Section, Skeleton } from "../ui/ui";
 import { PersonActions } from "../components/Actions";
 import { InhabitDialog } from "../components/InhabitDialog";
 import { Insights } from "../components/Insights";
-import { Async, PageHead, usePageTitle } from "./common";
+import { Async, usePageTitle } from "./common";
+import { tintOf } from "../color";
+import { ClubCrest } from "../components/Crest";
+import { useClubColors } from "../crest";
+import { DEFAULT_TINT, Stage, StageHeader, StageTabs, type MetaBit } from "../components/Stage";
 import { Icon } from "../ui/Icon";
 
 interface PersonResp {
@@ -88,14 +92,35 @@ export function Person() {
   const tab = (route.segs[2] as Tab) || "overview";
   const q = useApi<PersonResp>("person", { id });
   usePageTitle(q.data?.name);
+  const club = q.data ? clubOf(q.data) : null;
+  const colors = useClubColors(club?.id);
+  const tint = colors ? tintOf(colors[0]) : DEFAULT_TINT;
   return (
-    <div className="page">
-      <Async q={q}>{(p) => <PersonBody p={p} tab={tab} />}</Async>
-    </div>
+    <Stage tint={tint}>
+      {q.error && !q.data ? (
+        <div className="stage-body">
+          <ErrorState error={q.error} onRetry={q.reload} />
+        </div>
+      ) : !q.data ? (
+        <div className="stage-body" aria-busy="true">
+          <Skeleton w="30%" h={40} />
+          <Skeleton w="60%" />
+        </div>
+      ) : (
+        <PersonBody p={q.data} tab={tab} club={club} />
+      )}
+    </Stage>
   );
 }
 
-function PersonBody({ p, tab }: { p: PersonResp; tab: Tab }) {
+/** The club a person belongs to right now, for the page colours: their contract, their staff post or a role. */
+function clubOf(p: PersonResp): Named | null {
+  if (p.player?.contract) return p.player.contract.club;
+  if (p.staff?.club) return p.staff.club;
+  return p.roles.find((r) => r.org?.k === "club")?.org ?? null;
+}
+
+function PersonBody({ p, tab, club }: { p: PersonResp; tab: Tab; club: Named | null }) {
   const st = useStatus();
   const bookmarked = useIsBookmarked("person", p.id);
   const [inhabit, setInhabit] = useState(false);
@@ -109,18 +134,30 @@ function PersonBody({ p, tab }: { p: PersonResp; tab: Tab }) {
   ];
   const avail = p.player?.availability;
   const busy = st.job.running;
+  const meta: MetaBit[] = [];
+  if (p.player) {
+    meta.push({ label: "Position", value: p.player.best_pos });
+    if (p.nations[0]) meta.push({ label: "Nation", value: <EntityLink r={p.nations[0]}>{p.nations[0].name}</EntityLink> });
+    if (p.player.contract) meta.push({ label: "Contract", value: <><span>until</span> <Dt d={p.player.contract.end} /></> });
+    if (p.player.value != null) meta.push({ label: "Value", value: <Money v={p.player.value} /> });
+  } else {
+    if (p.staff) meta.push({ label: "Role", value: p.staff.role });
+    if (p.nations[0]) meta.push({ label: "Nation", value: <EntityLink r={p.nations[0]}>{p.nations[0].name}</EntityLink> });
+  }
   return (
     <>
-      <PageHead
-        crumbs={[{ label: "People", to: "/people" }]}
-        title={
-          <span className="person-title">
-            <Avatar initials={p.initials} size={44} you={p.is_me} />
-            <span>
-              {p.name}
-              {p.is_me && <Badge tone="you">You</Badge>}
-            </span>
+      <StageHeader
+        crest={
+          <span className="person-crest">
+            <Avatar initials={p.initials} size={64} you={p.is_me} />
+            {club && <ClubCrest id={club.id} name={club.name} size={26} />}
           </span>
+        }
+        title={
+          <>
+            {p.name}
+            {p.is_me && <Badge tone="you">You</Badge>}
+          </>
         }
         sub={
           <span className="person-sub">
@@ -143,6 +180,7 @@ function PersonBody({ p, tab }: { p: PersonResp; tab: Tab }) {
             )}
           </span>
         }
+        meta={meta}
         actions={
           <>
             {avail && avail.label !== "Available" && <Badge tone={avail.tone === "muted" ? "muted" : avail.tone} title={avail.detail}>{avail.label}</Badge>}
@@ -165,12 +203,14 @@ function PersonBody({ p, tab }: { p: PersonResp; tab: Tab }) {
           </>
         }
       />
-      <Tabs tabs={tabs} value={tab} onChange={(t) => navigate(`/person/${p.id}${t === "overview" ? "" : `/${t}`}`)} label="Person sections" />
-      {tab === "overview" && (p.player ? <PlayerOverview p={p} pl={p.player} /> : p.staff ? <StaffOverview p={p} s={p.staff} /> : <p className="muted">No further details.</p>)}
-      {tab === "attributes" && <AttributesTab id={p.id} />}
-      {tab === "stats" && <StatsTab id={p.id} />}
-      {tab === "career" && <CareerTab id={p.id} />}
-      {tab === "events" && <EventsTab id={p.id} />}
+      <StageTabs tabs={tabs.filter((t) => !t.hidden)} value={tab} onChange={(t) => navigate(`/person/${p.id}${t === "overview" ? "" : `/${t}`}`)} label="Person sections" />
+      <div className="stage-body">
+        {tab === "overview" && (p.player ? <PlayerOverview p={p} pl={p.player} /> : p.staff ? <StaffOverview p={p} s={p.staff} /> : <p className="muted">No further details.</p>)}
+        {tab === "attributes" && <AttributesTab id={p.id} />}
+        {tab === "stats" && <StatsTab id={p.id} />}
+        {tab === "career" && <CareerTab id={p.id} />}
+        {tab === "events" && <EventsTab id={p.id} />}
+      </div>
       <InhabitDialog open={inhabit} onClose={() => setInhabit(false)} person={{ id: p.id, name: p.name, short: p.short }} />
     </>
   );

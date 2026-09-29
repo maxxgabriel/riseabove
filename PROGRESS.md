@@ -300,6 +300,19 @@ endpoint over local HTTP for development and browser tests. See `app/README.md`.
   include unrevealed results; tactical analysis, scouting and squad-planning advice do not exist. Writing the notes showed that the
   synthetic match engine is generous (a striker scoring 54 league goals in 24 games, season average ratings above 9), which is a
   balance matter for the simulation, not the interface.
+- **Look** (`app/src/styles/stage.css`, `app/src/components/Stage.tsx`, `Crest.tsx`, `app/src/pages/CompOverview.tsx`): the client is skinned
+  after the Football Manager overview screens the owner pointed at: the whole window takes a dark tint (`--tint`, set by the page:
+  a competition's colour, a club's kit colour), headings are Barlow Condensed with an underline, and entity pages open with a
+  header (badge, title, meta blocks) over a strip of matches and one bordered panel of columns. Competitions open on an Overview
+  (`comp.overview`): the last ten results and next four fixtures, the table (or the current round's ties), player and team
+  statistic leaders, and match-report stories about the competition. Club, person, match, nation and Today use the same header.
+  Badges are generated (a shield in the club's two colours with a pattern picked from its id), not real logos; `crest.colors`
+  sends every club's colours once so any list can draw one. Team statistics are worked out from recorded results (goals, goals
+  conceded, clean sheets, biggest win, and expected goals, shots and cards from player lines); possession and xG against are not
+  recorded, so they are not shown. Results you have not revealed are left out of the strip and table, goals, assists and average
+  rating are recomputed without them, and the sections that cannot be taken back out (man of the match, clean sheets, cards,
+  expected goals) are held back with a note (`the_competition_overview_*` tests). The light theme keeps a light shell around dark
+  stages. Not done: real portraits, kits or logos, and the reference's second page of statistics is a guess at what FM shows there.
 - **Speed** (release, small synthetic world, four simulated years, measured after merging the simulation branch of 2026-09-28):
   about 23 s in all; an ordinary day costs 17 ms in year 1 and 34 ms in year 4, a Monday about 220 ms and the worst day about
   340 ms, from the weekly systems (morale, media, agents, youth, manager summons). `cargo run --release -p pw-view --example

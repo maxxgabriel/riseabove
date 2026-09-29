@@ -1,5 +1,6 @@
 pub mod act;
 pub mod club;
+pub mod compview;
 pub mod inbox;
 pub mod insights;
 pub mod life;

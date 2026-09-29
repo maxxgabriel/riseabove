@@ -720,3 +720,110 @@ fn insights_leave_out_results_the_viewer_has_not_revealed() {
     assert_eq!(api.call("insight.person", json!({"id": me})).unwrap()["held"], 0);
     assert_eq!(api.call("insight.club", json!({"id": club})).unwrap()["held"], 0);
 }
+
+fn section<'a>(list: &'a Value, title: &str) -> Option<&'a Value> {
+    list.as_array().unwrap().iter().find(|s| s["title"] == title)
+}
+
+#[test]
+fn the_competition_overview_reads_recorded_state() {
+    let api = api();
+    new_world(&api, "small");
+    advance(&api, 90);
+    let comps = table(&api, "comps", json!({}), 40);
+    assert!(comps["total"].as_u64().unwrap() >= 3);
+    for row in comps["rows"].as_array().unwrap() {
+        let id = row["id"].as_u64().unwrap();
+        let o = api.call("comp.overview", json!({"id": id})).unwrap_or_else(|e| panic!("comp {id}: {e:?}"));
+        let light = api.call("comp.overview", json!({"id": id, "light": true})).unwrap();
+        assert!(light.get("ticker").is_none() && light["meta"].is_array(), "the light form carries the header only");
+        assert_eq!(light["name"], o["name"]);
+        // Every match in the strip has two named teams with badge colours; finished ones carry a score.
+        for m in o["ticker"].as_array().unwrap() {
+            for side in ["home", "away"] {
+                assert!(m[side]["colors"][0].as_str().unwrap().starts_with('#'), "{m}");
+                assert!(m[side]["name"].as_str().is_some_and(|n| !n.is_empty()));
+            }
+            match m["status"].as_str().unwrap() {
+                "ft" => assert!(m["hs"].is_u64() && m["as"].is_u64(), "a finished match shows its score: {m}"),
+                "next" => assert!(m["hs"].is_null(), "a match to come has no score: {m}"),
+                s => panic!("unexpected status {s} with nothing hidden"),
+            }
+        }
+        // Leaders are ranked from most to fewest and never list more than three.
+        for list in [&o["players"], &o["teams_stats"]] {
+            for s in list.as_array().unwrap() {
+                let rows = s["rows"].as_array().unwrap();
+                assert!(!rows.is_empty() && rows.len() <= 3, "{}", s["title"]);
+                let vals: Vec<f64> = rows.iter().filter_map(|r| r["value"].as_str().and_then(|v| v.split('-').next()).and_then(|v| v.parse().ok())).collect();
+                let asc = s["title"] == "Fewest Goals Conceded";
+                assert!(vals.windows(2).all(|w| if asc { w[0] <= w[1] } else { w[0] >= w[1] }), "{} is out of order: {vals:?}", s["title"]);
+            }
+        }
+        match o["left"]["kind"].as_str().unwrap() {
+            "table" => {
+                let rows = o["left"]["rows"].as_array().unwrap();
+                assert!(!rows.is_empty());
+                let pts: Vec<i64> = rows.iter().map(|r| r["points"].as_i64().unwrap()).collect();
+                assert!(pts.windows(2).all(|w| w[0] >= w[1]), "table out of order: {pts:?}");
+                // The strip and the leaders agree with the table: the top scoring side scored what the table says.
+                let gf = table(&api, "standings", json!({"comp": id}), 40);
+                let ix = gf["columns"].as_array().unwrap().iter().position(|c| c == "gf").unwrap();
+                let best = gf["rows"].as_array().unwrap().iter().map(|r| r["cells"][ix]["n"].as_f64().unwrap()).fold(0.0, f64::max);
+                if let Some(g) = section(&o["teams_stats"], "Goals") {
+                    assert_eq!(g["rows"][0]["value"].as_str().unwrap().parse::<f64>().unwrap(), best, "top scoring side");
+                }
+            }
+            "ties" => assert!(o["left"]["round"].is_string()),
+            k => panic!("unexpected left column {k}"),
+        }
+    }
+    // Every club has badge colours.
+    let clubs = api.call("crest.colors", json!({})).unwrap();
+    let n = table(&api, "clubs", json!({}), 1)["total"].as_u64().unwrap() as usize;
+    assert_eq!(clubs["colors"].as_object().unwrap().len(), n);
+    assert!(clubs["colors"].as_object().unwrap().values().all(|c| c[0].as_str().unwrap().len() == 7));
+    assert!(api.call("comp.overview", json!({"id": 99999})).is_err());
+}
+
+#[test]
+fn the_competition_overview_holds_back_what_the_viewer_has_not_seen() {
+    let api = api();
+    let me = inhabit_one(&api);
+    let club = api.call("person", json!({"id": me})).unwrap()["roles"][0]["org"]["id"].as_u64().unwrap();
+    let lg = api.call("club", json!({"id": club})).unwrap()["league"]["comp"]["id"].as_u64().unwrap();
+    let before = api.call("comp.overview", json!({"id": lg})).unwrap();
+    assert_eq!(before["held"]["results"], 0);
+    let mut met = false;
+    for _ in 0..8 {
+        api.call("advance.start", json!({"mode": "until_match"})).unwrap();
+        if wait_job(&api)["stop"]["kind"] != "match" {
+            continue;
+        }
+        let o = api.call("comp.overview", json!({"id": lg})).unwrap();
+        if o["held"]["results"].as_u64().unwrap() == 0 {
+            continue;
+        }
+        met = true;
+        // The hidden match is in the strip without a score.
+        let held: Vec<&Value> = o["ticker"].as_array().unwrap().iter().filter(|m| m["status"] == "held").collect();
+        assert!(!held.is_empty() && held.iter().all(|m| m["hs"].is_null() && m["as"].is_null()), "{held:?}");
+        // What cannot be taken back out of a hidden match is not shown at all.
+        for t in ["Player of the Match", "Yellow Cards", "Red Cards", "Expected Goals", "Clean Sheets"] {
+            assert!(section(&o["players"], t).is_none(), "{t} would give away the hidden match");
+        }
+        assert!(section(&o["teams_stats"], "Expected Goals For").is_none());
+        assert!(!o["held"]["withheld"].as_array().unwrap().is_empty());
+        // Goals for and against come from the same results as the table, which leaves the hidden match out.
+        let st = table(&api, "standings", json!({"comp": lg}), 40);
+        let ix = st["columns"].as_array().unwrap().iter().position(|c| c == "gf").unwrap();
+        let best = st["rows"].as_array().unwrap().iter().map(|r| r["cells"][ix]["n"].as_f64().unwrap()).fold(0.0, f64::max);
+        assert_eq!(section(&o["teams_stats"], "Goals").unwrap()["rows"][0]["value"].as_str().unwrap().parse::<f64>().unwrap(), best);
+        break;
+    }
+    assert!(met, "the test never met a hidden result");
+    api.call("match.reveal_all", json!({})).unwrap();
+    let after = api.call("comp.overview", json!({"id": lg})).unwrap();
+    assert_eq!(after["held"]["results"], 0);
+    assert!(after["ticker"].as_array().unwrap().iter().all(|m| m["status"] != "held"));
+}
