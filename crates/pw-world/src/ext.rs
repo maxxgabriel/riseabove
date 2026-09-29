@@ -140,3 +140,60 @@ pub mod envelope {
         super::decode(version, bytes).map_err(D::Error::custom)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The bytes a layout-1 build wrote for `Extensions`: its seven fields, in order (bincode writes struct fields back to back).
+    fn layout_1_bytes(e: &Extensions) -> Vec<u8> {
+        let mut b = Vec::new();
+        b.extend(bincode::serialize(&e.medical).unwrap());
+        b.extend(bincode::serialize(&e.ecosystem).unwrap());
+        b.extend(bincode::serialize(&e.almanac).unwrap());
+        b.extend(bincode::serialize(&e.academy).unwrap());
+        b.extend(bincode::serialize(&e.staff).unwrap());
+        b.extend(bincode::serialize(&e.training).unwrap());
+        b.extend(bincode::serialize(&e.decisions).unwrap());
+        b
+    }
+
+    #[test]
+    fn layout_1_opens_at_layout_2_with_new_domains_empty_and_marked() {
+        let mut old = Extensions::default();
+        old.ecosystem.last_year = 2031;
+        old.ecosystem.export = 33.5;
+        let e = decode(1, layout_1_bytes(&old)).expect("layout 1 upgrades");
+        assert_eq!(e.migrated_from, Some(1), "the load must say it came from an older layout so the legacy hook runs");
+        assert_eq!(e.ecosystem.last_year, 2031, "what layout 1 held is untouched");
+        assert!((e.ecosystem.export - 33.5).abs() < 1e-6);
+        assert!(e.recog.acquaint.is_empty() && e.recog.vouch.is_empty() && e.recog.export.is_empty() && e.recog.watching.is_empty(), "no organisation knowledge is invented");
+        assert!(e.pathway.why.is_empty() && e.pathway.created.is_empty(), "no pathway history is invented");
+        assert_eq!(e.scenario, Scenario::default(), "the scenario starts as the built-in defaults, which are the values the simulation always used");
+    }
+
+    #[test]
+    fn a_current_layout_round_trips_and_is_not_marked_as_migrated() {
+        let mut e = Extensions::default();
+        e.ecosystem.export = 12.0;
+        e.scenario.source = "test".into();
+        let bytes = bincode::serialize(&e).unwrap();
+        let back = decode(EXT_VERSION, bytes).unwrap();
+        assert_eq!(back.migrated_from, None);
+        assert_eq!(back.scenario.source, "test");
+    }
+
+    #[test]
+    fn a_newer_or_missing_layout_is_refused_not_guessed() {
+        assert!(decode(EXT_VERSION + 1, Vec::new()).err().unwrap().contains("newer"));
+        assert!(decode(0, Vec::new()).is_err());
+        assert!(migrate(1, Vec::new(), &[], 2).unwrap_err().contains("no step"));
+    }
+
+    #[test]
+    fn the_migration_steps_form_an_unbroken_chain_to_the_current_layout() {
+        let froms: Vec<u32> = steps().iter().map(|s| s.from).collect();
+        let want: Vec<u32> = (1..EXT_VERSION).collect();
+        assert_eq!(froms, want, "every layout from 1 up to the current one must have exactly one step");
+    }
+}
