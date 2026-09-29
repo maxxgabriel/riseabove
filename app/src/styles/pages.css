@@ -122,6 +122,25 @@ a.btn { text-decoration: none; }
 .result-row { display: inline-flex; align-items: center; gap: 0.7rem; }
 .condition { display: grid; gap: 0.5rem; }
 
+/* Key desktop pages use the same compact editorial rhythm. */
+.person-stat-strip, .club-stat-strip { margin-bottom: 0.05rem; }
+.player-layout > aside, .club-layout > aside, .today-layout > aside { min-width: 0; }
+.today-body { gap: 0.85rem; }
+.today-layout > .stack > .section:first-child .attention { border-left: 3px solid var(--you); }
+.today-layout .nextmatch { border-left: 3px solid var(--accent); }
+.today-layout .rows > li { min-height: var(--row-h); }
+.summary-note { display: flex; align-items: flex-start; gap: 0.65rem; min-height: 100%; padding: 0.85rem 0.9rem; background: color-mix(in srgb, var(--info-soft) 52%, var(--panel)); border-left: 2px solid var(--info); color: var(--text-2); }
+.summary-note svg { color: var(--info); flex: none; margin-top: 0.1rem; }
+.summary-note strong { color: var(--text); }
+.summary-note p { margin: 0.3rem 0 0; line-height: 1.45; }
+.result-summary { display: grid; gap: 1rem; }
+
+@media (min-width: 1600px) {
+  .today-layout { grid-template-columns: minmax(0, 1fr) 21rem; }
+  .player-layout { grid-template-columns: minmax(0, 1fr) 22rem; }
+  .club-layout { grid-template-columns: minmax(0, 1fr) 22rem; }
+}
+
 /* ---- inbox ---- */
 .page.fill.inbox-page { padding-bottom: 0; grid-template-rows: auto auto minmax(0, 1fr); }
 .inbox { display: grid; grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr); gap: 1rem; min-height: 0; height: 100%; padding-bottom: 1rem; }

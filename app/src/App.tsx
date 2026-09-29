@@ -12,10 +12,11 @@ import { Journal } from "./pages/Journal";
 import { Society } from "./pages/Society";
 import { Life } from "./pages/Life";
 import { Messages } from "./pages/Messages";
+import { News } from "./pages/News";
 import { PressFans } from "./pages/PressFans";
 import { Relationships } from "./pages/Relationships";
 import { Social } from "./pages/Social";
-import { Today } from "./pages/Today";
+import { Portal } from "./pages/Portal";
 import { Compare } from "./pages/Compare";
 import { Bookmarks } from "./pages/Bookmarks";
 import { Diagnostics } from "./pages/Diagnostics";
@@ -62,9 +63,11 @@ function Page() {
     case "person":
       return <Person />;
     case "today":
-      return <Today />;
+      return <Portal />;
     case "messages":
       return <Messages />;
+    case "news":
+      return <News />;
     case "calendar":
       return <Calendar />;
     case "football":

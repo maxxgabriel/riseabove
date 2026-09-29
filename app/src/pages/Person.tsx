@@ -7,7 +7,7 @@ import { ageAt, date, duration, fmtInt } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { useApi, useStatus } from "../store";
 import type { Named, Ref } from "../types";
-import { Avatar, Badge, Button, ErrorState, IconButton, KeyVal, Meter, Section, Skeleton } from "../ui/ui";
+import { Avatar, Badge, Button, ErrorState, IconButton, KeyVal, Meter, Metric, Section, Skeleton, StatStrip } from "../ui/ui";
 import { PersonActions } from "../components/Actions";
 import { InhabitDialog } from "../components/InhabitDialog";
 import { Insights } from "../components/Insights";
@@ -233,7 +233,14 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
   const st = useStatus();
   const today = st.date ?? 0;
   return (
-    <div className="split">
+    <>
+      <StatStrip className="person-stat-strip">
+        <Metric label="Position" value={pl.best_pos} detail={pl.squad_status ?? pl.team ?? "First team"} tone="accent" />
+        <Metric label="Recent rating" value={pl.form.length ? pl.form[pl.form.length - 1].toFixed(1) : "—"} detail="Latest appearance" />
+        <Metric label="Senior career" value={fmtInt(pl.senior_apps)} detail={`${fmtInt(pl.senior_goals)} goals`} />
+        {pl.value != null && <Metric label="Market value" value={<Money v={pl.value} />} detail="Estimated value" tone="accent" />}
+      </StatStrip>
+      <div className="split player-layout">
       <div className="stack">
         <Insights method="insight.person" args={{ id: p.id }} />
         {pl.condition && (
@@ -327,7 +334,8 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
         )}
         {p.provenance && <DataSource prov={p.provenance} />}
       </aside>
-    </div>
+      </div>
+    </>
   );
 }
 

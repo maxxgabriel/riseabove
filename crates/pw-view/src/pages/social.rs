@@ -29,6 +29,14 @@ pub fn kind_label(k: AccountKind) -> &'static str {
 
 /// One post, with the post it answers or quotes shown briefly.
 pub fn post_json(c: &Ctx, p: &Post, depth: u8) -> Value {
+    if c.post_spoils(p) {
+        return json!({
+            "id": p.id, "date": p.date.0,
+            "author": {"handle": "", "display": "A post", "kind": "Held back", "followers": 0, "person": Value::Null, "you": false},
+            "text": "A post about an unrevealed result", "about": Value::Null,
+            "likes": 0, "reposts": 0, "replies": 0, "parent": Value::Null, "quoted": Value::Null,
+        });
+    }
     let w = c.w;
     let a = &w.net.accounts[p.author as usize];
     let author_person = if a.person.is_some() { Some(named(Ref::person(a.person), c.person_name(a.person))) } else { None };
@@ -37,7 +45,7 @@ pub fn post_json(c: &Ctx, p: &Post, depth: u8) -> Value {
         if depth > 0 {
             return Value::Null;
         }
-        w.net.post(id).map_or(Value::Null, |q| post_json(c, q, depth + 1))
+        w.net.post(id).filter(|q| !c.post_spoils(q)).map_or(Value::Null, |q| post_json(c, q, depth + 1))
     };
     json!({
         "id": p.id, "date": p.date.0,
@@ -56,7 +64,7 @@ pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let me = c.me().ok_or_else(|| ApiError::State("You are observing the world. Inhabit someone to read their feed.".into()))?;
     let n = args.get("limit").and_then(Value::as_u64).map_or(40, |n| n.clamp(5, 100) as usize);
     let ids = pw_sim::socialnet::feed(c.w, me, n);
-    let posts: Vec<Value> = ids.into_iter().filter_map(|id| c.w.net.post(id)).map(|p| post_json(c, p, 0)).collect();
+    let posts: Vec<Value> = ids.into_iter().filter_map(|id| c.w.net.post(id)).filter(|p| !c.post_spoils(p)).map(|p| post_json(c, p, 0)).collect();
     let mine = c.w.net.account_of(me).map(|a| {
         let acc = &c.w.net.accounts[a as usize];
         json!({"handle": acc.handle, "followers": acc.followers})
@@ -68,6 +76,7 @@ pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
 pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing post".into()))? as u32;
     let p = c.w.net.post(id).ok_or_else(|| ApiError::NotFound("post".into()))?;
-    let replies: Vec<Value> = c.w.net.posts.iter().filter(|r| r.reply_to == id).take(30).map(|r| post_json(c, r, 1)).collect();
+    if c.post_spoils(p) { return Err(ApiError::NotFound("post".into())); }
+    let replies: Vec<Value> = c.w.net.posts.iter().filter(|r| r.reply_to == id && !c.post_spoils(r)).take(30).map(|r| post_json(c, r, 1)).collect();
     Ok(json!({"post": post_json(c, p, 0), "replies": replies}))
 }

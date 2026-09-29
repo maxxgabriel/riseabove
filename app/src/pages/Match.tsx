@@ -6,7 +6,7 @@ import { href, useRoute } from "../router";
 import { act, notify, useApi } from "../store";
 import type { Named } from "../types";
 import { Icon } from "../ui/Icon";
-import { Badge, Button, ErrorState, Section, Segmented, Skeleton, Tabs } from "../ui/ui";
+import { Badge, Button, ErrorState, KeyVal, Section, Segmented, Skeleton, Tabs } from "../ui/ui";
 import { usePageTitle } from "./common";
 import { tintOf } from "../color";
 import { Crest } from "../components/Crest";
@@ -245,10 +245,45 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
         </>
       )}
 
+      {played && !hidden && !detail && <ResultSummary m={m} />}
+
       {(m.status !== "played" || hidden) && <Preview m={m} />}
       {!hidden && played && <Insights method="insight.match" args={{ uid: m.uid }} title="Talking points" hideEmpty limit={6} />}
       </div>
     </>
+  );
+}
+
+/** A complete, honest view for fixtures whose event log was intentionally not retained. */
+function ResultSummary({ m }: { m: MatchResp }) {
+  return (
+    <div className="result-summary">
+      <div className="grid-2">
+        <Section title="Match record" tone="strong">
+          <div className="card">
+            <KeyVal
+              rows={[
+                { k: "Competition", v: <EntityLink r={m.comp}>{m.comp.name}</EntityLink> },
+                { k: "Round", v: m.round },
+                { k: "Date", v: <Dt d={m.date} /> },
+                ...(venueText(m) ? [{ k: "Venue", v: venueText(m) }] : []),
+                ...(m.score ? [{ k: "Result", v: <span className="num"><strong>{m.home.short} {m.score.home}–{m.score.away} {m.away.short}</strong></span> }] : []),
+              ]}
+            />
+          </div>
+        </Section>
+        <Section title="Available detail" tone="quiet">
+          <div className="summary-note">
+            <Icon name="info" size={18} />
+            <div>
+              <strong>Only the final result was retained.</strong>
+              <p>Lineups, events and match statistics are not available for this fixture. Following either club keeps detailed records for future matches.</p>
+            </div>
+          </div>
+        </Section>
+      </div>
+      <Preview m={m} />
+    </div>
   );
 }
 

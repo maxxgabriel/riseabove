@@ -12,6 +12,7 @@ import "./styles/table.css";
 import "./styles/shell.css";
 import "./styles/pages.css";
 import "./styles/stage.css";
+import "./styles/newsroom.css";
 
 applySettings(getSettings());
 createRoot(document.getElementById("root")!).render(

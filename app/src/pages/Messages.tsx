@@ -21,6 +21,7 @@ interface ThreadRow {
   count: number;
   unread: number;
   needs_action: boolean;
+  deadline: number | null;
   preview: string;
   last_kind: string;
 }
@@ -106,11 +107,13 @@ function Conversations() {
   return (
     <Async q={q}>
       {(d) => {
-        const list = d.threads.filter((t) => (filter === "action" ? t.needs_action : filter === "unread" ? t.unread > 0 : true));
+        const list = d.threads.filter((t) => (filter === "action" ? t.needs_action : filter === "unread" ? t.unread > 0 : true))
+          .sort((a, b) => Number(b.needs_action) - Number(a.needs_action) || Number(b.unread > 0) - Number(a.unread > 0) || b.last - a.last);
         const current = selected ?? list[0]?.id ?? null;
         return (
           <div className="inbox">
             <div className="inbox-list">
+              <div className="inbox-summary"><span>INBOX</span><strong>{d.awaiting} need action</strong><small>{d.unread} unread</small></div>
               <div className="chips" role="group" aria-label="Show">
                 {FILTERS.map((f) => {
                   const n = f.id === "action" ? d.awaiting : f.id === "unread" ? d.unread : 0;
@@ -138,6 +141,7 @@ function Conversations() {
                         </div>
                         <div className="msg-sub">
                           {t.needs_action && <Badge tone="warn">Needs an answer</Badge>}
+                          {t.needs_action && t.deadline != null && <span className="hint">Due <Dt d={t.deadline} year={false} /></span>}
                           {t.unread > 0 && <Badge tone="you">{t.unread} new</Badge>}
                           {t.count > 1 && <span className="hint">{t.count} messages</span>}
                         </div>
@@ -169,7 +173,8 @@ function ThreadView({ id, onRead }: { id: number; onRead: () => void }) {
   return (
     <Async q={q}>
       {(t) => (
-        <div className="thread">
+        <div className="thread-workspace">
+          <div className="thread">
           <header className="thread-head">
             <h2>{t.with ? <EntityLink r={t.with}>{t.title}</EntityLink> : t.title}</h2>
             <div className="hint">Since <Dt d={t.opened} /> · {t.messages.length} {t.messages.length === 1 ? "message" : "messages"}</div>
@@ -181,6 +186,13 @@ function ThreadView({ id, onRead }: { id: number; onRead: () => void }) {
               </li>
             ))}
           </ol>
+          </div>
+          <aside className="thread-context" aria-label="Conversation context">
+            <span>CONVERSATION</span>
+            <strong>{t.title}</strong>
+            <small>{t.kind === "decision" ? "A decision awaits your response" : <>{t.messages.length} messages since <Dt d={t.opened} year={false} /></>}</small>
+            {t.with && <EntityLink r={t.with}>Open {t.with.name}</EntityLink>}
+          </aside>
         </div>
       )}
     </Async>

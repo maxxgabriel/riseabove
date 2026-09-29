@@ -12,6 +12,10 @@ export interface InsightItem {
   text: string;
   basis: string;
   link: Named | null;
+  visual?: { kind: "sparkline"; label: string; unit: string; values: number[] }
+    | { kind: "sequence"; label: string; unit: string; values: string[] }
+    | { kind: "comparison"; label: string; unit: string; names: string[]; values: number[] }
+    | null;
 }
 interface InsightsResp {
   items: InsightItem[];
@@ -73,6 +77,20 @@ function Sentence({ text, link }: { text: string; link: Named | null }) {
   );
 }
 
+function InsightVisual({ visual }: { visual: NonNullable<InsightItem["visual"]> }) {
+  if (visual.kind === "sequence") return <div className="insight-visual insight-sequence" aria-label={`${visual.label}: ${visual.values.join(", ")}`}>{visual.values.map((v, i) => <span key={i} className={`result-${v.toLowerCase()}`}>{v}</span>)}</div>;
+  if (visual.kind === "comparison") {
+    const max = Math.max(1, ...visual.values);
+    return <div className="insight-visual insight-comparison" aria-label={`${visual.label}: ${visual.names.map((name, i) => `${name} ${visual.values[i]} ${visual.unit}`).join(", ")}`}>{visual.values.map((v, i) => <span key={i} title={`${visual.names[i]}: ${v} ${visual.unit}`}><i style={{ width: `${Math.max(6, v / max * 100)}%` }} /></span>)}</div>;
+  }
+  const values = visual.values.filter((v) => Number.isFinite(v));
+  if (values.length < 3) return null;
+  const min = Math.min(...values) - 0.25;
+  const range = Math.max(0.5, Math.max(...values) - min);
+  const points = values.map((v, i) => `${6 + i * 76 / (values.length - 1)},${25 - (v - min) / range * 19}`).join(" ");
+  return <svg className="insight-visual insight-spark" viewBox="0 0 88 30" role="img" aria-label={`${visual.label}: ${values.map((v) => v.toFixed(1)).join(", ")} ${visual.unit}`}><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx={6 + 76} cy={25 - (values[values.length - 1] - min) / range * 19} r="2.7" fill="currentColor" /></svg>;
+}
+
 /**
  * Notes an assistant coach would point out, each computed from recorded state and showing
  * the numbers it rests on. `limit` shows the first few with a way to see the rest.
@@ -115,6 +133,7 @@ export function Insights({ method, args, title = "Insights", limit = 6, aside, c
                   </div>
                   {!compact && it.basis && <div className="insight-basis">{it.basis}</div>}
                 </div>
+                {it.visual && <InsightVisual visual={it.visual} />}
               </li>
             ))}
           </ul>

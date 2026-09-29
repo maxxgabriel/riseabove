@@ -30,6 +30,7 @@ struct Item {
     text: String,
     basis: String,
     link: Option<Named>,
+    visual: Option<Value>,
 }
 
 #[derive(Default)]
@@ -41,7 +42,13 @@ struct Notes {
 
 impl Notes {
     fn add(&mut self, kind: &'static str, tone: Tone, weight: u8, title: impl Into<String>, text: impl Into<String>, basis: impl Into<String>) {
-        self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(singulars(text.into())), basis: basis.into(), link: None });
+        self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(singulars(text.into())), basis: basis.into(), link: None, visual: None });
+    }
+
+    fn visual(&mut self, visual: Value) {
+        if let Some(last) = self.items.last_mut() {
+            last.visual = Some(visual);
+        }
     }
 
     fn link(&mut self, r: Ref, name: impl Into<String>) {
@@ -57,7 +64,7 @@ impl Notes {
         self.items.truncate(limit);
         json!({
             "items": self.items.iter().map(|i| json!({
-                "kind": i.kind, "tone": tone_str(i.tone), "title": i.title, "text": i.text, "basis": i.basis, "link": i.link,
+                "kind": i.kind, "tone": tone_str(i.tone), "title": i.title, "text": i.text, "basis": i.basis, "link": i.link, "visual": i.visual,
             })).collect::<Vec<_>>(),
             "total": total, "held": self.held,
         })
@@ -287,6 +294,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
                     format!("{who} {has} averaged {recent:.1} over the last {} appearances, {d:.1} above the {base:.1} for {year}.", last.len()),
                     format!("Last {} match ratings against {} appearances in {year}", last.len(), line.map_or(0, |l| l.apps)),
                 );
+                n.visual(json!({"kind": "sparkline", "label": "Last five match ratings", "unit": "rating", "values": last}));
             } else if d <= -0.5 {
                 n.add(
                     "form",
@@ -296,6 +304,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
                     format!("{who} {has} averaged {recent:.1} over the last {} appearances, {:.1} below the {base:.1} for {year}.", last.len(), -d),
                     format!("Last {} match ratings against {} appearances in {year}", last.len(), line.map_or(0, |l| l.apps)),
                 );
+                n.visual(json!({"kind": "sparkline", "label": "Last five match ratings", "unit": "rating", "values": last}));
             }
         }
         let best = shown.iter().filter(|a| a.rating > 0).max_by_key(|a| a.rating);
@@ -882,6 +891,7 @@ fn league_form(c: &Ctx, comp: CompId, team: TeamId) -> (Vec<char>, Vec<char>, Ve
 }
 
 fn streaks(n: &mut Notes, who: &str, form: &[char], scope: &str, weight: u8) {
+    let count_before = n.items.len();
     let win = run_of(form, |r| r == 'W');
     let unbeaten = run_of(form, |r| r != 'L');
     let winless = run_of(form, |r| r != 'W');
@@ -894,6 +904,10 @@ fn streaks(n: &mut Notes, who: &str, form: &[char], scope: &str, weight: u8) {
         n.add("form", Tone::Neg, weight + 5, format!("{} defeats in a row", count_word(losing)), format!("{who} have lost each of the last {losing} {scope} matches."), "Results this season");
     } else if winless >= 5 {
         n.add("form", Tone::Warn, weight, format!("Winless in {}", count_word(winless)), format!("{who} have not won in the last {winless} {scope} matches."), "Results this season");
+    }
+    if n.items.len() > count_before {
+        let sequence: String = form.iter().rev().take(6).rev().collect();
+        n.visual(json!({"kind": "sequence", "label": "Last league results", "unit": "result", "values": sequence.chars().map(|x| x.to_string()).collect::<Vec<_>>() }));
     }
 }
 
@@ -1349,6 +1363,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
             basis.clone(),
         );
     }
+    n.visual(json!({"kind": "comparison", "label": "Top two teams on points", "unit": "points", "names": [name(0), name(1)], "values": [pts(0), pts(1)]}));
     n.link(tr(0), name(0));
     if co.promote > 0 {
         let k = usize::from(co.promote);

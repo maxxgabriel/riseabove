@@ -1,8 +1,9 @@
 // Shared helpers for driving the app in a real browser.
 import { chromium } from "playwright-core";
+import { fileURLToPath } from "node:url";
 
 export const BASE = process.env.BASE ?? "http://127.0.0.1:8787";
-export const SHOTS = new URL("./shots/", import.meta.url).pathname;
+export const SHOTS = fileURLToPath(new URL("./shots/", import.meta.url));
 
 export async function launch(opts = {}) {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--no-sandbox"] });

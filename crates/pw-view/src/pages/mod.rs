@@ -6,6 +6,7 @@ pub mod insights;
 pub mod life;
 pub mod matchp;
 pub mod me;
+pub mod newsroom;
 pub mod person;
 pub mod social;
 pub mod threads;

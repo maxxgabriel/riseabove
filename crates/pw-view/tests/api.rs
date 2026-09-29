@@ -235,12 +235,33 @@ fn everything_readable(api: &Api, club: u64) -> Vec<(&'static str, String)> {
             words(&v, table, &mut all);
         }
     }
-    for method in ["me.today", "me.feed", "me.inbox", "me.press"] {
+    for method in ["me.today", "me.feed", "me.inbox", "me.press", "news.feed", "world.pulse"] {
         if let Ok(v) = api.call(method, json!({})) {
             words(&v, method, &mut all);
         }
     }
     all
+}
+
+#[test]
+fn newsroom_filters_and_opens_recorded_stories() {
+    let api = api();
+    new_world(&api, "small");
+    advance(&api, 20);
+    for filter in ["world", "for_you", "following"] {
+        let feed = api.call("news.feed", json!({"filter": filter})).unwrap();
+        let stories = feed["stories"].as_array().unwrap();
+        assert!(stories.len() <= 30);
+        if filter == "following" {
+            assert!(stories.iter().all(|s| s["following"] == true));
+        }
+        if let Some(first) = stories.first() {
+            let opened = api.call("news.story", json!({"id": first["id"]})).unwrap();
+            assert_eq!(opened["headline"], first["headline"]);
+            assert!(opened["body"].is_string());
+        }
+    }
+    assert!(api.call("world.pulse", json!({"limit": 8})).unwrap()["items"].is_array());
 }
 
 /// Is `score` (like "1-2") written out as a scoreline, and not part of a longer run of digits and dashes?

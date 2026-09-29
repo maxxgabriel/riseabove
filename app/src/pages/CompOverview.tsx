@@ -72,7 +72,7 @@ export function CompOverview({ id, tabTo }: { id: number; tabTo: (t: string) => 
   return (
     <>
       <ResultsStrip items={d.ticker} />
-      <FmPanel>
+      <FmPanel className={`fm-panel-${d.left.kind}`}>
         <LeftColumn d={d} tabTo={tabTo} />
         <FmCol title="Player Stats" label="Player statistics">
           {d.held.results > 0 && (
