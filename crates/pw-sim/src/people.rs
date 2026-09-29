@@ -3,7 +3,6 @@
 
 use pw_core::rng::{Rng, stream};
 use pw_core::{Attr, ClubId, Date, Foot, Hidden, NationId, PersonId, PlayerId, Pos, StaffAttr, StaffAttrs, StaffId, TeamId};
-use pw_world::contract::ContractKind;
 use pw_world::event::{EventKind, Visibility};
 use pw_world::player::Reputation;
 use pw_world::staff::ManagerRecord;
