@@ -169,6 +169,41 @@ pub fn problems(w: &World) -> Vec<String> {
             bad(format!("account {} belongs to an unknown person", a.handle));
         }
     }
+    // Tactical and life-state books point at real people and clubs.
+    for t in &w.tactics.traces {
+        if t.club.0 as usize >= n_clubs || t.manager.0 as usize >= n_staff {
+            bad(format!("a tactical decision in fixture {} names an unknown club or manager", t.uid));
+            break;
+        }
+    }
+    for (&(a, b), _) in &w.tactics.memory {
+        if a.0 as usize >= n_clubs || b.0 as usize >= n_clubs {
+            bad("a club's memory of an opponent names an unknown club".to_string());
+            break;
+        }
+    }
+    for &c in w.tactics.drill.keys().chain(w.tactics.styles.keys()) {
+        if c.0 as usize >= n_clubs {
+            bad(format!("tactical drill or style record for unknown club {c:?}"));
+            break;
+        }
+    }
+    for (&who, st) in &w.lifestate.by {
+        if who.0 as usize >= n_people {
+            bad(format!("life state held for unknown person {who:?}"));
+            break;
+        }
+        if st.loads.iter().any(|l| l.actual_days == 0) {
+            bad(format!("person {who:?} carries a load that lasts no time"));
+            break;
+        }
+    }
+    for &(m, p) in w.lifestate.known.keys() {
+        if m.0 as usize >= n_people || p.0 as usize >= n_people {
+            bad("a manager's knowledge of a player names an unknown person".to_string());
+            break;
+        }
+    }
     let mut last = None;
     for e in w.events.all() {
         if let Some(prev) = last

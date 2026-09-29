@@ -35,6 +35,7 @@ pub mod interaction;
 pub mod intl;
 pub mod knowledge;
 pub mod life;
+pub mod lifestate;
 pub mod matchfacts;
 pub mod media;
 pub mod medical;
@@ -56,6 +57,7 @@ pub mod social;
 pub mod socialnet;
 pub mod staff;
 pub mod stats;
+pub mod tactics;
 pub mod world;
 pub mod youth;
 

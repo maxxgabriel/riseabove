@@ -23,6 +23,7 @@ pub mod awards;
 pub mod backfill;
 pub mod bargaining;
 pub mod clauses;
+pub mod coach;
 pub mod board;
 pub mod boardroom;
 pub mod commerce;
@@ -51,6 +52,7 @@ pub mod intents;
 pub mod interpret;
 pub mod intl;
 pub mod life;
+pub mod lifestate;
 pub mod managers;
 pub mod market;
 pub mod matchday;
@@ -82,6 +84,7 @@ pub mod social;
 pub mod metrics;
 pub mod socialnet;
 pub mod staffing;
+pub mod tactics;
 pub mod talk;
 pub mod validate;
 pub mod youth;
@@ -167,6 +170,7 @@ impl Sim {
             prof!("officials::season_review", officials::season_review(w));
             prof!("evolution::yearly", evolution::yearly(w));
             prof!("economy::yearly", economy::yearly(w));
+            prof!("tactics::yearly", tactics::yearly(w));
             prof!("governance::yearly", governance::yearly(w));
             prof!("managers::yearly", managers::yearly(w));
             prof!("commerce::ensure", commerce::ensure(w));
@@ -264,6 +268,7 @@ impl Sim {
 
         // 7b. Incidents: postponements, travel, births, deferred decisions.
         prof!("incidents::daily", incidents::daily(w));
+        prof!("lifestate::scan", lifestate::scan(w));
 
         // 8. Matches.
         let matches = w.fixtures.on(today).len();
@@ -286,6 +291,8 @@ impl Sim {
         if monday {
             prof!("development::weekly", development::weekly(w));
             prof!("medical::weekly", medical::weekly(w));
+            prof!("tactics::weekly", tactics::weekly(w));
+            prof!("lifestate::weekly", lifestate::weekly(w));
             prof!("adaptation::weekly", adaptation::weekly(w));
             prof!("grapevine::feelings", grapevine::feelings(w));
             prof!("incidents::weekly", incidents::weekly(w));

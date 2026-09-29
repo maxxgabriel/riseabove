@@ -118,6 +118,9 @@ pub fn group_of(k: &E) -> Group {
         | AssessmentVindicated { .. }
         | SigningReviewed { .. }
         | PlanFailed { .. }
+        | PersonalMatterHandled { .. }
+        | PerformedThroughStrain { .. }
+        | MemoryReturned { .. }
         | ContractOption { .. }
         | Stagnated { .. }
         | CharacterChanged { .. } => Group::Career,
@@ -179,6 +182,10 @@ pub fn label(k: &E) -> &'static str {
         ManagerResigned { .. } => "Resignation",
         ManagerPoached { .. } => "Poached",
         TacticalChange { .. } => "Tactics",
+        MatchTacticsChanged { .. } => "Tactical change",
+        PersonalMatterHandled { .. } => "Personal matter",
+        PerformedThroughStrain { .. } => "Under strain",
+        MemoryReturned { .. } => "A memory returns",
         StaffFollowed { .. } | StaffLeft { .. } => "Staff",
         DealCollapsed { .. } => "Deal collapsed",
         PreContractSigned { .. } => "Pre-contract",
