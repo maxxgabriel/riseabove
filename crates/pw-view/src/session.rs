@@ -84,6 +84,8 @@ impl Session {
     pub fn load(path: &Path) -> ApiResult<Self> {
         match pw_sim::save::load::<SaveFile>(path) {
             Ok(f) => Ok(Self::assemble(f.world, f.session, f.meta)),
+            // Only a shape mismatch may mean "text client save"; version, damage and io errors are shown as they are.
+            Err(first) if !matches!(first, pw_sim::save::SaveError::Encode(_)) => Err(ApiError::State(first.to_string())),
             Err(first) => {
                 // A save from the text client has no presentation state.
                 let f: TextClientSave = pw_sim::save::load(path).map_err(|_| ApiError::State(first.to_string()))?;

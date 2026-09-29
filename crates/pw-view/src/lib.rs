@@ -64,6 +64,23 @@ struct NewWorld {
     name: Option<String>,
 }
 
+/// Which save format a file is in and whether this build opens it, for the saves list.
+fn save_format(p: &Path) -> Value {
+    use pw_sim::save::{Compat, inspect};
+    match inspect(p) {
+        Ok(i) => {
+            let (state, note) = match i.compat {
+                Compat::Current => ("current", String::new()),
+                Compat::Upgradable { steps } => ("upgradable", format!("Opens after {steps} upgrade step(s); the original is copied to a backup first.")),
+                Compat::TooNew => ("too_new", "Made by a newer version of the game. Update to open it.".into()),
+                Compat::Unsupported => ("unsupported", "Saved in an old format that can no longer be upgraded. It is left untouched.".into()),
+            };
+            json!({"schema": i.schema, "state": state, "note": note})
+        }
+        Err(e) => json!({"schema": null, "state": "unreadable", "note": e.to_string()}),
+    }
+}
+
 fn slug(s: &str) -> String {
     let mut out: String = s.chars().map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_lowercase() } else { '-' }).collect();
     while out.contains("--") {
@@ -335,6 +352,7 @@ impl Api {
                     "modified": md.and_then(|m| m.modified().ok()).and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()),
                     "info": side,
                     "has_backup": p.with_extension("bak").exists(),
+                    "format": save_format(&p),
                 }));
             }
         }
