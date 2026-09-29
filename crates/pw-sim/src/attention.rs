@@ -35,11 +35,17 @@ pub fn level_of(w: &World, who: PersonId, cause: Cause) -> f32 {
 /// Something sets attention on someone. A new wave of the same kind builds on what is left of the old one; beyond football, the more
 /// a kind of wave reaches, the more it widens who follows him and how famous he is outside the game.
 pub fn spark(w: &mut World, who: PersonId, cause: Cause, mag: f32) {
+    spark_caused(w, who, cause, mag, pw_core::EventId::NONE);
+}
+
+/// [`spark`] with the event that set it off, so that a surge names its cause and what it does to the man names the surge.
+pub fn spark_caused(w: &mut World, who: PersonId, cause: Cause, mag: f32, why: pw_core::EventId) {
     let today = w.date;
     let mag = mag.clamp(0.0, 1.0);
     if who.is_none() || mag < 0.15 {
         return;
     }
+    let fresh = w.net.attention.get(&who).is_none_or(|a| !a.waves.iter().any(|x| x.cause == cause && x.level(today) > 0.1));
     let a = w.net.attention.entry(who).or_default();
     match a.waves.iter_mut().find(|x| x.cause == cause) {
         Some(x) => {
@@ -64,26 +70,34 @@ pub fn spark(w: &mut World, who: PersonId, cause: Cause, mag: f32) {
         r.fame = (f32::from(r.fame) + 300.0 * mag * cause.reach()).min(10_000.0) as u16;
         r.followers = r.followers.saturating_add((20_000.0 * mag * cause.reach()) as u32);
     }
-    // What people say and do reaches him, and he reads it in his own way (locked design 7.49).
-    crate::lifestate::on_attention(w, who, cause, mag);
+    // A wave that breaks beyond football, or a big one, is an event; what it does to him names it (locked design 7.49, 13).
+    let mut origin = why;
+    if fresh && ((cause.reach() >= 0.4 && mag >= 0.5) || mag >= 0.8) {
+        let mut causes = pw_world::Causes::new();
+        if why.is_some() {
+            causes.push(pw_world::Cause::Event(why));
+        }
+        origin = w.events.push_caused(today, pw_world::event::Visibility::Public, pw_world::EventKind::AttentionSurge { person: who, cause }, causes);
+    }
+    crate::lifestate::on_attention(w, who, cause, mag, origin);
 }
 
 /// A frame everyone saw: what kind of attention it draws, and how much.
-pub fn on_frame(w: &mut World, f: Frame, about: PersonId, fw: f32) {
+pub fn on_frame(w: &mut World, f: Frame, about: PersonId, fw: f32, ev: pw_core::EventId) {
     if about.is_none() {
         return;
     }
     match f {
         Frame::HatTrick { .. } | Frame::LateWinner { .. } | Frame::Record { .. } | Frame::Award { .. } => {
-            spark(w, about, Cause::Football, fw);
+            spark_caused(w, about, Cause::Football, fw, ev);
             // A good-looking player's big night is also a look at him.
             let chance = w.roll(pw_core::rng::stream::SOCIAL_ACTIVITY, &[u64::from(about.0), w.date.0 as u64, 0xae57]);
             if appeal(w, about, Taste::Celebrity) > 0.5 && chance < 0.3 {
-                spark(w, about, Cause::Aesthetic, 0.7 * fw);
+                spark_caused(w, about, Cause::Aesthetic, 0.7 * fw, ev);
             }
         }
-        Frame::RedCard { .. } | Frame::TransferRequest { .. } | Frame::Incident { .. } => spark(w, about, Cause::Controversy, 0.9 * fw),
-        Frame::Injury { .. } => spark(w, about, Cause::Emotional, 0.5 * fw),
+        Frame::RedCard { .. } | Frame::TransferRequest { .. } | Frame::Incident { .. } => spark_caused(w, about, Cause::Controversy, 0.9 * fw, ev),
+        Frame::Injury { .. } => spark_caused(w, about, Cause::Emotional, 0.5 * fw, ev),
         Frame::Quote { quote } => {
             use pw_world::media::Stance;
             if let Some(q) = w.pressroom.quotes.get(quote as usize) {

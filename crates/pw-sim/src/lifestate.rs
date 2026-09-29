@@ -455,7 +455,7 @@ pub fn minds_for(w: &World, sels: [&Selection; 2], fx: &pw_world::Fixture, impor
 /// Daily: what happened in people's lives since the last look becomes something they live through.
 pub fn scan(w: &mut World) {
     let cursor = w.lifestate.cursor;
-    let new: Vec<(pw_core::EventId, EventKind)> = w.events.after(cursor).iter().filter(|e| matches!(e.kind, EventKind::Life { .. } | EventKind::CallUp { .. } | EventKind::ContractSigned { renewal: true, .. })).map(|e| (e.id, e.kind.clone())).collect();
+    let new: Vec<(pw_core::EventId, EventKind)> = w.events.after(cursor).iter().filter(|e| matches!(e.kind, EventKind::Life { .. } | EventKind::CallUp { .. } | EventKind::ContractSigned { renewal: true, .. } | EventKind::AdaptationStruggling { .. } | EventKind::MediaGrudge { .. })).map(|e| (e.id, e.kind.clone())).collect();
     w.lifestate.cursor = w.events.last_id();
     for (id, kind) in new {
         match kind {
@@ -480,6 +480,20 @@ pub fn scan(w: &mut World) {
                 };
                 add_load(w, person, k, mag, id);
             }
+            // Not settling is lived as loneliness when it is the people and the place, as pressure when it is the head.
+            EventKind::AdaptationStruggling { player, channel, .. } => {
+                use pw_world::adaptation::Channel as Ch;
+                match channel {
+                    Ch::Social | Ch::Mental => add_load(w, w.players.cold[player].person, LoadKind::Loneliness, 0.7, id),
+                    _ => {}
+                }
+            }
+            // A story that left a lasting grudge is a scandal for a man whose name was in it.
+            EventKind::MediaGrudge { subject, .. } => {
+                if w.people[subject].player.is_some() {
+                    add_load(w, subject, LoadKind::Scandal, 0.5, id);
+                }
+            }
             EventKind::CallUp { player } => add_load(w, w.players.cold[player].person, LoadKind::CallUp, 0.8, id),
             EventKind::ContractSigned { player, .. } => add_load(w, w.players.cold[player].person, LoadKind::NewContract, 0.6, id),
             _ => {}
@@ -488,7 +502,7 @@ pub fn scan(w: &mut World) {
 }
 
 /// Attention reaches a person (7.49-7.50): a pile-on is one experience, sudden acclaim another, and each is read by the person.
-pub fn on_attention(w: &mut World, who: PersonId, cause: Wave, mag: f32) {
+pub fn on_attention(w: &mut World, who: PersonId, cause: Wave, mag: f32, origin: pw_core::EventId) {
     if w.people[who].player.is_none() || mag < 0.4 {
         return;
     }
@@ -497,12 +511,12 @@ pub fn on_attention(w: &mut World, who: PersonId, cause: Wave, mag: f32) {
         Wave::Controversy | Wave::Meme if mag >= 0.5 => {
             let quiet = w.lifestate.by.get(&who).is_some_and(|s| s.loads.iter().any(|l| l.kind == LoadKind::OnlineAbuse && l.since.days_until(today) < 4));
             if !quiet {
-                add_load(w, who, LoadKind::OnlineAbuse, mag, pw_core::EventId::NONE);
+                add_load(w, who, LoadKind::OnlineAbuse, mag, origin);
             }
         }
         Wave::Football | Wave::Emotional | Wave::Personality | Wave::Aesthetic => {
             if crate::attention::level(w, who) >= 0.55 {
-                add_load(w, who, LoadKind::Hype, 0.6 + 0.4 * mag, pw_core::EventId::NONE);
+                add_load(w, who, LoadKind::Hype, 0.6 + 0.4 * mag, origin);
             }
         }
         _ => {}

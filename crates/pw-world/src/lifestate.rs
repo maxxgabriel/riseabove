@@ -258,7 +258,7 @@ impl ScarKind {
     pub const fn label(self) -> &'static str {
         match self {
             ScarKind::SeriousInjury => "a serious injury there",
-            ScarKind::MissedDecisivePenalty => "a penalty he missed when it mattered",
+            ScarKind::MissedDecisivePenalty => "a penalty missed when it mattered",
             ScarKind::RedCardInBigMatch => "a sending-off in a big match",
             ScarKind::Humiliation => "a humiliating defeat",
             ScarKind::PublicMistake => "a mistake everyone saw",

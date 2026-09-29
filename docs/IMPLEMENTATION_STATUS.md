@@ -189,9 +189,23 @@ the imported ones (median 1.3) — economy calibration is still open; personalit
 
 ## 13. Unified causal simulation — PARTIAL
 
-Foundation exists: events carry causes (`Cause`, `causes!`), incidents, promises, grapevine of who-knows-what, persistent
-relationships with memories. Not every subsystem consumes and emits through it (media outcomes, adaptation, contracts, social
-opinion are the main islands).
+Foundation: events carry causes (`Cause`, `causes!`), incidents, promises, grapevine of who-knows-what, persistent relationships with
+memories. Islands connected in this pass (`crates/pw-cli/tests/causal.rs`, 6 tests):
+
+* **Settling in (§4.12-4.21 → §13):** a signing or loan stamps its event on the `Adapting` record; struggling and ending are now events
+  (`AdaptationStruggling`, `AdaptationEnded`) caused by that move, and `lifestate::scan` reads a struggle on the social or mental front
+  as a loneliness load that names the event.
+* **Media outcomes (§2.13-2.19):** a story that leaves a lasting grievance (grudge line) emits `MediaGrudge`, caused by the `Published`
+  event of the story; the subject lives it as a scandal load that names the grudge.
+* **Attention (§6.16-6.24, 7.49):** `attention::spark_caused` takes the event that set it off; a wave breaking beyond football, or a big
+  one, is an `AttentionSurge` caused by that event; the pile-on or hype load a person lives through names the surge (chain: match/quote/
+  incident event → surge → load → manager's handling event).
+* Life state and tactics (this pass) were built causal from the start: handling decisions, memory returns and tactical changes carry causes.
+
+Still islands (state changes without an event of their own): contract package negotiation and clause reviews (`clauses.rs` pushes
+uncaused events), social opinion drift (`socialnet` opinions move without events), dressing-room group mood, development stagnation,
+sponsor/commerce moves, culture rivalries, referee season reviews. `audit.rs` checks only that transfer news has a transfer behind it;
+there is no general audit that every consequence has a cause.
 
 ## Test inventory (mechanical)
 

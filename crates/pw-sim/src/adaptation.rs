@@ -11,6 +11,7 @@ use pw_world::adaptation::{Adapting, Channel, Integration, Levels, N_CHANNELS, R
 use pw_world::dossier::{Confidence, Domain};
 use pw_world::knowledge::{Observer, perceive};
 use pw_world::nation::Environment;
+use pw_world::event::{EventKind, Visibility};
 use pw_world::{PlayerStatus, World};
 
 use crate::{boardroom, consider, dossier, planning, scouting};
@@ -237,8 +238,24 @@ pub fn begin(w: &mut World, p: PlayerId, from: ClubId, to: ClubId) {
     w.adaptation.done.remove(&p);
     w.adaptation.current.insert(
         p,
-        Adapting { since: today, club: to, distance, weeks, progress: [0.0; N_CHANNELS], support: sup, plan, plan_until: today.add_days(plan_weeks(plan) * 7), strain: 0.0, form: 0.0 },
+        Adapting { since: today, club: to, distance, weeks, progress: [0.0; N_CHANNELS], support: sup, plan, plan_until: today.add_days(plan_weeks(plan) * 7), strain: 0.0, form: 0.0, cause: pw_core::EventId::NONE, flagged: false },
     );
+}
+
+/// The move that started his settling: what comes of it can name this as its cause.
+pub fn attach_cause(w: &mut World, p: PlayerId, ev: pw_core::EventId) {
+    if let Some(a) = w.adaptation.current.get_mut(&p) {
+        a.cause = ev;
+    }
+}
+
+/// An outcome of settling in, on the record, caused by the move; and what it does to the man's life.
+fn note(w: &mut World, club: ClubId, cause: pw_core::EventId, kind: EventKind) -> pw_core::EventId {
+    let mut causes = pw_world::Causes::new();
+    if cause.is_some() {
+        causes.push(pw_world::Cause::Event(cause));
+    }
+    w.events.push_caused(w.date, Visibility::Club(club), kind, causes)
 }
 
 /// How far he is from playing at his level, on the three things that decide it: body and clock, the football and the system, and his
@@ -318,13 +335,22 @@ pub fn weekly(w: &mut World) {
             a.progress[i] = (a.progress[i] + rate).min(1.0);
         }
         let weeks = (a.since.days_until(today) / 7) as u16;
+        // Trouble is noted once, when it shows, on the front where it is worst.
+        if !a.flagged && weeks >= 30 && (a.progress.iter().sum::<f32>() / N_CHANNELS as f32) < 0.75 {
+            a.flagged = true;
+            let worst = Channel::ALL.into_iter().min_by(|x, y| a.progress[x.idx()].total_cmp(&a.progress[y.idx()])).unwrap_or(Channel::Social);
+            note(w, a.club, a.cause, EventKind::AdaptationStruggling { player: p, club: a.club, channel: worst });
+        }
         if a.progress.iter().all(|&x| x >= 0.97) {
             let slowest = Channel::ALL.into_iter().max_by(|x, y| a.weeks[x.idx()].total_cmp(&a.weeks[y.idx()])).unwrap_or(Channel::Social);
             let expected = a.weeks.iter().copied().fold(0.0, f32::max);
-            w.adaptation.done.insert(p, Settled { date: today, weeks, slowest, struggled: f32::from(weeks) > expected * 1.5 });
+            let struggled = f32::from(weeks) > expected * 1.5;
+            w.adaptation.done.insert(p, Settled { date: today, weeks, slowest, struggled });
+            note(w, a.club, a.cause, EventKind::AdaptationEnded { player: p, club: a.club, weeks, struggled });
         } else if weeks >= 78 {
             let slowest = Channel::ALL.into_iter().min_by(|x, y| a.progress[x.idx()].total_cmp(&a.progress[y.idx()])).unwrap_or(Channel::Social);
             w.adaptation.done.insert(p, Settled { date: today, weeks, slowest, struggled: true });
+            note(w, a.club, a.cause, EventKind::AdaptationEnded { player: p, club: a.club, weeks, struggled: true });
         } else {
             w.adaptation.current.insert(p, a);
         }

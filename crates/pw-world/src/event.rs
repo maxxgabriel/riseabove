@@ -588,6 +588,30 @@ pub enum EventKind {
         player: PlayerId,
         scar: crate::lifestate::ScarKind,
     },
+    /// A move stopped being new: he settled, or it never worked out.
+    AdaptationEnded {
+        player: PlayerId,
+        club: ClubId,
+        weeks: u16,
+        struggled: bool,
+    },
+    /// Settling in is going badly, and on which front.
+    AdaptationStruggling {
+        player: PlayerId,
+        club: ClubId,
+        channel: crate::adaptation::Channel,
+    },
+    /// A story left someone with a grievance against a journalist that will not go away.
+    MediaGrudge {
+        subject: PersonId,
+        journalist: PersonId,
+        cause: crate::media::BondCause,
+    },
+    /// Attention broke over someone and beyond football.
+    AttentionSurge {
+        person: PersonId,
+        cause: crate::attention::Cause,
+    },
     ExamsSat {
         person: PersonId,
         passed: bool,
@@ -1037,6 +1061,8 @@ impl EventKind {
             | SigningReviewed { player, .. }
             | PlanFailed { player, .. }
             | ContractOption { player, .. }
+            | AdaptationEnded { player, .. }
+            | AdaptationStruggling { player, .. }
             | PersonalMatterHandled { player, .. }
             | PerformedThroughStrain { player, .. }
             | MemoryReturned { player, .. }
@@ -1070,6 +1096,11 @@ impl EventKind {
         use EventKind::*;
         let mut v = SmallVec::new();
         match *self {
+            MediaGrudge { subject, journalist, .. } => {
+                v.push(subject);
+                v.push(journalist);
+            }
+            AttentionSurge { person, .. } => v.push(person),
             Retired { person } | Life { person, .. } | JoinedStaff { person, .. } | CameOutOfRetirement { person } | ExamsSat { person, .. } | CharacterChanged { person, .. } => v.push(person),
             BecameLegend { person, .. } | InductedHallOfFame { person } => v.push(person),
             EnrolledCourse { person, .. }
@@ -1166,6 +1197,8 @@ impl EventKind {
             | ManagerResigned { club, .. }
             | TacticalChange { club, .. }
             | MatchTacticsChanged { club, .. }
+            | AdaptationEnded { club, .. }
+            | AdaptationStruggling { club, .. }
             | StaffFollowed { club, .. }
             | StaffLeft { club, .. }
             | JoinedStaff { club, .. } => v.push(club),

@@ -2,7 +2,7 @@
 //! is not performing at the expected level: each channel below has its own distance, its own timeline and its own supports, and
 //! two players making the same move do not settle alike.
 
-use pw_core::{ClubId, Date, PlayerId};
+use pw_core::{ClubId, Date, EventId, PlayerId};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
@@ -122,6 +122,10 @@ pub struct Adapting {
     pub strain: f32,
     /// Running level of recent performances against his own norm (feeds the positive loop).
     pub form: f32,
+    /// The move that started it (the transfer or loan event), so what follows can name its cause.
+    pub cause: EventId,
+    /// Trouble has already been noted on the record.
+    pub flagged: bool,
 }
 
 /// How a settling-in ended, kept so a later review can say whether adaptation was the trouble.

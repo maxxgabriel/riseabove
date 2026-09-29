@@ -14,6 +14,9 @@ use pw_world::World;
 /// Bonds kept in a world; beyond this the least significant are forgotten.
 const MAX_BONDS: usize = 40_000;
 
+/// A grudge this deep does not go away with the mood.
+const GRUDGE_LINE: u8 = 30;
+
 pub fn bond(w: &World, from: Party, to: Party) -> Option<&MediaBond> {
     w.media.bonds.get(&(from, to))
 }
@@ -59,6 +62,7 @@ fn prune(w: &mut World) {
 /// What one story does to the people in it and the club it is about.
 pub fn on_story(w: &mut World, id: StoryId) {
     let s: Story = w.media.stories[id].clone();
+    let grudge_before = if s.person.is_some() { bond(w, Party::Person(s.person), Party::Person(s.journalist)).map_or(0, |b| b.grudge) } else { 0 };
     let j = Party::Person(s.journalist);
     let harsh = s.tone <= -30;
     let warm = s.tone >= 30;
@@ -78,6 +82,19 @@ pub fn on_story(w: &mut World, id: StoryId) {
         } else if warm {
             let mouthpiece = false_ish || s.intent == Intent::Favour;
             adjust(w, subject, j, BondCause::Praised, id, if mouthpiece { -1 } else { 1 }, 6, 3, 0);
+        }
+    }
+    // A grievance that has become lasting is an event of its own, caused by the story, and the person lives through it.
+    if s.person.is_some() && s.person != s.journalist {
+        let now = bond(w, Party::Person(s.person), Party::Person(s.journalist)).map_or(0, |b| b.grudge);
+        if grudge_before < GRUDGE_LINE && now >= GRUDGE_LINE {
+            let cause = bond(w, Party::Person(s.person), Party::Person(s.journalist)).and_then(|b| b.history.last().map(|r| r.cause)).unwrap_or(BondCause::FalseStory);
+            let mut causes = pw_world::Causes::new();
+            if s.event.is_some() {
+                causes.push(pw_world::Cause::Event(s.event));
+            }
+            let vis = pw_world::event::Visibility::Between(s.person, s.journalist);
+            w.events.push_caused(w.date, vis, pw_world::EventKind::MediaGrudge { subject: s.person, journalist: s.journalist, cause }, causes);
         }
     }
     // The club feels it about the outlet.

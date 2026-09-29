@@ -510,6 +510,7 @@ pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubI
         }
     }
     let ev = w.events.push(today, Visibility::Public, EventKind::ContractSigned { player: p, club: buyer, wage: contract.wage, until: contract.end, renewal: false });
+    crate::adaptation::attach_cause(w, p, ev);
     w.history.start_spell(p, buyer, today, false, fee);
     w.knowledge.observe(buyer, p, 300, today);
     let requested = w.market.requests.remove(&p).is_some();
@@ -534,6 +535,7 @@ pub fn execute_loan(w: &mut World, p: PlayerId, loan: Loan) {
     finance::pay_fee(w, loan.club, loan.parent, loan.fee);
     let dest_nation = w.clubs[loan.club].nation;
     let ev = w.events.push(today, Visibility::Public, EventKind::LoanMove { player: p, from: loan.parent, to: loan.club, until: loan.end });
+    crate::adaptation::attach_cause(w, p, ev);
     w.history.start_spell(p, loan.club, today, true, loan.fee);
     w.knowledge.observe(loan.club, p, 300, today);
     w.market.loan_listed.remove(&p);

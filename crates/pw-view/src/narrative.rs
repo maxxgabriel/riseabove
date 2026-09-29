@@ -119,6 +119,8 @@ pub fn group_of(k: &E) -> Group {
         | SigningReviewed { .. }
         | PlanFailed { .. }
         | PersonalMatterHandled { .. }
+        | AdaptationEnded { .. }
+        | AdaptationStruggling { .. }
         | PerformedThroughStrain { .. }
         | MemoryReturned { .. }
         | ContractOption { .. }
@@ -184,6 +186,10 @@ pub fn label(k: &E) -> &'static str {
         TacticalChange { .. } => "Tactics",
         MatchTacticsChanged { .. } => "Tactical change",
         PersonalMatterHandled { .. } => "Personal matter",
+        AdaptationEnded { .. } => "Settling in",
+        AdaptationStruggling { .. } => "Struggling to settle",
+        MediaGrudge { .. } => "Grudge",
+        AttentionSurge { .. } => "Attention",
         PerformedThroughStrain { .. } => "Under strain",
         MemoryReturned { .. } => "A memory returns",
         StaffFollowed { .. } | StaffLeft { .. } => "Staff",

@@ -122,6 +122,16 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         TacticalChange { club: c, staff, formation } => {
             format!("{} switched {} to a {}.", w.staff_name(staff), club(w, c), w.data.formations.get(usize::from(formation)).map_or("new system", |f| f.name.as_str()))
         }
+        AdaptationEnded { player: p, club: c, weeks, struggled } => {
+            if struggled {
+                format!("{} never really settled at {} ({weeks} weeks in).", pl(p), club(w, c))
+            } else {
+                format!("{} finished settling in at {} after {weeks} weeks.", pl(p), club(w, c))
+            }
+        }
+        AdaptationStruggling { player: p, club: c, channel } => format!("{} is struggling to settle at {}: {}.", pl(p), club(w, c), channel.label()),
+        MediaGrudge { subject, journalist, .. } => format!("{} has not forgiven {} for what was written.", person(w, subject), person(w, journalist)),
+        AttentionSurge { person: x, cause } => format!("The attention on {} broke ({}).", person(w, x), cause.label()),
         MatchTacticsChanged { club: c, manager, minute, half_time, response, .. } => {
             let when = if half_time { "at half-time".to_string() } else if minute == 0 { "before kick-off".to_string() } else { format!("in minute {minute}") };
             format!("{} ({}) {} {when}.", w.staff_name(manager), club(w, c), response.label())
@@ -148,7 +158,10 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
             if taken {
                 format!("{} used {} on {}'s contract.", club(w, c), kind.label(), pl(p))
             } else {
-                format!("{} was not taken up on {}'s contract.", kind.label(), pl(p))
+                let label = kind.label();
+                let mut chars = label.chars();
+                let label = chars.next().map_or(String::new(), |f| f.to_uppercase().collect::<String>() + chars.as_str());
+                format!("{label} was not taken up on {}'s contract.", pl(p))
             }
         }
         PlanFailed { player: p, club: c, kind } => format!("{} {} in the case of {}.", club(w, c), kind.label(), pl(p)),
