@@ -132,6 +132,7 @@ pub fn post(w: &World, p: &Post) -> String {
         Concept::Defend => format!("{} {}. {}", target, word(&v, Slot::Loyal, key), word(&v, Slot::Patience, key)),
         Concept::Sarcasm => format!("{}. {}", what, word(&v, Slot::Sarcasm, key)),
         Concept::CallOut => callout(w, p, &v, key),
+        Concept::Recall => format!("{}: {target}", pick(key, &["here we go again", "same old story", "we've seen this before", "remember last time"])),
         Concept::Agree => pick(key, &["this", "exactly", "said it better than I could", "100%"]).to_string(),
         Concept::Disagree => pick(key, &["not having that", "completely wrong", "strongly disagree", "no chance"]).to_string(),
         Concept::Chant => w.net.chants.get(p.extra as usize).map_or_else(String::new, |c| chant(w, c)),

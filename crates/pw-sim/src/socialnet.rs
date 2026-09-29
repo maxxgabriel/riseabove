@@ -15,7 +15,7 @@ use pw_core::{ClubId, Date, EventId, Hidden, NationId, PersonId, PlayerId};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::media::{ClaimType, Stance};
 use pw_world::socialnet::{
-    AccountId, AccountKind, Age, Chant, ChantKind, Concept, Frame, GroupAction, GroupKind, Knew, Meme, MemeSource, MomentKind, NO_POST, Opinion, Persona, Post, Remembered, SocialAccount,
+    AccountId, AccountKind, Age, Chant, ChantKind, Concept, Dim, Frame, GroupAction, GroupKind, Knew, Meme, MemeSource, MomentKind, N_DIMS, NO_POST, Opinion, Persona, Post, Remembered, SocialAccount,
     SupporterGroup, TopicKey, Trend,
 };
 use pw_world::{FanReason, FxHashMap, FxHashSet, MemoryKind, StoryKind, World};
@@ -241,27 +241,251 @@ fn ensure_groups(w: &mut World, club: ClubId) {
 // Opinions and memories
 // ---------------------------------------------------------------------------
 
-fn nudge(w: &mut World, a: AccountId, about: PersonId, delta: i16) {
-    if about.is_none() || delta == 0 {
+/// How much each dimension counts for this account (locked design 6.11): a stats account weighs football and value, an ultra effort and
+/// identification, a casual fan form and charm, an academy watcher whether he is one of ours. Resentment counts against.
+fn dim_weights(acc: &pw_world::socialnet::SocialAccount) -> [f32; N_DIMS] {
+    let p = acc.persona;
+    let f = |x: u8| f32::from(x) / 100.0;
+    let ultra = if matches!(acc.kind, AccountKind::Ultra | AccountKind::Hardcore) { 1.0 } else { 0.0 };
+    let academy = if acc.kind == AccountKind::AcademyWatcher { 0.5 } else { 0.0 };
+    let stats = if acc.kind == AccountKind::Stats { 0.3 } else { 0.0 };
+    let mut x = [0.0f32; N_DIMS];
+    x[Dim::Football.idx()] = 0.30 + 0.5 * f(p.stats) + stats;
+    x[Dim::Form.idx()] = 0.20 + 0.25 * (1.0 - f(p.stats));
+    x[Dim::Affection.idx()] = 0.15 + 0.40 * f(p.celebrity) + 0.15 * (1.0 - f(p.stats));
+    x[Dim::Trust.idx()] = 0.10 + 0.40 * f(p.loyalty);
+    x[Dim::Effort.idx()] = 0.10 + 0.30 * f(p.tribalism) + 0.15 * ultra;
+    x[Dim::Identification.idx()] = 0.10 + 0.45 * f(p.tribalism) * f(p.local) + 0.4 * f(p.youth) + academy;
+    x[Dim::Value.idx()] = 0.05 + 0.45 * f(p.stats);
+    x[Dim::Resentment.idx()] = -(0.15 + 0.40 * f(p.hostility));
+    x
+}
+
+/// What the dimensions add up to for this account: a summary, kept for the places that need one number. Never the whole of what they think.
+pub fn summarise(acc: &pw_world::socialnet::SocialAccount, dims: &[i16; N_DIMS]) -> i16 {
+    let w = dim_weights(acc);
+    let total: f32 = w.iter().map(|x| x.abs()).sum();
+    (w.iter().zip(dims).map(|(w, &d)| w * f32::from(d)).sum::<f32>() / total.max(1e-3)).clamp(-1000.0, 1000.0) as i16
+}
+
+/// How much is expected of a player by those who watch him (locked design 6.9): what he cost, what he earns, how famous he is, what he
+/// was promised, how much has been said about him. A young player from the academy is expected to be raw. 0..1.
+pub fn expectation(w: &World, p: PlayerId) -> f32 {
+    let c = &w.players.cold[p];
+    let club = w.players.hot[p].club;
+    let fame = f32::from(c.rep.world) / 10_000.0;
+    let (wage_rank, fee_norm) = if club.is_some() {
+        let team = w.clubs[club].first_team();
+        let mine = c.contract.current_wage(w.date);
+        let n = w.teams[team].squad.len().max(1);
+        let below = w.teams[team].squad.iter().filter(|&&q| w.players.cold[q].contract.current_wage(w.date) < mine).count();
+        let fee = w.history.spells.get(&p).and_then(|s| s.last()).map_or(0, |s| s.fee);
+        let revenue = crate::finance::season_revenue(w, club).max(1);
+        (below as f32 / n as f32, (fee as f32 / (revenue as f32 * 0.25)).min(1.0))
+    } else {
+        (0.3, 0.0)
+    };
+    let status = c.contract.promised_status.map_or(0.0, |s| s.expected_minutes());
+    let hype = (f32::from(w.media.image.get(&c.person).copied().unwrap_or(0)) / 1000.0).clamp(0.0, 1.0);
+    let raw = if w.age(p) < 20 && c.youth_club == club { 0.35 } else { 0.0 };
+    (0.25 * wage_rank + 0.25 * fee_norm + 0.20 * status + 0.20 * fame + 0.10 * hype - raw).clamp(0.0, 1.0)
+}
+
+/// What an event does to how someone is seen, dimension by dimension (locked design 6.2): a hat-trick lifts form and football and barely
+/// touches trust; a transfer request is about trust and belonging, not ability; an expensive signing raises the question of value.
+/// `feel` is the event's valence for this account (+1 good for them, -1 bad); `own` whether they support the club it happened at.
+pub fn impact_for(w: &World, f: Frame, own: bool, feel: i8, fw: f32, derby: bool) -> [i16; N_DIMS] {
+    let s = 40.0 * fw;
+    let mut d = [0.0f32; N_DIMS];
+    let mut set = |dim: Dim, v: f32| d[dim.idx()] = v * s;
+    match f {
+        Frame::HatTrick { .. } | Frame::LateWinner { .. } => {
+            if feel > 0 {
+                set(Dim::Form, 1.0);
+                set(Dim::Football, 0.6);
+                set(Dim::Affection, 0.3);
+                set(Dim::Effort, 0.2);
+                set(Dim::Identification, if derby { 0.6 } else { 0.3 });
+                set(Dim::Value, 0.2);
+                set(Dim::Resentment, -0.2);
+            } else if feel < 0 {
+                // The other side's man: grudging respect for the player, more grievance against him.
+                set(Dim::Form, 0.3);
+                set(Dim::Football, 0.3);
+                set(Dim::Affection, -0.5);
+                set(Dim::Resentment, if derby { 0.9 } else { 0.6 });
+                set(Dim::Trust, -0.1);
+            }
+        }
+        Frame::RedCard { .. } => {
+            if own && feel < 0 {
+                set(Dim::Form, -0.6);
+                set(Dim::Trust, -0.4);
+                set(Dim::Effort, -0.2);
+                set(Dim::Football, -0.1);
+                set(Dim::Resentment, 0.3);
+            } else if !own && feel > 0 {
+                // "Dirty as always": the same act, read through allegiance (locked design 6.6).
+                set(Dim::Resentment, 0.3);
+                set(Dim::Trust, -0.3);
+            }
+        }
+        Frame::TransferRequest { .. } => {
+            if own {
+                set(Dim::Trust, -1.0);
+                set(Dim::Identification, -1.0);
+                set(Dim::Resentment, 0.8);
+                set(Dim::Affection, -0.3);
+                set(Dim::Effort, -0.2);
+            } else {
+                set(Dim::Football, 0.2);
+            }
+        }
+        Frame::Departure { .. } => {
+            if own && feel < 0 {
+                set(Dim::Trust, -0.6);
+                set(Dim::Identification, -0.8);
+                set(Dim::Affection, -0.2);
+            }
+        }
+        Frame::Signing { player, .. } => {
+            if own && feel > 0 {
+                let club = w.players.hot[player].club;
+                let ideal = if club.is_some() { crate::market::ideal_ca(w.clubs[club].reputation) } else { 100.0 };
+                let public = crate::market::public_view(w, player).0;
+                set(Dim::Football, 0.6 * ((public - ideal) / 40.0).clamp(-1.0, 1.0));
+                // Whether he is worth it: what was paid against what the market says he is.
+                let fee = w.history.spells.get(&player).and_then(|s| s.last()).map_or(0, |s| s.fee) as f32;
+                let value = crate::market::value_of(w, player).max(1) as f32;
+                if fee > 0.0 {
+                    set(Dim::Value, -0.8 * (fee / value - 1.0).clamp(-1.0, 1.0));
+                }
+                set(Dim::Affection, 0.2);
+                set(Dim::Identification, 0.05);
+            }
+        }
+        Frame::Award { .. } => {
+            set(Dim::Football, 0.8 * f32::from(feel.max(0)));
+            set(Dim::Identification, 0.4 * f32::from(feel.max(0)));
+            set(Dim::Affection, 0.2 * f32::from(feel.max(0)));
+        }
+        Frame::Record { .. } | Frame::Milestone { .. } => {
+            set(Dim::Football, 0.6 * f32::from(feel.max(0)));
+            set(Dim::Identification, 0.4 * f32::from(feel.max(0)));
+        }
+        Frame::Injury { .. } => {
+            if own {
+                set(Dim::Affection, 0.1);
+                set(Dim::Form, -0.2);
+            }
+        }
+        _ => {
+            let k = f32::from(feel);
+            set(Dim::Football, 0.5 * k);
+            set(Dim::Form, 0.3 * k);
+            set(Dim::Affection, 0.2 * k);
+        }
+    }
+    d.map(|x| x as i16)
+}
+
+/// Move what an account thinks of a person. Different events move different dimensions; expectation decides how much a performance
+/// impresses or disappoints; those who see him as one of their own are quicker to be pleased; stubbornness slows all of it.
+pub fn apply(w: &mut World, a: AccountId, about: PersonId, mut delta: [i16; N_DIMS]) {
+    if about.is_none() || delta.iter().all(|&x| x == 0) {
         return;
     }
     let today = w.date;
-    let stub = f32::from(w.net.accounts[a as usize].persona.stubbornness) / 150.0;
-    let d = (f32::from(delta) * (1.0 - stub)) as i16;
-    let v = w.net.opinions.entry(a).or_default();
-    if let Some(o) = v.iter_mut().find(|o| o.about == about) {
-        o.score = (o.score + d).clamp(-1000, 1000);
-        o.low = o.low.min(o.score);
-        o.high = o.high.max(o.score);
-        return;
+    let acc = w.net.accounts[a as usize].clone();
+    let stub = f32::from(acc.persona.stubbornness) / 150.0;
+    let player = w.people[about].player;
+    let expect = if player.is_some() { expectation(w, player) } else { 0.3 };
+    let existing = w.net.opinion(a, about).map_or([0i16; N_DIMS], |o| o.dims);
+    let ours = existing[Dim::Identification.idx()] > 300;
+    for dim in Dim::ALL {
+        let i = dim.idx();
+        let mut x = f32::from(delta[i]);
+        if matches!(dim, Dim::Football | Dim::Form) {
+            // Against what was expected: a modest game from an expensive signing disappoints, from a young academy player excites.
+            x *= if x > 0.0 { 1.2 - 0.9 * expect } else { 0.8 + 0.9 * expect };
+        }
+        if ours && x > 0.0 && matches!(dim, Dim::Football | Dim::Form | Dim::Affection) {
+            x *= 1.25;
+        }
+        delta[i] = (x * (1.0 - stub)) as i16;
     }
-    if v.len() >= 12 {
-        // Forget the mildest view.
-        if let Some(i) = v.iter().enumerate().min_by_key(|(_, o)| o.score.unsigned_abs()).map(|(i, _)| i) {
-            v.remove(i);
+    let v = w.net.opinions.entry(a).or_default();
+    let idx = match v.iter().position(|o| o.about == about) {
+        Some(i) => i,
+        None => {
+            if v.len() >= 12
+                && let Some(i) = v.iter().enumerate().min_by_key(|(_, o)| o.score.unsigned_abs()).map(|(i, _)| i)
+            {
+                // Forget the mildest view.
+                v.remove(i);
+            }
+            v.push(Opinion { about, dims: [0; N_DIMS], score: 0, since: today, low: 0, high: 0, voiced: NO_POST });
+            v.len() - 1
+        }
+    };
+    let o = &mut v[idx];
+    for dim in Dim::ALL {
+        o.dims[dim.idx()] = (o.dims[dim.idx()] + delta[dim.idx()]).clamp(-1000, 1000);
+    }
+    o.score = summarise(&acc, &o.dims);
+    o.low = o.low.min(o.score);
+    o.high = o.high.max(o.score);
+}
+
+/// A group of accounts whose view of someone can be read as one (locked design 6.11).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Audience {
+    OwnSupporters(ClubId),
+    RivalSupporters(ClubId),
+    Neutral,
+    Stats,
+    Ultras,
+    Casual,
+    AcademyWatchers,
+}
+
+fn in_audience(acc: &pw_world::socialnet::SocialAccount, aud: Audience) -> bool {
+    match aud {
+        Audience::OwnSupporters(c) => acc.club == c,
+        Audience::RivalSupporters(c) => acc.rival == c,
+        Audience::Neutral => acc.club.is_none() && acc.kind != AccountKind::Person,
+        Audience::Stats => acc.kind == AccountKind::Stats,
+        Audience::Ultras => matches!(acc.kind, AccountKind::Ultra | AccountKind::Hardcore),
+        Audience::Casual => acc.kind == AccountKind::Casual,
+        Audience::AcademyWatchers => acc.kind == AccountKind::AcademyWatcher,
+    }
+}
+
+/// What one audience thinks of someone: the mean reading on each dimension among those who hold a view, what it adds up to for them,
+/// and how many hold one. `None` when nobody in it has an opinion.
+pub fn audience_view(w: &World, about: PersonId, aud: Audience) -> Option<([i16; N_DIMS], i16, usize)> {
+    let mut sum = [0i64; N_DIMS];
+    let (mut n, mut score) = (0usize, 0i64);
+    for (&a, ops) in &w.net.opinions {
+        let acc = &w.net.accounts[a as usize];
+        if !in_audience(acc, aud) {
+            continue;
+        }
+        if let Some(o) = ops.iter().find(|o| o.about == about) {
+            for i in 0..N_DIMS {
+                sum[i] += i64::from(o.dims[i]);
+            }
+            score += i64::from(o.score);
+            n += 1;
         }
     }
-    v.push(Opinion { about, score: d, since: today, low: d.min(0), high: d.max(0), voiced: NO_POST });
+    (n > 0).then(|| {
+        let mut dims = [0i16; N_DIMS];
+        for i in 0..N_DIMS {
+            dims[i] = (sum[i] / n as i64) as i16;
+        }
+        (dims, (score / n as i64) as i16, n)
+    })
 }
 
 fn remember(w: &mut World, a: AccountId, kind: MomentKind, about: PersonId, event: EventId) {
@@ -499,7 +723,17 @@ pub fn believes(w: &World, a: AccountId, story: pw_core::StoryId) -> f32 {
         ClaimType::Speculation => -0.1,
         _ => 0.0,
     };
-    (0.3 + source_cred * (0.3 + know * 0.3) + own + credulity * 0.25 + desirable + corroborated + claim).clamp(0.0, 1.0)
+    // What they already think of the person: someone they distrust is easily believed to have done wrong, someone they trust is not
+    // (locked design 6.12). It shifts belief; strong evidence still carries.
+    let prior = if s.person.is_some() {
+        w.net.opinion(a, s.person).map_or(0.0, |o| {
+            let trust = f32::from(o.dims[Dim::Trust.idx()]) / 1000.0;
+            if s.tone < 0 { -0.2 * trust } else if s.tone > 0 { 0.15 * trust } else { 0.0 }
+        })
+    } else {
+        0.0
+    };
+    (0.3 + source_cred * (0.3 + know * 0.3) + own + credulity * 0.25 + desirable + corroborated + claim + prior).clamp(0.0, 1.0)
 }
 
 /// How likely an account is to pass a story on, whatever it believes of it (locked design §2.10). People share what they doubt because
@@ -519,7 +753,7 @@ pub fn pass_on(w: &World, a: AccountId, story: pw_core::StoryId) -> f32 {
 
 /// Choose what an account says about a frame, from the frame's valence for
 /// them, their opinion and memories, and who they are.
-fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own: bool, rival: bool, roll: f32) -> Option<(Concept, PersonId, SmallVec<[u32; 2]>)> {
+pub fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own: bool, rival: bool, roll: f32) -> Option<(Concept, PersonId, SmallVec<[u32; 2]>)> {
     let acc = &w.net.accounts[a as usize];
     let p = acc.persona;
     let prior = w.net.opinion(a, about).map_or(0, |o| o.score);
@@ -555,6 +789,20 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
     if !own {
         return None;
     }
+    // An old episode, brought back by a new one (locked design 6.3): the memory faded in intensity, not away.
+    if about.is_some() && club_val < 0 && roll < 0.65 {
+        let kind = match f {
+            Frame::TransferRequest { .. } => Some(MomentKind::TransferRequest),
+            Frame::RedCard { .. } => Some(MomentKind::Mistake),
+            Frame::Departure { .. } => Some(MomentKind::JoinedRival),
+            _ => None,
+        };
+        if let Some(k) = kind
+            && w.net.memories.get(&a).is_some_and(|v| v.iter().any(|m| m.kind == k && m.about == about && m.date.days_until(w.date) > 45))
+        {
+            return Some((Concept::Recall, PersonId::NONE, refs));
+        }
+    }
     let positive_for_subject = club_val > 0;
     if positive_for_subject && about.is_some() && low <= -300 && prior < 200 {
         // They did not rate this person. Now what?
@@ -573,7 +821,9 @@ fn concept(w: &World, a: AccountId, f: Frame, about: PersonId, club_val: i8, own
             refs,
         ));
     }
-    if !positive_for_subject && prior >= 400 && about.is_some() {
+    // Those who trust him, or feel he is one of theirs, give the benefit of the doubt (locked design 6.12).
+    let loyalty_to = w.net.opinion(a, about).map_or(0, |o| o.dims[Dim::Trust.idx()] + o.dims[Dim::Identification.idx()]);
+    if !positive_for_subject && about.is_some() && (prior >= 400 || loyalty_to >= 700) {
         return Some((Concept::Defend, PersonId::NONE, refs));
     }
     // A legend comparison for the nostalgic after a big moment.
@@ -801,25 +1051,35 @@ fn react(w: &mut World, f: Frame, clubs: &[ClubId], about: PersonId, ev: EventId
         if r1 >= see {
             continue;
         }
-        // Seeing moves opinions whether or not they post.
-        if own && about.is_some() && wave == 0 {
-            let d = i16::from(val) * (40.0 * fw) as i16;
-            nudge(w, a, about, d);
-            let mem = match f {
-                Frame::LateWinner { uid, .. } if w.recent_matches.by_uid(uid).is_some_and(|m| m.derby) => Some(MomentKind::DerbyGoal),
-                Frame::LateWinner { .. } => Some(MomentKind::LateWinner),
-                Frame::HatTrick { .. } => Some(MomentKind::HatTrick),
-                Frame::RedCard { .. } => Some(MomentKind::Mistake),
-                Frame::TransferRequest { .. } => Some(MomentKind::TransferRequest),
-                Frame::Departure { to, .. } if to == acc.rival => Some(MomentKind::JoinedRival),
-                Frame::Record { .. } => Some(MomentKind::Record),
-                Frame::Award { .. } => Some(MomentKind::Trophy),
-                _ => None,
-            };
-            if let Some(k) = mem {
-                remember(w, a, k, about, ev);
-                if k == MomentKind::JoinedRival {
-                    nudge(w, a, about, -400);
+        // Seeing moves opinions whether or not they post: which dimensions depends on what happened and to whom, and rivals form views too.
+        if about.is_some() && wave == 0 {
+            let feel = if own { val } else { -val };
+            let derby = matches!(f, Frame::LateWinner { uid, .. } | Frame::HatTrick { uid, .. } if w.recent_matches.by_uid(uid).is_some_and(|m| m.derby));
+            let impact = impact_for(w, f, own, feel, fw, derby);
+            apply(w, a, about, impact);
+            if own {
+                let mem = match f {
+                    Frame::LateWinner { uid, .. } if w.recent_matches.by_uid(uid).is_some_and(|m| m.derby) => Some(MomentKind::DerbyGoal),
+                    Frame::LateWinner { .. } => Some(MomentKind::LateWinner),
+                    Frame::HatTrick { .. } => Some(MomentKind::HatTrick),
+                    Frame::RedCard { .. } => Some(MomentKind::Mistake),
+                    Frame::TransferRequest { .. } => Some(MomentKind::TransferRequest),
+                    Frame::Departure { to, .. } if to == acc.rival => Some(MomentKind::JoinedRival),
+                    Frame::Record { .. } => Some(MomentKind::Record),
+                    Frame::Award { .. } => Some(MomentKind::Trophy),
+                    _ => None,
+                };
+                if let Some(k) = mem {
+                    remember(w, a, k, about, ev);
+                    if k == MomentKind::JoinedRival {
+                        // Going to the other lot: belonging and trust gone at once, and a grievance in their place.
+                        let mut hit = [0i16; N_DIMS];
+                        hit[Dim::Identification.idx()] = -500;
+                        hit[Dim::Trust.idx()] = -300;
+                        hit[Dim::Affection.idx()] = -100;
+                        hit[Dim::Resentment.idx()] = 400;
+                        apply(w, a, about, hit);
+                    }
                 }
             }
         }

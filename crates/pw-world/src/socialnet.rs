@@ -109,11 +109,59 @@ pub struct SocialAccount {
     pub active: bool,
 }
 
+/// The dimensions along which someone can think of a person (locked design 6.1). One universal score cannot say that a player is
+/// excellent, in poor form, well liked, not trusted and terrible value all at once.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Dim {
+    /// How good he is.
+    Football,
+    /// How he has been playing lately.
+    Form,
+    /// How much he is liked.
+    Affection,
+    /// Whether he can be relied on; loyalty perceived.
+    Trust,
+    /// How hard he is seen to try.
+    Effort,
+    /// "One of us."
+    Identification,
+    /// Whether he is worth what he costs.
+    Value,
+    /// A grievance held against him.
+    Resentment,
+}
+
+pub const N_DIMS: usize = 8;
+
+impl Dim {
+    pub const ALL: [Dim; N_DIMS] = [Dim::Football, Dim::Form, Dim::Affection, Dim::Trust, Dim::Effort, Dim::Identification, Dim::Value, Dim::Resentment];
+
+    pub const fn idx(self) -> usize {
+        self as usize
+    }
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            Dim::Football => "football ability",
+            Dim::Form => "current form",
+            Dim::Affection => "affection",
+            Dim::Trust => "trust",
+            Dim::Effort => "effort",
+            Dim::Identification => "one of us",
+            Dim::Value => "value for money",
+            Dim::Resentment => "resentment",
+        }
+    }
+}
+
 /// An account's view of someone (a player, manager, owner, journalist).
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Opinion {
     pub about: PersonId,
-    /// −1000..1000.
+    /// One reading per dimension, -1000..1000 each.
+    pub dims: [i16; N_DIMS],
+    /// What the dimensions add up to *for this account*, which cares about different things from the next one: a summary, never the
+    /// truth of what people think. −1000..1000.
     pub score: i16,
     pub since: Date,
     /// The lowest (and highest) it has been — for "I was wrong".
@@ -240,6 +288,8 @@ pub enum Concept {
     Sarcasm,
     /// "You wanted them gone two weeks ago" (refers to the author's post).
     CallOut,
+    /// "Here we go again": an old episode, brought back by a new one (locked design 6.3).
+    Recall,
     Agree,
     Disagree,
     /// Sing (a chant id is the `extra`).
