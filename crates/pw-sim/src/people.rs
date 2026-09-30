@@ -166,19 +166,23 @@ fn trim_squads(w: &mut World) {
 /// his hidden ability): a player good enough for the club's standard joins the first team (or the reserves if that is full), everyone
 /// else is released and drifts into the amateur game. Without this, youth and reserve sides fill with adults nobody wants and the
 /// world's population grows without bound.
+///
+/// Graduates step up only into the room the club plans for (`first_team_target`), best first. Filling the first team to its hard limit
+/// every summer made the monthly trim (`trim_squads`) push out whoever the club rated least, and with a growth premium on the young that
+/// was the senior professionals: dozens of players in their twenties at second-tier standard were released into the amateur game each
+/// year, first teams grew years younger, and every price read from age and potential rose with them.
 fn age_out(w: &mut World) {
     let mut moves: Vec<(PlayerId, TeamId)> = Vec::new();
     let mut releases: Vec<PlayerId> = Vec::new();
+    // Graduates by club, with the club's reading of each: (player, their side, standard met, score).
+    let mut graduates: pw_world::FxHashMap<ClubId, Vec<(PlayerId, TeamId, bool, f32)>> = Default::default();
     for t in w.teams.ids() {
         let kind = w.teams[t].kind;
         if kind == TeamKind::First {
             continue;
         }
         let club = w.teams[t].club;
-        let first = w.clubs[club].first_team();
         let bar = crate::market::ideal_ca(w.clubs[club].reputation) - 12.0;
-        let room = usize::from(w.data.tuning.squad.first_team_max).saturating_sub(w.teams[first].squad.len());
-        let mut stepping_up = 0;
         for &p in &w.teams[t].squad {
             let h = &w.players.hot[p];
             let who = w.players.cold[p].person;
@@ -194,15 +198,27 @@ fn age_out(w: &mut World) {
                 continue;
             }
             let (ca, _, pa, _) = crate::scouting::view(w, club, p);
-            if ca >= bar - 8.0 || (age <= 23 && pa >= bar + 4.0) {
-                if stepping_up < room {
-                    stepping_up += 1;
-                    moves.push((p, first));
-                } else if let Some(reserve) = w.club_team(club, TeamKind::Reserve).filter(|&r| r != t) {
-                    moves.push((p, reserve));
-                } else {
-                    releases.push(p);
-                }
+            let good = ca >= bar - 8.0 || (age <= 23 && pa >= bar + 4.0);
+            let growth = if age < 23 { 0.4 * (pa - ca).max(0.0) } else { 0.0 };
+            graduates.entry(club).or_default().push((p, t, good, ca + growth));
+        }
+    }
+    let mut clubs: Vec<ClubId> = graduates.keys().copied().collect();
+    clubs.sort();
+    let target = usize::from(w.data.tuning.squad.first_team_target);
+    for club in clubs {
+        let mut list = graduates.remove(&club).unwrap_or_default();
+        list.sort_by(|a, b| b.3.total_cmp(&a.3).then(a.0.cmp(&b.0)));
+        let first = w.clubs[club].first_team();
+        let mut room = target.saturating_sub(w.teams[first].squad.len());
+        for (p, t, good, _) in list {
+            if !good {
+                releases.push(p);
+            } else if room > 0 {
+                room -= 1;
+                moves.push((p, first));
+            } else if let Some(reserve) = w.club_team(club, TeamKind::Reserve).filter(|&r| r != t) {
+                moves.push((p, reserve));
             } else {
                 releases.push(p);
             }

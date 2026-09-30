@@ -285,6 +285,8 @@ pub fn finalize(w: &mut World) {
         w.nations[n].first_names = f.into_iter().map(NameId).collect();
         w.nations[n].last_names = l.into_iter().map(NameId).collect();
     }
+    // Revenue (and so every wage and staff salary set from here on) includes the broadcast pools.
+    pw_sim::economy::ensure_pools(w);
 }
 
 pub fn person_age_days(dob: Date, today: Date) -> i32 {

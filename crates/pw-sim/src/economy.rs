@@ -19,6 +19,16 @@ pub fn ensure(w: &mut World) {
         w.economy.global_index = 1.0;
         w.economy.last_year = w.date.year();
     }
+    ensure_pools(w);
+    if fresh {
+        endow(w);
+    }
+}
+
+/// Every nation with a league gets its economy and broadcast pool. World builders call this before they price anyone: a club's revenue
+/// without its broadcast share is a fraction of what it earns once the world runs, and wages set from it at import were half of what
+/// the same clubs paid a year later (every contract signed after that "inflated" the wage bill towards where it should have started).
+pub fn ensure_pools(w: &mut World) {
     for n in w.nations.ids() {
         if w.economy.nations.contains_key(&n) || w.nations[n].leagues.is_empty() {
             continue;
@@ -39,15 +49,13 @@ pub fn ensure(w: &mut World) {
             },
         );
     }
-    if fresh {
-        endow(w);
-    }
 }
 
-/// A world that begins with placeholder cash (built, or imported without balances) starts its clubs with a working reserve. Clubs
-/// that begin with a few days of revenue in the bank spend the first years filling the purse, and every price in the market ramps
-/// up with it: years of "inflation" that are only the world warming up.
+/// A world that begins with placeholder cash (built, or imported without balances) starts its clubs with the reserve they keep
+/// (`reserve_years` of revenue, see `finance::weekly`). Clubs that begin with less spend the first years filling the purse, and
+/// every transfer budget and price in the market ramps up with it: years of "inflation" that are only the world warming up.
 fn endow(w: &mut World) {
+    let reserve = f64::from(w.data.tuning.finance.reserve_years);
     let clubs: Vec<ClubId> = w.clubs.ids().collect();
     for club in clubs {
         let stated = w.origins.club_gaps.get(&club).is_some_and(|g| g & pw_world::origin::gap::FINANCES == 0);
@@ -56,7 +64,7 @@ fn endow(w: &mut World) {
         }
         let revenue = club_revenue(w, club);
         let f = &mut w.clubs[club].finance;
-        f.balance = f.balance.max((revenue as f64 * 0.45) as Money);
+        f.balance = f.balance.max((revenue as f64 * reserve) as Money);
     }
 }
 

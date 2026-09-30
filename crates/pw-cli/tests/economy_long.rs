@@ -9,7 +9,8 @@
 //! * revenue and wages follow general inflation plus modest real growth: well under 10% a year, nominal;
 //! * wages are about half of revenue for the median club, never above it;
 //! * the median transfer fee grows with the same prices, not faster;
-//! * no club sits on more than two seasons of revenue in cash and few are in administration;
+//! * clubs start with the cash they settle at, not a fraction of it, and no club sits on more than two seasons of revenue in cash; few
+//!   are in administration;
 //! * the unemployed in the backroom stay a pool the job market can work through;
 //! * a club record signing or sale is an event, not a weekly occurrence.
 
@@ -50,6 +51,12 @@ fn check_economy(run: &[Snapshot], label: &str, fee_from: usize) {
         let g = ((l / e).powf(1.0 / (to - fee_from - 1) as f64) - 1.0) * 100.0;
         assert!(g <= 14.0, "{label}: median transfer fee grows {g:.1}% a year");
     }
+
+    // A world starts its clubs where their cash settles: the median balance three years in is within a factor of two of where it began.
+    // (Endowed at under half the reserve they keep and emptied of surplus only slowly, clubs tripled their cash in the first years, and
+    // every transfer budget with it.)
+    let (b0, b3) = (run[0].balance_median, run[3].balance_median);
+    assert!(b0 > 0.0 && b3 <= b0 * 2.0 && b3 >= b0 * 0.5, "{label}: median club balance went from {b0:.0} to {b3:.0} in three years");
 
     // Whatever the warm-up, a fee is never a large part of what a club earns in a year: the median deal stays under a tenth of the
     // revenue of the average club (at the fixed point of the long runs it is about one twentieth).

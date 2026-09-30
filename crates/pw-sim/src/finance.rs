@@ -75,7 +75,7 @@ pub fn weekly(w: &mut World) {
         let bill = wages[club.0 as usize];
         f.wage_bill = bill;
         let excess = (f.balance - reserve).max(0);
-        let out = (excess as f64 * payout / 52.0) as Money;
+        let out = (excess as f64 * (payout * f64::from(t.distributions_per_year) / 52.0).min(1.0)) as Money;
         f.balance += income - bill - running - out;
         f.season_income += income;
         f.season_spend += bill + running;

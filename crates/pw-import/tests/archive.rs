@@ -452,3 +452,25 @@ fn ability_follows_the_evidence_but_is_not_a_function_of_price() {
     }
     assert!(by_value.values().any(|v| v.len() > 1 && v.iter().any(|x| *x != v[0])), "equal prices, different abilities");
 }
+
+#[test]
+fn wages_the_archive_lacks_are_set_at_the_level_the_running_world_pays() {
+    // The archive has no wages: the importer prices them from each club's means. It must do so with the whole economy in place (the
+    // broadcast pools included), or every generated wage is a fraction of what the same club offers a year later and the wage bill
+    // "inflates" for years as contracts turn over.
+    let (w, _) = load(&Archive::standard(), "wages");
+    let top: Vec<(pw_core::PlayerId, pw_core::ClubId, i64)> = w
+        .players
+        .ids()
+        .filter_map(|p| {
+            let club = w.players.hot[p].club;
+            (club.is_some() && w.clubs[club].league.is_some() && w.comps[w.clubs[club].league].tier == 1).then(|| (p, club, w.players.cold[p].contract.wage))
+        })
+        .collect();
+    assert!(top.len() > 50);
+    let sim = pw_sim::Sim::new(w);
+    let mut ratios: Vec<f64> = top.iter().map(|&(p, club, wage)| wage as f64 / pw_sim::market::wage_demand(&sim.world, p, club).max(1) as f64).collect();
+    ratios.sort_by(f64::total_cmp);
+    let median = ratios[ratios.len() / 2];
+    assert!((0.8..=1.25).contains(&median), "imported top-flight wages are {median:.2} of what the running world pays the same players");
+}
