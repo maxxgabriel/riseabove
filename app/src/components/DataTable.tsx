@@ -108,16 +108,17 @@ function useTableRows(req: Omit<TableReq, "offset" | "limit">, want: [number, nu
 // ---- cells -----------------------------------------------------------------------------------
 
 function CellView({ col, cell }: { col: Col; cell: Cell }) {
-  if (cell.u) return <span className="unknown" title="Not known to you">—</span>;
+  if (cell.k?.kind === "unknown") return <span className="unknown" title="Not known to you">?</span>;
+  if (cell.k?.kind === "hidden") return <span className="unknown" title="Not for you to see">—</span>;
   let body: ReactNode;
   if (cell.parts) {
     body = <Parts parts={cell.parts} />;
   } else if (col.key === "form" && cell.s != null) {
     body = <FormDots form={cell.s} />;
-  } else if (cell.range) {
+  } else if (cell.k?.kind === "range") {
     body = (
       <span className="num range" title="Your best estimate; the true value lies within this range">
-        {Math.round(cell.range[0])}–{Math.round(cell.range[1])}
+        {Math.round(cell.k.lo)}–{Math.round(cell.k.hi)}
       </span>
     );
   } else {

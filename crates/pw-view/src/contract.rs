@@ -309,15 +309,21 @@ export interface Part {
   d?: number;
 }
 
+/** How the viewer knows a cell's value when it is not simply known; the tags of `Knowledge`. */
+export type CellKnow =
+  | { kind: "unknown" }
+  | { kind: "hidden" }
+  | { kind: "range"; lo: number; hi: number }
+  | { kind: "reported"; source: string };
+
 export interface Cell {
   n?: number;
   s?: string;
   r?: Ref;
   tone?: Tone;
-  u?: boolean;
+  k?: CellKnow;
   bar?: number;
   sub?: string;
-  range?: [number, number];
   parts?: Part[];
 }
 

@@ -53,8 +53,26 @@ pub enum Tone {
     Info,
 }
 
-/// One table cell. `n` is the raw value the client formats by column kind,
-/// `s` is text, `u` marks a value the viewer cannot know.
+/// How the viewer knows a cell's value when it is not simply known (locked design 9.6): the same tags as `contract::Knowledge`, so
+/// "not known", "withheld", "estimated" and "someone said" are never a blank, a zero or a bare flag. No table sends one today: a column
+/// of values the viewer cannot know is left out of the viewer's column list instead (`tables/players.rs`); the tags are the protocol
+/// for the first table that shows an assessment in place of a hidden value.
+#[allow(dead_code)]
+#[derive(Clone, Debug, Serialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum CellKnow {
+    /// Nobody the viewer has access to has looked.
+    Unknown,
+    /// Exists, and the viewer may not see it.
+    Hidden,
+    /// A best estimate (`n`) inside a range.
+    Range { lo: f32, hi: f32 },
+    /// Someone said so.
+    Reported { source: String },
+}
+
+/// One table cell. `n` is the raw value the client formats by column kind, `s` is text; `k` says how the viewer knows it when that is
+/// not simply "known" (absent means known, or a fact that does not apply, such as the wage of a player without a club).
 #[derive(Clone, Debug, Serialize, Default)]
 pub struct Cell {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -65,17 +83,14 @@ pub struct Cell {
     pub r: Option<Ref>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tone: Option<Tone>,
-    #[serde(skip_serializing_if = "std::ops::Not::not")]
-    pub u: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub k: Option<CellKnow>,
     /// Fraction 0..=1 drawn as an inline bar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bar: Option<f32>,
     /// Secondary line or tooltip text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sub: Option<String>,
-    /// Range `[lo, hi]` for assessed values.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub range: Option<[f32; 2]>,
     /// A sentence made of text and links.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parts: Option<Vec<Part>>,

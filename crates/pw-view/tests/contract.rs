@@ -304,6 +304,10 @@ fn unknown_hidden_estimated_and_known_are_four_different_things_on_the_wire() {
     assert!(seen.contains("range"), "strangers are assessed in ranges: {seen:?}");
     let ts = contract::typescript();
     assert!(ts.contains("export type Knowledge<T>") && ts.contains("\"hidden\"") && ts.contains("\"unknown\""));
+    // Table cells use the same tags; the old bare "unknown" flag and bare range are gone from the wire.
+    let (req, opt) = contract::interface_fields(&ts, "Cell").unwrap();
+    assert!(opt.contains(&"k".to_string()) && !req.iter().chain(&opt).any(|f| f == "u" || f == "range"), "Cell fields: {req:?} {opt:?}");
+    assert!(ts.contains("export type CellKnow =") && ts.contains("{ kind: \"range\"; lo: number; hi: number }"));
 }
 
 #[test]
