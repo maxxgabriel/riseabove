@@ -123,10 +123,27 @@ fn line(c: &Ctx, m: &Message) -> String {
             Some((what, _)) => format!("{} told you {}.", c.person_name(from), what),
             None => format!("{} told you something.", c.person_name(from)),
         },
-        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).and_then(|e| pw_narrate::events::line(w, e, me)).unwrap_or_default(),
+        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).map_or_else(|| "Something from earlier that is no longer on record.".to_string(), |e| {
+            // An event the narration has no sentence for is still listed by what it is, never as a blank line.
+            pw_narrate::events::line(w, e, me).filter(|t| !t.trim().is_empty()).unwrap_or_else(|| {
+                let said: String = narrative::describe(c, e).iter().map(|p| p.t.as_str()).collect();
+                if said.trim().is_empty() { narrative::label(&e.kind).to_string() } else { said }
+            })
+        }),
         MsgSource::Story { story } => c.headline(&w.media.stories[story]),
         MsgSource::Mention { post } => w.net.post(post).map_or_else(String::new, |p| format!("{}: {}", w.net.accounts[p.author as usize].display, c.post_text(p))),
         MsgSource::Question { conference, question } => pw_narrate::press::question(w, conference, question),
+    }
+}
+
+/// Whether what a message was about is still in the records (old events are compacted away). A note that says only that something
+/// is gone is not worth showing.
+fn still_on_record(c: &Ctx, m: &Message) -> bool {
+    let w = c.w;
+    match m.source {
+        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).is_some(),
+        MsgSource::Mention { post } => w.net.post(post).is_some_and(|p| !c.post_text(p).trim().is_empty()),
+        _ => true,
     }
 }
 
@@ -213,6 +230,8 @@ fn thread_title(c: &Ctx, t: &Thread) -> (String, Option<Value>, &'static str) {
             let text = w.net.post(root).map_or_else(String::new, |p| c.post_text(p));
             (if text.is_empty() { "Online".to_string() } else { format!("Online: {}", short(&text, 50)) }, None, "post")
         }
+        // A private matter that names neither a person nor a club is filed under the game itself, with nothing to link to.
+        ThreadKey::Club(cl) if cl.is_none() => ("Personal".to_string(), None, "club"),
         ThreadKey::Club(cl) => (c.club_name(cl), Some(named(Ref::club(cl), c.club_name(cl))), "club"),
         ThreadKey::Decision(d) => (w.decisions.all.get(d).map_or_else(|| "Decision".to_string(), |d| d.kind.title().to_string()), None, "decision"),
     }
@@ -235,7 +254,7 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let mut unread_total = 0usize;
     let mut action_total = 0usize;
     for t in w.inbox.threads_of(me) {
-        let msgs: Vec<&Message> = t.messages.iter().map(|&i| &w.inbox.messages[i as usize]).collect();
+        let msgs: Vec<&Message> = t.messages.iter().map(|&i| &w.inbox.messages[i as usize]).filter(|m| still_on_record(c, m)).collect();
         let unread = msgs.iter().filter(|m| !m.read).count();
         let needs = msgs.iter().any(|m| awaiting(w, m));
         let deadline = msgs.iter().rev().find_map(|m| {
@@ -268,7 +287,16 @@ pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing thread".into()))? as usize;
     let t = c.w.inbox.threads.get(id).filter(|t| t.owner == me).ok_or_else(|| ApiError::NotFound("conversation".into()))?;
     let (title, with, kind) = thread_title(c, t);
-    let msgs: Vec<Value> = t.messages.iter().map(|&i| message_json(c, &c.w.inbox.messages[i as usize])).collect();
+    // The same words from the same person on the same day, with nothing to reply to, are said once.
+    let mut said: std::collections::HashSet<(i32, u32, String)> = std::collections::HashSet::new();
+    let msgs: Vec<Value> = t
+        .messages
+        .iter()
+        .map(|&i| &c.w.inbox.messages[i as usize])
+        .filter(|m| still_on_record(c, m))
+        .filter(|m| !replies_json(c, m).is_empty() || m.replied.is_some() || said.insert((m.date.0, m.from.0, line(c, m))))
+        .map(|m| message_json(c, m))
+        .collect();
     Ok(json!({"id": t.id, "title": title, "with": with, "kind": kind, "opened": t.opened.0, "last": t.last.0, "messages": msgs}))
 }
 

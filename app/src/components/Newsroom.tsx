@@ -1,5 +1,6 @@
 import { ClubCrest } from "./Crest";
 import { Dt, EntityLink, Parts } from "./links";
+import { initials } from "../format";
 import { href, refPath } from "../router";
 import { useApi } from "../store";
 import type { Named, Part, Ref } from "../types";
@@ -25,7 +26,6 @@ export interface PulseItem { id: number; date: number; label: string; parts: Par
 
 const kindText = (s: string) => s.replace(/([a-z])([A-Z])/g, "$1 $2");
 export const storyPath = (id: number) => `/news/${id}`;
-const initials = (name: string) => name.split(/\s+/).map((s) => s[0]).join("").slice(0, 2).toUpperCase();
 
 export function StoryGraphic({ story, compact = false }: { story: NewsStory; compact?: boolean }) {
   const g = story.graphic;

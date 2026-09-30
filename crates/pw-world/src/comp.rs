@@ -279,7 +279,9 @@ impl Fixtures {
     }
 
     pub fn between(&self, from: Date, to: Date) -> impl Iterator<Item = FixtureId> + '_ {
-        self.by_date.range(from..=to).flat_map(|(_, v)| v.iter().copied())
+        // An empty window (a competition that has not started yet asks for `start - 1 ..= today`) is empty, not a panic.
+        let window = (from <= to).then(|| self.by_date.range(from..=to));
+        window.into_iter().flatten().flat_map(|(_, v)| v.iter().copied())
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (FixtureId, &Fixture)> {

@@ -15,10 +15,31 @@ pub fn line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
 
 /// Verb agreement when the viewer is the subject: "You was injured" reads as "You were injured".
 fn agree(s: String) -> String {
-    if !s.contains("You ") {
+    if !s.contains("You") {
         return s;
     }
-    s.replace("You is ", "You are ").replace("You was ", "You were ").replace("You has ", "You have ")
+    let s = s.replace("You is ", "You are ").replace("You was ", "You were ").replace("You has ", "You have ");
+    lower_mid_sentence_you(&s)
+}
+
+/// "The medical team expect You to miss" reads as "expect you to miss": only the first word of a sentence keeps its capital.
+pub fn lower_mid_sentence_you(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut prev_end = true; // the start of the text opens a sentence
+    for (i, word) in s.split(' ').enumerate() {
+        if i > 0 {
+            out.push(' ');
+        }
+        let bare = word.trim_matches(|c: char| !c.is_alphanumeric() && c != '\'');
+        let is_you = bare == "You" || bare == "You'd" || bare == "You'll" || bare == "You've" || bare == "You're";
+        if is_you && !prev_end {
+            out.push_str(&word.replacen("You", "you", 1));
+        } else {
+            out.push_str(word);
+        }
+        prev_end = word.ends_with(['.', '!', '?', ':', '"', '\u{201d}', '(']) || word.is_empty();
+    }
+    out
 }
 
 fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
@@ -48,7 +69,7 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         Retired { person: x } => format!("{} retired from playing.", me(x)),
         Injured { player: p, injury, days } => {
             let name = if injury > 0 { w.data.injuries.get(usize::from(injury - 1)).map_or("an injury".to_string(), |d| d.name.to_lowercase()) } else { "an injury".into() };
-            format!("{} {} ({name}), expected out for about {} days.", pl(p), pick(key, &["picked up an injury", "was injured", "suffered an injury"]), days)
+            format!("{} {} ({name}), expected out for about {}.", pl(p), pick(key, &["picked up an injury", "was injured", "suffered an injury"]), crate::fmt::days(u32::from(days)))
         }
         Recovered { player: p } => format!("{} is back in full training.", pl(p)),
         Suspended { player: p, matches } => format!("{} will serve a {matches}-match suspension.", pl(p)),
@@ -198,10 +219,13 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         }
         WithdrewFromSquad { player: p, nation: n } => format!("{} withdrew from the {} squad.", pl(p), nation(w, n)),
         Diagnosed { player: p, injury, estimate, treatment } => format!(
-            "The medical team expect {} to miss around {} with a {} ({}).",
+            "The medical team expect {} to miss around {} with {} ({}).",
             pl(p),
             crate::fmt::duration_days(estimate),
-            w.data.injuries.get(usize::from(injury).saturating_sub(1)).map_or("problem", |d| d.name.as_str()),
+            {
+                let name = w.data.injuries.get(usize::from(injury).saturating_sub(1)).map_or("problem".to_string(), |d| d.name.to_lowercase());
+                crate::fmt::with_article(&name)
+            },
             treatment.label()
         ),
         InjurySetback { player: p, days } => format!("{} suffered a setback in rehabilitation: another {} out.", pl(p), crate::fmt::duration_days(days)),
@@ -409,10 +433,10 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::PromiseDue { promise } => format!("a promise ({}) has come due", w.social.promise(promise).map_or("unknown".into(), |p| p.kind.text())),
         Fact::WageGap { player: p, pct_of_peers } => format!("{} wage is {pct_of_peers}% of comparable teammates'", who(p)),
         Fact::Household { person: x } => format!("{}'s family circumstances", person(w, x)),
-        Fact::Injury { player: p, days } => format!("{} injury ({days} days)", who(p)),
+        Fact::Injury { player: p, days } => format!("{} injury ({})", who(p), crate::fmt::days(days as u32)),
         Fact::Unsettled { person: x, nation: n } => format!("{} has not settled in {}", person(w, x), nation(w, n)),
         Fact::LowTrust { from, about, trust } => format!("{} trusts {} little ({trust}/100)", person(w, from), person(w, about)),
-        Fact::ContractRunningDown { player: p, days } => format!("{} contract has {days} days left", who(p)),
+        Fact::ContractRunningDown { player: p, days } => format!("{} contract has {} left", who(p), crate::fmt::days(days as u32)),
         Fact::PublicCriticism { story } => format!("criticism in the press: {}", crate::press::headline(w, &w.media.stories[story])),
         Fact::Rule { reason } => reason.text(),
         Fact::Said { person: x } => format!("{} said so publicly", person(w, x)),

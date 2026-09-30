@@ -316,7 +316,8 @@ pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let mut ties: Vec<Value> = Vec::new();
         let mut date: Option<Date> = None;
         for (i, t) in st.ties.iter().enumerate() {
-            if Some(tie_round.get(&(i as u16)).copied().unwrap_or(0)) != cur {
+            // A slot whose sides are not decided yet has no team to draw.
+            if t.a.is_none() || t.b.is_none() || Some(tie_round.get(&(i as u16)).copied().unwrap_or(0)) != cur {
                 continue;
             }
             let masked = held.iter().any(|f| f.tie == i as u16);
@@ -489,6 +490,11 @@ pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
             continue;
         }
         let spoils = c.story_spoils(s);
+        // Two outlets running the same headline for one match are one piece of news.
+        let headline = c.headline(s);
+        if news.iter().any(|n| n["match"]["id"] == json!(*uid as u32) && n["headline"] == json!(headline)) {
+            continue;
+        }
         news.push(json!({
             "headline": c.headline(s), "date": s.date.0, "days_ago": today.0 - s.date.0, "outlet": pw_narrate::press::outlet_name(w, s),
             "match": Ref::fixture(*uid), "spoils": spoils,

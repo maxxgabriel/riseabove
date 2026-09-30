@@ -146,9 +146,9 @@ fn absences(c: &Ctx, t: TeamId) -> Vec<Value> {
         .filter_map(|&p| {
             let h = &c.w.players.hot[p];
             if h.injury != 0 {
-                Some(json!({"player": pref(c, p), "why": format!("Injured, about {} days", h.injury_days)}))
+                Some(json!({"player": pref(c, p), "why": crate::fmt::singulars(format!("Injured, about {} days", h.injury_days))}))
             } else if h.ban > 0 {
-                Some(json!({"player": pref(c, p), "why": format!("Suspended for {} match(es)", h.ban)}))
+                Some(json!({"player": pref(c, p), "why": format!("Suspended for {} {}", h.ban, if h.ban == 1 { "match" } else { "matches" })}))
             } else {
                 None
             }

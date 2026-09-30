@@ -1,3 +1,4 @@
+import { cap } from "../format";
 import { useEffect, useMemo, useState } from "react";
 import { ConfirmAction, queueAction, useOptions, type Options } from "../components/Actions";
 import { Dt, EntityLink, Money } from "../components/links";
@@ -202,7 +203,7 @@ function Week({ l }: { l: LifeResp }) {
               <Segmented
                 label="Lifestyle"
                 value={l.money.lifestyle}
-                options={opts.data.lifestyles.map((x) => ({ id: x.key, label: x.label[0].toUpperCase() + x.label.slice(1) }))}
+                options={opts.data.lifestyles.map((x) => ({ id: x.key, label: cap(x.label) }))}
                 onChange={(v) => void queueAction("lifestyle", { value: v })}
               />
             )}
@@ -466,7 +467,7 @@ function HelpersList({ l, opts }: { l: LifeResp; opts: Options | undefined }) {
           return (
             <li key={h.key}>
               <div>
-                <div>{h.label[0].toUpperCase() + h.label.slice(1)}</div>
+                <div>{cap(h.label)}</div>
                 <div className="hint">{hired ? <>Costs <Money v={hired.cost} exact /> a year</> : <>From <Money v={h.base_cost} exact /> a year</>}</div>
               </div>
               {hired ? (

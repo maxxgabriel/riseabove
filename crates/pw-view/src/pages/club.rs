@@ -113,6 +113,11 @@ pub fn follow(c: &mut crate::session::Session, args: &Value) -> ApiResult<Value>
 
 // ---- competitions and nations ----------------------------------------------------------
 
+/// A date the world has set, or null for one it has not (day zero is the unset value, not 1970).
+fn day(d: pw_core::Date) -> Value {
+    if d.0 == 0 { Value::Null } else { json!(d.0) }
+}
+
 pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = CompId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing competition id".into()))? as u32);
     if id.0 as usize >= c.w.comps.len() {
@@ -140,6 +145,8 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
         .ties
         .iter()
         .enumerate()
+        // A tie whose sides are not decided yet (a slot waiting for an earlier round) is not listed: it has no team to name.
+        .filter(|(_, t)| t.a.is_some() && t.b.is_some())
         .map(|(i, t)| {
             let masked = concealed.iter().any(|f| f.tie == i as u16);
             json!({
@@ -167,7 +174,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "team_kind": comp.team_kind.label(),
         "state": {
             "season": c.season_label(id, st.season), "season_year": st.season, "stage": comp_summary_stage(c, id),
-            "knockout": matches!(st.stage, Stage::Knockout(_)), "start": st.start.0, "end": st.end.0,
+            "knockout": matches!(st.stage, Stage::Knockout(_)), "start": day(st.start), "end": day(st.end),
             "teams": st.entrants.len(), "round": st.round,
             "winner": if st.winner.is_some() && concealed.is_empty() { named(c.team_ref(st.winner), c.team_name(st.winner)) } else { Value::Null },
             "runner_up": if st.runner_up.is_some() && concealed.is_empty() { named(c.team_ref(st.runner_up), c.team_name(st.runner_up)) } else { Value::Null },
@@ -218,7 +225,7 @@ pub fn nation(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "id": id.0, "name": n.name, "code": n.code, "confed": n.confed.code(), "reputation": n.reputation,
         "economy": if c.observer() { json!(n.economy) } else { Value::Null },
         "youth_rating": if c.observer() { json!(n.youth_rating) } else { Value::Null },
-        "season": {"label": n.season.label(), "start": n.season.start.0, "end": n.season.end.0,
+        "season": {"label": n.season.label(), "start": day(n.season.start), "end": day(n.season.end),
             "windows": n.season.windows.iter().map(|(a, b)| json!([a.0, b.0])).collect::<Vec<_>>(),
             "winter_break": n.season.winter_break.map(|(a, b)| json!([a.0, b.0]))},
         "leagues": leagues, "cups": cups, "clubs": clubs, "players": players,

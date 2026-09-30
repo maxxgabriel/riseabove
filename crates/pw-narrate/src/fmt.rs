@@ -78,6 +78,17 @@ pub fn nation(w: &World, n: pw_core::NationId) -> String {
     w.nations[n].name.clone()
 }
 
+/// "a knee injury", "an ankle sprain".
+pub fn with_article(noun: &str) -> String {
+    let vowel = noun.chars().next().is_some_and(|c| "aeiouAEIOU".contains(c));
+    format!("{} {noun}", if vowel { "an" } else { "a" })
+}
+
+/// "1 day", "12 days".
+pub fn days(n: u32) -> String {
+    if n == 1 { "1 day".into() } else { format!("{n} days") }
+}
+
 /// "three weeks", "about two months", "a few days".
 pub fn duration_days(d: u16) -> String {
     match d {
@@ -87,5 +98,58 @@ pub fn duration_days(d: u16) -> String {
         25..=75 => format!("about {} weeks", (d + 3) / 7),
         76..=300 => format!("about {} months", (d + 15) / 30),
         _ => "the rest of the year or longer".into(),
+    }
+}
+
+/// "1 matches" and "1 points" from counts formatted as digits become "1 match" and "1 point" (a decimal such as "2.1 points" is left alone).
+pub fn singulars(mut s: String) -> String {
+    const PAIRS: [(&str, &str); 20] = [
+        ("matches", "match"),
+        ("points", "point"),
+        ("goals", "goal"),
+        ("weeks", "week"),
+        ("months", "month"),
+        ("days", "day"),
+        ("wins", "win"),
+        ("defeats", "defeat"),
+        ("assists", "assist"),
+        ("appearances", "appearance"),
+        ("meetings", "meeting"),
+        ("games", "game"),
+        ("minutes", "minute"),
+        ("caps", "cap"),
+        ("years", "year"),
+        ("starts", "start"),
+        ("spectators", "spectator"),
+        ("titles", "title"),
+        ("clean sheets", "clean sheet"),
+        ("hat-tricks", "hat-trick"),
+    ];
+    for (many, one) in PAIRS {
+        let pat = format!("1 {many}");
+        let mut at = 0;
+        while let Some(i) = s[at..].find(&pat).map(|i| i + at) {
+            let lone = i == 0 || !(s.as_bytes()[i - 1].is_ascii_digit() || s.as_bytes()[i - 1] == b'.');
+            let end = i + pat.len();
+            let whole = s.as_bytes().get(end).is_none_or(|b| !b.is_ascii_alphanumeric());
+            if lone && whole {
+                s.replace_range(i..end, &format!("1 {one}"));
+            }
+            at = i + 1;
+        }
+    }
+    s
+}
+
+#[cfg(test)]
+mod tests {
+    use super::singulars;
+
+    #[test]
+    fn a_count_of_one_agrees() {
+        assert_eq!(singulars("out for about 1 days".into()), "out for about 1 day");
+        assert_eq!(singulars("against 1 appearances in 2030".into()), "against 1 appearance in 2030");
+        assert_eq!(singulars("11 days and 2.1 points and 21 matches, 1 matches".into()), "11 days and 2.1 points and 21 matches, 1 match");
+        assert_eq!(singulars("1 startling".into()), "1 startling");
     }
 }

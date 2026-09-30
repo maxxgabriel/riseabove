@@ -81,9 +81,9 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let (avail_label, avail_tone, avail_detail) = if h.status == PlayerStatus::Retired {
             ("Retired".to_string(), Tone::Muted, String::new())
         } else if h.injury != 0 {
-            (format!("Injured, about {} days", h.injury_days), Tone::Neg, health::injury_name(w, h.injury).to_string())
+            (crate::fmt::singulars(format!("Injured, about {} days", h.injury_days)), Tone::Neg, health::injury_name(w, h.injury).to_string())
         } else if h.ban > 0 {
-            (format!("Suspended for {} match(es)", h.ban), Tone::Warn, String::new())
+            (format!("Suspended for {} {}", h.ban, if h.ban == 1 { "match" } else { "matches" }), Tone::Warn, String::new())
         } else if h.status == PlayerStatus::FreeAgent {
             ("Free agent".to_string(), Tone::Muted, String::new())
         } else {

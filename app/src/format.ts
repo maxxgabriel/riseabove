@@ -26,7 +26,7 @@ export function dateIn(style: "short" | "iso" | "us", d: number, withYear = true
 
 /** Days since 1970-01-01 to a calendar date, as the person chose to read it. */
 export function date(d: number | null | undefined, opts: { year?: boolean } = {}): string {
-  if (d == null) return "";
+  if (d == null || !Number.isFinite(d)) return "";
   return dateIn(getSettings().dateStyle, d, opts.year !== false);
 }
 
@@ -67,7 +67,7 @@ export const fmtInt = (n: number) => int.format(n);
 
 /** Money, compact by default. `exact` shows every digit. */
 export function money(v: number | null | undefined, opts: { exact?: boolean; sign?: boolean } = {}): string {
-  if (v == null) return "";
+  if (v == null || !Number.isFinite(v)) return "";
   const sym = getSettings().currency;
   const a = Math.abs(v);
   const sign = v < 0 ? "−" : opts.sign && v > 0 ? "+" : "";
@@ -82,6 +82,7 @@ export function money(v: number | null | undefined, opts: { exact?: boolean; sig
 }
 
 export function byFmt(fmt: Fmt, n: number): string {
+  if (!Number.isFinite(n)) return "";
   switch (fmt) {
     case "int":
       return int.format(n);
@@ -144,4 +145,22 @@ export function timeAgo(secs: number): string {
   if (s < 3600) return plural(Math.floor(s / 60), "minute") + " ago";
   if (s < 86400) return plural(Math.floor(s / 3600), "hour") + " ago";
   return plural(Math.floor(s / 86400), "day") + " ago";
+}
+
+/** Upper-case the first letter; an empty string stays empty (indexing `s[0]` of one throws). */
+export function cap(s: string | null | undefined): string {
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Up to `n` initials of a name; a name with no letters gives "?". */
+export function initials(name: string | null | undefined, n = 2): string {
+  const out = (name ?? "")
+    .split(/\s+/)
+    .map((w) => w.charAt(0))
+    .filter(Boolean)
+    .join("")
+    .slice(0, n)
+    .toUpperCase();
+  return out || "?";
 }

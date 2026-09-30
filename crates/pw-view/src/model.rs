@@ -99,8 +99,9 @@ impl Part {
     pub fn t(t: impl Into<String>) -> Self {
         Self { t: t.into(), r: None, m: None, d: None }
     }
+    /// A run of text that links to something; a reference to nothing is plain text.
     pub fn l(r: Ref, t: impl Into<String>) -> Self {
-        Self { t: t.into(), r: Some(r), m: None, d: None }
+        Self { t: t.into(), r: (r.id != u32::MAX).then_some(r), m: None, d: None }
     }
     pub fn money(m: i64) -> Self {
         Self { t: String::new(), r: None, m: Some(m as f64), d: None }
@@ -117,8 +118,10 @@ impl Cell {
     pub fn text(s: impl Into<String>) -> Self {
         Self { s: Some(s.into()), ..Default::default() }
     }
+    /// A link to something. A reference to nothing (an id that means "none") is plain text: it would open a page that does not exist.
     pub fn link(r: Ref, s: impl Into<String>) -> Self {
-        Self { s: Some(s.into()), r: Some(r), ..Default::default() }
+        let r = (r.id != u32::MAX).then_some(r);
+        Self { s: Some(s.into()), r, ..Default::default() }
     }
     pub fn empty() -> Self {
         Self::default()

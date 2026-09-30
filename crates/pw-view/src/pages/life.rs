@@ -34,8 +34,21 @@ fn channel_text(c: &Ctx, ch: &Channel) -> String {
     }
 }
 
+/// One entry per cause: the world may record the same cause twice (the manager, and the mood of one's group), and the reader
+/// should not be told the same thing twice.
+pub(crate) fn merged(mood: &pw_world::life::Mood) -> Vec<(MoodFactor, i8)> {
+    let mut m: Vec<(MoodFactor, i8)> = Vec::new();
+    for &(f, x) in mood.iter() {
+        match m.iter_mut().find(|(g, _)| *g == f) {
+            Some(e) => e.1 = e.1.saturating_add(x),
+            None => m.push((f, x)),
+        }
+    }
+    m
+}
+
 fn mood_list(mood: &pw_world::life::Mood) -> Vec<Value> {
-    let mut m: Vec<(MoodFactor, i8)> = mood.iter().copied().collect();
+    let mut m = merged(mood);
     m.sort_by_key(|(_, x)| std::cmp::Reverse(x.unsigned_abs()));
     m.iter().filter(|(_, x)| *x != 0).map(|(f, x)| json!({"text": format!("{} {}", feeling(*x), f.label()), "factor": f.label(), "value": x})).collect()
 }
@@ -260,7 +273,12 @@ pub fn rumours(c: &Ctx) -> ApiResult<Value> {
             BeliefKind::BidMade { club, fee } => rumours.push(row("bid", via, format!("{} made a bid for you.", c.club_name(club)), Some(Named::new(Ref::club(club), c.club_name(club))), Some(fee as i64))),
             BeliefKind::Rumour { story } => {
                 let s = &w.media.stories[story];
-                rumours.push(row("rumour", pw_narrate::press::outlet_name(w, s), c.headline(s), None, None));
+                let text = c.headline(s);
+                // The same rumour run by two outlets on one day is heard once.
+                if rumours.iter().any(|r| r.kind == "rumour" && r.date == b.date.0 && r.text == text) {
+                    continue;
+                }
+                rumours.push(row("rumour", pw_narrate::press::outlet_name(w, s), text, None, None));
             }
             _ => {}
         }
@@ -278,12 +296,14 @@ pub fn press(c: &Ctx) -> ApiResult<Value> {
     let me = need(c)?;
     let w = c.w;
     let club = w.club_of_person(me);
+    let mut seen_headlines: std::collections::HashSet<(i32, String)> = std::collections::HashSet::new();
     let stories: Vec<Value> = w
         .media
         .stories
         .iter()
         .rev()
         .filter(|s| s.person == me || (club.is_some() && (s.club == club || s.other_club == club)))
+        .filter(|s| seen_headlines.insert((s.date.0, c.headline(s))))
         .take(30)
         .map(|s| {
             json!({

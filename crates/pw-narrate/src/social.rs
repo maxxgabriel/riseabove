@@ -150,6 +150,9 @@ pub fn post(w: &World, p: &Post) -> String {
         Concept::Statement => {
             if target.is_empty() {
                 what
+            } else if what.is_empty() {
+                // A bare name is not a post.
+                pick(key, &["all eyes on {}", "{} again", "talking point: {}", "so, {}", "{}, then"]).replace("{}", &target)
             } else {
                 target
             }
@@ -157,13 +160,18 @@ pub fn post(w: &World, p: &Post) -> String {
     };
     let positive = matches!(p.concept, Concept::Praise | Concept::Celebrate | Concept::ConcedeWrong | Concept::Defend | Concept::ReluctantPraise);
     let s = if matches!(p.concept, Concept::Celebrate | Concept::Mock) && v.register == Register::Terrace { loud(&Voice { register: Register::Tabloid, ..v }, &s) } else { s };
+    // A post whose subject has been forgotten says nothing, and an emoji alone would be a post of nothing.
+    if s.trim().is_empty() {
+        return String::new();
+    }
     format!("{s}{}", emoji(&v, positive, key))
 }
 
 /// "You wanted them gone two weeks ago" — only when that post exists.
 fn callout(w: &World, p: &Post, v: &Voice, key: u64) -> String {
-    let Some(&r) = p.refs.first() else { return pick(key, &["that's not what you said before", "funny how that changes"]).to_string() };
-    let Some(earlier) = w.net.post(r) else { return String::new() };
+    let generic = || pick(key, &["that's not what you said before", "funny how that changes"]).to_string();
+    let Some(&r) = p.refs.first() else { return generic() };
+    let Some(earlier) = w.net.post(r) else { return generic() };
     let days = earlier.date.days_until(p.date).max(0);
     let when = match days {
         0 => "this morning".to_string(),
