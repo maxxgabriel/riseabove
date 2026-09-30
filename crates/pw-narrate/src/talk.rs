@@ -62,7 +62,7 @@ pub fn outcome(w: &World, o: &Outcome, m: &Meeting, viewer: PersonId) -> String 
         Outcome::Deferred => "\"Show me in training first.\"".into(),
         Outcome::Praised => "Words of praise were shared.".into(),
         Outcome::Warned => "It ended with a warning.".into(),
-        Outcome::Fined { weeks } => format!("A fine of {weeks} week(s)' wages was imposed."),
+        Outcome::Fined { weeks } => if weeks == 1 { "A fine of a week's wages was imposed.".to_string() } else { format!("A fine of {weeks} weeks' wages was imposed.") },
         Outcome::Dropped => "Left out of the next squad.".into(),
         Outcome::Listed => "Placed on the transfer list.".into(),
         Outcome::StatusChanged => "Squad status changed.".into(),

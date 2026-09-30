@@ -427,7 +427,15 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::MinutesShortfall { player: p, share_pct, expected_pct } => format!("{} share of minutes is {share_pct}% against an expected {expected_pct}%", who(p)),
         Fact::Tracking { club: c, player: p, .. } => format!("{} have been watching {}", club(w, c), player(w, p)),
         Fact::SquadNeed { club: c } => format!("{} need cover in that position", club(w, c)),
-        Fact::BoardPressure { club: c, warnings } => format!("the {} board has issued {warnings} warning(s)", club(w, c)),
+        Fact::BoardPressure { club: c, warnings } => {
+            let n = match warnings {
+                1 => "a warning".to_string(),
+                2 => "two warnings".to_string(),
+                3 => "three warnings".to_string(),
+                n => format!("{n} warnings"),
+            };
+            format!("the {} board has issued {n}", club(w, c))
+        }
         Fact::Congestion { team, matches } => format!("{} face {matches} matches in a short spell", w.team_name(team)),
         Fact::Memory { from, about, kind } => format!("{} remembers that {} {}", person(w, from), person(w, about), memory(kind)),
         Fact::PromiseDue { promise } => format!("a promise ({}) has come due", w.social.promise(promise).map_or("unknown".into(), |p| p.kind.text())),

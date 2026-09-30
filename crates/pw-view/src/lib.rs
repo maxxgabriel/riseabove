@@ -76,7 +76,10 @@ fn save_format(p: &Path) -> Value {
         Ok(i) => {
             let (state, note) = match i.compat {
                 Compat::Current => ("current", String::new()),
-                Compat::Upgradable { steps } => ("upgradable", format!("Opens after {steps} upgrade step(s); the original is copied to a backup first.")),
+                Compat::Upgradable { steps } => {
+                    let steps = if steps == 1 { "one upgrade step".to_string() } else { format!("{steps} upgrade steps") };
+                    ("upgradable", format!("Opens after {steps}; the original is copied to a backup first."))
+                }
                 Compat::TooNew => ("too_new", "Made by a newer version of the game. Update to open it.".into()),
                 Compat::Unsupported => ("unsupported", "Saved in an old format that can no longer be upgraded. It is left untouched.".into()),
             };
