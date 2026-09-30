@@ -599,7 +599,9 @@ mod reference {
         assert_eq!(rep.by_status.iter().sum::<u32>(), rep.records);
         assert!(rep.clubs_matched >= rep.clubs_from_reference + 10, "the pack's clubs match the reference by exact name: {rep:?}");
         assert_eq!(rep.findings as usize, india_ref::builtin().findings.len(), "the pack has no club the reference lacks, so the only findings are the loader's: {rep:?}");
-        assert!(rep.findings >= 1 && rep.finding_samples.iter().any(|f| f.contains("bidhannagar-msa")), "the one known inconsistency in the data is reported: {rep:?}");
+        // The one inconsistency the data once had (bidhannagar-msa) was corrected at its source, so nothing is reported now; anything the
+        // loader does find must be reported with a sample.
+        assert!(rep.findings == 0 || !rep.finding_samples.is_empty(), "findings are reported with a sample: {rep:?}");
     }
 
     #[test]

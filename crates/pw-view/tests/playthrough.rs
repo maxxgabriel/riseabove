@@ -427,6 +427,16 @@ impl Bot {
         self.q(api, "ecosystem.regions", json!({}));
         self.q(api, "ecosystem.export", json!({}));
         self.q(api, "ecosystem.scenario", json!({}));
+        // The districts a child could grow up in, the one this person did, and one that is not a district at all.
+        self.q(api, "ecosystem.district", json!({}));
+        if let Some(o) = self.q(api, "route.options", json!({})) {
+            for s in o["states"].as_array().cloned().unwrap_or_default().iter().take(2) {
+                for d in s["districts"].as_array().cloned().unwrap_or_default().iter().skip(round % 2).step_by(2).take(3) {
+                    self.q(api, "ecosystem.district", json!({"id": d["id"]}));
+                }
+            }
+        }
+        self.maybe(api, "ecosystem.district", json!({"id": 0}));
         let l = self.limits;
         let comps: Vec<u32> = if deep { (0..l.comps).collect() } else { (0..l.comps).skip(round % 3).step_by(3).take(5).collect() };
         for c in &comps {
