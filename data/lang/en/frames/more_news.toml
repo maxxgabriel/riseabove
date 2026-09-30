@@ -270,3 +270,91 @@ needs = ['player', 'award']
 time = "past"
 text = "{award} went to {player:desc} {date}"
 
+[[frame]]
+id = "injury.suffered.news.headline.report.public.1"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "Blow for {club}: {player} out injured"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.2"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{club} lose {player} to injury"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.3"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player} injured"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.4"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player} picks up an injury"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.5"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{club} have lost {player:desc} to injury {date}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.6"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{player:desc} was injured {date}, a blow for {club}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.7"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player:desc} picked up an injury {date}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.8"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player:desc} was injured {date}"
+

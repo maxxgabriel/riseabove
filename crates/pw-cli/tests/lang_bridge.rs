@@ -286,3 +286,23 @@ fn cost() {
     let per = t0.elapsed().as_secs_f64() * 1e6 / stories.len() as f64;
     eprintln!("COST {} stories, {n} written, {per:.0} us per story", stories.len());
 }
+
+#[test]
+fn a_published_injury_story_never_carries_the_diagnosis_or_the_days() {
+    let s = india_world(59, 400);
+    let w = &s.world;
+    let mut checked = 0;
+    for (_, st) in w.media.stories.iter_enumerated() {
+        if st.kind != StoryKind::Injury {
+            continue;
+        }
+        let Some(t) = lang::story(w, st) else { continue };
+        let text = format!("{} {}", t.headline, t.body).to_lowercase();
+        for inj in &w.data.injuries {
+            assert!(!text.contains(&inj.name.to_lowercase()), "the diagnosis `{}` is in a public story: {text}", inj.name);
+        }
+        assert!(!text.contains("week") && !text.contains("recovery") && !text.contains("ruled out"), "the time out is in a public story: {text}");
+        checked += 1;
+    }
+    assert!(checked > 20, "{checked}");
+}

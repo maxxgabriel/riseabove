@@ -116,20 +116,16 @@ pub fn event(w: &World, k: &E, date: Date) -> Option<LEvent> {
             }
             ev
         }
-        E::ContractSigned { player, club, until, renewal: true, .. } if club.is_some() => {
-            let years = (until.0 - date.0).max(0) / 365;
-            LEvent::new("contract.renewed", date).ent("player", player_ref(w, player, date)).ent("club", club_ref(w, club)).num("contract_years", i64::from(years.max(1)))
-        }
+        // The length of a contract is between the player and the club; a published story says he has signed, not for how long.
+        E::ContractSigned { player, club, renewal: true, .. } if club.is_some() => LEvent::new("contract.renewed", date).ent("player", player_ref(w, player, date)).ent("club", club_ref(w, club)),
         E::Released { player, club } if club.is_some() => LEvent::new("player.released", date).ent("player", player_ref(w, player, date)).ent("club", club_ref(w, club)),
-        E::Injured { player, injury, days } => {
+        // The diagnosis and the time out are the club's business (the medical room), not the public's: a published story says a player is hurt,
+        // not with what or for how long. Those facts are simply not in the event, so no text can carry them.
+        E::Injured { player, .. } => {
             let club = club_at(w, player, date);
-            let name = if injury > 0 { w.data.injuries.get(usize::from(injury - 1)).map(|d| d.name.to_lowercase()) } else { None };
-            let mut ev = LEvent::new("injury.suffered", date).ent("player", player_ref(w, player, date)).num("weeks_out", i64::from(days.div_ceil(7).max(1)));
+            let mut ev = LEvent::new("injury.suffered", date).ent("player", player_ref(w, player, date));
             if club.is_some() {
                 ev = ev.ent("club", club_ref(w, club));
-            }
-            if let Some(n) = name {
-                ev = ev.text("injury", &n);
             }
             ev
         }
@@ -137,13 +133,6 @@ pub fn event(w: &World, k: &E, date: Date) -> Option<LEvent> {
         E::ManagerAppointed { staff, club } if club.is_some() => LEvent::new("manager.appointed", date).ent("manager", manager_ref(w, staff)).ent("club", club_ref(w, club)),
         E::Promoted { comp, team } => LEvent::new("competition.promotion", date).ent("club", club_ref(w, team_club(w, team))).ent("competition", comp_ref(w, comp)),
         E::Relegated { comp, team } => LEvent::new("competition.relegation", date).ent("club", club_ref(w, team_club(w, team))).ent("competition", comp_ref(w, comp)),
-        E::BidRejected { player, club, fee } if club.is_some() => {
-            let seller = club_at(w, player, date);
-            if seller.is_none() {
-                return None;
-            }
-            LEvent::new("transfer.bid_rejected", date).ent("buyer", club_ref(w, club)).ent("seller", club_ref(w, seller)).ent("player", player_ref(w, player, date)).money("fee", fee)
-        }
         _ => return None,
     })
 }
@@ -202,12 +191,12 @@ pub struct Text {
     pub body: String,
 }
 
-/// The engine's article for a story, when it has one that does not say more than the story does.
 thread_local! {
     /// The last story written. A page asks for a story's headline and then its body; the second is answered from here.
     static LAST: std::cell::RefCell<Option<((usize, u64, usize, u32, i32), Option<Text>)>> = const { std::cell::RefCell::new(None) };
 }
 
+/// The engine's article for a story, when it has one that does not say more than the story does.
 pub fn story(w: &World, s: &Story) -> Option<Text> {
     let key = (std::ptr::from_ref(w) as usize, w.seed, w.media.stories.len(), s.id.0, w.date.0);
     if let Some(hit) = LAST.with(|l| l.borrow().as_ref().filter(|(k, _)| *k == key).map(|(_, t)| t.clone())) {
