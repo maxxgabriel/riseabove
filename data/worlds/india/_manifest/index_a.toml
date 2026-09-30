@@ -1,0 +1,40 @@
+[meta]
+dataset = "manifest_a"
+generated_by = "tools/build_india_reference_a.py"
+last_checked = "2026-09-30"
+
+[[dataset]]
+path = "associations/associations_a.toml"
+researched = "Placeholder associations for AN, LD, DN"
+sources = []
+coverage = "3 unions territories"
+gaps = ["Existence and names unverified"]
+confidence = "D"
+last_checked = "2026-09-30"
+
+[[dataset]]
+path = "national_teams/teams_a.toml"
+researched = "National, institutional and state representative team structures from general knowledge"
+sources = []
+coverage = "10 structures"
+gaps = ["Age cut-offs, Santosh participants"]
+confidence = "C"
+last_checked = "2026-09-30"
+
+[[dataset]]
+path = "rules/registration_a.toml"
+researched = "Rule existence only, all parameters unknown"
+sources = []
+coverage = "8 rules"
+gaps = ["All numbers"]
+confidence = "D"
+last_checked = "2026-09-30"
+
+[[dataset]]
+path = "universities/universities_a.toml"
+researched = "More real university identities from general knowledge"
+sources = []
+coverage = "30 universities"
+gaps = ["Football participation unknown"]
+confidence = "C"
+last_checked = "2026-09-30"

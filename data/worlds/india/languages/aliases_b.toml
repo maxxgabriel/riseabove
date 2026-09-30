@@ -1,0 +1,1086 @@
+[meta]
+dataset = "languages.aliases.b"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "Nicknames, supporter-group names, colours, abbreviations, former names, native-script and romanised forms for ISL/I-League clubs, main competitions and derbies (model knowledge; commonly used names only)."
+gaps = ["No source URLs: all entries are model knowledge, not re-checked (brief v2).", "Aliases exist only for entities already in the dataset; other clubs (for example Salgaocar, Aizawl, NEROCA) get only what is recorded above.", "Nickname entries with q = D are believed real but unsure; former-name years are approximate.", "Supporter-group names cover only groups I am confident exist; many more exist.", "Native-script spellings have not been checked by native speakers.", "SCHEMA GAP: there is no [[alias]] table in SCHEMA.md and the validator ignores it. Proposed shape used here: id (alias.<entity-slug>.<nn>), entity (id) or entity_pair (two club ids for derbies without a rivalry record), alias, kind (nickname|supporter_group|colours|short_form|abbreviation|romanisation|native_script|former_name|official_name|sponsor_branding|alternate_name|derby_name), lang (lang id), register, note?, prov. Smallest fix: add the table to SCHEMA.md and TABLES in tools/validate_india_reference.py, with a check that entity/entity_pair ids exist and (entity, alias) is unique.", "SCHEMA GAP: club.aliases and competition.aliases are plain string lists with no language, register or kind; this file carries that missing metadata."]
+
+[[alias]]
+id = "alias.mohun-bagan-sg.01"
+entity = "club.mohun-bagan-sg"
+alias = "Mariners"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Widely used; the club is the Mariners after its Mohun Bagan sailor-era name imagery"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.02"
+entity = "club.mohun-bagan-sg"
+alias = "Sabuj-Maroon"
+kind = "colours"
+lang = "lang.en"
+register = "headline"
+note = "Green-and-maroon colours; Bengali romanisation"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.03"
+entity = "club.mohun-bagan-sg"
+alias = "Green and Maroon Brigade"
+kind = "nickname"
+lang = "lang.en"
+register = "casual"
+note = "English rendering of the colours"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.04"
+entity = "club.mohun-bagan-sg"
+alias = "Bagan"
+kind = "short_form"
+lang = "lang.en"
+register = "headline"
+note = "Common short form among fans and in headlines"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.05"
+entity = "club.mohun-bagan-sg"
+alias = "Mohunbagan"
+kind = "romanisation"
+lang = "lang.en"
+register = "casual"
+note = "Run-together spelling seen in social media and some overseas references"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.06"
+entity = "club.mohun-bagan-sg"
+alias = "Mohun Bagan AC"
+kind = "official_name"
+lang = "lang.en"
+register = "formal"
+note = "Athletic Club long form of the historic club name; the current corporate entity for the ISL side is Mohun Bagan Super Giant"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.07"
+entity = "club.mohun-bagan-sg"
+alias = "ATK Mohun Bagan"
+kind = "former_name"
+lang = "lang.en"
+register = "neutral"
+note = "Name from the 2020 merger of ATK and Mohun Bagan until the 2023 rename; years approximate"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.08"
+entity = "club.mohun-bagan-sg"
+alias = "মোহনবাগান"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.09"
+entity = "club.mohun-bagan-sg"
+alias = "মোহন বাগান"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+note = "Spaced variant"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohun-bagan-sg.10"
+entity = "club.mohun-bagan-sg"
+alias = "मोहन बागान"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.01"
+entity = "club.east-bengal"
+alias = "Red and Gold Brigade"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Nickname from the club colours"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.02"
+entity = "club.east-bengal"
+alias = "Lal-Holud"
+kind = "colours"
+lang = "lang.en"
+register = "headline"
+note = "Bengali for red-yellow, the colours"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.03"
+entity = "club.east-bengal"
+alias = "Torchbearers"
+kind = "nickname"
+lang = "lang.en"
+register = "casual"
+note = "Used by the club and media in English"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.04"
+entity = "club.east-bengal"
+alias = "EB"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+note = "Fans' abbreviation"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.05"
+entity = "club.east-bengal"
+alias = "East Bengal Club"
+kind = "official_name"
+lang = "lang.en"
+register = "formal"
+note = "Formal long form"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.06"
+entity = "club.east-bengal"
+alias = "Emami East Bengal"
+kind = "sponsor_branding"
+lang = "lang.en"
+register = "neutral"
+note = "Branding since the Emami group took over, approximate from 2020"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.07"
+entity = "club.east-bengal"
+alias = "ইস্টবেঙ্গল"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.08"
+entity = "club.east-bengal"
+alias = "ইস্ট বেঙ্গল"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+note = "Spaced variant"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.east-bengal.09"
+entity = "club.east-bengal"
+alias = "ईस्ट बंगाल"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohammedan.01"
+entity = "club.mohammedan"
+alias = "Black Panthers"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Widely used nickname for the Mohammedan SC side"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohammedan.02"
+entity = "club.mohammedan"
+alias = "Black and White Brigade"
+kind = "nickname"
+lang = "lang.en"
+register = "casual"
+note = "From the black-and-white kit"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohammedan.03"
+entity = "club.mohammedan"
+alias = "Mohammedan Sporting"
+kind = "official_name"
+lang = "lang.en"
+register = "formal"
+note = "Traditional long form (Mohammedan Sporting Club)"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohammedan.04"
+entity = "club.mohammedan"
+alias = "মোহামেডান"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohammedan.05"
+entity = "club.mohammedan"
+alias = "মোহামেডান স্পোর্টিং"
+kind = "native_script"
+lang = "lang.bn"
+register = "formal"
+note = "Full name"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mohammedan.06"
+entity = "club.mohammedan"
+alias = "मोहम्मडन"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.bengaluru.01"
+entity = "club.bengaluru"
+alias = "Blues"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Fans and media; also the name of Bengaluru's other sports teams so use the full club name in text"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.bengaluru.02"
+entity = "club.bengaluru"
+alias = "BFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.bengaluru.03"
+entity = "club.bengaluru"
+alias = "West Block Blues"
+kind = "supporter_group"
+lang = "lang.en"
+register = "casual"
+note = "Organised supporter group of Bengaluru FC"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.bengaluru.04"
+entity = "club.bengaluru"
+alias = "Bangalore FC"
+kind = "romanisation"
+lang = "lang.en"
+register = "neutral"
+note = "Old city spelling used by some overseas media"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.bengaluru.05"
+entity = "club.bengaluru"
+alias = "ಬೆಂಗಳೂರು ಎಫ್‌ಸಿ"
+kind = "native_script"
+lang = "lang.kn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.01"
+entity = "club.kerala-blasters"
+alias = "Manjappada"
+kind = "supporter_group"
+lang = "lang.en"
+register = "headline"
+note = "Official supporter group; the name is Malayalam for the yellow brigade"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.02"
+entity = "club.kerala-blasters"
+alias = "Manjapada"
+kind = "romanisation"
+lang = "lang.en"
+register = "casual"
+note = "Variant romanisation of Manjappada"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.03"
+entity = "club.kerala-blasters"
+alias = "Manjappata"
+kind = "romanisation"
+lang = "lang.en"
+register = "casual"
+note = "Variant romanisation of Manjappada"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.04"
+entity = "club.kerala-blasters"
+alias = "മഞ്ഞപ്പട"
+kind = "native_script"
+lang = "lang.ml"
+register = "headline"
+note = "Supporter-group name in Malayalam"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.05"
+entity = "club.kerala-blasters"
+alias = "Yellow Army"
+kind = "nickname"
+lang = "lang.en"
+register = "casual"
+note = "English rendering of Manjappada, used for the team and its fans"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.06"
+entity = "club.kerala-blasters"
+alias = "Tuskers"
+kind = "nickname"
+lang = "lang.en"
+register = "casual"
+note = "Elephant-based nickname from the club crest"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.07"
+entity = "club.kerala-blasters"
+alias = "Kombans"
+kind = "nickname"
+lang = "lang.en"
+register = "casual"
+note = "Malayalam word for tusker used by fans; Romanisation approximate"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.08"
+entity = "club.kerala-blasters"
+alias = "KBFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.09"
+entity = "club.kerala-blasters"
+alias = "Blasters"
+kind = "short_form"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters.10"
+entity = "club.kerala-blasters"
+alias = "കേരള ബ്ലാസ്റ്റേഴ്സ്"
+kind = "native_script"
+lang = "lang.ml"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.gokulam-kerala.01"
+entity = "club.gokulam-kerala"
+alias = "Malabarians"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Used by the club and press for the Kozhikode side"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.gokulam-kerala.02"
+entity = "club.gokulam-kerala"
+alias = "GKFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.gokulam-kerala.03"
+entity = "club.gokulam-kerala"
+alias = "ഗോകുലം കേരള"
+kind = "native_script"
+lang = "lang.ml"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.chennaiyin.01"
+entity = "club.chennaiyin"
+alias = "Super Machans"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Chennaiyin FC's nickname, using Chennai slang machan (friend)"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.chennaiyin.02"
+entity = "club.chennaiyin"
+alias = "Marina Machans"
+kind = "supporter_group"
+lang = "lang.en"
+register = "casual"
+note = "Organised supporter group of Chennaiyin FC"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.chennaiyin.03"
+entity = "club.chennaiyin"
+alias = "Chennaiyin"
+kind = "short_form"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.chennaiyin.04"
+entity = "club.chennaiyin"
+alias = "CFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+note = "Ambiguous with Chelsea FC, so avoid without context"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.chennaiyin.05"
+entity = "club.chennaiyin"
+alias = "சென்னையின் எஃப்சி"
+kind = "native_script"
+lang = "lang.ta"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.goa.01"
+entity = "club.goa"
+alias = "Gaurs"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "From the Indian bison, Goa's state animal"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.goa.02"
+entity = "club.goa"
+alias = "एफसी गोवा"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.jamshedpur.01"
+entity = "club.jamshedpur"
+alias = "Men of Steel"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "From Tata Steel and the Steel City"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.jamshedpur.02"
+entity = "club.jamshedpur"
+alias = "Red Miners"
+kind = "supporter_group"
+lang = "lang.en"
+register = "casual"
+note = "Organised supporter group of Jamshedpur FC"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.jamshedpur.03"
+entity = "club.jamshedpur"
+alias = "JFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mumbai-city.01"
+entity = "club.mumbai-city"
+alias = "Islanders"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Mumbai City FC nickname"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.mumbai-city.02"
+entity = "club.mumbai-city"
+alias = "MCFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+note = "Ambiguous with Manchester City, so avoid without context"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.northeast-united.01"
+entity = "club.northeast-united"
+alias = "Highlanders"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.northeast-united.02"
+entity = "club.northeast-united"
+alias = "NEUFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.odisha.01"
+entity = "club.odisha"
+alias = "Juggernauts"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "From Lord Jagannath and the Puri tradition"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.odisha.02"
+entity = "club.odisha"
+alias = "Delhi Dynamos"
+kind = "former_name"
+lang = "lang.en"
+register = "neutral"
+note = "Predecessor franchise whose ISL licence was moved to Odisha in 2019; years approximate"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.odisha.03"
+entity = "club.odisha"
+alias = "ଓଡ଼ିଶା ଏଫସି"
+kind = "native_script"
+lang = "lang.or"
+register = "neutral"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.punjab.01"
+entity = "club.punjab"
+alias = "Shers"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Nickname; Punjabi and Hindi for lion"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.punjab.02"
+entity = "club.punjab"
+alias = "Minerva Punjab"
+kind = "former_name"
+lang = "lang.en"
+register = "neutral"
+note = "Earlier I-League name of the club under the Minerva Academy banner"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.punjab.03"
+entity = "club.punjab"
+alias = "RoundGlass Punjab FC"
+kind = "sponsor_branding"
+lang = "lang.en"
+register = "neutral"
+note = "Owner-group branding"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.hyderabad.01"
+entity = "club.hyderabad"
+alias = "Nawabs"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Nickname"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.hyderabad.02"
+entity = "club.hyderabad"
+alias = "HFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.hyderabad.03"
+entity = "club.hyderabad"
+alias = "హైదరాబాద్ ఎఫ్‌సీ"
+kind = "native_script"
+lang = "lang.te"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.real-kashmir.01"
+entity = "club.real-kashmir"
+alias = "Snow Leopards"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.real-kashmir.02"
+entity = "club.real-kashmir"
+alias = "RKFC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.churchill-brothers.01"
+entity = "club.churchill-brothers"
+alias = "Red Machines"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Nickname from the red kit"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.shillong-lajong.01"
+entity = "club.shillong-lajong"
+alias = "Red Devils"
+kind = "nickname"
+lang = "lang.en"
+register = "headline"
+note = "Nickname from the red kit; also used for other clubs so avoid without context"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.shillong-lajong.02"
+entity = "club.shillong-lajong"
+alias = "Lajong"
+kind = "short_form"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.trau.01"
+entity = "club.trau"
+alias = "Tiddim Road Athletic Union"
+kind = "official_name"
+lang = "lang.en"
+register = "formal"
+note = "Expansion of the TRAU acronym"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.sudeva-delhi.01"
+entity = "club.sudeva-delhi"
+alias = "Sudeva Moonlight"
+kind = "former_name"
+lang = "lang.en"
+register = "neutral"
+note = "Earlier name of the club; years approximate"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.reliance-foundation-young-champs.01"
+entity = "club.reliance-foundation-young-champs"
+alias = "RFYC"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.reliance-foundation-young-champs.02"
+entity = "club.reliance-foundation-young-champs"
+alias = "Young Champs"
+kind = "short_form"
+lang = "lang.en"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.isl.01"
+entity = "comp.isl"
+alias = "इंडियन सुपर लीग"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.isl.02"
+entity = "comp.isl"
+alias = "ইন্ডিয়ান সুপার লিগ"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.isl.03"
+entity = "comp.isl"
+alias = "ഇന്ത്യൻ സൂപ്പർ ലീഗ്"
+kind = "native_script"
+lang = "lang.ml"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.isl.04"
+entity = "comp.isl"
+alias = "Super League"
+kind = "short_form"
+lang = "lang.en"
+register = "casual"
+note = "Casual short form; ambiguous with other Super Leagues"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.ifl.01"
+entity = "comp.ifl"
+alias = "I League"
+kind = "romanisation"
+lang = "lang.en"
+register = "neutral"
+note = "Unhyphenated variant of I-League"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.ifl.02"
+entity = "comp.ifl"
+alias = "आई-लीग"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.ifl.03"
+entity = "comp.ifl"
+alias = "আই লিগ"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.ifl.04"
+entity = "comp.ifl"
+alias = "ഐ ലീഗ്"
+kind = "native_script"
+lang = "lang.ml"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.ifl.05"
+entity = "comp.ifl"
+alias = "National Football League"
+kind = "former_name"
+lang = "lang.en"
+register = "neutral"
+note = "Predecessor competition (until the mid-2000s) before the I-League brand; years approximate"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.super-cup.01"
+entity = "comp.super-cup"
+alias = "Federation Cup"
+kind = "former_name"
+lang = "lang.en"
+register = "neutral"
+note = "Predecessor knockout cup, not identical in format"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.durand-cup.01"
+entity = "comp.durand-cup"
+alias = "Durand"
+kind = "short_form"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.durand-cup.02"
+entity = "comp.durand-cup"
+alias = "ডুরান্ড কাপ"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.durand-cup.03"
+entity = "comp.durand-cup"
+alias = "डूरंड कप"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.santosh-trophy.01"
+entity = "comp.santosh-trophy"
+alias = "Nationals"
+kind = "short_form"
+lang = "lang.en"
+register = "casual"
+note = "Casual shorthand"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.santosh-trophy.02"
+entity = "comp.santosh-trophy"
+alias = "সন্তোষ ট্রফি"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.santosh-trophy.03"
+entity = "comp.santosh-trophy"
+alias = "संतोष ट्रॉफी"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.santosh-trophy.04"
+entity = "comp.santosh-trophy"
+alias = "സന്തോഷ് ട്രോഫി"
+kind = "native_script"
+lang = "lang.ml"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.subroto-cup.01"
+entity = "comp.subroto-cup"
+alias = "Subroto Mukerjee Cup"
+kind = "alternate_name"
+lang = "lang.en"
+register = "neutral"
+note = "Common written variant using the founder's full surname"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.subroto-cup.02"
+entity = "comp.subroto-cup"
+alias = "सुब्रतो कप"
+kind = "native_script"
+lang = "lang.hi"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.wb.ifa-shield.01"
+entity = "comp.wb.ifa-shield"
+alias = "Shield"
+kind = "short_form"
+lang = "lang.en"
+register = "casual"
+note = "Bengal shorthand"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.wb.ifa-shield.02"
+entity = "comp.wb.ifa-shield"
+alias = "আইএফএ শিল্ড"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.wb.cfl-premier.01"
+entity = "comp.wb.cfl-premier"
+alias = "CFL"
+kind = "abbreviation"
+lang = "lang.en"
+register = "casual"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.wb.cfl-premier.02"
+entity = "comp.wb.cfl-premier"
+alias = "Calcutta League"
+kind = "alternate_name"
+lang = "lang.en"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.wb.cfl-premier.03"
+entity = "comp.wb.cfl-premier"
+alias = "Kolkata League"
+kind = "alternate_name"
+lang = "lang.en"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.wb.cfl-premier.04"
+entity = "comp.wb.cfl-premier"
+alias = "কলকাতা ফুটবল লিগ"
+kind = "native_script"
+lang = "lang.bn"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kolkata-derby.01"
+entity = "rivalry.kolkata-derby"
+alias = "Calcutta Derby"
+kind = "alternate_name"
+lang = "lang.en"
+register = "neutral"
+note = "Older city spelling"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kolkata-derby.02"
+entity = "rivalry.kolkata-derby"
+alias = "Bagan-East Bengal derby"
+kind = "alternate_name"
+lang = "lang.en"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kolkata-derby.03"
+entity = "rivalry.kolkata-derby"
+alias = "ডার্বি"
+kind = "native_script"
+lang = "lang.bn"
+register = "headline"
+note = "The Bengali press uses the word derby for this fixture without qualification"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kolkata-derby.04"
+entity = "rivalry.kolkata-derby"
+alias = "কলকাতা ডার্বি"
+kind = "native_script"
+lang = "lang.bn"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kolkata-derby.05"
+entity = "rivalry.kolkata-derby"
+alias = "कोलकाता डर्बी"
+kind = "native_script"
+lang = "lang.hi"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kolkata-derby.06"
+entity = "rivalry.kolkata-derby"
+alias = "বড় ম্যাচ"
+kind = "alternate_name"
+lang = "lang.bn"
+register = "casual"
+note = "Big match, colloquial for the fixture"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.southern-derby.01"
+entity = "rivalry.southern-derby"
+alias = "South Indian Derby"
+kind = "alternate_name"
+lang = "lang.en"
+register = "neutral"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.southern-derby.02"
+entity = "rivalry.southern-derby"
+alias = "Blues vs Blasters"
+kind = "alternate_name"
+lang = "lang.en"
+register = "headline"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.southern-derby.03"
+entity = "rivalry.southern-derby"
+alias = "ದಕ್ಷಿಣ ಡರ್ಬಿ"
+kind = "native_script"
+lang = "lang.kn"
+register = "headline"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.kerala-blasters-gokulam-kerala.01"
+entity_pair = ["club.kerala-blasters", "club.gokulam-kerala"]
+alias = "Kerala Derby"
+kind = "derby_name"
+lang = "lang.en"
+register = "headline"
+note = "Kerala Blasters against Gokulam Kerala"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.dempo-churchill-brothers.01"
+entity_pair = ["club.dempo", "club.churchill-brothers"]
+alias = "Goa Derby"
+kind = "derby_name"
+lang = "lang.en"
+register = "headline"
+note = "Dempo against Churchill Brothers in the Goa league, the traditional Goa fixture; a fuller history includes other Goa clubs"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.neroca-trau.01"
+entity_pair = ["club.neroca", "club.trau"]
+alias = "Imphal Derby"
+kind = "derby_name"
+lang = "lang.en"
+register = "headline"
+note = "NEROCA against TRAU"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }
+
+[[alias]]
+id = "alias.delhi-sudeva-delhi.01"
+entity_pair = ["club.delhi", "club.sudeva-delhi"]
+alias = "Delhi Derby"
+kind = "derby_name"
+lang = "lang.en"
+register = "headline"
+note = "Delhi FC against Sudeva Delhi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked." }

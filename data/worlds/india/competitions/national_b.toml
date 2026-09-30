@@ -1,0 +1,131 @@
+[meta]
+dataset = "competitions.national_b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "National competitions missing from competitions/national.toml: Santosh Trophy qualifiers, junior/sub-junior girls' championships, National Games football, futsal championships, Federation Cup (defunct)."
+gaps = [
+  "Model knowledge only (brief v2); formats, team counts and calendars are not verified.",
+  "Not duplicated here because ids already exist: comp.santosh-trophy, comp.senior-women-nfc, comp.junior-nfc, comp.sub-junior-nfc, comp.durand-cup, comp.iwl, comp.iwl2, comp.super-cup (the Kalinga Super Cup editions are treated as editions of comp.super-cup; the alias 'Kalinga Super Cup' is not added to it), comp.wb.cfl-premier and the other CFL divisions (Calcutta Football League).",
+  "Junior/Sub-Junior girls' age bands and existence of every edition are unverified.",
+  "Futsal championship names are approximate.",
+]
+
+[[competition]]
+id = "comp.santosh-trophy-qualifiers"
+name = "Santosh Trophy qualifying rounds"
+short = "Santosh qualifiers"
+organiser = "assoc.aiff"
+level = "zonal"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal qualifying rounds among state associations, Services and Railways; winners advance to the final round"
+qualifies_to = ["comp.santosh-trophy"]
+calendar = "Varies (typically before the final round)"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; exact zone structure and number of qualifying slots vary by season." }
+
+[[competition]]
+id = "comp.junior-girls-nfc"
+name = "Junior Girls' National Football Championship"
+short = "Junior Girls NFC"
+organiser = "assoc.aiff"
+level = "national"
+age = "u19"
+gender = "women"
+kind = "championship"
+season = "2026-27"
+format = "State teams; group stage then knockouts (unverified)"
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the championship is recalled from memory; age band (U19) and current edition status unverified." }
+
+[[competition]]
+id = "comp.sub-junior-girls-nfc"
+name = "Sub-Junior Girls' National Football Championship"
+short = "Sub-Junior Girls NFC"
+organiser = "assoc.aiff"
+level = "national"
+age = "u17"
+gender = "women"
+kind = "championship"
+season = "2026-27"
+format = "State teams; group stage then knockouts (unverified)"
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the championship is recalled from memory; age band (U17) and current edition status unverified." }
+
+[[competition]]
+id = "comp.national-games-football-men"
+name = "National Games football (men)"
+short = "National Games men"
+organiser = "assoc.gov-sports"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "State and Services teams as part of the multi-sport National Games; held only in years football is on the programme"
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: organised by the Indian Olympic Association / host state with AIFF technical support; assoc.gov-sports is used as the nearest organiser record. Edition dates unverified." }
+
+[[competition]]
+id = "comp.national-games-football-women"
+name = "National Games football (women)"
+short = "National Games women"
+organiser = "assoc.gov-sports"
+level = "national"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "State teams as part of the multi-sport National Games; held only in years football is on the programme"
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: same caveats as the men's event." }
+
+[[competition]]
+id = "comp.senior-futsal-nfc"
+name = "Senior National Futsal Championship"
+short = "Futsal NFC"
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State teams (unverified)"
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Low confidence: name and existence of a current edition recalled from memory." }
+
+[[competition]]
+id = "comp.futsal-club-championship"
+name = "AIFF Futsal Club Championship"
+short = "Futsal Club Championship"
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "Club sides via state qualifiers (unverified)"
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "Low confidence: name and existence of a current edition recalled from memory." }
+
+[[competition]]
+id = "comp.federation-cup"
+name = "Federation Cup"
+short = "Federation Cup"
+organiser = "assoc.aiff"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "cup"
+season = "historical"
+aliases = ["Fed Cup", "Indian Federation Cup"]
+effective_from = "1977-01-01"
+effective_to = "2017-12-31"
+format = "Knockout cup for top clubs; replaced by the Super Cup from 2018 (dates approximate)"
+status = "defunct"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; defunct history flag. Dates approximate: first edition 1977, last edition around 2016-17." }
+

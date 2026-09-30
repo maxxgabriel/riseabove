@@ -1,0 +1,217 @@
+[meta]
+dataset = "languages.b"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "30 additional languages, dialect groups and romanised varieties relevant to Indian football regions and fan culture (model knowledge)."
+gaps = ["No source URLs: all entries are model knowledge, not re-checked (brief v2).", "Speaker counts and official status are not recorded (no field).", "Naga languages are represented by three examples only (Ao, Angami, Tangkhul); others such as Sema, Lotha and Konyak are not listed.", "Romanised varieties use BCP 47 codes with a Latn subtag (for example hi-Latn) rather than ISO 639-1; ids are lower-case (lang.hi-latn).", "SCHEMA GAP: language has no field for speaker regions or writing-system variants; region and script variants are in the record note."]
+
+[[language]]
+id = "lang.brx"
+code = "brx"
+name = "Bodo"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Assam/BTR; also Bengal and Nepal borderlands. Latin and Devanagari both seen in print." }
+
+[[language]]
+id = "lang.trp"
+code = "trp"
+name = "Kokborok"
+script = "Latin/Bengali"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tripura; script debated, Latin common in newer use." }
+
+[[language]]
+id = "lang.mjw"
+code = "mjw"
+name = "Karbi"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Assam (Karbi Anglong)." }
+
+[[language]]
+id = "lang.dis"
+code = "dis"
+name = "Dimasa"
+script = "Latin/Bengali"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Assam (Dima Hasao)." }
+
+[[language]]
+id = "lang.nag"
+code = "nag"
+name = "Nagamese"
+script = "Latin/Bengali-Assamese"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Nagaland lingua franca (Assamese-based creole)." }
+
+[[language]]
+id = "lang.njo"
+code = "njo"
+name = "Ao"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Nagaland (Mokokchung). Represents one of several Naga languages in football media." }
+
+[[language]]
+id = "lang.njm"
+code = "njm"
+name = "Angami"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Nagaland (Kohima)." }
+
+[[language]]
+id = "lang.nmf"
+code = "nmf"
+name = "Tangkhul"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Manipur (Ukhrul) and Nagaland." }
+
+[[language]]
+id = "lang.pck"
+code = "pck"
+name = "Paite"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Manipur (Churachandpur) and Mizoram; Kuki-Chin family." }
+
+[[language]]
+id = "lang.hmr"
+code = "hmr"
+name = "Hmar"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Manipur, Mizoram, Assam." }
+
+[[language]]
+id = "lang.tcy"
+code = "tcy"
+name = "Tulu"
+script = "Kannada"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Coastal Karnataka and Kerala (Dakshina Kannada, Udupi, Kasaragod); Tigalari script historic." }
+
+[[language]]
+id = "lang.bho"
+code = "bho"
+name = "Bhojpuri"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bihar, eastern Uttar Pradesh, Jharkhand." }
+
+[[language]]
+id = "lang.mai"
+code = "mai"
+name = "Maithili"
+script = "Devanagari/Tirhuta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bihar and Nepal terai." }
+
+[[language]]
+id = "lang.mag"
+code = "mag"
+name = "Magahi"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bihar (Magadh region)." }
+
+[[language]]
+id = "lang.hne"
+code = "hne"
+name = "Chhattisgarhi"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Chhattisgarh." }
+
+[[language]]
+id = "lang.bgc"
+code = "bgc"
+name = "Haryanvi"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Haryana; usually written in Hindi form." }
+
+[[language]]
+id = "lang.raj"
+code = "raj"
+name = "Rajasthani"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Rajasthan; macro-language of several varieties, mostly written as Hindi." }
+
+[[language]]
+id = "lang.awa"
+code = "awa"
+name = "Awadhi"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Eastern Uttar Pradesh (Lucknow region); mostly spoken." }
+
+[[language]]
+id = "lang.gbm"
+code = "gbm"
+name = "Garhwali"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Uttarakhand." }
+
+[[language]]
+id = "lang.kfy"
+code = "kfy"
+name = "Kumaoni"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Uttarakhand." }
+
+[[language]]
+id = "lang.doi"
+code = "doi"
+name = "Dogri"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Jammu region of J&K." }
+
+[[language]]
+id = "lang.lbj"
+code = "lbj"
+name = "Ladakhi"
+script = "Tibetan"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Ladakh; Urdu and English also common in media." }
+
+[[language]]
+id = "lang.sip"
+code = "sip"
+name = "Sikkimese (Bhutia)"
+script = "Tibetan"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Sikkim; Nepali and English dominate football media there." }
+
+[[language]]
+id = "lang.lep"
+code = "lep"
+name = "Lepcha"
+script = "Lepcha"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Sikkim and Darjeeling hills; small community." }
+
+[[language]]
+id = "lang.sd"
+code = "sd"
+name = "Sindhi"
+script = "Perso-Arabic/Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Gujarat, Maharashtra and Rajasthan diaspora communities." }
+
+[[language]]
+id = "lang.sa"
+code = "sa"
+name = "Sanskrit"
+script = "Devanagari"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Literary and ceremonial only; not a football media language. Included for completeness of the 22 scheduled languages." }
+
+[[language]]
+id = "lang.hi-latn"
+code = "hi-Latn"
+name = "Hindi (romanised, Hinglish)"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Everyday social-media and commentary usage; spelling is unstandardised." }
+
+[[language]]
+id = "lang.bn-latn"
+code = "bn-Latn"
+name = "Bengali (romanised, Banglish)"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Social-media and chant usage; spelling varies (for example Kolkata / Calcutta forms)." }
+
+[[language]]
+id = "lang.ml-latn"
+code = "ml-Latn"
+name = "Malayalam (romanised, Manglish)"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Social-media usage among Kerala fans, including supporter-group names; spelling varies." }
+
+[[language]]
+id = "lang.ta-latn"
+code = "ta-Latn"
+name = "Tamil (romanised, Tanglish)"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Social-media usage among Chennai fans; spelling varies." }

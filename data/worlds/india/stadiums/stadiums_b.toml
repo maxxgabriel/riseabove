@@ -1,0 +1,355 @@
+[meta]
+dataset = "stadiums.b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "30 real stadiums used by Indian clubs and the national team; capacities are rounded model knowledge."
+gaps = ["All capacities are rounded from memory and flagged capacity_approx = true; none re-checked against AFC/ISL/AIFF stadium data. Football capacities differ from multi-use capacities and are often reported inconsistently.", "capacity_approx is an added optional field (schema has none): true means the figure is rounded or low-confidence.", "Surface only given where sure; most left out.", "home_clubs lists only long-standing primary users I am fairly sure of; 2026-27 club-ground assignments (ISL and I-League relocations, ground-sharing in Kolkata) are not confirmed.", "Owner is left out unless known.", "Not included: Tau Devi Lal, Sigra (Varanasi), Vidhyadhar Nagar (Jaipur), Deccan Arena (Hyderabad), Marina Arena (Chennai), Barasat and Howrah stadiums, Sector 17 Chandigarh; existence known but capacity and use not certain."]
+
+[[stadium]]
+id = "stadium.vyb-salt-lake"
+name = "Vivekananda Yuva Bharati Krirangan"
+aliases = ["Salt Lake Stadium", "Yuva Bharati Krirangan"]
+city = "Kolkata"
+state = "state.wb"
+capacity = 68000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Largest football stadium in India; capacity has been cut from original ~120,000 by renovations. Shared home of Mohun Bagan, East Bengal and Mohammedan for big matches; not their sole ground. Figure rounded." }
+
+[[stadium]]
+id = "stadium.kalyani"
+name = "Kalyani Stadium"
+city = "Kalyani"
+state = "state.wb"
+capacity = 20000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Used for I-League and IFL matches and Bengal fixtures; capacity rounded." }
+
+[[stadium]]
+id = "stadium.kanchenjunga-siliguri"
+name = "Kanchenjunga Stadium"
+city = "Siliguri"
+state = "state.wb"
+capacity = 40000
+capacity_as_of = 2023
+capacity_approx = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Large multi-use ground in north Bengal; capacity rounded and possibly lower for football." }
+
+[[stadium]]
+id = "stadium.mohun-bagan-ground"
+name = "Mohun Bagan Ground"
+aliases = ["Mohun Bagan Tent"]
+city = "Kolkata"
+state = "state.wb"
+home_clubs = ["club.mohun-bagan-sg"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Club ground on the Maidan; capacity not recorded." }
+
+[[stadium]]
+id = "stadium.east-bengal-ground"
+name = "East Bengal Ground"
+aliases = ["East Bengal Tent"]
+city = "Kolkata"
+state = "state.wb"
+home_clubs = ["club.east-bengal"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Club ground on the Maidan; capacity not recorded." }
+
+[[stadium]]
+id = "stadium.mohammedan-ground"
+name = "Mohammedan Sporting Ground"
+aliases = ["Mohammedan Sporting Club Ground"]
+city = "Kolkata"
+state = "state.wb"
+home_clubs = ["club.mohammedan"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Club ground on the Maidan; capacity not recorded." }
+
+[[stadium]]
+id = "stadium.jln-kochi"
+name = "Jawaharlal Nehru International Stadium, Kochi"
+aliases = ["Kaloor Stadium", "JLN Kochi"]
+city = "Kochi"
+state = "state.kl"
+capacity = 41000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+home_clubs = ["club.kerala-blasters"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of Kerala Blasters; multi-use, capacity varies by configuration and was once reported higher. Rounded." }
+
+[[stadium]]
+id = "stadium.ems-kozhikode"
+name = "EMS Corporation Stadium"
+aliases = ["EMS Stadium"]
+city = "Kozhikode"
+state = "state.kl"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+home_clubs = ["club.gokulam-kerala"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home ground of Gokulam Kerala in I-League seasons; reported capacities range from about 26,000 to 30,000, so 30,000 is a rounded upper figure." }
+
+[[stadium]]
+id = "stadium.payyanad-malappuram"
+name = "Payyanad Stadium"
+aliases = ["Manjeri Payyanad Stadium"]
+city = "Malappuram"
+state = "state.kl"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Football stadium at Manjeri, Malappuram district; hosted Santosh Trophy matches and Sevens football. Capacity rounded." }
+
+[[stadium]]
+id = "stadium.jln-fatorda"
+name = "Jawaharlal Nehru Stadium, Fatorda"
+aliases = ["Fatorda Stadium", "JLN Margao", "Nehru Stadium Margao"]
+city = "Margao"
+state = "state.ga"
+capacity = 19000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+home_clubs = ["club.goa"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of FC Goa; capacity rounded." }
+
+[[stadium]]
+id = "stadium.tilak-maidan-vasco"
+name = "Tilak Maidan"
+aliases = ["Tilak Maidan Stadium"]
+city = "Vasco da Gama"
+state = "state.ga"
+capacity = 5000
+capacity_as_of = 2023
+capacity_approx = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Small football stadium in Vasco, used for Goa Pro League and other matches; capacity rounded and low-confidence." }
+
+[[stadium]]
+id = "stadium.gmc-bambolim"
+name = "GMC Athletic Stadium, Bambolim"
+aliases = ["Bambolim Stadium", "Bambolim Athletic Stadium"]
+city = "Bambolim"
+state = "state.ga"
+capacity = 20000
+capacity_as_of = 2023
+capacity_approx = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Athletics stadium with a football pitch that has hosted ISL matches; capacity rounded and low-confidence." }
+
+[[stadium]]
+id = "stadium.kanteerava"
+name = "Sree Kanteerava Stadium"
+aliases = ["Kanteerava Stadium", "Kanteerava Outdoor Stadium"]
+city = "Bengaluru"
+state = "state.ka"
+capacity = 25810
+capacity_as_of = 2023
+capacity_approx = true
+home_clubs = ["club.bengaluru"]
+owner = "Karnataka government"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of Bengaluru FC; official-style figure reported but not re-checked. India national team also uses it." }
+
+[[stadium]]
+id = "stadium.bangalore-football-stadium"
+name = "Bangalore Football Stadium"
+aliases = ["Ashok Nagar Football Stadium"]
+city = "Bengaluru"
+state = "state.ka"
+capacity = 8400
+capacity_as_of = 2023
+capacity_approx = true
+owner = "Karnataka State Football Association"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Football-specific ground in Ashok Nagar; used by Bengaluru clubs and KSFA leagues. Capacity rounded from a remembered figure." }
+
+[[stadium]]
+id = "stadium.jln-chennai"
+name = "Jawaharlal Nehru Stadium, Chennai"
+aliases = ["Nehru Stadium Chennai", "Nehru Outdoor Stadium"]
+city = "Chennai"
+state = "state.tn"
+capacity = 40000
+capacity_as_of = 2023
+capacity_approx = true
+home_clubs = ["club.chennaiyin"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of Chennaiyin FC; football capacity is commonly reported around 30,000 to 40,000, rounded upper figure used." }
+
+[[stadium]]
+id = "stadium.gmc-balayogi-gachibowli"
+name = "GMC Balayogi Athletic Stadium"
+aliases = ["Gachibowli Stadium", "Gachibowli Athletic Stadium"]
+city = "Hyderabad"
+state = "state.ts"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+home_clubs = ["club.hyderabad"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home ground of Hyderabad FC in ISL; club status for 2026-27 not confirmed. Capacity rounded." }
+
+[[stadium]]
+id = "stadium.jln-delhi"
+name = "Jawaharlal Nehru Stadium, Delhi"
+aliases = ["JLN Stadium Delhi", "Nehru Stadium Delhi"]
+city = "New Delhi"
+state = "state.dl"
+capacity = 60000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. India's national team home venue and big-match ground; about 60,000 after the 2010 renovation. Punjab FC used it as an ISL home in recent seasons; 2026-27 usage not confirmed so no home_clubs entry." }
+
+[[stadium]]
+id = "stadium.ambedkar-delhi"
+name = "Dr. B. R. Ambedkar Stadium"
+aliases = ["Ambedkar Stadium"]
+city = "New Delhi"
+state = "state.dl"
+home_clubs = ["club.delhi"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Delhi ground used for I-League and Delhi FA matches; capacity not recorded." }
+
+[[stadium]]
+id = "stadium.balewadi-pune"
+name = "Shree Shiv Chhatrapati Sports Complex, Balewadi"
+aliases = ["Balewadi Stadium", "Balewadi Sports Complex"]
+city = "Pune"
+state = "state.mh"
+capacity = 22000
+capacity_as_of = 2023
+capacity_approx = true
+owner = "Maharashtra government"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Multi-sport complex hosting football; home of the former FC Pune City in the ISL. Capacity rounded." }
+
+[[stadium]]
+id = "stadium.dy-patil-navi-mumbai"
+name = "DY Patil Stadium"
+aliases = ["Dr. D. Y. Patil Sports Stadium", "DY Patil Stadium Nerul"]
+city = "Navi Mumbai"
+state = "state.mh"
+capacity = 55000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Large multi-use stadium used for ISL and other football; capacity rounded (cited between about 45,000 and 55,000)." }
+
+[[stadium]]
+id = "stadium.mumbai-football-arena"
+name = "Mumbai Football Arena"
+aliases = ["Andheri Sports Complex", "Andheri Football Ground"]
+city = "Mumbai"
+state = "state.mh"
+capacity = 8000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+home_clubs = ["club.mumbai-city"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of Mumbai City FC in recent ISL seasons; capacity rounded." }
+
+[[stadium]]
+id = "stadium.iga-guwahati"
+name = "Indira Gandhi Athletic Stadium"
+aliases = ["Sarusajai Stadium", "IGA Stadium Guwahati"]
+city = "Guwahati"
+state = "state.as"
+capacity = 35000
+capacity_as_of = 2023
+capacity_approx = true
+home_clubs = ["club.northeast-united"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of NorthEast United FC; capacity rounded." }
+
+[[stadium]]
+id = "stadium.khuman-lampak-imphal"
+name = "Khuman Lampak Main Stadium"
+aliases = ["Khuman Lampak Stadium"]
+city = "Imphal"
+state = "state.mn"
+capacity = 35000
+capacity_as_of = 2023
+capacity_approx = true
+home_clubs = ["club.neroca"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Main stadium in Imphal; hosts Manipur football including NEROCA matches and state teams at national events. Capacity rounded." }
+
+[[stadium]]
+id = "stadium.kalinga-bhubaneswar"
+name = "Kalinga Stadium"
+aliases = ["Kalinga Stadium Bhubaneswar"]
+city = "Bhubaneswar"
+state = "state.od"
+capacity = 15000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+home_clubs = ["club.odisha"]
+owner = "Odisha government"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of Odisha FC; capacity rounded. Hockey and athletics also use the complex." }
+
+[[stadium]]
+id = "stadium.jln-shillong"
+name = "Jawaharlal Nehru Stadium, Shillong"
+aliases = ["JLN Stadium Shillong"]
+city = "Shillong"
+state = "state.ml"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+home_clubs = ["club.shillong-lajong"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Main stadium in Shillong used by Shillong Lajong and Meghalaya football; capacity rounded and low-confidence. Lajong also uses smaller local grounds." }
+
+[[stadium]]
+id = "stadium.rajiv-gandhi-aizawl"
+name = "Rajiv Gandhi Stadium, Mualpui"
+aliases = ["Rajiv Gandhi Stadium Aizawl", "Mualpui Stadium"]
+city = "Aizawl"
+state = "state.mz"
+capacity = 20000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "artificial"
+home_clubs = ["club.aizawl"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Aizawl FC home ground; artificial turf. Capacity rounded and low-confidence." }
+
+[[stadium]]
+id = "stadium.jrd-tata-jamshedpur"
+name = "JRD Tata Sports Complex"
+aliases = ["Keenan Stadium Complex", "JRD Tata Stadium"]
+city = "Jamshedpur"
+state = "state.jh"
+capacity = 24000
+capacity_as_of = 2023
+capacity_approx = true
+surface = "natural"
+home_clubs = ["club.jamshedpur"]
+owner = "Tata Steel"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home of Jamshedpur FC; capacity rounded (commonly cited near 24,000)." }
+
+[[stadium]]
+id = "stadium.guru-nanak-ludhiana"
+name = "Guru Nanak Stadium, Ludhiana"
+aliases = ["Guru Nanak Stadium"]
+city = "Ludhiana"
+state = "state.pb"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Multi-use stadium used for Punjab football including past I-League matches; capacity rounded and low-confidence." }
+
+[[stadium]]
+id = "stadium.trc-turf-srinagar"
+name = "TRC Turf Ground"
+aliases = ["Tourist Reception Centre Turf Ground", "TRC Synthetic Turf"]
+city = "Srinagar"
+state = "state.jk"
+surface = "artificial"
+home_clubs = ["club.real-kashmir"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Home ground of Real Kashmir FC; synthetic turf. Capacity not recorded." }
+
+[[stadium]]
+id = "stadium.paljor-gangtok"
+name = "Paljor Stadium"
+city = "Gangtok"
+state = "state.sk"
+capacity = 25000
+capacity_as_of = 2023
+capacity_approx = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Main football stadium in Gangtok, Sikkim. Capacity rounded and low-confidence." }

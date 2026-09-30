@@ -1,0 +1,61 @@
+[meta]
+dataset = "rules.placeholders"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "8 rules recorded only as existing, with no parameters."
+gaps = ["All numeric rule parameters and effective dates."]
+
+[[rule]]
+id = "rule.isl-foreign-players"
+topic = "foreign_players"
+statement = "The ISL limits foreign players in the squad and on the pitch; the numbers for 2026-27 are unknown."
+competition = "comp.isl"
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.ifl-foreign-players"
+topic = "foreign_players"
+statement = "The Indian Football League limits foreign players; numbers for 2026-27 are unknown."
+competition = "comp.ifl"
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.isl-young-players"
+topic = "u23"
+statement = "Top-flight clubs must field or register young domestic players; the exact requirement is unknown."
+competition = "comp.isl"
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.isl-squad-size"
+topic = "squad_size"
+statement = "Squad registration limits exist per league; numbers unknown."
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.transfer-windows"
+topic = "transfer_window"
+statement = "AIFF sets summer and winter transfer windows each season; 2026-27 dates unknown."
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.club-licensing"
+topic = "licensing"
+statement = "Clubs need AIFF/AFC club licences to enter the top tiers; criteria and current requirements unknown."
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.santosh-eligibility"
+topic = "state_eligibility"
+statement = "Santosh Trophy has eligibility restrictions on who may represent an association; the rules are unknown."
+competition = "comp.santosh-trophy"
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }
+
+[[rule]]
+id = "rule.promotion-relegation"
+topic = "promotion"
+statement = "Whether the ISL and Indian Football League are linked by promotion and relegation for 2026-27 is unknown."
+competition = "comp.isl"
+prov = { status = "unknown", q = "D", src = [], note = "Such a rule is believed to exist; its numbers and effective dates were NOT verified. Do not use the parameters until researched." }

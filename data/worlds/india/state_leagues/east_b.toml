@@ -1,0 +1,341 @@
+# State league pyramids below the state top division (competition records only; no clubs/memberships here).
+[meta]
+dataset = "state_leagues.east_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Odisha, Jharkhand, Bihar and Chhattisgarh below or as their state top divisions: second divisions, district leagues, women's leagues and age-group championships. Adds top-division records for Bihar and Chhattisgarh, which had none."
+gaps = [
+  "Model knowledge only (no web access, per brief v2): every record is q = C (existence and rough role believed correct) or q = D (name/format a scenario seed). No season-verified participant lists, team counts or dates.",
+  "The state top-division competitions (state premier leagues) already exist in competitions/membership_t4_b.toml and are only REFERENCED here via qualifies_to; they were not edited, so their fed_by fields do not point back at the divisions defined here.",
+  "tier is the in-state pyramid position (1 = state top division = game tier 4). District leagues and cups carry no tier.",
+  "Women's leagues use qualifies_to = comp.iwl2 as a coarse pointer to the national women's pathway; the actual nomination mechanism for a given year was not checked.",
+  "State Junior (u19) and Sub-Junior (u16) championships are pointed at comp.junior-nfc and comp.sub-junior-nfc; the exact age bands used by each state association in 2026-27 were not verified.",
+  "Women's leagues for Kerala, Manipur, Odisha, Tamil Nadu, Delhi, Haryana, Karnataka, Goa, Mizoram, Meghalaya and Maharashtra (Mumbai) are defined by another agent in competitions/membership_women_b.toml and are deliberately not repeated here; women's leagues for the other states in this file are new (mostly q = D).",
+  "Guwahati Premier League is already an alias of comp.as.assam-state-premier-league and is not a separate record.",
+  "Bihar and Chhattisgarh state leagues are scenario placeholders; real league names could not be recalled.",
+  "Madhya Pradesh is not part of this assignment and has no record here.",
+]
+
+[[competition]]
+id = "comp.od.second-division"
+name = "Odisha State League Second Division"
+organiser = "assoc.fao"
+level = "state"
+tier = 2
+state = "state.od"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level under the Odisha Premier League; format unknown."
+qualifies_to = ["comp.od.odisha-premier-league"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.od.cuttack-district-league"
+name = "Cuttack District Football League"
+organiser = "assoc.fao"
+operator = "Cuttack district association"
+level = "district"
+state = "state.od"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Local league of a traditional football city (Bhubaneswar and Rourkela run comparable local leagues); format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.od.junior-championship"
+name = "Odisha State Junior Championship (U-19)"
+organiser = "assoc.fao"
+level = "state"
+state = "state.od"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.od.sub-junior-championship"
+name = "Odisha State Sub-Junior Championship (U-16)"
+organiser = "assoc.fao"
+level = "state"
+state = "state.od"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.od.youth-league-u17"
+name = "Odisha Youth League U-17"
+organiser = "assoc.fao"
+level = "state"
+state = "state.od"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for clubs/academies feeding the national Elite Youth League; format not known."
+qualifies_to = ["comp.youth-league-u17"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }
+
+[[competition]]
+id = "comp.jh.second-division"
+name = "Jharkhand Second Division League"
+organiser = "assoc.jfa"
+level = "state"
+tier = 2
+state = "state.jh"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level under the Jharkhand State Premier League; format unknown."
+qualifies_to = ["comp.jh.jharkhand-state-premier-league"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jh.jamshedpur-district-league"
+name = "Jamshedpur District Football League"
+organiser = "assoc.jfa"
+operator = "East Singhbhum district association"
+level = "district"
+state = "state.jh"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Steel-city local league (Tata-linked clubs such as Tata Football Academy sit above this level); format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jh.ranchi-district-league"
+name = "Ranchi District Football League"
+organiser = "assoc.jfa"
+operator = "Ranchi district association"
+level = "district"
+state = "state.jh"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "State capital's local league; format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jh.womens-league"
+name = "Jharkhand Women's League"
+organiser = "assoc.jfa"
+level = "state"
+tier = 1
+state = "state.jh"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jh.junior-championship"
+name = "Jharkhand State Junior Championship (U-19)"
+organiser = "assoc.jfa"
+level = "state"
+state = "state.jh"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.jh.sub-junior-championship"
+name = "Jharkhand State Sub-Junior Championship (U-16)"
+organiser = "assoc.jfa"
+level = "state"
+state = "state.jh"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.br.state-league"
+name = "Bihar State Football League"
+organiser = "assoc.bfa"
+level = "state"
+tier = 1
+state = "state.br"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "BFA's top men's state competition; Patna, Bhagalpur, Gaya and Muzaffarpur clubs; format unknown."
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; no top-tier record exists for Bihar elsewhere; name a guess" }
+
+[[competition]]
+id = "comp.br.patna-league"
+name = "Patna Football League"
+organiser = "assoc.bfa"
+operator = "Patna district association"
+level = "district"
+state = "state.br"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "State capital's local league; format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.br.womens-league"
+name = "Bihar Women's League"
+organiser = "assoc.bfa"
+level = "state"
+tier = 1
+state = "state.br"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.br.junior-championship"
+name = "Bihar State Junior Championship (U-19)"
+organiser = "assoc.bfa"
+level = "state"
+state = "state.br"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.br.sub-junior-championship"
+name = "Bihar State Sub-Junior Championship (U-16)"
+organiser = "assoc.bfa"
+level = "state"
+state = "state.br"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.cg.state-league"
+name = "Chhattisgarh State Football League"
+organiser = "assoc.cfa"
+level = "state"
+tier = 1
+state = "state.cg"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "CFA's top men's state competition; Raipur, Bhilai-Durg and Bilaspur clubs; format unknown."
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; no top-tier record exists for Chhattisgarh elsewhere; name a guess" }
+
+[[competition]]
+id = "comp.cg.raipur-district-league"
+name = "Raipur District Football League"
+organiser = "assoc.cfa"
+operator = "Raipur district association"
+level = "district"
+state = "state.cg"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "State capital's local league; Bhilai Steel Plant and other institutional sides play locally; format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.cg.womens-league"
+name = "Chhattisgarh Women's League"
+organiser = "assoc.cfa"
+level = "state"
+tier = 1
+state = "state.cg"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.cg.junior-championship"
+name = "Chhattisgarh State Junior Championship (U-19)"
+organiser = "assoc.cfa"
+level = "state"
+state = "state.cg"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.cg.sub-junior-championship"
+name = "Chhattisgarh State Sub-Junior Championship (U-16)"
+organiser = "assoc.cfa"
+level = "state"
+state = "state.cg"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }

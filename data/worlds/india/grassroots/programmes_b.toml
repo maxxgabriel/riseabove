@@ -1,0 +1,267 @@
+[meta]
+dataset = "grassroots.b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Additional grassroots, school, talent, women's, NGO and coach-development programmes beyond the three in programmes.toml (model knowledge)."
+gaps = ["No source URLs: all entries are model knowledge, not re-checked (brief v2).", "Launch years and age bands are approximate; where unsure the field is left out.", "Per-state and per-club programmes (KFA, GFA, MFA, ISL club schools) are represented generically or not at all.", "prog.blue-cubs (in programmes.toml) overlaps prog.aiff-baby-league; not merged because that file is not in this assignment.", "Programme records with q = D are real-world seeds whose scale and current status are uncertain.", "SCHEMA GAP: programme has no field for partner bodies or linked competition ids; links are written into description."]
+
+[[programme]]
+id = "prog.aiff-baby-league"
+name = "AIFF Baby Leagues"
+operator = "assoc.aiff"
+kind = "grassroots"
+ages = "5-12 (U-6/U-8/U-10/U-12 bands, approximate)"
+region = "national"
+active_from = "2017"
+description = "Non-competitive-to-lightly-competitive festival and league football for young children run by AIFF through state associations, clubs and accredited academies."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Launched around 2017; band ages and exact structure vary by season and are approximate. Overlaps prog.blue-cubs (the existing combined record, not edited here); this record isolates the league format." }
+
+[[programme]]
+id = "prog.mission-xi-million"
+name = "Mission XI Million"
+operator = "assoc.aiff"
+kind = "grassroots"
+ages = "school age"
+region = "national"
+active_from = "2017"
+description = "Campaign launched around the 2017 FIFA U-17 World Cup, with the sports ministry and AIFF, to bring football to eleven million children through schools and communities."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Real campaign; the 11 million target and 2017 launch are from memory. Whether it is still active in 2026-27 is unknown, so active_to is left out." }
+
+[[programme]]
+id = "prog.khelo-india-youth-games-football"
+name = "Khelo India Youth Games (football events)"
+operator = "assoc.gov-sports"
+kind = "festival"
+ages = "U-17 / U-21 (varies by edition)"
+region = "national"
+active_from = "2018"
+description = "Multi-sport national youth games with football events for boys and girls, run by the sports ministry and SAI with state teams as entrants; see comp.kiyg for the competition record."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. First edition held in Delhi in 2018; football age bands differ between editions. Girls' and boys' football have appeared in different years." }
+
+[[programme]]
+id = "prog.khelo-india-university-games-football"
+name = "Khelo India University Games (football events)"
+operator = "assoc.gov-sports"
+kind = "festival"
+ages = "university (about 17-25)"
+region = "national"
+active_from = "2020"
+description = "Multi-sport inter-university games with a football event; see comp.kiug for the competition record."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. First edition believed to be Bhubaneswar, early 2020; football participation by year not checked." }
+
+[[programme]]
+id = "prog.khelo-india-centres"
+name = "Khelo India Centres and State Centres of Excellence"
+operator = "assoc.gov-sports"
+kind = "residential"
+region = "national"
+description = "District-level Khelo India Centres and state-level Centres of Excellence funded through the Khelo India scheme; football is one of the disciplines offered in some states."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Scheme structure is real but which centres carry football, and how many, is not known. Kept as a seed for scenario modelling; verify before use." }
+
+[[programme]]
+id = "prog.khelo-india-womens-league"
+name = "Khelo India Women's Football League"
+operator = "assoc.gov-sports"
+kind = "women"
+ages = "roughly 13-18, varies"
+region = "national"
+description = "Khelo India-backed women's and girls' league events in football, run with AIFF and state associations for U-15 to U-18 style age bands."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Khelo India women's leagues exist across sports; the exact football format, age bands and years are uncertain, treat as a seed." }
+
+[[programme]]
+id = "prog.subroto-cup"
+name = "Subroto Cup International Football Tournament (schools)"
+operator = "assoc.ssb-organiser"
+kind = "school"
+ages = "U-14 boys, U-17 boys, U-17 girls (approximate; varies by edition)"
+region = "national"
+active_from = "1960"
+description = "Long-running inter-school football tournament organised under the Indian Air Force banner, with separate boys and girls age categories; see comp.subroto-cup."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Named after Air Marshal Subroto Mukerjee; first held around 1960. Category list is from memory and has changed over time." }
+
+[[programme]]
+id = "prog.sgfi-school-nationals-football"
+name = "SGFI school national football championships"
+operator = "assoc.sgfi"
+kind = "school"
+ages = "U-14 / U-17 / U-19"
+region = "national"
+description = "Annual national school football championships in age categories, contested by state and other school-board teams; see comp.sgfi-u14, comp.sgfi-u17, comp.sgfi-u19."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Structure from memory; SGFI has run into governance disputes with rival bodies in some years, not recorded here." }
+
+[[programme]]
+id = "prog.aiff-youth-leagues"
+name = "AIFF Youth Leagues (age-group pathway)"
+operator = "assoc.aiff"
+kind = "talent_id"
+ages = "13-17 (U-13/U-15/U-17)"
+region = "national"
+active_from = "2017"
+description = "Structured age-group leagues for accredited club academies giving the U-13 to U-17 pathway into senior football; see comp.youth-league-u13, comp.youth-league-u15, comp.youth-league-u17."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Started around the 2017-18 season; qualifying rules, zones and finals format change regularly." }
+
+[[programme]]
+id = "prog.aiff-academy-accreditation"
+name = "AIFF Academy Accreditation Programme"
+operator = "assoc.aiff"
+kind = "residential"
+region = "national"
+description = "Federation rating scheme for club and independent academies (star-style tiers) which sets minimum staffing, facility and youth-league participation standards."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Real programme; the tiering wording (star ratings, Elite tier) and current criteria are from memory. AIFF Elite Academy is a separate record in academies." }
+
+[[programme]]
+id = "prog.afc-grassroots-charter"
+name = "AFC Grassroots Football Charter (India implementation)"
+operator = "Asian Football Confederation with assoc.aiff"
+kind = "grassroots"
+region = "national"
+description = "AFC framework in which member associations commit to grassroots standards (coaching, participation numbers, festivals) with tiered recognition levels."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. AIFF is a member association of AFC and takes part; the tier AIFF currently holds, if any, is not known and is left out." }
+
+[[programme]]
+id = "prog.aiff-grassroots-certificate"
+name = "AIFF / AFC Grassroots coaching certificate courses"
+operator = "assoc.aiff"
+kind = "coach_dev"
+region = "national"
+description = "Entry-level short courses for coaches of young children, run by AIFF and state associations to a common syllabus; feeds the licence ladder in development/coach_education.toml."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Course name and length are approximate; check the licence records in coach_education.toml for the ladder." }
+
+[[programme]]
+id = "prog.afc-elite-youth-scheme"
+name = "AFC Elite Youth Scheme"
+operator = "Asian Football Confederation with assoc.aiff"
+kind = "talent_id"
+ages = "U-14 to U-19"
+region = "national"
+description = "AFC scheme that funds and supports national youth-team development camps and competition programmes for member associations."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. AFC has run elite youth schemes for member associations; India's current participation and format are uncertain." }
+
+[[programme]]
+id = "prog.state-fa-age-group-championships"
+name = "State association age-group championships"
+operator = "State football associations"
+kind = "grassroots"
+ages = "U-13 to U-17 (approximate)"
+region = "national"
+description = "State associations run district and state age-group championships and trials which select squads for the sub-junior and junior national championships."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Generic description of a real structure; each state's format differs and is recorded, where known, in its state file." }
+
+[[programme]]
+id = "prog.ifa-age-group-leagues"
+name = "IFA age-group leagues (Kolkata)"
+operator = "assoc.ifa"
+kind = "grassroots"
+ages = "roughly 12-17"
+region = "state.wb"
+description = "Indian Football Association runs age-group leagues for Kolkata and Bengal clubs and academies as feeder competitions below the Calcutta Football League."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. IFA conducts youth leagues, but the exact age bands, names and season are not certain." }
+
+[[programme]]
+id = "prog.reliance-foundation-youth-sports"
+name = "Reliance Foundation Youth Sports (RFYS)"
+operator = "Reliance Foundation"
+kind = "school"
+ages = "school age"
+region = "national"
+active_from = "2016"
+description = "School-based multi-sport programme with a football stream in several cities, tied to the Reliance Foundation Young Champs pathway and the Development League."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Started around 2015-16; coverage by city and football stream size are not checked." }
+
+[[programme]]
+id = "prog.slum-soccer"
+name = "Slum Soccer"
+operator = "Slum Soccer (NGO, Nagpur)"
+kind = "grassroots"
+region = ["state.mh"]
+active_from = "2001"
+description = "Nagpur-founded NGO using football for social development among slum and marginalised communities; also selects players for the Homeless World Cup."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Founded around 2001 in Nagpur; the Homeless World Cup link is from memory." }
+
+[[programme]]
+id = "prog.yuwa-football"
+name = "Yuwa football programme (Jharkhand)"
+operator = "Yuwa India (NGO)"
+kind = "women"
+ages = "girls, mainly 8-18"
+region = ["state.jh"]
+active_from = "2009"
+description = "Girls' football and education NGO based near Ranchi that trains rural girls and sends teams to youth tournaments in India and abroad."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Founded around 2009; results at overseas tournaments not recorded here." }
+
+[[programme]]
+id = "prog.magic-bus"
+name = "Magic Bus sport-for-development programme"
+operator = "Magic Bus India Foundation"
+kind = "grassroots"
+region = "national"
+active_from = "1999"
+description = "Large Mumbai-founded sport-for-development NGO whose curriculum uses football and other games for life-skills work with children in many states."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Real NGO; football is one of several games and the scale and football share are not known. Founding year approximate." }
+
+[[programme]]
+id = "prog.common-goal-india"
+name = "Common Goal-style football-for-development NGOs"
+operator = "Various NGOs"
+kind = "grassroots"
+region = "national"
+description = "Placeholder for football-for-development NGOs of the kind supported through pledge-based networks such as Common Goal; specific Indian beneficiary organisations are not confirmed here."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Scenario seed only. Slum Soccer, Yuwa and Magic Bus are recorded separately as real NGOs; whether any is a Common Goal partner was not confirmed." }
+
+[[programme]]
+id = "prog.special-olympics-bharat-football"
+name = "Special Olympics Bharat football"
+operator = "Special Olympics Bharat"
+kind = "grassroots"
+region = "national"
+description = "Football training and unified-football events for athletes with intellectual disabilities, held at district, state and national level."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Real organisation with football among its sports; the scale and yearly events are unknown." }
+
+[[programme]]
+id = "prog.isl-club-grassroots"
+name = "ISL club grassroots and soccer-school programmes"
+operator = "ISL clubs"
+kind = "grassroots"
+region = "national"
+description = "Community festivals, soccer schools and school partnerships run by Indian Super League clubs in their home cities, often branded separately from the senior team."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Several clubs run such programmes; no single club is named here because per-club programmes were not checked." }
+
+[[programme]]
+id = "prog.bengaluru-fc-soccer-schools"
+name = "Bengaluru FC soccer schools and youth development"
+operator = "club.bengaluru"
+kind = "grassroots"
+region = ["state.ka"]
+description = "Bengaluru FC grassroots and youth-development work including soccer schools feeding its academy and youth teams."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Bengaluru FC is known to run soccer schools and a youth set-up; current scale and names are uncertain." }
+
+[[programme]]
+id = "prog.kerala-one-million-goal"
+name = "Kerala One Million Goal campaign"
+operator = "Government of Kerala with assoc.kfa"
+kind = "grassroots"
+region = ["state.kl"]
+active_from = "2022"
+description = "State campaign around 2022 to popularise football and coaching in schools and villages ahead of the 2022 World Cup."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Exact name, sponsoring department and duration are uncertain; kept as a low-confidence seed." }
+
+[[programme]]
+id = "prog.state-sports-hostels-football"
+name = "State sports hostels and sports schools (football streams)"
+operator = "State governments"
+kind = "residential"
+region = "national"
+description = "Government-run residential sports hostels and sports schools in several states, some with football streams, feeding state teams and national age-group squads."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. A real structure (for example in Odisha, Manipur, Mizoram, Kerala and Maharashtra) but which centres carry football was not checked." }
+
+[[programme]]
+id = "prog.army-boys-sports-company"
+name = "Army Boys Sports Company (football stream)"
+operator = "Indian Army"
+kind = "residential"
+ages = "boys, about 8-15"
+region = "national"
+description = "Army residential sports training for boys with a football stream, historically a source of players for services teams."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Real programme; football participation and current age range are uncertain." }

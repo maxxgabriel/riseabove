@@ -1,0 +1,1335 @@
+[meta]
+dataset = "media.outlets_specialist_b"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "82 real specialist and digital football-related media entities in India and abroad: football-only sites and data platforms, federation and state-association channels, league and tournament channels, club-official channels, supporters' collectives, Akashvani and commercial FM, news agencies, sports weeklies and campus media. Metadata only; no journalists named; no numeric scores."
+gaps = [
+  "All records are model knowledge (status inferred with q C, or scenario_seed with q D where existence, activity or details are unsure); no source URLs were consulted (brief v2: no web access).",
+  "Indian football podcasts and YouTube-only networks could not be named with confidence and are not listed; several regional football sites (Kerala, Bengal, Goa, north-east) are likewise omitted.",
+  "No club TV channel is asserted; club-official records describe website and social/video channels only. Website addresses are given only where recalled with fair confidence.",
+  "Optional extra fields used, not in SCHEMA.md: 'desc' (one-line coverage), 'club' (club id the outlet belongs to), 'association' (assoc id), 'base_country' (ISO alpha-3 for foreign-based outlets).",
+  "SCHEMA.md outlet kind has no value for fan collectives, government bodies, data platforms or podcasts; supporters' groups are recorded as football_specialist, SAI as official_federation, PIB as news_agency and data platforms as digital_sports, each flagged in prov.note. SCHEMA GAP: add kinds fan_collective, government_body and data_platform, and medium value audio/podcast.",
+  "SCHEMA.md reach enum (national|multi_state|state|local) cannot express foreign-based outlets; base_country is a workaround.",
+  "media.aiff-tv, media.fsdl-media and the club/IWL records overlap partly with media.aiff-media and media.isl-official; separate ids kept because the brands differ.",
+  "Founding years given only where well known; owners left out where unsure.",
+  "Akashvani regional stations and regional-language dailies are in outlets_regional_b.toml and outlets.toml and not repeated here.",
+]
+
+[[outlet]]
+id = "media.football-counter"
+name = "Football Counter"
+kind = "football_specialist"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "national_team", "transfers"]
+football_emphasis = "specialist"
+style = ["breaking", "analysis"]
+website = "https://www.footballcounter.com"
+active = true
+desc = "Independent Indian football news and opinion site."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Existence and Indian-football focus recalled with fair confidence; ownership and current activity not known." }
+
+[[outlet]]
+id = "media.the-hard-tackle"
+name = "The Hard Tackle"
+kind = "football_specialist"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "national_team", "tactics"]
+football_emphasis = "specialist"
+style = ["long_form", "analysis", "features"]
+website = "https://www.thehardtackle.com"
+active = true
+desc = "Indian football blog and features site with a fan-culture and analysis bent."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Existence recalled with fair confidence; current activity unconfirmed." }
+
+[[outlet]]
+id = "media.football-tribe-india"
+name = "Football Tribe India"
+kind = "football_specialist"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "transfers", "international"]
+football_emphasis = "specialist"
+style = ["analysis", "features"]
+active = false
+desc = "India edition of a football-only content network; Indian-football section on transfers and opinion."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Unsure whether the India edition is still running; treat as possibly inactive." }
+
+[[outlet]]
+id = "media.fourfourtwo-india"
+name = "FourFourTwo India"
+kind = "football_specialist"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international", "professional", "tactics"]
+football_emphasis = "specialist"
+style = ["long_form", "features"]
+owner = "Future plc (brand owner; Indian licensee not recorded)"
+active = false
+desc = "Indian edition of the UK football magazine brand, mixing global football with Indian football features."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; India edition existed at some point; current status unknown." }
+
+[[outlet]]
+id = "media.onefootball"
+name = "OneFootball"
+kind = "digital_sports"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international", "professional", "stats"]
+football_emphasis = "specialist"
+style = ["breaking"]
+website = "https://onefootball.com"
+active = true
+desc = "Berlin-based football app and content platform with India-facing editions."
+base_country = "DEU"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Foreign-based; how much India-specific content it carries in 2026-27 not confirmed." }
+
+[[outlet]]
+id = "media.transfermarkt"
+name = "Transfermarkt"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["transfers", "stats", "professional"]
+football_emphasis = "specialist"
+owner = "Axel Springer (majority owner per recollection)"
+founded = 2000
+website = "https://www.transfermarkt.com"
+active = true
+desc = "German football database used widely for Indian player values, contracts and transfer histories."
+base_country = "DEU"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Coverage of Indian lower divisions is patchy; ownership recalled, not checked." }
+
+[[outlet]]
+id = "media.sofascore"
+name = "Sofascore"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["stats", "professional", "national_team"]
+football_emphasis = "specialist"
+website = "https://www.sofascore.com"
+active = true
+desc = "Live-score and match-statistics app covering ISL, I-League and India internationals."
+base_country = "HRV"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Croatian company; recalled with fair confidence." }
+
+[[outlet]]
+id = "media.fotmob"
+name = "FotMob"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["stats", "professional", "national_team"]
+football_emphasis = "specialist"
+website = "https://www.fotmob.com"
+active = true
+desc = "Norwegian live-score and football news app with ISL and India national team pages."
+base_country = "NOR"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Recalled with fair confidence; depth of Indian coverage unconfirmed." }
+
+[[outlet]]
+id = "media.flashscore"
+name = "Flashscore"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["stats", "professional"]
+football_emphasis = "specialist"
+website = "https://www.flashscore.com"
+active = true
+desc = "Czech live-score service listing Indian football competitions."
+base_country = "CZE"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Recalled with fair confidence." }
+
+[[outlet]]
+id = "media.soccerway"
+name = "Soccerway"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["stats", "professional"]
+football_emphasis = "specialist"
+active = true
+desc = "Football results and standings database that lists Indian leagues and cups."
+base_country = "GBR"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Unsure whether the brand still operates independently in 2026-27." }
+
+[[outlet]]
+id = "media.aiff-tv"
+name = "AIFF TV"
+kind = "official_federation"
+medium = ["video", "digital", "social"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["national_team", "youth", "women", "grassroots"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "All India Football Federation"
+active = true
+desc = "All India Football Federation's video channel: match highlights, national team and youth content."
+association = "assoc.aiff"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Overlaps in part with media.aiff-media (AIFF official channels); kept separate because AIFF TV is a named video brand; naming and exact platforms not re-checked." }
+
+[[outlet]]
+id = "media.afc-media"
+name = "AFC official media"
+kind = "official_federation"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international", "national_team", "professional"]
+football_emphasis = "specialist"
+style = ["match_reports", "video"]
+owner = "Asian Football Confederation"
+founded = 1954
+website = "https://www.the-afc.com"
+active = true
+desc = "Asian Football Confederation website and channels covering AFC club and national-team competitions that involve Indian teams."
+base_country = "MYS"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Founding year of the confederation, not the website." }
+
+[[outlet]]
+id = "media.fifa-media"
+name = "FIFA official media"
+kind = "official_federation"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international", "national_team"]
+football_emphasis = "specialist"
+owner = "FIFA"
+website = "https://www.fifa.com"
+active = true
+desc = "FIFA website and channels; carries FIFA rankings and world-cup qualifier material relevant to India."
+base_country = "CHE"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[outlet]]
+id = "media.saff-media"
+name = "SAFF official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["national_team", "youth", "international"]
+football_emphasis = "specialist"
+owner = "South Asian Football Federation"
+active = true
+desc = "South Asian Football Federation channels covering the SAFF Championship and age-group tournaments in which India competes."
+base_country = "BGD"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Headquarters country and channel details recalled loosely." }
+
+[[outlet]]
+id = "media.ifa-official"
+name = "Indian Football Association (Bengal) official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.ifa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.kfa-official"
+name = "Kerala Football Association official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kochi"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.kfa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.gfa-official"
+name = "Goa Football Association official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.gfa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.football-delhi-official"
+name = "Football Delhi official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.fd"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.ksfa-official"
+name = "Karnataka State Football Association official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.ksfa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.fam-official"
+name = "Football Association of Manipur official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.fam"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.mfa-official"
+name = "Mizoram Football Association official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.mfa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.meghalaya-fa-official"
+name = "Meghalaya Football Association official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["state", "grassroots", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "State football association's website and social channels: fixtures, notices and state-league results."
+association = "assoc.mfa-ml"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Association is real; channels' exact form and activity level unconfirmed; home city is the association HQ city as recalled." }
+
+[[outlet]]
+id = "media.iwl-official"
+name = "Indian Women's League official channels"
+kind = "official_league"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["women", "professional"]
+football_emphasis = "specialist"
+style = ["match_reports", "video"]
+owner = "All India Football Federation"
+active = true
+desc = "AIFF-run channels for the Indian Women's League: fixtures, results and highlights."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Confirmed that the league exists (see comp.iwl); dedicated channels not confirmed, may be folded into AIFF channels." }
+
+[[outlet]]
+id = "media.i-league-official"
+name = "I-League official channels"
+kind = "official_league"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "regional_leagues"]
+football_emphasis = "specialist"
+style = ["match_reports", "video"]
+owner = "All India Football Federation"
+website = "https://www.i-league.org"
+active = true
+desc = "Official I-League website and social channels run under the AIFF."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Site address recalled; may have moved to the AIFF domain." }
+
+[[outlet]]
+id = "media.fsdl-media"
+name = "FSDL corporate and ISL-operator channels"
+kind = "official_league"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional"]
+football_emphasis = "specialist"
+owner = "Football Sports Development Limited"
+active = true
+desc = "Channels of Football Sports Development Limited, the ISL commercial operator, beyond the ISL match-day accounts."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Operator identity is well known but 2026-27 arrangements (post-2025 tender and MRA developments) and separate channels not confirmed; overlaps media.isl-official." }
+
+[[outlet]]
+id = "media.durand-cup-official"
+name = "Durand Cup official channels"
+kind = "official_league"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "multi_state"
+focus = ["professional", "regional_leagues"]
+football_emphasis = "specialist"
+owner = "Durand Football Tournament Society (Indian Army)"
+active = true
+desc = "Durand Football Tournament Society and Indian Army channels for the Durand Cup (Delhi, Kolkata, north-east venues in recent years)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Organiser described from memory; venue set for 2026 not recorded." }
+
+[[outlet]]
+id = "media.kpl-official"
+name = "Kerala Premier League channels"
+kind = "official_league"
+medium = ["digital", "social"]
+languages = ["lang.en", "lang.ml"]
+reach = "state"
+home_state = "state.kl"
+focus = ["state", "regional_leagues"]
+football_emphasis = "specialist"
+owner = "Kerala Football Association"
+active = true
+desc = "Kerala Football Association channels for the Kerala Premier League."
+association = "assoc.kfa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; KPL exists; separate channels unconfirmed." }
+
+[[outlet]]
+id = "media.calcutta-football-league-official"
+name = "Calcutta Football League channels"
+kind = "official_league"
+medium = ["digital", "social"]
+languages = ["lang.en", "lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["state", "regional_leagues"]
+football_emphasis = "specialist"
+owner = "Indian Football Association"
+active = true
+desc = "IFA channels for the Calcutta Football League and IFA Shield."
+association = "assoc.ifa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Channels unconfirmed, may be folded into the IFA record." }
+
+[[outlet]]
+id = "media.club-mohun-bagan-sg-official"
+name = "Mohun Bagan Super Giant official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.bn"]
+reach = "multi_state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Mohun Bagan Super Giant"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Mohun Bagan Super Giant."
+club = "club.mohun-bagan-sg"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-east-bengal-official"
+name = "East Bengal FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.bn"]
+reach = "multi_state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "East Bengal FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for East Bengal FC."
+club = "club.east-bengal"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-mohammedan-official"
+name = "Mohammedan SC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.bn"]
+reach = "multi_state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Mohammedan SC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Mohammedan SC."
+club = "club.mohammedan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-bengaluru-official"
+name = "Bengaluru FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.kn"]
+reach = "multi_state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Bengaluru FC"
+website = "https://www.bengalurufc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Bengaluru FC."
+club = "club.bengaluru"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-kerala-blasters-official"
+name = "Kerala Blasters FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.ml"]
+reach = "multi_state"
+home_state = "state.kl"
+home_city = "Kochi"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Kerala Blasters FC"
+website = "https://www.keralablasters.in"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Kerala Blasters FC."
+club = "club.kerala-blasters"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-chennaiyin-official"
+name = "Chennaiyin FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.ta"]
+reach = "multi_state"
+home_state = "state.tn"
+home_city = "Chennai"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Chennaiyin FC"
+website = "https://www.chennaiyinfc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Chennaiyin FC."
+club = "club.chennaiyin"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-goa-official"
+name = "FC Goa official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.ga"
+home_city = "Margao"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "FC Goa"
+website = "https://www.fcgoa.in"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for FC Goa."
+club = "club.goa"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-jamshedpur-official"
+name = "Jamshedpur FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "multi_state"
+home_state = "state.jh"
+home_city = "Jamshedpur"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Jamshedpur FC"
+website = "https://www.jamshedpurfc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Jamshedpur FC."
+club = "club.jamshedpur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-mumbai-city-official"
+name = "Mumbai City FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.mr"]
+reach = "multi_state"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Mumbai City FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Mumbai City FC."
+club = "club.mumbai-city"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-northeast-united-official"
+name = "NorthEast United FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "NorthEast United FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for NorthEast United FC."
+club = "club.northeast-united"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-odisha-official"
+name = "Odisha FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.or"]
+reach = "multi_state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Odisha FC"
+website = "https://www.odishafc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Odisha FC."
+club = "club.odisha"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-punjab-official"
+name = "Punjab FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Ludhiana"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Punjab FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Punjab FC."
+club = "club.punjab"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-hyderabad-official"
+name = "Hyderabad FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.te"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Hyderabad FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Hyderabad FC."
+club = "club.hyderabad"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-inter-kashi-official"
+name = "Inter Kashi official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "state"
+home_state = "state.up"
+home_city = "Varanasi"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Inter Kashi"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Inter Kashi."
+club = "club.inter-kashi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-churchill-brothers-official"
+name = "Churchill Brothers official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.ga"
+home_city = "Margao"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Churchill Brothers"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Churchill Brothers."
+club = "club.churchill-brothers"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-real-kashmir-official"
+name = "Real Kashmir FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.ks"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Real Kashmir FC"
+website = "https://www.realkashmirfc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Real Kashmir FC."
+club = "club.real-kashmir"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-gokulam-kerala-official"
+name = "Gokulam Kerala FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.ml"]
+reach = "multi_state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Gokulam Kerala FC"
+website = "https://www.gokulamkeralafc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Gokulam Kerala FC."
+club = "club.gokulam-kerala"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-sreenidi-deccan-official"
+name = "Sreenidi Deccan FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.te"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Sreenidi Deccan FC"
+website = "https://www.sreenidideccanfc.com"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Sreenidi Deccan FC."
+club = "club.sreenidi-deccan"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are recalled with fair confidence; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-rajasthan-united-official"
+name = "Rajasthan United FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "state"
+home_state = "state.rj"
+home_city = "Jaipur"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Rajasthan United FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Rajasthan United FC."
+club = "club.rajasthan-united"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-aizawl-official"
+name = "Aizawl FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.lus"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Aizawl FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Aizawl FC."
+club = "club.aizawl"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-shillong-lajong-official"
+name = "Shillong Lajong FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.kha"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Shillong Lajong FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Shillong Lajong FC."
+club = "club.shillong-lajong"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-delhi-official"
+name = "Delhi FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "state"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Delhi FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Delhi FC."
+club = "club.delhi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-sudeva-delhi-official"
+name = "Sudeva Delhi FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "state"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Sudeva Delhi FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Sudeva Delhi FC."
+club = "club.sudeva-delhi"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-dempo-official"
+name = "Dempo SC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Dempo SC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Dempo SC."
+club = "club.dempo"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.club-kenkre-official"
+name = "Kenkre FC official channels"
+kind = "official_club"
+medium = ["digital", "social", "video"]
+languages = ["lang.en", "lang.mr"]
+reach = "multi_state"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional"]
+football_emphasis = "specialist"
+style = ["video", "match_reports"]
+owner = "Kenkre FC"
+active = true
+desc = "Club website and social channels: match centre, squad, ticketing and video for Kenkre FC."
+club = "club.kenkre"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Club is in the club records; whether a separate club TV channel exists and the site address are not confirmed; reach word is a broad characterisation." }
+
+[[outlet]]
+id = "media.fan-blue-pilgrims"
+name = "Blue Pilgrims"
+kind = "football_specialist"
+medium = ["social", "digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["national_team", "grassroots"]
+football_emphasis = "specialist"
+style = ["features"]
+active = true
+desc = "Supporters' collective of the India national team; runs social channels covering away trips and matches."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group is real to my recollection; size, channels and current activity unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.fan-manjappada"
+name = "Manjappada"
+kind = "football_specialist"
+medium = ["social", "video"]
+languages = ["lang.ml", "lang.en"]
+reach = "state"
+home_state = "state.kl"
+focus = ["professional", "regional_leagues"]
+football_emphasis = "specialist"
+active = true
+desc = "Kerala Blasters supporters' group ('yellow army'); social channels in Malayalam and English."
+club = "club.kerala-blasters"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group is real to my recollection; channel forms unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.fan-west-block-blues"
+name = "West Block Blues"
+kind = "football_specialist"
+medium = ["social"]
+languages = ["lang.en", "lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+focus = ["professional"]
+football_emphasis = "specialist"
+active = true
+desc = "Bengaluru FC's supporters' group; social channels and tifo content."
+club = "club.bengaluru"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group is real to my recollection; channel forms unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.fan-marina-machans"
+name = "Marina Machans"
+kind = "football_specialist"
+medium = ["social"]
+languages = ["lang.ta", "lang.en"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+focus = ["professional"]
+football_emphasis = "specialist"
+active = true
+desc = "Chennaiyin FC's supporters' group; social channels in Tamil and English."
+club = "club.chennaiyin"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group is real to my recollection; channel forms unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.fan-gaurs"
+name = "Gaurs (FC Goa supporters)"
+kind = "football_specialist"
+medium = ["social"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+focus = ["professional"]
+football_emphasis = "specialist"
+active = true
+desc = "FC Goa supporters' group ('Gaurs'); social channels."
+club = "club.goa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group name recalled; channel forms unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.fan-red-miners"
+name = "Red Miners"
+kind = "football_specialist"
+medium = ["social"]
+languages = ["lang.en", "lang.hi"]
+reach = "state"
+home_state = "state.jh"
+home_city = "Jamshedpur"
+focus = ["professional"]
+football_emphasis = "specialist"
+active = true
+desc = "Jamshedpur FC's supporters' group; social channels."
+club = "club.jamshedpur"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group name recalled; channel forms unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.fan-red-and-gold-brigade"
+name = "Red and Gold Brigade"
+kind = "football_specialist"
+medium = ["social"]
+languages = ["lang.bn", "lang.en"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional"]
+football_emphasis = "specialist"
+active = true
+desc = "East Bengal supporters' group; social channels."
+club = "club.east-bengal"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Group name recalled with limited confidence; channel forms unverified; not a journalistic outlet." }
+
+[[outlet]]
+id = "media.vividh-bharati"
+name = "Vividh Bharati (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi"]
+reach = "national"
+focus = ["national_team"]
+football_emphasis = "general"
+owner = "Prasar Bharati (All India Radio)"
+founded = 1957
+active = true
+desc = "Akashvani's national entertainment service; sports bulletins and occasional live commentary on major events."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Founding year 1957 recalled with good confidence; football content is minor." }
+
+[[outlet]]
+id = "media.air-fm-rainbow"
+name = "AIR FM Rainbow"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en"]
+reach = "multi_state"
+focus = ["professional"]
+football_emphasis = "general"
+owner = "Prasar Bharati (All India Radio)"
+active = true
+desc = "Akashvani FM channel in several metros; sports news items."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Exists in several metros; football content level unknown." }
+
+[[outlet]]
+id = "media.air-fm-gold"
+name = "AIR FM Gold"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en"]
+reach = "multi_state"
+football_emphasis = "general"
+owner = "Prasar Bharati (All India Radio)"
+active = true
+desc = "Akashvani news-and-current-affairs FM channel in metros; hourly bulletins including sports."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Football content level unknown." }
+
+[[outlet]]
+id = "media.fever-fm"
+name = "Fever FM"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi"]
+reach = "multi_state"
+football_emphasis = "general"
+owner = "HT Media (recalled)"
+active = true
+desc = "Commercial FM network with sports features during major events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Ownership recalled, not checked; football content level unknown." }
+
+[[outlet]]
+id = "media.radio-one"
+name = "Radio One"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+desc = "Commercial FM network in a few metros."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Football content unknown; existence recalled." }
+
+[[outlet]]
+id = "media.friends-fm-kolkata"
+name = "Friends FM (Kolkata)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.bn"]
+reach = "local"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+desc = "Kolkata commercial FM station in Bengali; local sport chat around derbies."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Station name recalled; football content unknown." }
+
+[[outlet]]
+id = "media.radio-indigo"
+name = "Radio Indigo"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.en"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+desc = "English-language FM in Bengaluru and Goa; local sport slots."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Cities recalled; football content unknown." }
+
+[[outlet]]
+id = "media.gyan-vani"
+name = "Gyan Vani"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en"]
+reach = "multi_state"
+football_emphasis = "general"
+owner = "IGNOU (with Ministry of Education)"
+active = true
+desc = "IGNOU-run educational FM network with campus and community programming; only marginal sport."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Football relevance minimal." }
+
+[[outlet]]
+id = "media.radio-ju"
+name = "Radio Jadavpur"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.bn", "lang.en"]
+reach = "local"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["youth", "grassroots"]
+football_emphasis = "general"
+owner = "Jadavpur University"
+active = true
+desc = "Community radio station run from Jadavpur University, Kolkata; can carry campus sport."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Name and operator recalled with limited confidence." }
+
+[[outlet]]
+id = "media.reuters"
+name = "Reuters"
+kind = "news_agency"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international", "national_team"]
+football_emphasis = "general"
+owner = "Thomson Reuters"
+founded = 1851
+website = "https://www.reuters.com"
+active = true
+desc = "International wire; covers Indian football only for major stories (national-team milestones, governance)."
+base_country = "GBR"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Founding year for the news agency." }
+
+[[outlet]]
+id = "media.afp"
+name = "Agence France-Presse (AFP)"
+kind = "news_agency"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international"]
+football_emphasis = "general"
+active = true
+desc = "International wire with South Asia coverage; rare Indian football stories."
+base_country = "FRA"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Coverage depth on Indian football unknown." }
+
+[[outlet]]
+id = "media.associated-press"
+name = "Associated Press"
+kind = "news_agency"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international"]
+football_emphasis = "general"
+active = true
+desc = "International wire; India football appears only in AFC/FIFA event stories."
+base_country = "USA"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Coverage depth unknown." }
+
+[[outlet]]
+id = "media.xinhua"
+name = "Xinhua"
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international"]
+football_emphasis = "general"
+active = true
+desc = "Chinese state agency with an English wire that runs AFC-competition results involving Indian teams."
+base_country = "CHN"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Coverage depth unknown." }
+
+[[outlet]]
+id = "media.pib-sports"
+name = "Press Information Bureau (sports releases)"
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+focus = ["grassroots", "youth"]
+football_emphasis = "general"
+owner = "Government of India"
+active = true
+desc = "Government press office releasing Ministry of Youth Affairs and Sports notices, including Khelo India and SAI announcements."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Government information service, not a news agency; kind news_agency is the closest available." }
+
+[[outlet]]
+id = "media.sai-media"
+name = "Sports Authority of India official channels"
+kind = "official_federation"
+medium = ["digital", "social"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+focus = ["grassroots", "youth"]
+football_emphasis = "general"
+owner = "Sports Authority of India"
+active = true
+desc = "SAI's website and social channels: training centres, Khelo India events and sports-hostel selections."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; SAI is a government sports body, not a federation; kind official_federation is the closest available." }
+
+[[outlet]]
+id = "media.sportsworld-ananda"
+name = "Sportsworld"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+style = ["features", "long_form"]
+active = false
+desc = "Bengali-language sports weekly historically from the Ananda group, strong on Kolkata football."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Publisher and dates recalled loosely; unsure if still publishing." }
+
+[[outlet]]
+id = "media.sports-illustrated-india"
+name = "Sports Illustrated India"
+kind = "national_sports"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["international", "professional"]
+football_emphasis = "general"
+active = false
+desc = "Indian edition of the US sports magazine brand; football a minor part."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Existed in the 2000s; likely defunct; football emphasis low." }
+
+[[outlet]]
+id = "media.du-beat"
+name = "DU Beat"
+kind = "campus"
+medium = ["digital", "social"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["youth", "grassroots"]
+football_emphasis = "general"
+style = ["match_reports", "features"]
+website = "https://www.dubeat.com"
+active = true
+desc = "Delhi University's student media collective; covers inter-college sport including football."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Real student media house; sport coverage depth varies." }
+
+[[outlet]]
+id = "media.hindu-college-gazette"
+name = "The Hindu College Gazette"
+kind = "campus"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["youth"]
+football_emphasis = "general"
+active = true
+desc = "Delhi University's Hindu College student newspaper with sports desk."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Name recalled; activity unconfirmed." }
+
+[[outlet]]
+id = "media.the-edict"
+name = "The Edict (Ashoka University)"
+kind = "campus"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.hr"
+home_city = "Sonipat"
+focus = ["youth"]
+football_emphasis = "general"
+active = true
+desc = "Ashoka University student newspaper."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Name recalled; football coverage minimal." }
+
+[[outlet]]
+id = "media.insight-iit-bombay"
+name = "Insight (IIT Bombay)"
+kind = "campus"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["youth"]
+football_emphasis = "general"
+active = true
+desc = "IIT Bombay's student media body; covers inter-IIT sport."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Name recalled; football coverage minimal." }
+
+[[outlet]]
+id = "media.manipal-journal"
+name = "The Manipal Journal"
+kind = "campus"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.ka"
+home_city = "Manipal"
+focus = ["youth"]
+football_emphasis = "general"
+active = true
+desc = "Student media of Manipal Academy of Higher Education; campus sport."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Name recalled; activity unconfirmed." }

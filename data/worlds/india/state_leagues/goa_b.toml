@@ -1,0 +1,129 @@
+# State league pyramids below the state top division (competition records only; no clubs/memberships here).
+[meta]
+dataset = "state_leagues.goa_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Goa below the Goa Professional League: Second and Third Divisions, women's league, Bandodkar Gold Trophy, age groups."
+gaps = [
+  "Model knowledge only (no web access, per brief v2): every record is q = C (existence and rough role believed correct) or q = D (name/format a scenario seed). No season-verified participant lists, team counts or dates.",
+  "The state top-division competitions (state premier leagues) already exist in competitions/membership_t4_b.toml and are only REFERENCED here via qualifies_to; they were not edited, so their fed_by fields do not point back at the divisions defined here.",
+  "tier is the in-state pyramid position (1 = state top division = game tier 4). District leagues and cups carry no tier.",
+  "Women's leagues use qualifies_to = comp.iwl2 as a coarse pointer to the national women's pathway; the actual nomination mechanism for a given year was not checked.",
+  "State Junior (u19) and Sub-Junior (u16) championships are pointed at comp.junior-nfc and comp.sub-junior-nfc; the exact age bands used by each state association in 2026-27 were not verified.",
+  "Women's leagues for Kerala, Manipur, Odisha, Tamil Nadu, Delhi, Haryana, Karnataka, Goa, Mizoram, Meghalaya and Maharashtra (Mumbai) are defined by another agent in competitions/membership_women_b.toml and are deliberately not repeated here; women's leagues for the other states in this file are new (mostly q = D).",
+  "Guwahati Premier League is already an alias of comp.as.assam-state-premier-league and is not a separate record.",
+  "Goa village-level football (Susegad-style local tournaments, church-feast cups) is not modelled.",
+]
+
+[[competition]]
+id = "comp.ga.second-division"
+name = "Goa Football Association Second Division"
+short = "GFA Second Division"
+organiser = "assoc.gfa"
+level = "state"
+tier = 2
+state = "state.ga"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level of the Goan pyramid: a league of roughly 10-14 clubs; the top side(s) promoted to the Goa Professional League."
+promotion = "Top club(s) promoted to the Goa Professional League."
+relegation = "Bottom club(s) relegated to the Third Division."
+qualifies_to = ["comp.ga.goa-professional-league"]
+fed_by = ["comp.ga.third-division"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; structure believed correct; team counts vary by year" }
+
+[[competition]]
+id = "comp.ga.third-division"
+name = "Goa Football Association Third Division"
+short = "GFA Third Division"
+organiser = "assoc.gfa"
+level = "state"
+tier = 3
+state = "state.ga"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Entry level of the men's Goan league pyramid; village/taluka clubs; format unknown."
+qualifies_to = ["comp.ga.second-division"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; existence of a formal third division not certain" }
+
+[[competition]]
+id = "comp.ga.bandodkar-gold-trophy"
+name = "Bandodkar Gold Trophy"
+organiser = "assoc.gfa"
+level = "state"
+state = "state.ga"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Traditional Goan knockout/invitation tournament named for Dayanand Bandodkar; format and current schedule unknown."
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; edition status in 2026-27 not known" }
+
+[[competition]]
+id = "comp.ga.junior-championship"
+name = "Goa State Junior Championship (U-19)"
+organiser = "assoc.gfa"
+level = "state"
+state = "state.ga"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.ga.sub-junior-championship"
+name = "Goa State Sub-Junior Championship (U-16)"
+organiser = "assoc.gfa"
+level = "state"
+state = "state.ga"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.ga.youth-league-u17"
+name = "Goa Youth League U-17"
+organiser = "assoc.gfa"
+level = "state"
+state = "state.ga"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for clubs/academies feeding the national Elite Youth League; format not known."
+qualifies_to = ["comp.youth-league-u17"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }
+
+[[competition]]
+id = "comp.ga.youth-league-u15"
+name = "Goa Youth League U-15"
+organiser = "assoc.gfa"
+level = "state"
+state = "state.ga"
+age = "u15"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for Goan clubs/academies feeding the Elite Youth League U15; format unknown."
+qualifies_to = ["comp.youth-league-u15"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }

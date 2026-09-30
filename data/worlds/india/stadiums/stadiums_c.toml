@@ -1,0 +1,961 @@
+[meta]
+dataset = "stadiums.c"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "111 further real grounds not in stadiums_b.toml: Kolkata Maidan and Bengal district grounds, Kerala district and college stadiums, Manipur, Mizoram, Meghalaya and other north-east grounds, and grounds in north, central, east and south India, including college and practice grounds."
+gaps = [
+  "All records are model knowledge (brief v2: no web access). q D means name, exact site or football use is unsure; q C means the ground is well known. No source URLs.",
+  "Capacities are given for only a few grounds, rounded and flagged capacity_approx = true (capacity_as_of = 2023 is a nominal marker for the recollection, not a checked date). Most grounds have no capacity.",
+  "Optional extra field ground_type (stadium|district_stadium|maidan|training_ground|college_ground) is used; it is not in SCHEMA.md. SCHEMA GAP: a ground-type enum, and a district reference, would help.",
+  "home_clubs is set only for a handful of ties I am fairly sure of; 2026-27 assignments are not confirmed.",
+  "Kolkata Maidan club tents and practice grounds (many club-named grounds) are only sampled; a Maidan-wide census could not be produced from memory.",
+  "Ground names in Manipur, Mizoram, Meghalaya and other district towns are recalled loosely; several may be named after people and are recorded under descriptive names.",
+  "Surface and owner left out throughout.",
+]
+
+[[stadium]]
+id = "stadium.kishore-bharati"
+name = "Kishore Bharati Krirangan"
+aliases = ["Kishore Bharati Stadium", "Salt Lake Stadium No. 2"]
+city = "Kolkata"
+state = "state.wb"
+capacity = 12000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Second Salt Lake ground used for Calcutta Football League and other matches; capacity rounded." }
+
+[[stadium]]
+id = "stadium.rabindra-sarobar"
+name = "Rabindra Sarobar Stadium"
+city = "Kolkata"
+state = "state.wb"
+capacity = 26000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; South Kolkata multi-use stadium used for local football and athletics; football use in 2026-27 not confirmed; capacity rounded." }
+
+[[stadium]]
+id = "stadium.howrah-stadium"
+name = "Howrah Stadium"
+aliases = ["Sailen Manna Stadium"]
+city = "Howrah"
+state = "state.wb"
+capacity = 24000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Named for Sailen Manna; existence sure, current football use and capacity rounded from memory." }
+
+[[stadium]]
+id = "stadium.barasat-stadium"
+name = "Barasat Stadium"
+aliases = ["Barasat Stadium (Sukanta Sarani)"]
+city = "Barasat"
+state = "state.wb"
+capacity = 22000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; North 24 Parganas district ground; capacity rounded." }
+
+[[stadium]]
+id = "stadium.naihati-stadium"
+name = "Naihati Stadium"
+city = "Naihati"
+state = "state.wb"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; North 24 Parganas ground; used for Bengal district and league matches; no capacity recorded." }
+
+[[stadium]]
+id = "stadium.bidhannagar-stadium"
+name = "Bidhannagar Municipal Stadium"
+aliases = ["Bidhannagar Stadium"]
+city = "Kolkata"
+state = "state.wb"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Salt Lake area ground; use for football and capacity not confirmed." }
+
+[[stadium]]
+id = "stadium.balurghat-stadium"
+name = "Balurghat Stadium"
+city = "Balurghat"
+state = "state.wb"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Dakshin Dinajpur district ground; no capacity recorded." }
+
+[[stadium]]
+id = "stadium.cooch-behar-stadium"
+name = "Cooch Behar Stadium"
+city = "Cooch Behar"
+state = "state.wb"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground in north Bengal; exact name unsure." }
+
+[[stadium]]
+id = "stadium.cfc-ground"
+name = "Calcutta Football Club Ground"
+aliases = ["CFC Ground"]
+city = "Kolkata"
+state = "state.wb"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Maidan ground of Calcutta Football Club, one of the oldest football clubs in the world; located on the Maidan." }
+
+[[stadium]]
+id = "stadium.ccfc-ground"
+name = "Calcutta Cricket and Football Club Ground"
+aliases = ["CC&FC Ground"]
+city = "Kolkata"
+state = "state.wb"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Maidan ground; football use today not confirmed." }
+
+[[stadium]]
+id = "stadium.police-ac-ground"
+name = "Police Athletic Club Ground"
+city = "Kolkata"
+state = "state.wb"
+home_clubs = ["club.police-ac"]
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Maidan ground of Kolkata Police's football side; location on the Maidan recalled loosely." }
+
+[[stadium]]
+id = "stadium.fort-william-army-ground"
+name = "Army Ground, Fort William"
+aliases = ["Eastern Command Ground"]
+city = "Kolkata"
+state = "state.wb"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Army-run ground on the Maidan near Fort William; access is restricted." }
+
+[[stadium]]
+id = "stadium.brigade-parade-ground"
+name = "Brigade Parade Ground"
+city = "Kolkata"
+state = "state.wb"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Large open Maidan ground; football matches and Maidan tournaments have been staged in the area." }
+
+[[stadium]]
+id = "stadium.darjeeling-lebong-stadium"
+name = "Lebong Stadium"
+city = "Darjeeling"
+state = "state.wb"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Football ground in the Darjeeling hills; name recalled with low confidence." }
+
+[[stadium]]
+id = "stadium.greenfield-thiruvananthapuram"
+name = "Greenfield International Stadium"
+aliases = ["Karyavattom Stadium", "Sports Hub Thiruvananthapuram"]
+city = "Thiruvananthapuram"
+state = "state.kl"
+capacity = 50000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Multi-use stadium (cricket and football); capacity is a cricket-style figure, rounded." }
+
+[[stadium]]
+id = "stadium.chandrasekharan-nair"
+name = "Chandrasekharan Nair Stadium"
+aliases = ["Trivandrum Stadium"]
+city = "Thiruvananthapuram"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Long-standing football venue in the capital; no capacity recorded." }
+
+[[stadium]]
+id = "stadium.university-stadium-tvm"
+name = "University Stadium"
+aliases = ["Kerala University Stadium", "Palayam University Stadium"]
+city = "Thiruvananthapuram"
+state = "state.kl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; University of Kerala stadium in Palayam; athletics and football." }
+
+[[stadium]]
+id = "stadium.kottayam-nehru"
+name = "Nehru Stadium, Kottayam"
+city = "Kottayam"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District stadium, used in Kerala district and state tournaments." }
+
+[[stadium]]
+id = "stadium.thrissur-corporation-stadium"
+name = "Thrissur Corporation Stadium"
+city = "Thrissur"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Municipal football venue; exact name recalled loosely." }
+
+[[stadium]]
+id = "stadium.thekkinkadu-maidan"
+name = "Thekkinkadu Maidan"
+city = "Thrissur"
+state = "state.kl"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Open ground at the centre of Thrissur; football and Pooram events." }
+
+[[stadium]]
+id = "stadium.maharajas-college-ground"
+name = "Maharaja's College Ground"
+aliases = ["Maharajas College Stadium"]
+city = "Kochi"
+state = "state.kl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic college ground in Ernakulam." }
+
+[[stadium]]
+id = "stadium.panampilly-nagar-ground"
+name = "Panampilly Nagar Ground"
+aliases = ["Panampilly Nagar Stadium"]
+city = "Kochi"
+state = "state.kl"
+ground_type = "training_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Used as a training and small-match venue in Kochi; club use not confirmed." }
+
+[[stadium]]
+id = "stadium.kannur-jawahar"
+name = "Jawahar Stadium, Kannur"
+city = "Kannur"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District stadium, used for Kerala state and district football." }
+
+[[stadium]]
+id = "stadium.thalassery-municipal"
+name = "Thalassery Municipal Stadium"
+city = "Thalassery"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Municipal stadium in the Kannur district; football culture of Thalassery." }
+
+[[stadium]]
+id = "stadium.kasaragod-municipal"
+name = "Kasaragod Municipal Stadium"
+city = "Kasaragod"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Municipal stadium in the northernmost district." }
+
+[[stadium]]
+id = "stadium.kottappadi-malappuram"
+name = "Kottappadi Municipal Stadium"
+aliases = ["Malappuram Kottappadi Stadium"]
+city = "Malappuram"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Malappuram municipal stadium; sits near Payyanad; exact name unsure." }
+
+[[stadium]]
+id = "stadium.perinthalmanna-municipal"
+name = "Perinthalmanna Municipal Stadium"
+city = "Perinthalmanna"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Malappuram district venue for sevens and district football." }
+
+[[stadium]]
+id = "stadium.kalpetta-municipal"
+name = "Kalpetta Municipal Stadium"
+city = "Kalpetta"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Wayanad district municipal venue." }
+
+[[stadium]]
+id = "stadium.palakkad-indira-gandhi-stadium"
+name = "Indira Gandhi Municipal Stadium, Palakkad"
+aliases = ["Palakkad Municipal Stadium"]
+city = "Palakkad"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Palakkad district stadium." }
+
+[[stadium]]
+id = "stadium.kollam-asramam-maidan"
+name = "Asramam Maidan"
+city = "Kollam"
+state = "state.kl"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Open ground in Kollam used for football and public events." }
+
+[[stadium]]
+id = "stadium.pathanamthitta-stadium"
+name = "Pathanamthitta District Stadium"
+city = "Pathanamthitta"
+state = "state.kl"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District venue; exact name unsure." }
+
+[[stadium]]
+id = "stadium.calicut-university-ground"
+name = "Calicut University Stadium"
+aliases = ["University of Calicut Football Ground"]
+city = "Thenhipalam"
+state = "state.kl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Campus ground of the University of Calicut, historically strong at inter-university football." }
+
+[[stadium]]
+id = "stadium.devagiri-college-ground"
+name = "Devagiri College Ground"
+city = "Kozhikode"
+state = "state.kl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; College ground in Kozhikode used for local football." }
+
+[[stadium]]
+id = "stadium.malabar-christian-college-ground"
+name = "Malabar Christian College Ground"
+city = "Kozhikode"
+state = "state.kl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; College ground in Kozhikode; football tournaments held." }
+
+[[stadium]]
+id = "stadium.mg-university-ground"
+name = "Mahatma Gandhi University Ground"
+city = "Kottayam"
+state = "state.kl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Campus sports ground of MG University." }
+
+[[stadium]]
+id = "stadium.thoubal-stadium"
+name = "Thoubal Stadium"
+city = "Thoubal"
+state = "state.mn"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground; exact name unsure." }
+
+[[stadium]]
+id = "stadium.churachandpur-stadium"
+name = "Churachandpur Stadium"
+aliases = ["Lamka Stadium"]
+city = "Churachandpur"
+state = "state.mn"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Hill district ground with active local football." }
+
+[[stadium]]
+id = "stadium.ukhrul-sports-complex"
+name = "Ukhrul Sports Complex"
+city = "Ukhrul"
+state = "state.mn"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Hill district ground; name unsure." }
+
+[[stadium]]
+id = "stadium.kakching-stadium"
+name = "Kakching Stadium"
+city = "Kakching"
+state = "state.mn"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground; name unsure." }
+
+[[stadium]]
+id = "stadium.bishnupur-stadium"
+name = "Bishnupur Stadium"
+city = "Bishnupur"
+state = "state.mn"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground; name unsure." }
+
+[[stadium]]
+id = "stadium.lammual-aizawl"
+name = "Lammual"
+aliases = ["Lammual Stadium"]
+city = "Aizawl"
+state = "state.mz"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Aizawl ground used for Mizoram Premier League and local football." }
+
+[[stadium]]
+id = "stadium.lunglei-stadium"
+name = "Lunglei Stadium"
+city = "Lunglei"
+state = "state.mz"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground in southern Mizoram; name unsure." }
+
+[[stadium]]
+id = "stadium.champhai-stadium"
+name = "Champhai Stadium"
+city = "Champhai"
+state = "state.mz"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground; name unsure." }
+
+[[stadium]]
+id = "stadium.kolasib-stadium"
+name = "Kolasib Stadium"
+city = "Kolasib"
+state = "state.mz"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground; name unsure." }
+
+[[stadium]]
+id = "stadium.serchhip-stadium"
+name = "Serchhip Stadium"
+city = "Serchhip"
+state = "state.mz"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; District ground; name unsure." }
+
+[[stadium]]
+id = "stadium.polo-ground-shillong"
+name = "Polo Ground, Shillong"
+aliases = ["Shillong Polo Ground"]
+city = "Shillong"
+state = "state.ml"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Central Shillong ground; football and polo." }
+
+[[stadium]]
+id = "stadium.ssa-stadium-shillong"
+name = "SSA Stadium"
+aliases = ["Shillong Sports Association Stadium"]
+city = "Shillong"
+state = "state.ml"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Shillong ground associated with local league matches; name unsure." }
+
+[[stadium]]
+id = "stadium.pa-sangma-stadium-tura"
+name = "P. A. Sangma Stadium"
+city = "Tura"
+state = "state.ml"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Garo Hills venue in Tura." }
+
+[[stadium]]
+id = "stadium.jowai-stadium"
+name = "Jowai Stadium"
+city = "Jowai"
+state = "state.ml"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Jaintia Hills venue; name unsure." }
+
+[[stadium]]
+id = "stadium.nongstoin-ground"
+name = "Nongstoin Ground"
+city = "Nongstoin"
+state = "state.ml"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; West Khasi Hills venue; name unsure." }
+
+[[stadium]]
+id = "stadium.indira-gandhi-stadium-kohima"
+name = "Indira Gandhi Stadium, Kohima"
+city = "Kohima"
+state = "state.nl"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Main stadium of Nagaland's capital." }
+
+[[stadium]]
+id = "stadium.kohima-local-ground"
+name = "Kohima Local Ground"
+city = "Kohima"
+state = "state.nl"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic local football ground in Kohima." }
+
+[[stadium]]
+id = "stadium.ig-park-itanagar"
+name = "Indira Gandhi Park Ground"
+aliases = ["IG Park"]
+city = "Itanagar"
+state = "state.ar"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Central sports ground of Arunachal's capital." }
+
+[[stadium]]
+id = "stadium.umakanta-academy-ground"
+name = "Umakanta Academy Ground"
+city = "Agartala"
+state = "state.tr"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Agartala football ground; used in Tripura league matches." }
+
+[[stadium]]
+id = "stadium.swami-vivekananda-agartala"
+name = "Swami Vivekananda Stadium"
+city = "Agartala"
+state = "state.tr"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Main football stadium of Tripura's capital." }
+
+[[stadium]]
+id = "stadium.namchi-stadium"
+name = "Namchi Stadium"
+city = "Namchi"
+state = "state.sk"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; South Sikkim ground; name unsure." }
+
+[[stadium]]
+id = "stadium.nehru-stadium-guwahati"
+name = "Nehru Stadium, Guwahati"
+city = "Guwahati"
+state = "state.as"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic football venue in Guwahati; current use unsure." }
+
+[[stadium]]
+id = "stadium.judges-field-guwahati"
+name = "Judges Field"
+city = "Guwahati"
+state = "state.as"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; City-centre Guwahati ground used for football and public events." }
+
+[[stadium]]
+id = "stadium.kokrajhar-stadium"
+name = "Kokrajhar Stadium"
+city = "Kokrajhar"
+state = "state.as"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; BTR district ground; name unsure." }
+
+[[stadium]]
+id = "stadium.silchar-stadium"
+name = "Silchar Stadium"
+aliases = ["Silchar Judges Field"]
+city = "Silchar"
+state = "state.as"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Barak Valley ground; name unsure." }
+
+[[stadium]]
+id = "stadium.jorhat-stadium"
+name = "Jorhat Stadium"
+city = "Jorhat"
+state = "state.as"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Upper Assam district ground; name unsure." }
+
+[[stadium]]
+id = "stadium.bakshi-stadium"
+name = "Bakshi Stadium"
+city = "Srinagar"
+state = "state.jk"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Long-standing football venue in Srinagar; capacity rounded." }
+
+[[stadium]]
+id = "stadium.ma-stadium-jammu"
+name = "Maulana Azad Stadium"
+aliases = ["MA Stadium"]
+city = "Jammu"
+state = "state.jk"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Main multi-use stadium in Jammu." }
+
+[[stadium]]
+id = "stadium.leh-polo-ground"
+name = "Leh Polo Ground"
+city = "Leh"
+state = "state.la"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Ladakh's main football and polo ground; name unsure." }
+
+[[stadium]]
+id = "stadium.guru-gobind-singh-jalandhar"
+name = "Guru Gobind Singh Stadium"
+city = "Jalandhar"
+state = "state.pb"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Jalandhar city stadium; football and athletics." }
+
+[[stadium]]
+id = "stadium.lyallpur-khalsa-ground"
+name = "Lyallpur Khalsa College Ground"
+city = "Jalandhar"
+state = "state.pb"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Jalandhar college ground; sees college football." }
+
+[[stadium]]
+id = "stadium.gndu-ground"
+name = "Guru Nanak Dev University Ground"
+city = "Amritsar"
+state = "state.pb"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; University campus ground; inter-university football." }
+
+[[stadium]]
+id = "stadium.shivaji-stadium-delhi"
+name = "Shivaji Stadium"
+city = "New Delhi"
+state = "state.dl"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Connaught Place-area stadium; hockey and football; current football use unsure." }
+
+[[stadium]]
+id = "stadium.du-north-campus-ground"
+name = "Delhi University Sports Complex Ground"
+aliases = ["DU Stadium"]
+city = "New Delhi"
+state = "state.dl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Central University of Delhi facility; inter-college football." }
+
+[[stadium]]
+id = "stadium.jamia-sports-ground"
+name = "Jamia Millia Islamia Sports Ground"
+city = "New Delhi"
+state = "state.dl"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Central university ground." }
+
+[[stadium]]
+id = "stadium.tau-devi-lal-gurugram"
+name = "Tau Devi Lal Stadium, Gurugram"
+city = "Gurugram"
+state = "state.hr"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Gurugram sports complex; football use recalled." }
+
+[[stadium]]
+id = "stadium.sector-17-chandigarh"
+name = "Sector 17 Stadium"
+city = "Chandigarh"
+state = "state.ch"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Chandigarh city stadium; football use recalled with low confidence." }
+
+[[stadium]]
+id = "stadium.sector-42-chandigarh"
+name = "Sector 42 Sports Complex"
+city = "Chandigarh"
+state = "state.ch"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Chandigarh sports complex; football use recalled with low confidence." }
+
+[[stadium]]
+id = "stadium.kd-singh-babu-lucknow"
+name = "K. D. Singh Babu Stadium"
+city = "Lucknow"
+state = "state.up"
+ground_type = "stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Lucknow multi-use stadium (hockey, athletics, football)." }
+
+[[stadium]]
+id = "stadium.sigra-varanasi"
+name = "Sigra Stadium"
+aliases = ["Dr. Sampurnanand Sports Stadium"]
+city = "Varanasi"
+state = "state.up"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Varanasi multi-use stadium; identity with the Sampurnanand name unsure; Inter Kashi's ground assignment not recorded." }
+
+[[stadium]]
+id = "stadium.mmm-stadium-prayagraj"
+name = "Madan Mohan Malaviya Stadium"
+city = "Prayagraj"
+state = "state.up"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Prayagraj multi-use stadium; name unsure." }
+
+[[stadium]]
+id = "stadium.tt-nagar-bhopal"
+name = "T. T. Nagar Stadium"
+city = "Bhopal"
+state = "state.mp"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Bhopal multi-use stadium; football use recalled." }
+
+[[stadium]]
+id = "stadium.nehru-stadium-indore"
+name = "Nehru Stadium, Indore"
+city = "Indore"
+state = "state.mp"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Indore multi-use stadium." }
+
+[[stadium]]
+id = "stadium.parade-ground-dehradun"
+name = "Parade Ground"
+city = "Dehradun"
+state = "state.uk"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Open city ground in Dehradun; football matches held." }
+
+[[stadium]]
+id = "stadium.haldwani-ig-stadium"
+name = "Indira Gandhi International Sports Stadium"
+city = "Haldwani"
+state = "state.uk"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kumaon venue; name unsure." }
+
+[[stadium]]
+id = "stadium.vidhyadhar-nagar-jaipur"
+name = "Vidhyadhar Nagar Stadium"
+city = "Jaipur"
+state = "state.rj"
+home_clubs = ["club.rajasthan-united"]
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Jaipur stadium recalled as used by Rajasthan United; assignment in 2026-27 not confirmed." }
+
+[[stadium]]
+id = "stadium.sms-stadium-jaipur"
+name = "Sawai Mansingh Stadium"
+aliases = ["SMS Stadium"]
+city = "Jaipur"
+state = "state.rj"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Jaipur's older multi-use stadium; football use recalled from earlier decades." }
+
+[[stadium]]
+id = "stadium.morabadi-ranchi"
+name = "Morabadi Ground"
+city = "Ranchi"
+state = "state.jh"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Large open ground in Ranchi used for football." }
+
+[[stadium]]
+id = "stadium.jaipal-singh-stadium-ranchi"
+name = "Jaipal Singh Stadium"
+city = "Ranchi"
+state = "state.jh"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Ranchi stadium named for Jaipal Singh; football and hockey; exact use unsure." }
+
+[[stadium]]
+id = "stadium.keenan-stadium"
+name = "Keenan Stadium"
+city = "Jamshedpur"
+state = "state.jh"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Jamshedpur stadium, mainly known for cricket; football use limited." }
+
+[[stadium]]
+id = "stadium.moin-ul-haq-patna"
+name = "Moin-ul-Haq Stadium"
+city = "Patna"
+state = "state.br"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Patna multi-use stadium." }
+
+[[stadium]]
+id = "stadium.patliputra-sports-complex"
+name = "Patliputra Sports Complex"
+city = "Patna"
+state = "state.br"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Patna sports complex; football use unsure." }
+
+[[stadium]]
+id = "stadium.kiit-stadium"
+name = "KIIT Stadium"
+aliases = ["KIIT University Stadium"]
+city = "Bhubaneswar"
+state = "state.od"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; University stadium on the KIIT campus; hosted football fixtures in recent years." }
+
+[[stadium]]
+id = "stadium.barabati-cuttack"
+name = "Barabati Stadium"
+city = "Cuttack"
+state = "state.od"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Cuttack's main stadium, best known for cricket; football has also been played there." }
+
+[[stadium]]
+id = "stadium.asc-centre-ground"
+name = "ASC Centre Ground"
+city = "Bengaluru"
+state = "state.ka"
+home_clubs = ["club.asc-centre"]
+ground_type = "training_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Army Service Corps ground used by the ASC football club; site recalled." }
+
+[[stadium]]
+id = "stadium.mangala-stadium-mangaluru"
+name = "Mangala Stadium"
+city = "Mangaluru"
+state = "state.ka"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Mangaluru's main district stadium." }
+
+[[stadium]]
+id = "stadium.chamundi-vihar-mysuru"
+name = "Chamundi Vihar Stadium"
+city = "Mysuru"
+state = "state.ka"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Mysuru's multi-use stadium; football has been played there." }
+
+[[stadium]]
+id = "stadium.thimayya-stadium-madikeri"
+name = "General Thimayya Stadium"
+city = "Madikeri"
+state = "state.ka"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kodagu ground; name unsure." }
+
+[[stadium]]
+id = "stadium.nehru-stadium-coimbatore"
+name = "Nehru Stadium, Coimbatore"
+city = "Coimbatore"
+state = "state.tn"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Coimbatore multi-use stadium." }
+
+[[stadium]]
+id = "stadium.icf-ground-chennai"
+name = "ICF Ground"
+city = "Chennai"
+state = "state.tn"
+home_clubs = ["club.icf-fc"]
+ground_type = "training_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Integral Coach Factory sports ground in Perambur; club use per club record." }
+
+[[stadium]]
+id = "stadium.loyola-college-ground"
+name = "Loyola College Ground"
+city = "Chennai"
+state = "state.tn"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Long-standing college football ground." }
+
+[[stadium]]
+id = "stadium.mcc-ground-tambaram"
+name = "Madras Christian College Ground"
+aliases = ["MCC Ground"]
+city = "Chennai"
+state = "state.tn"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Tambaram campus ground; football tournaments held." }
+
+[[stadium]]
+id = "stadium.lb-stadium-hyderabad"
+name = "Lal Bahadur Stadium"
+aliases = ["Fateh Maidan Stadium", "LB Stadium"]
+city = "Hyderabad"
+state = "state.ts"
+capacity = 30000
+capacity_as_of = 2023
+capacity_approx = true
+ground_type = "stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Hyderabad's older multi-use stadium; football historic; capacity rounded." }
+
+[[stadium]]
+id = "stadium.deccan-arena-hyderabad"
+name = "Deccan Arena"
+city = "Hyderabad"
+state = "state.ts"
+home_clubs = ["club.sreenidi-deccan"]
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Football arena used by Sreenidi Deccan FC; capacity and ownership not recorded." }
+
+[[stadium]]
+id = "stadium.osmania-university-ground"
+name = "Osmania University Ground"
+city = "Hyderabad"
+state = "state.ts"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Campus ground; historic university football." }
+
+[[stadium]]
+id = "stadium.igmc-stadium-vijayawada"
+name = "Indira Gandhi Municipal Corporation Stadium"
+aliases = ["IGMC Stadium"]
+city = "Vijayawada"
+state = "state.ap"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Vijayawada multi-use stadium." }
+
+[[stadium]]
+id = "stadium.cooperage-ground"
+name = "Cooperage Ground"
+aliases = ["Cooperage Football Ground"]
+city = "Mumbai"
+state = "state.mh"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; South Mumbai football ground used for local football." }
+
+[[stadium]]
+id = "stadium.nehru-stadium-pune"
+name = "Nehru Stadium, Pune"
+city = "Pune"
+state = "state.mh"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Pune multi-use stadium." }
+
+[[stadium]]
+id = "stadium.fergusson-college-ground"
+name = "Fergusson College Ground"
+city = "Pune"
+state = "state.mh"
+ground_type = "college_ground"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Pune college ground." }
+
+[[stadium]]
+id = "stadium.shahu-stadium-kolhapur"
+name = "Chhatrapati Shahu Stadium"
+aliases = ["Shahu Stadium"]
+city = "Kolhapur"
+state = "state.mh"
+ground_type = "district_stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kolhapur's football venue; the city has a strong local football culture." }
+
+[[stadium]]
+id = "stadium.kasturchand-park-nagpur"
+name = "Kasturchand Park"
+city = "Nagpur"
+state = "state.mh"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Open ground in central Nagpur; football played there." }
+
+[[stadium]]
+id = "stadium.duler-stadium-mapusa"
+name = "Duler Stadium"
+city = "Mapusa"
+state = "state.ga"
+ground_type = "stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; North Goa stadium used for Goa league football." }
+
+[[stadium]]
+id = "stadium.curtorim-stadium"
+name = "Curtorim Stadium"
+city = "Curtorim"
+state = "state.ga"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; South Goa village stadium used for local league football." }
+
+[[stadium]]
+id = "stadium.campal-ground-panaji"
+name = "Campal Ground"
+city = "Panaji"
+state = "state.ga"
+ground_type = "maidan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Panaji sports ground; use recalled with low confidence." }
+
+[[stadium]]
+id = "stadium.netaji-stadium-port-blair"
+name = "Netaji Stadium"
+city = "Port Blair"
+state = "state.an"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Main stadium of the Andaman and Nicobar Islands." }
+
+[[stadium]]
+id = "stadium.indira-gandhi-sports-complex-puducherry"
+name = "Indira Gandhi Sports Complex"
+city = "Puducherry"
+state = "state.py"
+ground_type = "stadium"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Puducherry multi-use complex." }

@@ -1,0 +1,258 @@
+[meta]
+dataset = "clubs.tier3_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "24 real lower-league clubs (national tier 3 = I-League 2, tier 4 = I-League 3) that are not in clubs/national.toml or state_leagues/wb.toml; north-east, Goa, Karnataka, Kerala, Delhi and other state nominees. Identity, city and state only."
+gaps = [
+ "Model knowledge only (no web access): every club is real to the best of recollection but its 2025-26 and 2026-27 IFL2/IFL3 participation is NOT verified; the 2026-27 AIFF participant list is unknown.",
+ "Founded year given only for Salgaocar FC; all others omitted as not sure. Club colours omitted everywhere (no colour field in SCHEMA and not sure of them).",
+ "SCHEMA GAP: home_ground must be a stadium id but data/worlds/india has no stadium records yet; ground names are therefore given as optional extra field home_ground_name (plain text, unverified). Colours have no field either.",
+ "Official names, exact cities/districts and current status (renamed, merged, withdrawn) may differ from what is written here.",
+]
+
+[[club]]
+id = "club.sports-odisha"
+name = "Sports Odisha FC"
+short = "Sports Odisha"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "departmental"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Represents the Odisha government sports set-up; believed to have played the national 2nd Division / I-League 2 in recent seasons. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.garhwal"
+name = "Garhwal FC"
+short = "Garhwal"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Delhi-based club (Delhi Premier League); believed to have played the 2nd Division / I-League 2 in earlier seasons. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.ozone"
+name = "Ozone FC"
+short = "Ozone"
+city = "Bengaluru"
+state = "state.ka"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Bangalore Football Stadium"
+prov = { status = "unknown", q = "D", src = [], note = "Bengaluru club (Bangalore Super Division); believed to have played the 2nd Division / I-League 2. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.chhinga-veng"
+name = "Chhinga Veng FC"
+short = "Chhinga Veng"
+city = "Aizawl"
+state = "state.mz"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Rajiv Gandhi Stadium, Aizawl"
+prov = { status = "unknown", q = "D", src = [], note = "Mizoram Premier League club; believed to have played I-League 2 / the 2nd Division. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.salgaocar"
+name = "Salgaocar FC"
+short = "Salgaocar"
+city = "Vasco da Gama"
+state = "state.ga"
+founded = 1956
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Former I-League and Federation Cup winners, now in the Goa Pro League; believed to have played the 2nd Division / I-League 2 after leaving the top flights. Founding year from general knowledge (1956). Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.sc-bengaluru"
+name = "Sporting Club Bengaluru"
+short = "SC Bengaluru"
+city = "Bengaluru"
+state = "state.ka"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Bangalore Football Stadium"
+prov = { status = "unknown", q = "D", src = [], note = "Bangalore Super Division club; believed to have been a Karnataka nominee at I-League 3 level. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.langsning"
+name = "Langsning FC"
+short = "Langsning"
+city = "Shillong"
+state = "state.ml"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Jawaharlal Nehru Stadium, Shillong (likely)"
+prov = { status = "unknown", q = "D", src = [], note = "Meghalaya Premier League club; believed to have played the 2nd Division / I-League 2 and I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.royal-wahingdoh"
+name = "Royal Wahingdoh FC"
+short = "Royal Wahingdoh"
+city = "Shillong"
+state = "state.ml"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Jawaharlal Nehru Stadium, Shillong (likely)"
+prov = { status = "unknown", q = "D", src = [], note = "Former I-League club, now Meghalaya-level; believed to have played at I-League 3 level. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.nangkiew-irat"
+name = "Nangkiew Irat SC"
+short = "Nangkiew Irat"
+city = "Shillong"
+state = "state.ml"
+kind = "amateur"
+status = "unknown"
+home_ground_name = "Jawaharlal Nehru Stadium, Shillong (likely)"
+prov = { status = "unknown", q = "D", src = [], note = "Meghalaya Premier League club; believed to have been a state nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.chanmari"
+name = "Chanmari FC"
+short = "Chanmari"
+city = "Aizawl"
+state = "state.mz"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Rajiv Gandhi Stadium, Aizawl"
+prov = { status = "unknown", q = "D", src = [], note = "Mizoram Premier League club; believed to have been a Mizoram nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.bethlehem-vengthlang"
+name = "Bethlehem Vengthlang FC"
+short = "BVFC"
+city = "Aizawl"
+state = "state.mz"
+kind = "professional"
+status = "unknown"
+home_ground_name = "Rajiv Gandhi Stadium, Aizawl"
+prov = { status = "unknown", q = "D", src = [], note = "Mizoram Premier League club; believed to have been a Mizoram nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.classic-imphal"
+name = "Classic FC"
+short = "Classic FC"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "unknown"
+home_ground_name = "Khuman Lampak Main Stadium, Imphal (likely)"
+prov = { status = "unknown", q = "D", src = [], note = "Manipur State League club; believed to have been a Manipur nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.kryphsa"
+name = "KRYPHSA FC"
+short = "KRYPHSA"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "unknown"
+home_ground_name = "Khuman Lampak Main Stadium, Imphal (likely)"
+prov = { status = "unknown", q = "D", src = [], note = "Manipur State League club; believed to have played the 2nd Division / I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.gangtok-himalayan"
+name = "Gangtok Himalayan SC"
+short = "Gangtok Himalayan"
+city = "Gangtok"
+state = "state.sk"
+kind = "amateur"
+status = "unknown"
+home_ground_name = "Paljor Stadium, Gangtok"
+prov = { status = "unknown", q = "D", src = [], note = "Sikkim Premier Division club; believed to have been a Sikkim nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.lonestar-kashmir"
+name = "Lonestar Kashmir FC"
+short = "Lonestar Kashmir"
+city = "Srinagar"
+state = "state.jk"
+kind = "professional"
+status = "unknown"
+home_ground_name = "TRC Turf Ground, Srinagar (shared with Real Kashmir; likely)"
+prov = { status = "unknown", q = "D", src = [], note = "Srinagar club; believed to have been a J&K nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.vasco-sc"
+name = "Vasco SC"
+short = "Vasco"
+city = "Vasco da Gama"
+state = "state.ga"
+kind = "amateur"
+status = "unknown"
+home_ground_name = "Tilak Maidan Stadium, Vasco da Gama"
+prov = { status = "unknown", q = "D", src = [], note = "Goa Pro League club; believed to have played at I-League 3 / 2nd Division level. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.sporting-goa"
+name = "Sporting Clube de Goa"
+short = "Sporting Goa"
+city = "Panaji"
+state = "state.ga"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Goa Pro League club; believed to have played at I-League 3 / 2nd Division level. City is approximate. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.madhya-bharat"
+name = "Madhya Bharat SC"
+short = "Madhya Bharat"
+city = "Bhopal"
+state = "state.mp"
+kind = "amateur"
+status = "unknown"
+home_ground_name = "TT Nagar Stadium, Bhopal"
+prov = { status = "unknown", q = "D", src = [], note = "Bhopal club; believed to have played the 2nd Division / I-League 2 in earlier seasons and to be a Madhya Pradesh nominee. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.kerala-united"
+name = "Kerala United FC"
+short = "Kerala United"
+city = "Kozhikode"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Kozhikode club; believed to have been a Kerala nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.fc-kerala"
+name = "FC Kerala"
+short = "FC Kerala"
+city = "Thrissur"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Thrissur club; believed to have been a Kerala nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.kovalam"
+name = "Kovalam FC"
+short = "Kovalam"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Thiruvananthapuram club (Kerala Premier League); believed to have been a Kerala nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.corbett"
+name = "Corbett FC"
+short = "Corbett"
+city = "Ramnagar"
+state = "state.uk"
+kind = "amateur"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Uttarakhand club; believed to have been an Uttarakhand nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }
+
+[[club]]
+id = "club.guwahati-city"
+name = "Guwahati City FC"
+short = "Guwahati City"
+city = "Guwahati"
+state = "state.as"
+kind = "amateur"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Assam State Premier League club; believed to have been an Assam nominee at I-League 3. Model knowledge, not re-checked; 2026-27 participation unknown." }

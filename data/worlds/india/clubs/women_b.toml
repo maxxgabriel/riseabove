@@ -1,0 +1,75 @@
+[meta]
+dataset = "clubs.women_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "6 women's-football clubs that had no record in clubs/*.toml (Sethu, Hans Women, Alakhpura, Nita FA, Misaka United, Lords FA). Women's sides of clubs already recorded elsewhere (Gokulam Kerala, Kickstart, Odisha FC, East Bengal, Sports Odisha, Rising Student Club, Kryphsa, Eastern Sporting Union, Sribhumi, SESA Football Academy, Kenkre, Manipur Police, Mohun Bagan Super Giant) reuse those club ids and appear only in competitions/membership_women_b.toml."
+gaps = [
+ "Model knowledge only (no web access): every club is real to the best of recollection but its Indian Women's League / state women's league status for 2025-26 and 2026-27 is NOT verified.",
+ "Founded years, colours, ownership, official names and grounds omitted unless fairly sure (only a ground for Misaka United, as the state main venue).",
+ "SCHEMA GAP: a club record has no way to say that a women's team is the women's section of a men's club (or an independent women's-only club); women's sides of existing clubs reuse the parent club id and are told apart only by the competition gender in membership. Smallest addition: an optional [[club]] field `section = men|women|both` or a separate team record.",
+ "SCHEMA GAP: home_ground must be a stadium id; ground name given as optional extra field home_ground_name (plain text, unverified), same convention as clubs/tier3_b.toml.",
+ "Other real women's sides recalled only vaguely and NOT recorded rather than invented: Mizoram, Meghalaya, Assam, Nagaland, Jharkhand, Telangana, Gujarat (Baroda) and Bengaluru/Chennai women's teams, and several Kolkata and Mumbai city-league sides.",
+]
+
+[[club]]
+id = "club.sethu-fc"
+name = "Sethu FC"
+short = "Sethu"
+city = "Madurai"
+state = "state.tn"
+kind = "amateur"
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Madurai-based women's football club; a long-running Indian Women's League side (IWL champions in the late 2010s per recollection). Founding year not sure, omitted. Ground not known." }
+
+[[club]]
+id = "club.hans-women"
+name = "Hans Women FC"
+short = "Hans Women"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Delhi women's club (also written Hans FC) recalled as an Indian Women's League participant in the early 2020s. Official name and ground not sure." }
+
+[[club]]
+id = "club.alakhpura"
+name = "Alakhpura FC"
+short = "Alakhpura"
+city = "Alakhpura, Rewari"
+state = "state.hr"
+kind = "amateur"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Haryana women's club from Alakhpura village (Rewari district, believed) that played the early Indian Women's League seasons. District and later status not sure." }
+
+[[club]]
+id = "club.nita-fa"
+name = "Nita Football Academy"
+short = "Nita FA"
+city = "Mumbai"
+state = "state.mh"
+kind = "academy"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Mumbai women's football academy recalled as a recent Indian Women's League participant. Exact official name uncertain; may be written Nita FA." }
+
+[[club]]
+id = "club.misaka-united"
+name = "Misaka United FC"
+short = "Misaka United"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+home_ground_name = "Khuman Lampak Main Stadium, Imphal"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Imphal women's club recalled as an Indian Women's League participant in the 2020s. Ground is only the state's main venue, not confirmed as their designated home." }
+
+[[club]]
+id = "club.lords-fa"
+name = "Lords FA"
+short = "Lords FA"
+city = "Kochi"
+state = "state.kl"
+kind = "academy"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Kochi (Kerala) women's football academy side, recalled as a Kerala Women's League and Indian Women's League participant. Official name uncertain." }

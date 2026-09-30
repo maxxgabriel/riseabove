@@ -1,0 +1,3090 @@
+[meta]
+dataset = "media.outlets_regional_b"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "226 regional-language, state and local outlets (dailies, news TV, radio, digital) additional to media/outlets.toml, across WB, Kerala, Karnataka, AP/Telangana, TN, Maharashtra, Goa, Manipur, Mizoram, Meghalaya, Assam and the North East, Sikkim, Punjab, J&K, Odisha, Gujarat and the Hindi belt, plus radio networks and Doordarshan regional channels."
+gaps = [
+  "All records are model knowledge (status inferred/unknown, q C/D); no source was opened. Existence, ownership, current print/broadcast status, reach and football emphasis are unverified.",
+  "Records with status = unknown are outlets recalled with lower confidence; some may have closed, merged or rebranded.",
+  "Owners are given only where recalled with reasonable confidence, and reflect the pre-2026 position; ownership changes are common (especially TV news).",
+  "State sports weeklies and dedicated regional football magazines/blogs could not be recalled reliably and are not listed.",
+  "Languages with no language id in languages.toml or no outlet reliably recalled are absent: Bodo, Garo (lang.grt exists) and Santali (lang.sat exists) outlets, Kokborok, Nishi, Konkani outside Goa, Tulu.",
+  "Community radio, campus media, district-level weeklies, club-run channels and fan-run blogs/YouTube channels (official club media belongs in an official_club file) are not covered.",
+  "Multi-edition dailies are recorded once at a home city; editions in other states are not enumerated.",
+  "Some cross-border-edition or Kolkata/Delhi-based outlets have home_state chosen by headquarters, not readership."
+]
+
+[[outlet]]
+id = "media.ganashakti"
+name = "Ganashakti"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "CPI(M) West Bengal state committee"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dainik-statesman"
+name = "Dainik Statesman"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "The Statesman Ltd"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.ei-samay"
+name = "Ei Samay"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Times Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.uttarbanga-sambad"
+name = "Uttarbanga Sambad"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "local"
+home_state = "state.wb"
+home_city = "Siliguri"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kalantar"
+name = "Kalantar"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.jugasankha"
+name = "Jugasankha"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.the-statesman"
+name = "The Statesman"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+owner = "The Statesman Ltd"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.millennium-post"
+name = "Millennium Post"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.zee-24-ghanta"
+name = "Zee 24 Ghanta"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.abp-ananda"
+name = "ABP Ananda"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+owner = "ABP Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.kolkata-tv"
+name = "Kolkata TV"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.news18-bangla"
+name = "News18 Bangla"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+owner = "Network18"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.republic-bangla"
+name = "Republic Bangla"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.tv9-bangla"
+name = "TV9 Bangla"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.akashvani-kolkata"
+name = "Akashvani Kolkata (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.bn", "lang.en"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.himalaya-darpan"
+name = "Himalaya Darpan"
+kind = "local_newspaper"
+medium = ["print"]
+languages = ["lang.ne"]
+reach = "local"
+home_state = "state.wb"
+home_city = "Siliguri"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.darjeeling-chronicle"
+name = "Darjeeling Chronicle"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.en", "lang.ne"]
+reach = "local"
+home_state = "state.wb"
+home_city = "Darjeeling"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.kerala-kaumudi"
+name = "Kerala Kaumudi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Thiruvananthapuram"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.chandrika"
+name = "Chandrika"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Muslim League-linked management"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.suprabhaatham"
+name = "Suprabhaatham"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.mangalam"
+name = "Mangalam"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kottayam"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Mangalam Publications"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.deepika"
+name = "Deepika (Rashtra Deepika)"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kottayam"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.janmabhumi"
+name = "Janmabhumi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kochi"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.veekshanam"
+name = "Veekshanam"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kochi"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.metro-vaartha"
+name = "Metro Vaartha"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kochi"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.thejas"
+name = "Thejas"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.asianet-news"
+name = "Asianet News"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Thiruvananthapuram"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.manorama-news"
+name = "Manorama News"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kottayam"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Malayala Manorama"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.mathrubhumi-news"
+name = "Mathrubhumi News"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Mathrubhumi"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.reporter-tv"
+name = "Reporter TV"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kochi"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.twentyfour-news"
+name = "24 News (Kerala)"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kochi"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kairali-news"
+name = "Kairali News"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Thiruvananthapuram"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.media-one"
+name = "MediaOne"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.club-fm"
+name = "Club FM 94.3"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+football_emphasis = "general"
+owner = "Mathrubhumi"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.radio-mango"
+name = "Radio Mango 91.9"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kottayam"
+football_emphasis = "general"
+owner = "Malayala Manorama"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-kozhikode"
+name = "Akashvani Kozhikode (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-malayalam"
+name = "DD Malayalam"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Thiruvananthapuram"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.onmanorama"
+name = "Onmanorama"
+kind = "regional"
+medium = ["digital", "video"]
+languages = ["lang.ml", "lang.en"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kottayam"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Malayala Manorama"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.vijaya-karnataka"
+name = "Vijaya Karnataka"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+owner = "Times Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.vijayavani"
+name = "Vijayavani"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+owner = "VRL Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.kannada-prabha"
+name = "Kannada Prabha"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+owner = "The New Indian Express Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.udayavani"
+name = "Udayavani"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Udupi"
+football_emphasis = "general"
+owner = "Manipal Media Network"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.samyukta-karnataka"
+name = "Samyukta Karnataka"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Hubballi"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.hosa-digantha"
+name = "Hosa Digantha"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.vartha-bharati"
+name = "Vartha Bharati"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Mangaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.andolana"
+name = "Andolana"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "local"
+home_state = "state.ka"
+home_city = "Mysuru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.star-of-mysore"
+name = "Star of Mysore"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.ka"
+home_city = "Mysuru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.bangalore-mirror"
+name = "Bangalore Mirror"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+owner = "Times Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.tv9-kannada"
+name = "TV9 Kannada"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.public-tv"
+name = "Public TV"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.suvarna-news"
+name = "Suvarna News"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.dd-chandana"
+name = "DD Chandana"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-bengaluru"
+name = "Akashvani Bengaluru (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.kn", "lang.en"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.andhra-jyothy"
+name = "Andhra Jyothy"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.andhra-prabha"
+name = "Andhra Prabha"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_city = "Vijayawada"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.vaartha"
+name = "Vaartha"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.namasthe-telangana"
+name = "Namasthe Telangana"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.te"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.telangana-today"
+name = "Telangana Today"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.deccan-chronicle"
+name = "Deccan Chronicle"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.the-hans-india"
+name = "The Hans India"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.tv9-telugu"
+name = "TV9 Telugu"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.ntv-telugu"
+name = "NTV Telugu"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.tv5-news"
+name = "TV5 News (Telugu)"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.abn-andhra-jyothy"
+name = "ABN Andhra Jyothy"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.dd-yadagiri"
+name = "DD Yadagiri"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.te"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-saptagiri"
+name = "DD Saptagiri"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.te"]
+reach = "state"
+home_state = "state.ap"
+home_city = "Vijayawada"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-hyderabad"
+name = "Akashvani Hyderabad (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.te", "lang.en"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dina-thanthi"
+name = "Dina Thanthi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+owner = "Thanthi Trust"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dinakaran"
+name = "Dinakaran"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.maalai-malar"
+name = "Maalai Malar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.hindu-tamil-thisai"
+name = "Hindu Tamil Thisai"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+owner = "Kasturi & Sons"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.malai-murasu"
+name = "Malai Murasu"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.the-new-indian-express"
+name = "The New Indian Express"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.puthiya-thalaimurai"
+name = "Puthiya Thalaimurai"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.thanthi-tv"
+name = "Thanthi TV"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.sun-news"
+name = "Sun News"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+owner = "Sun TV Network"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.polimer-news"
+name = "Polimer News"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.news7-tamil"
+name = "News7 Tamil"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kalaignar-seithigal"
+name = "Kalaignar Seithigal"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.suryan-fm"
+name = "Suryan FM"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+owner = "Sun TV Network"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.hello-fm"
+name = "Hello FM 106.4"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.akashvani-chennai"
+name = "Akashvani Chennai (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ta", "lang.en"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-podhigai"
+name = "DD Podhigai"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+home_city = "Chennai"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.sakal"
+name = "Sakal"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Pune"
+football_emphasis = "general"
+owner = "Sakal Media Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.loksatta"
+name = "Loksatta"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "The Indian Express Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.pudhari"
+name = "Pudhari"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Kolhapur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.divya-marathi"
+name = "Divya Marathi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Aurangabad"
+football_emphasis = "general"
+owner = "Dainik Bhaskar Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.saamana"
+name = "Saamana"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "Shiv Sena-linked"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.navakal"
+name = "Navakal"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kesari-pune"
+name = "Kesari"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Pune"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.tarun-bharat"
+name = "Tarun Bharat"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Nagpur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.mumbai-mirror"
+name = "Mumbai Mirror"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "Times Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.mid-day"
+name = "Mid-Day"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.free-press-journal"
+name = "Free Press Journal"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "local"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.mumbai-samachar"
+name = "Mumbai Samachar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.gu"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.inquilab-mumbai"
+name = "Inquilab (Mumbai)"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ur"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.abp-majha"
+name = "ABP Majha"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "ABP Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.tv9-marathi"
+name = "TV9 Marathi"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.zee-24-taas"
+name = "Zee 24 Taas"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.saam-tv"
+name = "Saam TV"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Pune"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.news18-lokmat"
+name = "News18 Lokmat"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "Network18"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-sahyadri"
+name = "DD Sahyadri"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-mumbai"
+name = "Akashvani Mumbai (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.mr", "lang.hi", "lang.en"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.goan-everyday"
+name = "The Goan Everyday"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.gomantak-times"
+name = "Gomantak Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.tarun-bharat-goa"
+name = "Tarun Bharat (Goa)"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.sunaparant"
+name = "Sunaparant"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kok"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Margao"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.bhaangarbhuin"
+name = "Bhaangarbhuin"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kok"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Margao"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.rashtramat"
+name = "Rashtramat"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Margao"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.prudent-media"
+name = "Prudent Media (Prudent TV)"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.kok", "lang.en", "lang.mr"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.in-goa-24x7"
+name = "In Goa 24x7"
+kind = "regional"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-panaji"
+name = "Akashvani Panaji (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.kok", "lang.mr", "lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.imphal-times"
+name = "Imphal Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.poknapham"
+name = "Poknapham"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mni"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.naharolgi-thoudang"
+name = "Naharolgi Thoudang"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mni"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.huiyen-lanpao"
+name = "Huiyen Lanpao"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mni"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.sanalamok"
+name = "Sanalamok"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.mni"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.the-peoples-chronicle"
+name = "The People's Chronicle"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.e-pao"
+name = "e-Pao"
+kind = "regional"
+medium = ["digital"]
+languages = ["lang.en", "lang.mni"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.istv-manipur"
+name = "ISTV (Imphal Satellite TV)"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.mni", "lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.impact-tv"
+name = "Impact TV"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.mni", "lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-imphal"
+name = "Akashvani Imphal (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.mni", "lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.zalen"
+name = "Zalen"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.lus"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.the-aizawl-post"
+name = "The Aizawl Post"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.zozam-times"
+name = "The Zozam Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.lus", "lang.en"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.zonet"
+name = "Zonet"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.lus"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.lps-vision"
+name = "LPS Vision"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.lus"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Lunglei"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.dd-aizawl"
+name = "DD Aizawl"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.lus", "lang.en"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-aizawl"
+name = "Akashvani Aizawl (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.lus", "lang.en"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.meghalaya-guardian"
+name = "Meghalaya Guardian"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.meghalaya-times"
+name = "Meghalaya Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.salantini-janera"
+name = "Salantini Janera"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kha"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.u-nongsain-hima"
+name = "U Nongsain Hima"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kha"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.mawphor"
+name = "Mawphor"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kha"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.syllad"
+name = "Syllad"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.kha"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.the-meghalayan"
+name = "The Meghalayan"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-shillong"
+name = "Akashvani Shillong (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.kha", "lang.en"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dainik-janambhumi"
+name = "Dainik Janambhumi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.amar-asom"
+name = "Amar Asom"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.dainik-agradoot"
+name = "Dainik Agradoot"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.niyomiya-barta"
+name = "Niyomiya Barta"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.dainik-asam"
+name = "Dainik Asam"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.gana-adhikar"
+name = "Gana Adhikar"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.sadin"
+name = "Sadin"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.purvanchal-prahari"
+name = "Purvanchal Prahari"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.pratidin-time"
+name = "Pratidin Time"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.news-live-assam"
+name = "News Live (Assam)"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.prag-news"
+name = "Prag News"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.dy365"
+name = "DY365"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.news18-assam-northeast"
+name = "News18 Assam/Northeast"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.as", "lang.en"]
+reach = "multi_state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Network18"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.northeast-now"
+name = "Northeast Now"
+kind = "regional"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.eastmojo"
+name = "EastMojo"
+kind = "regional"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.akashvani-guwahati"
+name = "Akashvani Guwahati (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.as", "lang.en"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-assam"
+name = "DD Assam"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-north-east"
+name = "DD North East"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.en", "lang.as"]
+reach = "multi_state"
+home_state = "state.as"
+home_city = "Guwahati"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.nagaland-post"
+name = "Nagaland Post"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.nl"
+home_city = "Dimapur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.morung-express"
+name = "The Morung Express"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.nl"
+home_city = "Dimapur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.eastern-mirror"
+name = "Eastern Mirror"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.nl"
+home_city = "Dimapur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.hornbill-tv"
+name = "Hornbill TV"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.nl"
+home_city = "Dimapur"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-kohima"
+name = "Akashvani Kohima (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.nl"
+home_city = "Kohima"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.arunachal-times"
+name = "The Arunachal Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ar"
+home_city = "Itanagar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.echo-of-arunachal"
+name = "Echo of Arunachal"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ar"
+home_city = "Itanagar"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-itanagar"
+name = "Akashvani Itanagar (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ar"
+home_city = "Itanagar"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dainik-sambad"
+name = "Dainik Sambad"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.tr"
+home_city = "Agartala"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.desher-katha"
+name = "Daily Desher Katha"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.tr"
+home_city = "Agartala"
+football_emphasis = "general"
+owner = "CPI(M) Tripura-linked"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.tripurainfo"
+name = "TripuraInfo"
+kind = "regional"
+medium = ["digital"]
+languages = ["lang.en", "lang.bn"]
+reach = "state"
+home_state = "state.tr"
+home_city = "Agartala"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-agartala"
+name = "Akashvani Agartala (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.bn", "lang.en"]
+reach = "state"
+home_state = "state.tr"
+home_city = "Agartala"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.sikkim-express"
+name = "Sikkim Express"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.himalayan-mirror"
+name = "Himalayan Mirror"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en", "lang.ne"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.hamro-prajashakti"
+name = "Hamro Prajashakti"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ne"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.samay-dainik"
+name = "Samay Dainik"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ne"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.summit-times"
+name = "Summit Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.sikkim-now"
+name = "Sikkim Now"
+kind = "regional"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.akashvani-gangtok"
+name = "Akashvani Gangtok (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ne", "lang.en"]
+reach = "state"
+home_state = "state.sk"
+home_city = "Gangtok"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.punjabi-tribune"
+name = "Punjabi Tribune"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Chandigarh"
+football_emphasis = "general"
+owner = "The Tribune Trust"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.the-tribune"
+name = "The Tribune"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.ch"
+home_city = "Chandigarh"
+football_emphasis = "general"
+owner = "The Tribune Trust"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.rozana-spokesman"
+name = "Rozana Spokesman"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Mohali"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.punjab-kesari"
+name = "Punjab Kesari"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+owner = "Hind Samachar Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.punjabi-jagran"
+name = "Punjabi Jagran"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+owner = "Jagran Prakashan"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.nawan-zamana"
+name = "Nawan Zamana"
+kind = "regional"
+medium = ["print"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.ptc-news"
+name = "PTC News"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Chandigarh"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.ptc-punjabi"
+name = "PTC Punjabi"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Chandigarh"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.abp-sanjha"
+name = "ABP Sanjha"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Chandigarh"
+football_emphasis = "general"
+owner = "ABP Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.news18-punjab-haryana-himachal"
+name = "News18 Punjab/Haryana/Himachal"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.pa", "lang.hi"]
+reach = "multi_state"
+home_state = "state.pb"
+home_city = "Chandigarh"
+football_emphasis = "general"
+owner = "Network18"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.day-and-night-news"
+name = "Day & Night News"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.dd-punjabi"
+name = "DD Punjabi"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-jalandhar"
+name = "Akashvani Jalandhar (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.pa", "lang.en"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.greater-kashmir"
+name = "Greater Kashmir"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.rising-kashmir"
+name = "Rising Kashmir"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kashmir-observer"
+name = "Kashmir Observer"
+kind = "regional"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kashmir-life"
+name = "Kashmir Life"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.daily-excelsior"
+name = "Daily Excelsior"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Jammu"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.dd-kashir"
+name = "DD Kashir"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.ks", "lang.ur"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-srinagar"
+name = "Akashvani Srinagar (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.ks", "lang.ur", "lang.en"]
+reach = "state"
+home_state = "state.jk"
+home_city = "Srinagar"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.samaja"
+name = "The Samaja"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Cuttack"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.prajatantra"
+name = "Prajatantra"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.pragativadi"
+name = "Pragativadi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.orissa-post"
+name = "Orissa POST"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.odisha-bytes"
+name = "Odisha Bytes"
+kind = "regional"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.otv"
+name = "OTV (Odisha Television)"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kanak-news"
+name = "Kanak News"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.kalinga-tv"
+name = "Kalinga TV"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.nandighosha-tv"
+name = "Nandighosha TV"
+kind = "regional"
+medium = ["tv", "digital"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "unknown", q = "D", src = [], note = "outlet recalled from model knowledge; existence, current publication/broadcast status and details not confirmed; treat as low confidence." }
+
+[[outlet]]
+id = "media.prameya-news7"
+name = "Prameya News7"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.news18-odia"
+name = "News18 Odia"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+owner = "Network18"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.dd-odia"
+name = "DD Odia"
+kind = "regional"
+medium = ["tv"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.akashvani-cuttack"
+name = "Akashvani Cuttack (AIR)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.or", "lang.en"]
+reach = "state"
+home_state = "state.od"
+home_city = "Cuttack"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.gujarat-samachar"
+name = "Gujarat Samachar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.gu"]
+reach = "state"
+home_state = "state.gj"
+home_city = "Ahmedabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.sandesh"
+name = "Sandesh"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.gu"]
+reach = "state"
+home_state = "state.gj"
+home_city = "Ahmedabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.divya-bhaskar"
+name = "Divya Bhaskar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.gu"]
+reach = "state"
+home_state = "state.gj"
+home_city = "Ahmedabad"
+football_emphasis = "general"
+owner = "Dainik Bhaskar Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.tv9-gujarati"
+name = "TV9 Gujarati"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.gu"]
+reach = "state"
+home_state = "state.gj"
+home_city = "Ahmedabad"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.abp-asmita"
+name = "ABP Asmita"
+kind = "regional"
+medium = ["tv", "digital", "video"]
+languages = ["lang.gu"]
+reach = "state"
+home_state = "state.gj"
+home_city = "Ahmedabad"
+football_emphasis = "general"
+owner = "ABP Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.navbharat-times"
+name = "Navbharat Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+home_state = "state.dl"
+home_city = "New Delhi"
+football_emphasis = "general"
+owner = "Times Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.hindustan-hindi"
+name = "Hindustan (Hindi daily)"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+home_state = "state.dl"
+home_city = "New Delhi"
+football_emphasis = "general"
+owner = "HT Media"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.rajasthan-patrika"
+name = "Rajasthan Patrika"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+home_state = "state.rj"
+home_city = "Jaipur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.prabhat-khabar"
+name = "Prabhat Khabar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+home_state = "state.jh"
+home_city = "Ranchi"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.jansatta"
+name = "Jansatta"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+home_state = "state.dl"
+home_city = "New Delhi"
+football_emphasis = "general"
+owner = "The Indian Express Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.nai-dunia"
+name = "Nai Dunia"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "state"
+home_state = "state.mp"
+home_city = "Indore"
+football_emphasis = "general"
+owner = "Jagran Prakashan"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.haribhoomi"
+name = "Haribhoomi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "state"
+home_state = "state.cg"
+home_city = "Raipur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.deshbandhu"
+name = "Deshbandhu"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "state"
+home_state = "state.cg"
+home_city = "Raipur"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.sports-tak"
+name = "Sports Tak"
+kind = "digital_sports"
+medium = ["digital", "video", "social"]
+languages = ["lang.hi"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.akashvani-national"
+name = "Akashvani (All India Radio)"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en"]
+reach = "national"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.radio-mirchi"
+name = "Radio Mirchi"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en", "lang.bn", "lang.ta", "lang.te", "lang.kn", "lang.ml", "lang.mr", "lang.gu", "lang.pa", "lang.or", "lang.as"]
+reach = "multi_state"
+football_emphasis = "general"
+owner = "Entertainment Network India (Times Group)"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }
+
+[[outlet]]
+id = "media.big-fm"
+name = "Big FM"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en", "lang.bn", "lang.ta", "lang.te", "lang.kn", "lang.ml", "lang.mr", "lang.gu", "lang.pa", "lang.or"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.red-fm"
+name = "Red FM"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en", "lang.bn", "lang.ta", "lang.te", "lang.kn", "lang.ml", "lang.mr", "lang.gu", "lang.pa", "lang.or", "lang.as"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations." }
+
+[[outlet]]
+id = "media.radio-city"
+name = "Radio City"
+kind = "radio"
+medium = ["radio"]
+languages = ["lang.hi", "lang.en", "lang.kn", "lang.mr", "lang.gu", "lang.pa", "lang.ta", "lang.te", "lang.bn"]
+reach = "multi_state"
+football_emphasis = "general"
+owner = "Jagran Prakashan"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the outlet is real as far as recalled, but reach, football emphasis, medium and language are broad characterisations; owner from memory." }

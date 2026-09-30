@@ -1,0 +1,149 @@
+# State league pyramids below the state top division (competition records only; no clubs/memberships here).
+[meta]
+dataset = "state_leagues.karnataka_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Karnataka below the BDFA Super Division: BDFA A/B/C Divisions, Stafford Challenge Cup, district leagues, women's league, age groups."
+gaps = [
+  "Model knowledge only (no web access, per brief v2): every record is q = C (existence and rough role believed correct) or q = D (name/format a scenario seed). No season-verified participant lists, team counts or dates.",
+  "The state top-division competitions (state premier leagues) already exist in competitions/membership_t4_b.toml and are only REFERENCED here via qualifies_to; they were not edited, so their fed_by fields do not point back at the divisions defined here.",
+  "tier is the in-state pyramid position (1 = state top division = game tier 4). District leagues and cups carry no tier.",
+  "Women's leagues use qualifies_to = comp.iwl2 as a coarse pointer to the national women's pathway; the actual nomination mechanism for a given year was not checked.",
+  "State Junior (u19) and Sub-Junior (u16) championships are pointed at comp.junior-nfc and comp.sub-junior-nfc; the exact age bands used by each state association in 2026-27 were not verified.",
+  "Women's leagues for Kerala, Manipur, Odisha, Tamil Nadu, Delhi, Haryana, Karnataka, Goa, Mizoram, Meghalaya and Maharashtra (Mumbai) are defined by another agent in competitions/membership_women_b.toml and are deliberately not repeated here; women's leagues for the other states in this file are new (mostly q = D).",
+  "Guwahati Premier League is already an alias of comp.as.assam-state-premier-league and is not a separate record.",
+  "Karnataka's state-wide league (KSFA state league) is not modelled as a separate competition: Bengaluru's BDFA pyramid is treated as the practical state pyramid.",
+  "SCHEMA GAP: no assoc record for BDFA (a district association under KSFA); it is given in the operator text instead.",
+]
+
+[[competition]]
+id = "comp.ka.bdfa-a-division"
+name = "BDFA A Division"
+organiser = "assoc.ksfa"
+operator = "Bangalore District Football Association (BDFA)"
+level = "state"
+tier = 2
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second division of the Bengaluru league below the Super Division: roughly 10-14 clubs; top sides promoted."
+promotion = "Top club(s) promoted to the BDFA Super Division."
+relegation = "Bottom club(s) relegated to the B Division."
+qualifies_to = ["comp.ka.bdfa-super-division"]
+fed_by = ["comp.ka.bdfa-b-division"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; BDFA divisions Super/A/B/C exist; sizes vary" }
+
+[[competition]]
+id = "comp.ka.bdfa-b-division"
+name = "BDFA B Division"
+organiser = "assoc.ksfa"
+operator = "Bangalore District Football Association (BDFA)"
+level = "state"
+tier = 3
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Third division of the Bengaluru league."
+qualifies_to = ["comp.ka.bdfa-a-division"]
+fed_by = ["comp.ka.bdfa-c-division"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; team count unknown" }
+
+[[competition]]
+id = "comp.ka.bdfa-c-division"
+name = "BDFA C Division"
+organiser = "assoc.ksfa"
+operator = "Bangalore District Football Association (BDFA)"
+level = "state"
+tier = 4
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Fourth division of the Bengaluru league; may be split into groups."
+qualifies_to = ["comp.ka.bdfa-b-division"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; existence of a C Division uncertain" }
+
+[[competition]]
+id = "comp.ka.stafford-challenge-cup"
+name = "Stafford Challenge Cup"
+organiser = "assoc.ksfa"
+operator = "Bangalore District Football Association (BDFA)"
+level = "state"
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "cup"
+season = "2026-27"
+format = "Historic Bengaluru knockout cup among BDFA clubs; current format and whether it runs in 2026-27 unknown."
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; edition status not known" }
+
+[[competition]]
+id = "comp.ka.district-leagues"
+name = "Karnataka District Football Leagues"
+organiser = "assoc.ksfa"
+operator = "District associations (Mysuru, Dakshina Kannada, Kodagu, Belagavi, Dharwad etc.)"
+level = "district"
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Local leagues outside Bengaluru feeding state selection; not a formal pyramid."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; only Bengaluru's league is a well-established tiered structure" }
+
+[[competition]]
+id = "comp.ka.junior-championship"
+name = "Karnataka State Junior Championship (U-19)"
+organiser = "assoc.ksfa"
+level = "state"
+state = "state.ka"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.ka.sub-junior-championship"
+name = "Karnataka State Sub-Junior Championship (U-16)"
+organiser = "assoc.ksfa"
+level = "state"
+state = "state.ka"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.ka.youth-league-u17"
+name = "Karnataka Youth League U-17"
+organiser = "assoc.ksfa"
+level = "state"
+state = "state.ka"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for clubs/academies feeding the national Elite Youth League; format not known."
+qualifies_to = ["comp.youth-league-u17"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }

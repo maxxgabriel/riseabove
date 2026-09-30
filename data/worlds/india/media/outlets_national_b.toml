@@ -1,0 +1,787 @@
+[meta]
+dataset = "media.outlets_national_b"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "44 additional real national-level general news and sports media outlets not in media/outlets.toml: English dailies and magazines, Hindi and Urdu dailies, news agencies, public radio, TV news channels with sports desks, TV/OTT sport platforms and digital sports portals. Metadata only; no journalists named."
+gaps = [
+  "All records are model knowledge (status inferred, q C; q D where unsure); no source URLs were consulted.",
+  "Reach is given as a tier word (national/multi_state/state) plus an optional audience word only where defensible; no numeric circulation or viewership figures.",
+  "Football-specific portals and podcasts beyond those already in outlets.toml (Goal India, Khel Now, Indian Football Network, Sportskeeda, The Bridge) could not be named with confidence and are not listed; no Indian football podcast is included.",
+  "Optional extra field 'desc' (one-line coverage description) and 'note' (per-record caveat) are used here; neither is in SCHEMA.md.",
+  "SCHEMA.md medium enum has no 'audio'/'podcast' value; OTT streaming platforms are recorded as kind digital_sports and TV news channels as kind general_news because no tv_news or ott kind exists.",
+  "Ownership, launch years and channel branding change; entries with shaky flags carry a caveat in prov.note.",
+  "Regional-language dailies, state-level outlets and Akashvani stations are in outlets_regional_b.toml; records duplicated there (for example Mid-Day, The Tribune, Hindustan, Sports Tak) were left out of this file.",
+]
+
+[[outlet]]
+id = "media.the-asian-age"
+name = "The Asian Age"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking"]
+founded = 1994
+active = true
+desc = "English daily with multi-city editions; small sports section leaning on agencies."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Sister paper of Deccan Chronicle in recent years from memory; ownership left out." }
+
+[[outlet]]
+id = "media.dna-india"
+name = "DNA India"
+kind = "general_news"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking"]
+founded = 2005
+active = true
+desc = "Daily News and Analysis brand; began as a Mumbai-based daily and now mainly a general news website with a sports section."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Print editions were scaled back in the late 2010s and current ownership of the digital brand is not re-checked, so medium is listed as digital only; treat as uncertain." }
+
+[[outlet]]
+id = "media.the-pioneer"
+name = "The Pioneer"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking"]
+founded = 1865
+active = true
+desc = "Delhi-based English daily with editions in the Hindi belt; light sports pages, football mostly agency copy."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Founded in Allahabad in 1865 from memory." }
+
+[[outlet]]
+id = "media.economic-times"
+name = "The Economic Times"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional"]
+football_emphasis = "general"
+style = ["analysis", "breaking"]
+owner = "Bennett, Coleman & Co."
+founded = 1961
+audience = "large"
+active = true
+desc = "Business daily; football appears in sports-business stories (rights, sponsorship, club ownership)."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.india-today-magazine"
+name = "India Today"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["long_form", "features"]
+owner = "India Today Group (Living Media India)"
+founded = 1975
+active = true
+desc = "Weekly news magazine and website of the India Today Group; occasional football features and sports-business pieces."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Group is headquartered in the Delhi NCR; Noida city from memory." }
+
+[[outlet]]
+id = "media.outlook-india"
+name = "Outlook India"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["long_form", "features"]
+owner = "Outlook Group"
+founded = 1995
+active = true
+desc = "News magazine and website; football appears in features and profile pieces rather than daily reporting."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Print frequency has changed over time; not re-checked." }
+
+[[outlet]]
+id = "media.scroll-in"
+name = "Scroll.in"
+kind = "general_news"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "national_team", "regional_leagues"]
+football_emphasis = "general"
+style = ["long_form", "features", "analysis"]
+founded = 2014
+active = true
+desc = "Digital general news site with a sports vertical that publishes football features and commentary."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.the-field"
+name = "The Field"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "national_team", "grassroots", "women"]
+football_emphasis = "general"
+style = ["long_form", "features", "analysis"]
+owner = "Scroll"
+active = true
+desc = "Sports vertical from the Scroll newsroom; long-form and feature writing across sports including Indian football."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Whether The Field is still published as a separate section is not re-checked." }
+
+[[outlet]]
+id = "media.firstpost"
+name = "Firstpost"
+kind = "general_news"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "analysis"]
+owner = "Network18 Media & Investments"
+founded = 2011
+active = true
+desc = "Network18 digital news and opinion site with a sports section carrying football coverage."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.news18-sports"
+name = "News18 Sports"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team", "transfers"]
+football_emphasis = "general"
+style = ["breaking", "match_reports"]
+owner = "Network18 Media & Investments"
+active = true
+desc = "Sports vertical of the Network18 news website; English and Hindi football news, results and features."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.ndtv-sports"
+name = "NDTV Sports"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team", "international"]
+football_emphasis = "general"
+style = ["breaking", "match_reports"]
+owner = "NDTV"
+active = true
+desc = "Sports section of the NDTV website; cricket-heavy but carries ISL, national team and World Cup football."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Controlling stake reportedly acquired by an Adani Group company in 2022-23; from memory." }
+
+[[outlet]]
+id = "media.rediff-sports"
+name = "Rediff.com (sports)"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking"]
+owner = "Rediff.com India Ltd"
+founded = 1996
+active = true
+desc = "Long-running Indian web portal with a sports section; reduced editorial presence in recent years."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Level of current activity not re-checked." }
+
+[[outlet]]
+id = "media.dailyhunt"
+name = "Dailyhunt"
+kind = "general_news"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn", "lang.mr", "lang.gu", "lang.pa", "lang.or"]
+reach = "national"
+home_state = "state.ka"
+home_city = "Bengaluru"
+focus = ["professional", "regional_leagues", "state"]
+football_emphasis = "general"
+style = ["breaking"]
+owner = "VerSe Innovation"
+active = true
+desc = "Multi-language news aggregation app; republishes publisher content including sports and football in many Indian languages."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Aggregator, not an originator of match reporting; language list is approximate." }
+
+[[outlet]]
+id = "media.siasat-daily"
+name = "The Siasat Daily"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.ur", "lang.en"]
+reach = "state"
+home_state = "state.ts"
+home_city = "Hyderabad"
+focus = ["state", "professional"]
+football_emphasis = "general"
+style = ["breaking"]
+founded = 1949
+active = true
+desc = "Hyderabad Urdu daily with English digital news; sports items are mainly agency and local."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.uni"
+name = "United News of India"
+aliases = ["UNI"]
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking"]
+founded = 1959
+active = true
+desc = "National news agency with a Hindi service (Univarta); sports wire and match items."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Activity level in the mid-2020s not re-checked." }
+
+[[outlet]]
+id = "media.ani"
+name = "Asian News International"
+aliases = ["ANI"]
+kind = "news_agency"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+founded = 1971
+audience = "large"
+active = true
+desc = "Video-led national news agency supplying broadcasters and websites with sports clips and quotes."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.hindusthan-samachar"
+name = "Hindusthan Samachar"
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.hi", "lang.en", "lang.mr", "lang.gu"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["national_team", "state"]
+football_emphasis = "general"
+style = ["breaking"]
+founded = 1948
+active = true
+desc = "Multilingual news agency; carries sports news in Hindi and several regional languages."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Language list approximate." }
+
+[[outlet]]
+id = "media.pti-bhasha"
+name = "PTI-Bhasha"
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking"]
+owner = "Press Trust of India"
+founded = 1986
+active = true
+desc = "Hindi-language news service of Press Trust of India; sports wire in Hindi picked up by many Hindi dailies."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Launch year from memory." }
+
+[[outlet]]
+id = "media.aaj-tak"
+name = "Aaj Tak"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "India Today Group"
+founded = 2000
+audience = "large"
+active = true
+desc = "Hindi news channel of the India Today Group; sports desk covers ISL, national team and World Cup football."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.india-today-tv"
+name = "India Today TV"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "India Today Group"
+audience = "medium"
+active = true
+desc = "English news channel of the India Today Group; sport bulletins and features."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year, ownership and HQ omitted where not remembered with confidence; channel branding and ownership can change." }
+
+[[outlet]]
+id = "media.ndtv-24x7"
+name = "NDTV 24x7"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "NDTV"
+founded = 2003
+audience = "medium"
+active = true
+desc = "English news channel; sports segments and NDTV Sports tie-ins."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.ndtv-india"
+name = "NDTV India"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "NDTV"
+founded = 2003
+audience = "medium"
+active = true
+desc = "Hindi news channel of NDTV; regular sports segments."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.times-now"
+name = "Times Now"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Times Network (Bennett, Coleman & Co.)"
+founded = 2006
+audience = "medium"
+active = true
+desc = "English news channel of the Times Network; sports segments alongside the Times of India desk."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.times-now-navbharat"
+name = "Times Now Navbharat"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Times Network (Bennett, Coleman & Co.)"
+audience = "medium"
+active = true
+desc = "Hindi news channel of the Times Network."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year, ownership and HQ omitted where not remembered with confidence; channel branding and ownership can change." }
+
+[[outlet]]
+id = "media.cnn-news18"
+name = "CNN-News18"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Network18 Media & Investments"
+audience = "medium"
+active = true
+desc = "English news channel of Network18; sports desk feeds News18 Sports."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year, ownership and HQ omitted where not remembered with confidence; channel branding and ownership can change." }
+
+[[outlet]]
+id = "media.news18-india"
+name = "News18 India"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Network18 Media & Investments"
+audience = "large"
+active = true
+desc = "Hindi news channel of Network18 with regular sports bulletins."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.republic-tv"
+name = "Republic TV"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Republic Media Network"
+founded = 2017
+audience = "medium"
+active = true
+desc = "English news channel; sport is a minor segment, football mostly national team news."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.republic-bharat"
+name = "Republic Bharat"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Republic Media Network"
+founded = 2019
+audience = "medium"
+active = true
+desc = "Hindi sister channel of Republic TV."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.abp-news"
+name = "ABP News"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "ABP Group"
+audience = "large"
+active = true
+desc = "Hindi news channel of the ABP Group (formerly Star News); sports bulletins."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Launch year, ownership and HQ omitted where not remembered with confidence; channel branding and ownership can change." }
+
+[[outlet]]
+id = "media.zee-news"
+name = "Zee News"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Zee Media Corporation"
+audience = "large"
+active = true
+desc = "Hindi news channel of Zee Media; sports desk with football items for big events."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.wion"
+name = "WION"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Zee Media Corporation"
+founded = 2016
+audience = "small"
+active = true
+desc = "English international-affairs news channel of Zee Media; sport as a short segment."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.india-tv"
+name = "India TV"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Independent News Service"
+founded = 2004
+audience = "large"
+active = true
+desc = "Hindi news channel; sports desk with cricket priority and football during major events."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.news24"
+name = "News24"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "BAG Films and Media"
+founded = 2007
+audience = "medium"
+active = true
+desc = "Hindi news channel with a sports desk."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.tv9-bharatvarsh"
+name = "TV9 Bharatvarsh"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "TV9 network"
+audience = "medium"
+active = true
+desc = "Hindi national news channel of the TV9 network; sport segments."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year, ownership and HQ omitted where not remembered with confidence; channel branding and ownership can change." }
+
+[[outlet]]
+id = "media.news-nation"
+name = "News Nation"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.hi"]
+reach = "national"
+home_state = "state.up"
+home_city = "Noida"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+audience = "medium"
+active = true
+desc = "Hindi news channel with a small sports desk."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year, ownership and HQ omitted where not remembered with confidence; channel branding and ownership can change." }
+
+[[outlet]]
+id = "media.dd-news"
+name = "DD News"
+kind = "general_news"
+medium = ["tv", "digital"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.dl"
+home_city = "New Delhi"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+owner = "Prasar Bharati"
+founded = 2003
+audience = "medium"
+active = true
+desc = "Public 24-hour news channel of Prasar Bharati; carries sports bulletins and, alongside DD Sports, national team coverage."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; reach tier and emphasis are broad characterisations" }
+
+[[outlet]]
+id = "media.sports18"
+name = "Sports18"
+kind = "tv_sports"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "international", "national_team"]
+football_emphasis = "general"
+style = ["match_reports", "video"]
+owner = "JioStar (Reliance and Disney joint venture)"
+active = true
+desc = "Sports channel family created by Viacom18; carried football rights including the 2022 FIFA World Cup and later ISL coverage, now in the JioStar group."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Rights holders change every cycle; the parent group changed after the 2024-25 Reliance and Disney merger; verify before use." }
+
+[[outlet]]
+id = "media.jiohotstar"
+name = "JioHotstar"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn", "lang.mr"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "international"]
+football_emphasis = "general"
+style = ["video", "match_reports"]
+owner = "JioStar"
+founded = 2025
+audience = "large"
+active = true
+desc = "Streaming platform formed by the merger of JioCinema and Disney+ Hotstar; carries live sport including football depending on rights held."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year and language list from memory; football rights held at 2026-27 not verified." }
+
+[[outlet]]
+id = "media.sonyliv"
+name = "SonyLIV"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi", "lang.ta", "lang.te"]
+reach = "national"
+home_state = "state.mh"
+home_city = "Mumbai"
+focus = ["professional", "international"]
+football_emphasis = "general"
+style = ["video", "match_reports"]
+owner = "Sony Pictures Networks India"
+founded = 2013
+active = true
+desc = "Streaming service of Sony Pictures Networks India; carries live football and other sport depending on rights held."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Launch year from memory; football rights held at 2026-27 not verified." }
+
+[[outlet]]
+id = "media.cricbuzz"
+name = "Cricbuzz"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+home_state = "state.ka"
+home_city = "Bengaluru"
+focus = ["stats", "professional"]
+football_emphasis = "general"
+style = ["breaking", "stats", "video"]
+owner = "Times Internet"
+audience = "large"
+active = true
+desc = "Cricket-first scores and news app and site; football is marginal, but it competes for the same sport audience."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Founding year (around 2004) and Times Internet ownership from memory." }
+
+[[outlet]]
+id = "media.espncricinfo"
+name = "ESPNcricinfo"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+focus = ["stats", "analysis"]
+football_emphasis = "general"
+style = ["long_form", "analysis", "stats"]
+founded = 1993
+audience = "large"
+active = true
+desc = "Cricket-only stats and news site; relevant mainly as a competitor for sports attention."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Ownership chain has changed; left out." }
+
+[[outlet]]
+id = "media.mykhel"
+name = "MyKhel"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+home_state = "state.ka"
+home_city = "Bengaluru"
+focus = ["professional", "national_team", "transfers"]
+football_emphasis = "general"
+style = ["breaking", "match_reports"]
+owner = "Greynium Information Technologies (OneIndia)"
+active = true
+desc = "Sports vertical of the OneIndia network; cricket, football and other sports, with ISL and national team items."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Ownership from memory; language editions not verified." }
+
+[[outlet]]
+id = "media.insidesport"
+name = "InsideSport"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "national_team"]
+football_emphasis = "general"
+style = ["breaking", "video"]
+active = true
+desc = "Indian multi-sport news site with football items."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Real site but owner, founding year and current activity are not remembered with confidence." }
+
+[[outlet]]
+id = "media.sportzwiki"
+name = "SportzWiki"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional"]
+football_emphasis = "general"
+style = ["breaking"]
+active = true
+desc = "Indian sports news site, cricket-heavy, with football items."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain entry: Owner, founding year and current activity not remembered with confidence." }
