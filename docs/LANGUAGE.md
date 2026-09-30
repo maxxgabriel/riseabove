@@ -26,3 +26,37 @@ Template syntax is documented at the top of `crates/pw-lang/src/template.rs`.
 ## Checks
 
 `cargo test -p pw-lang` runs: data lint (unknown events, facts, concepts, missing forms, facts used but not required), the corpus (`cargo run -p pw-lang --example show [prefix]` prints its outputs), and a fuzz over every event × channel × voice × random knowledge state that fails on placeholders, doubled words, punctuation, a/an, missing subjects, empty clauses, repeated fragments, duplicated names, date/tense contradictions, firm wording on weak certainty (and hedges on facts), channel limits and any leaked fact.
+
+## In the simulation (`pw-narrate/src/lang.rs`)
+
+The bridge is the only place the world is read for the engine. It is used **only in worlds with an ecosystem** (India): the engine's money is
+rupees and its examples are Indian football, so other worlds keep the older templates in `pw-narrate`. Where the engine has no event for a story,
+or reports the article incomplete, the older text is used; nothing is ever half written.
+
+| World thing | Engine event | Where it shows |
+| --- | --- | --- |
+| transfer (news) | `transfer.completed` | press headline and body |
+| transfer rumour, claim below 75 | `transfer.interest` (stage watching / keen / preparing) | press; never written as a bid |
+| transfer rumour, claim 75 or more | `transfer.bid_made` | press |
+| injury story | `injury.suffered` (player and club only) | press |
+| manager sacked / appointed | `manager.departed` / `manager.appointed` | press |
+| promotion / relegation, renewal | `competition.*`, `contract.renewed` | press |
+| match report | `match.result` (with the standout player when the story has one) | press |
+| interview | `interview.quote` (stance only) | press |
+| milestone, record | `milestone.reached`, `record.broken`, `transfer.record` | press |
+| unhappy, praise, award stories | `player.unhappy`, `player.praise`, `award.won` | press |
+| a post relaying a story | the story's event, channel `social`, voice from the account | social |
+| trial invitation, talks about a move | `academy.invitation`, `transfer.bid_made` | inbox subject and message; the options stay the simulation's |
+
+Rules the bridge keeps (tested in `crates/pw-cli/tests/lang_bridge.rs`):
+
+* **No firmer than the story**: a rumour is written at the stage its claim reached (never as a bid or a deal); a relayed post is no firmer than the story or its own claim.
+* **Only what the public may know**: a published injury story has no diagnosis and no time out (the club's business), a renewal no length, and nothing from private negotiations.
+* **As it was**: ages and clubs are those on the date of the story, so an old story does not change as the world ages.
+* **Clean**: every written text passes `pw_lang::check::check_text`.
+* **Pure**: the same story reads the same way every time (the seed is the story id). Headline and body share one render.
+
+Measured on the tiny India world over 500 days: 90% of press stories are written by the engine (the rest are incident reports, analysis and features, discipline and
+fan reaction, which have no event yet); about 0.24 ms per story.
+
+To add coverage: add the event to `events.toml`, frames to `frames/*.toml`, an entry in `articles.toml`, then map the world story in `lang::story_event`. `cargo test -p pw-lang` lints the data and fuzzes it.
