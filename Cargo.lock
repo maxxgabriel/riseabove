@@ -328,6 +328,7 @@ dependencies = [
  "pw-core",
  "pw-data",
  "pw-import",
+ "pw-lang",
  "pw-match",
  "pw-narrate",
  "pw-sim",
@@ -396,6 +397,7 @@ version = "0.1.0"
 dependencies = [
  "pw-core",
  "pw-data",
+ "pw-lang",
  "pw-world",
 ]
 
