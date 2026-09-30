@@ -1,0 +1,482 @@
+# More ways to say the same true things (the highest-volume events). Nothing here adds a fact; each frame needs only what it names.
+
+[[frame]]
+id = "transfer.completed.news.headline.report.more.1"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['to', 'player']
+time = "past"
+text = "{to} {lex:sign.past} {player}"
+
+[[frame]]
+id = "transfer.completed.news.headline.report.more.2"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'from', 'to']
+time = "past"
+text = "{player} leaves {from} for {to}"
+
+[[frame]]
+id = "transfer.completed.news.headline.report.more.3"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['from', 'player', 'to']
+time = "past"
+text = "{from} lose {player} to {to}"
+
+[[frame]]
+id = "transfer.completed.news.headline.report.more.4"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'to']
+time = "past"
+text = "New home for {player}: {to}"
+
+[[frame]]
+id = "transfer.completed.news.headline.report.more.5"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['to', 'player', 'from']
+time = "past"
+text = "{to} add {player} from {from}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.more.1"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'from', 'to']
+time = "past"
+text = "{player:desc} has left {from} to join {to} {date}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.more.2"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['to', 'player', 'from']
+time = "past"
+text = "{to} have added {player:desc} from {from} {date}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.more.3"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['from', 'player', 'to']
+time = "past"
+text = "{from:poss} {player:desc} is now with {to} {date}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.more.4"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'to', 'fee']
+when = "fee > 0"
+time = "past"
+text = "{player:desc} has joined {to} in a {fee} deal {date}"
+
+[[frame]]
+id = "transfer.completed.news.detail.fee.more.1"
+event = "transfer.completed"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ['to', 'fee', 'player']
+when = "fee > 0"
+text = "{to} paid {fee} for {player:short}."
+
+[[frame]]
+id = "transfer.completed.news.detail.fee.more.2"
+event = "transfer.completed"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ['fee']
+when = "fee == 0"
+text = "It was a free transfer."
+
+[[frame]]
+id = "match.result.news.headline.report.more.1"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['winner', 'loser', 'winner_goals', 'loser_goals']
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} win {winner_goals}-{loser_goals} against {loser}"
+
+[[frame]]
+id = "match.result.news.headline.report.more.2"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['winner', 'loser']
+when = "result_kind == 'win'"
+time = "past"
+text = "Victory for {winner} over {loser}"
+
+[[frame]]
+id = "match.result.news.headline.report.more.3"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['winner', 'loser']
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} take the points against {loser}"
+
+[[frame]]
+id = "match.result.news.headline.report.more.4"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['home', 'away', 'result_kind']
+when = "result_kind == 'draw'"
+time = "past"
+text = "Honours even between {home} and {away}"
+
+[[frame]]
+id = "match.result.news.headline.report.more.5"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['home', 'away', 'home_goals', 'away_goals', 'result_kind']
+when = "result_kind == 'draw'"
+time = "past"
+text = "{home} and {away} share the points, {home_goals}-{away_goals}"
+
+[[frame]]
+id = "match.result.news.headline.report.more.6"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['home', 'away', 'home_goals', 'away_goals', 'result_kind']
+when = "result_kind == 'draw'"
+time = "past"
+text = "{home_goals}-{away_goals}: {home} and {away} finish level"
+
+[[frame]]
+id = "match.result.news.lede.report.more.1"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['winner', 'loser', 'winner_goals', 'loser_goals']
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} came out on top against {loser}, {winner_goals}-{loser_goals}[?competition: in the {competition}] {date}"
+
+[[frame]]
+id = "match.result.news.lede.report.more.2"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['winner', 'loser', 'winner_goals', 'loser_goals']
+when = "result_kind == 'win'"
+time = "past"
+text = "{loser} lost to {winner}, {winner_goals}-{loser_goals}[?competition: in the {competition}] {date}"
+
+[[frame]]
+id = "match.result.news.lede.report.more.3"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['home', 'away', 'home_goals', 'away_goals', 'result_kind']
+when = "result_kind == 'draw'"
+time = "past"
+text = "{home} and {away} could not be separated, {home_goals}-{away_goals}[?competition: in the {competition}] {date}"
+
+[[frame]]
+id = "player.praise.news.headline.report.more.1"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} making a name"
+
+[[frame]]
+id = "player.praise.news.headline.report.more.2"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} impresses"
+
+[[frame]]
+id = "player.praise.news.headline.report.more.3"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "Plaudits for {player}"
+
+[[frame]]
+id = "player.praise.news.headline.report.more.4"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} on the rise"
+
+[[frame]]
+id = "player.praise.news.lede.report.more.1"
+event = "player.praise"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player:desc} has been impressing[?club: at {club}]"
+
+[[frame]]
+id = "player.praise.news.lede.report.more.2"
+event = "player.praise"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player:desc} is earning admirers[?club: at {club}]"
+
+[[frame]]
+id = "player.praise.news.lede.report.more.3"
+event = "player.praise"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "People are talking about {player:desc}[?club: at {club}]"
+
+[[frame]]
+id = "player.unhappy.news.headline.report.more.1"
+event = "player.unhappy"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player} not happy at {club}"
+
+[[frame]]
+id = "player.unhappy.news.headline.report.more.2"
+event = "player.unhappy"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "Unrest for {player} at {club}"
+
+[[frame]]
+id = "player.unhappy.news.headline.report.more.3"
+event = "player.unhappy"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} has issues"
+
+[[frame]]
+id = "player.unhappy.news.lede.report.more.1"
+event = "player.unhappy"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player:desc} is said to be unhappy at {club}"
+
+[[frame]]
+id = "player.unhappy.news.lede.report.more.2"
+event = "player.unhappy"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player:desc} has become restless at {club}"
+
+[[frame]]
+id = "award.won.news.headline.report.more.1"
+event = "award.won"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{award} for {player}"
+
+[[frame]]
+id = "award.won.news.headline.report.more.2"
+event = "award.won"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{player} takes {award}"
+
+[[frame]]
+id = "award.won.news.lede.report.more.1"
+event = "award.won"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{player:desc} collected {award} {date}"
+
+[[frame]]
+id = "award.won.news.lede.report.more.2"
+event = "award.won"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{player:desc} was given {award} {date}"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.more.1"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "Injury for {player}"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.more.2"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "Setback for {club} as {player} is hurt"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.more.1"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player:desc} suffered an injury {date}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.more.2"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{club} will be without {player:desc} for a spell after an injury {date}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.more.1"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player}: {count} games for {club}"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.more.1"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player:desc} played for {club} for the {count:ord} time {date}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.more.2"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'career_goals'"
+time = "past"
+text = "{player} reaches a {count}-goal landmark"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.more.2"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'career_goals'"
+time = "past"
+text = "{player:short} now has {count} career goals {date}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.more.3"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'caps'"
+time = "past"
+text = "{count:ord} cap for {player}"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.more.3"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'caps'"
+time = "past"
+text = "{player:short} now has {count} caps {date}"
+

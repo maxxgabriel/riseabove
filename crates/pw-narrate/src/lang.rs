@@ -189,6 +189,8 @@ fn speaker(s: &Story, w: &World, ev: &LEvent, cert: Certainty) -> Speaker {
 pub struct Text {
     pub headline: String,
     pub body: String,
+    /// The ids of the frames used, for checking how varied the writing is.
+    pub frames: Vec<String>,
 }
 
 thread_local! {
@@ -224,7 +226,7 @@ pub fn try_story(w: &World, s: &Story) -> Result<Text, String> {
     }
     let headline = r.part("headline").ok_or("no headline")?.text.clone();
     let body: Vec<&str> = r.parts.iter().filter(|p| p.slot != "headline").map(|p| p.text.as_str()).collect();
-    Ok(Text { headline, body: body.join(" ") })
+    Ok(Text { headline, body: body.join(" "), frames: r.parts.iter().map(|p| p.frame.clone()).collect() })
 }
 
 fn story_event(w: &World, s: &Story) -> Option<LEvent> {

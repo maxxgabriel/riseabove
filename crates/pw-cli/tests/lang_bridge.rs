@@ -306,3 +306,24 @@ fn a_published_injury_story_never_carries_the_diagnosis_or_the_days() {
     }
     assert!(checked > 20, "{checked}");
 }
+
+/// How varied the writing is: distinct frames used per kind of story, and how many stories share the most used headline frame.
+#[test]
+#[ignore = "report"]
+fn variety() {
+    let s = india_world(60, 500);
+    let w = &s.world;
+    let mut by: std::collections::BTreeMap<String, std::collections::BTreeMap<String, usize>> = Default::default();
+    for (_, st) in w.media.stories.iter_enumerated() {
+        if let Some(t) = lang::story(w, st) {
+            if let Some(h) = t.frames.first() {
+                *by.entry(format!("{:?}", st.kind)).or_default().entry(h.clone()).or_default() += 1;
+            }
+        }
+    }
+    for (k, m) in by {
+        let total: usize = m.values().sum();
+        let top = m.values().max().copied().unwrap_or(0);
+        eprintln!("VARIETY {k}: {total} stories, {} headline frames used, most common {:.0}%", m.len(), 100.0 * top as f32 / total as f32);
+    }
+}

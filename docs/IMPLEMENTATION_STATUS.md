@@ -259,3 +259,16 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
 * **Not done**: university recruiting competition between institutions beyond offers and choice; women's football and referee
   pathways (deliberately later); the loader does not yet read `data/worlds/india/**` reference folders (Agent B's data).
 * **Not validated**: long-run balance of the new discovery rates on the full India world (calibration soak pending, see the report).
+
+## 15. Language engine (pw-lang) in the news, inbox and social text — PARTIAL (in ecosystem worlds)
+
+`crates/pw-lang` (data-driven: events, certainty, lexicon, channel grammars, voices, lint and fuzz over every event x channel x voice x knowledge state) is merged and
+**wired into the simulation in worlds with an ecosystem** through `pw-narrate/src/lang.rs` (`docs/LANGUAGE.md` has the table of what maps to what).
+* **News**: about 90% of press stories in a 500-day India world are written by the engine (transfers, rumours at the stage reached, injuries, manager changes,
+  match reports, interviews, milestones and records, unhappy/praise/award stories). The rest (incident reports, analysis, features, discipline, fan reaction) use the older templates.
+* **Inbox**: trial invitations and talks about a move are worded by the engine (subject and message); the options stay the simulation's own. Other decisions keep their titles.
+* **Social**: a post that relays a covered story is written by the engine in the account's voice; opinion, banter, chants and memes stay with the personality-driven text.
+* **Tested** (`crates/pw-cli/tests/lang_bridge.rs`): clean text, no firmer than the story, rumours never read as bids, nothing from the club's own business in public stories (injury diagnosis and
+  time out, contract length, negotiations), old stories unchanged as the world ages, same story same words, inbox wording.
+* **Not done**: incident reports, analysis and feature stories; inbox options with engine effects (the engine's `effect` ids are not implemented by the simulation);
+  worlds without an ecosystem (the engine's money is rupees); second language.
