@@ -159,7 +159,9 @@ const DRIFTING: [Hidden; 5] = [Hidden::Professionalism, Hidden::Temperament, Hid
 /// Personality moves slowly toward the people one spends time with.
 fn drift(w: &mut World) {
     let today = w.date;
-    let ids: Vec<PlayerId> = w.growth.records.keys().copied().collect();
+    // Sorted, as in `stagnation`: the events are recorded in visiting order, and the map's order differs after a reload.
+    let mut ids: Vec<PlayerId> = w.growth.records.keys().copied().collect();
+    ids.sort();
     for p in ids {
         if w.age_years(p) > 24.0 || w.players.hot[p].status != PlayerStatus::Active {
             continue;
