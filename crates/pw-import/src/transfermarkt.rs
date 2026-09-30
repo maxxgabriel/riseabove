@@ -234,14 +234,17 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
         id: String,
         name: String,
         comp: String,
+        nation: Option<Key>,
         stadium: String,
         seats: Option<u32>,
         coach: Option<String>,
         last: i32,
+        source: u8,
+        extra_teams: Vec<TeamKind>,
     }
     let mut raw = Vec::new();
     t.for_each(|row, r| {
-        raw.push(RawClub { row, id: r.s("club_id").to_string(), name: r.s("name").to_string(), comp: r.s("domestic_competition_id").to_string(), stadium: r.s("stadium_name").to_string(), seats: r.num("stadium_seats"), coach: r.text("coach_name"), last: r.num("last_season").unwrap_or(0) })
+        raw.push(RawClub { row, id: r.s("club_id").to_string(), name: r.s("name").to_string(), comp: r.s("domestic_competition_id").to_string(), nation: None, stadium: r.s("stadium_name").to_string(), seats: r.num("stadium_seats"), coach: r.text("coach_name"), last: r.num("last_season").unwrap_or(0), source: src, extra_teams: vec![TeamKind::U21, TeamKind::U18] })
     })?;
     let newest = raw.iter().map(|c| c.last).max().unwrap_or(0);
     if newest == 0 {
@@ -250,6 +253,35 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
     let start = opt.start.unwrap_or_else(|| Date::from_ymd(newest + 1, 7, 15));
     set.start = Some(start);
     set.sources[usize::from(src)].snapshot = Some(start);
+
+    // This optional, generated crosswalk admits current player clubs outside the modeled leagues only when
+    // Transfermarkt's numeric club ID has an explicit validated Reep team bridge and an exact known country.
+    // It intentionally carries no competition assignment or invented club facts.
+    if let Some(mut verified) = open(dir, "verified_unmodeled_clubs.csv", false)? {
+        let reep_src = set.add_source("Reep team registry exact-ID crosswalk", Some(Date::from_ymd(2026, 9, 26)),
+            "Club identity and country use an active men's Reep team reached by a unique Transfermarkt verein provider_claim; league membership is unknown.");
+        let mut seen = FxHashSet::default();
+        verified.for_each(|row, r| {
+            let id = r.s("club_id").to_string();
+            let name = r.s("club_name").to_string();
+            let country = r.s("country");
+            let is_verified = r.s("crosswalk_validation") == "unique_provider_claim"
+                && r.s("registry_status") == "active"
+                && r.s("gender") == "men"
+                && !r.s("reep_id").is_empty()
+                && !r.s("snapshot").is_empty();
+            let nation = geo::lookup(&country).map(nation_key);
+            if id.is_empty() || name.is_empty() || !is_verified || nation.is_none() || !seen.insert(id.clone()) {
+                set.issues.add(Severity::Warning, "invalid_verified_club", "verified_unmodeled_clubs.csv", row, &id,
+                    "crosswalk row is incomplete, duplicated, unsupported, or lacks an exact supported country");
+                return;
+            }
+            // A latest-season club row wins; stale raw rows are deliberately replaceable by this exact-ID supplement.
+            if raw.iter().any(|c| c.id == id && c.last == newest) { return; }
+            raw.push(RawClub { row, id, name: name.clone(), comp: String::new(), nation, stadium: String::new(),
+                seats: None, coach: None, last: newest, source: reep_src, extra_teams: Vec::new() });
+        })?;
+    }
 
     let mut league_clubs: FxHashMap<String, u16> = FxHashMap::default();
     let mut clubs: Vec<ImpClub> = Vec::new();
@@ -262,17 +294,20 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
             set.issues.add(Severity::Info, "stale_club", "clubs.csv", c.row, &c.id, format!("last season {} is before {newest}", c.last));
             continue;
         }
-        *league_clubs.entry(c.comp.clone()).or_default() += 1;
+        if !c.comp.is_empty() {
+            *league_clubs.entry(c.comp.clone()).or_default() += 1;
+        }
         clubs.push(ImpClub {
-            source: src,
+            source: c.source,
             key: c.id.clone(),
             name: c.name.clone(),
             short: shorten(&c.name),
-            league: Some(c.comp.clone()),
+            league: (!c.comp.is_empty()).then(|| c.comp.clone()),
             stadium: c.stadium.clone(),
             capacity: c.seats.filter(|&s| s >= 500),
             manager_name: c.coach.clone(),
-            extra_teams: vec![TeamKind::U21, TeamKind::U18],
+            extra_teams: c.extra_teams.clone(),
+            nation: c.nation.clone(),
             ..Default::default()
         });
     }
@@ -321,7 +356,9 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
     }
     let league_nation: FxHashMap<Key, Key> = comps.iter().filter_map(|c| c.nation.clone().map(|n| (c.key.clone(), n))).collect();
     for c in &mut clubs {
-        c.nation = c.league.as_ref().and_then(|l| league_nation.get(l)).cloned();
+        if c.nation.is_none() {
+            c.nation = c.league.as_ref().and_then(|l| league_nation.get(l)).cloned();
+        }
         if c.nation.is_none() {
             set.issues.add(Severity::Error, "unknown_league", "clubs.csv", 0, &c.key, "club's league is unknown; club dropped");
         }
@@ -416,7 +453,7 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
             set.issues.add(Severity::Info, "contract_expired", "players.csv", row, &key, "contract end is before the start date; treated as unknown");
             p.contract_end = None;
         }
-        p.value = r.int("market_value_in_eur").filter(|&v| v > 0);
+        p.value = r.int("market_value_in_eur").filter(|&v| v >= 0);
         p.caps = r.num::<u16>("international_caps");
         p.intl_goals = r.num::<u16>("international_goals");
         p.agent = r.text("agent_name");
@@ -429,6 +466,30 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
         set.issues.add(Severity::Info, "club_not_modelled", "players.csv", 0, "", format!("{untracked} current-season rows belong to clubs outside the modelled leagues"));
     }
     let player_keys: FxHashSet<Key> = players.iter().map(|p| p.key.clone()).collect();
+
+    // Recover missing current values from a recent, dated record for this exact player ID.
+    // A historical value is carried forward as an estimate; future or stale values never initialise the snapshot.
+    let missing_values: FxHashSet<&str> = players.iter().filter(|p| p.value.is_none()).map(|p| p.key.as_str()).collect();
+    if !missing_values.is_empty() && let Some(mut t) = open(dir, "player_valuations.csv", false)? {
+        let mut latest: FxHashMap<Key, (Date, Option<i64>)> = FxHashMap::default();
+        let cutoff = start.add_days(-365);
+        t.for_each(|_, r| {
+            let pid = r.s("player_id");
+            if !missing_values.contains(pid.as_ref()) { return; }
+            let (Some(date), Some(value)) = (r.date("date"), r.int("market_value_in_eur").filter(|&v| v >= 0)) else { return };
+            if date < cutoff || date > start { return; }
+            let e = latest.entry(pid.to_string()).or_insert((date, Some(value)));
+            if date > e.0 { *e = (date, Some(value)); }
+            else if date == e.0 && e.1 != Some(value) { e.1 = None; } // Conflicting same-date values are not resolved by row order.
+        })?;
+        for p in &mut players {
+            if p.value.is_none() && let Some((date, Some(value))) = latest.get(&p.key) {
+                p.value = Some(*value);
+                p.value_inferred = true;
+                set.issues.add(Severity::Info, "value_from_history", "player_valuations.csv", 0, &p.key, format!("valuation dated {date:?} carried forward as an estimate"));
+            }
+        }
+    }
 
     // ---- strength derived from imported values ------------------------------------------
     let mut squad_value: FxHashMap<Key, i64> = FxHashMap::default();
@@ -563,6 +624,7 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
 
     // ---- games → league seasons ------------------------------------------------------------------
     let mut game_meta: FxHashMap<String, (Key, i32)> = FxHashMap::default();
+    let mut game_dates: FxHashMap<String, Option<Date>> = FxHashMap::default();
     if let Some(mut t) = open(dir, "games.csv", false)? {
         #[derive(Default)]
         struct Row {
@@ -575,6 +637,11 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
         let mut tables: FxHashMap<(Key, i32), FxHashMap<Key, Row>> = FxHashMap::default();
         let mut first_game: FxHashMap<(Key, i32), Date> = FxHashMap::default();
         t.for_each(|_, r| {
+            let Some(date) = r.date("date") else { return; };
+            game_dates.entry(r.s("game_id").to_string()).and_modify(|existing| {
+                if *existing != Some(date) { *existing = None; }
+            }).or_insert(Some(date));
+            if date > start { return; }
             let comp = r.s("competition_id");
             if !league_ids.contains(comp.as_ref()) {
                 return;
@@ -678,28 +745,31 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
                 }
                 ids
             };
-            let mut tot: FxHashMap<Key, (u32, u32)> = FxHashMap::default();
+            let mut tot: FxHashMap<Key, (u32, Option<u32>)> = FxHashMap::default();
             // Minutes in the year before the start: the level of football a player is actually trusted with.
             let mut recent: FxHashMap<Key, u32> = FxHashMap::default();
             let window_from = start.add_days(-365);
             let mut scorers: FxHashMap<(Key, i32), FxHashMap<String, (String, u32)>> = FxHashMap::default();
             let season_ids: FxHashSet<(Key, i32)> = set.seasons.iter().map(|s| (s.comp.clone(), s.season)).collect();
             t.for_each(|_, r| {
+                let Some(date) = r.date("date").or_else(|| game_dates.get(r.s("game_id").as_ref()).copied().flatten())
+                    .filter(|&d| d <= start) else { return; };
                 let comp = r.s("competition_id");
                 if national.contains(comp.as_ref()) {
                     return;
                 }
                 let pid = r.s("player_id");
-                let goals = r.num::<u32>("goals").unwrap_or(0);
-                if player_keys.contains(pid.as_ref()) && r.num::<u32>("minutes_played").unwrap_or(0) > 0 {
-                    let e = tot.entry(pid.to_string()).or_default();
+                let goals = r.num::<u32>("goals");
+                let minutes = r.num::<u32>("minutes_played");
+                if player_keys.contains(pid.as_ref()) && minutes.is_some_and(|m| m > 0) {
+                    let e = tot.entry(pid.to_string()).or_insert((0, Some(0)));
                     e.0 += 1;
-                    e.1 += goals;
-                    if r.date("date").is_some_and(|d| d > window_from && d <= start) {
-                        *recent.entry(pid.to_string()).or_default() += r.num::<u32>("minutes_played").unwrap_or(0);
-                    }
+                    e.1 = e.1.zip(goals).map(|(a, b)| a.saturating_add(b));
                 }
-                if goals > 0
+                if player_keys.contains(pid.as_ref()) && date > window_from && let Some(m) = minutes {
+                    *recent.entry(pid.to_string()).or_default() += m;
+                }
+                if let Some(goals) = goals.filter(|&g| g > 0)
                     && let Some((c, s)) = game_meta.get(r.s("game_id").as_ref())
                     && season_ids.contains(&(c.clone(), *s))
                 {
@@ -710,10 +780,10 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
             for p in &mut players {
                 if let Some(&(a, g)) = tot.get(&p.key) {
                     p.apps = Some(a);
-                    p.goals = Some(g);
+                    p.goals = g;
                 }
-                // The file covers the modelled leagues' matches, so no rows in the window means no minutes there.
-                p.minutes_12m = Some(recent.get(&p.key).copied().unwrap_or(0));
+                // No recorded appearance is not evidence of zero playing time outside this dataset.
+                p.minutes_12m = recent.get(&p.key).copied();
             }
             for s in &mut set.seasons {
                 if let Some(best) = scorers.get(&(s.comp.clone(), s.season)).and_then(|m| m.values().max_by(|a, b| a.1.cmp(&b.1).then(b.0.cmp(&a.0)))) {
@@ -728,23 +798,37 @@ pub fn parse(dir: &Path, opt: &TmOptions) -> Result<ImportSet, ImportError> {
         }
         if let Some(mut t) = open(dir, "game_lineups.csv", false)? {
             let mut latest: FxHashMap<Key, (Date, u8)> = FxHashMap::default();
+            let missing_roles: FxHashSet<&str> = players.iter().filter(|p| p.positions.is_empty()).map(|p| p.key.as_str()).collect();
+            let mut roles: FxHashMap<Key, FxHashMap<Pos, u32>> = FxHashMap::default();
             t.for_each(|_, r| {
                 let pid = r.s("player_id");
                 let Some(club) = cur_club.get(pid.as_ref()) else { return };
                 if r.s("club_id") != club.as_str() {
                     return;
                 }
-                let (Some(date), Some(n)) = (r.date("date"), r.num::<u8>("number")) else { return };
+                let Some(date) = r.date("date").filter(|&d| d <= start) else { return };
+                if missing_roles.contains(pid.as_ref()) && date >= start.add_days(-730) && let Some(&pos) = position_of(&r.s("position")).first() {
+                    *roles.entry(pid.to_string()).or_default().entry(pos).or_default() += 1;
+                }
+                let Some(n) = r.num::<u8>("number") else { return };
                 if !(1..=99).contains(&n) {
                     return;
                 }
                 let e = latest.entry(pid.to_string()).or_insert((date, n));
-                if date >= e.0 {
+                if date > e.0 || (date == e.0 && n < e.1) {
                     *e = (date, n);
                 }
             })?;
             for p in &mut players {
                 p.shirt = latest.get(&p.key).map(|x| x.1);
+                if p.positions.is_empty() && let Some(counts) = roles.get(&p.key) {
+                    let total: u32 = counts.values().sum();
+                    if let Some((&pos, &count)) = counts.iter().find(|(_, count)| **count >= 3 && **count * 2 > total) {
+                        p.positions = vec![pos];
+                        p.position_inferred = true;
+                        set.issues.add(Severity::Info, "position_from_lineups", "game_lineups.csv", 0, &p.key, format!("role estimated from {count} of {total} recent club lineups"));
+                    }
+                }
             }
         }
     }

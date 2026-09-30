@@ -422,6 +422,7 @@ export interface ApiMethods {
   "world.status": { kind: "query"; req: Record<string, unknown>; res: StatusView };
   "world.new": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "world.inspect_import": { kind: "query"; req: Record<string, unknown>; res: unknown };
+  "world.datasets": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "world.saves": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "world.save": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "world.load": { kind: "command"; req: Record<string, unknown>; res: unknown };
@@ -496,6 +497,9 @@ export interface ApiMethods {
   "ecosystem.export": { kind: "query"; req: Record<string, unknown>; res: ExportView };
   "ecosystem.scenario": { kind: "query"; req: Record<string, unknown>; res: ScenarioView };
   "ecosystem.district": { kind: "query"; req: Record<string, unknown>; res: DistrictView };
+  "database.sources": { kind: "query"; req: Record<string, unknown>; res: unknown };
+  "database.attach": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "database.query": { kind: "query"; req: Record<string, unknown>; res: unknown };
 }
 
 /** The methods whose response type is declared here. */

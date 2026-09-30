@@ -19,6 +19,7 @@ interface Inspect {
   warnings?: string[];
   findings?: { code: string; count: number }[];
   error?: string;
+  database?: DatasetMetadata | null;
 }
 
 const INDIA_SCALES = [
@@ -26,6 +27,13 @@ const INDIA_SCALES = [
   { id: "regional", label: "Twelve states", note: "Twelve states with eight-club state leagues." },
   { id: "full", label: "All of India", note: "Every state and union territory in the pack. Slower to build and to run." },
 ];
+interface DatasetMetadata {
+  name: string;
+  start_date: string;
+  catalog_players: number;
+  freshness_note: string;
+}
+interface DatasetsResp { datasets: { path: string; database: DatasetMetadata }[] }
 
 const SCALES = [
   { id: "tiny", label: "Tiny", note: "8 clubs in one nation. Fast to try things." },
@@ -53,6 +61,7 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
   usePageTitle(inApp ? "World and saves" : "Start");
   const st = useStatus();
   const saves = useApi<SavesResp>("world.saves");
+  const datasets = useApi<DatasetsResp>("world.datasets");
   const [scale, setScale] = useState("small");
   const [indiaScale, setIndiaScale] = useState("tiny");
   const [kind, setKind] = useState<"synthetic" | "india" | "import">("synthetic");
@@ -62,6 +71,10 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
   const [err, setErr] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<SaveInfo | null>(null);
   const task = st.task;
+  const installed = datasets.data?.datasets[0];
+  useEffect(() => {
+    if (installed) { setDir((previous) => previous || installed.path); setKind("import"); }
+  }, [installed?.path]);
 
   // When a build or load finishes, open it.
   const [awaiting, setAwaiting] = useState(false);
@@ -193,6 +206,7 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
               { id: "import", label: "Import a dataset" },
             ]}
           />
+          <p><a href="#/database">Browse source database</a></p>
           {kind === "india" ? (
             <>
               <p className="muted">Football in India from the ground up: children in districts, schools and universities, state leagues, the national pyramid, and the scouts and coaches who notice them. Start anywhere on the route.</p>
@@ -225,9 +239,16 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
             </>
           ) : (
             <>
+                {installed && (
+                  <div className="import-installed">
+                    <strong>{installed.database.name}</strong>
+                    <p className="muted">{installed.database.freshness_note}</p>
+                    <Button onClick={() => { setDir(installed.path); setInspect(null); }}>Use installed database</Button>
+                  </div>
+                )}
               <Field label="Folder with the dataset" hint="The folder is read in place and is not changed. Files are checked before a world is built.">
                 <div className="row-inline">
-                  <input type="text" value={dir} onChange={(e) => { setDir(e.target.value); setInspect(null); }} placeholder="/path/to/dataset" spellCheck={false} />
+                  <input aria-label="Folder with the dataset" type="text" value={dir} onChange={(e) => { setDir(e.target.value); setInspect(null); }} placeholder="/path/to/dataset" spellCheck={false} />
                   {inTauri() && <Button onClick={browse}>Browse…</Button>}
                 </div>
               </Field>
@@ -236,6 +257,7 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
                   {inspect.ok && inspect.counts ? (
                     <>
                       <div className="empty-title">Ready to import</div>
+                      {inspect.database && <p className="muted">{inspect.database.freshness_note} The catalog contains {inspect.database.catalog_players.toLocaleString()} identities; the counts below are playable import records.</p>}
                       <div className="num muted">
                         {inspect.counts.nations} nations · {inspect.counts.competitions} competitions · {inspect.counts.clubs} clubs · {inspect.counts.players.toLocaleString()} players · {inspect.counts.staff.toLocaleString()} staff
                       </div>

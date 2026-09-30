@@ -139,6 +139,10 @@ fn check(a: &Args) {
 }
 
 fn main() {
+    if std::env::args().nth(1).as_deref() == Some("database") {
+        database();
+        return;
+    }
     let a = parse();
     if a.cmd == "balance" {
         balance(&a);
@@ -204,6 +208,52 @@ fn main() {
         pw_sim::save::save_with(&sim.world, path, &pw_sim::save::Info::of_world(&sim.world)).unwrap_or_else(|e| die(&e.to_string()));
         let size = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
         println!("saved {} ({:.1} MB) in {:.2?}", path.display(), size as f64 / 1e6, t.elapsed());
+    }
+}
+
+/// Profile or browse source records without constructing a simulated world.
+/// database DIR --all | --table FILE [--column FIELD --value ID] [--search NAME] [--cache DIR]
+fn database() {
+    let mut it = std::env::args().skip(2);
+    let root = PathBuf::from(it.next().unwrap_or_else(|| die("database needs a source folder")));
+    let mut cache = std::env::temp_dir().join("riseabove-database-indexes");
+    let (mut table, mut column, mut value, mut search, mut all) = (None, None, String::new(), String::new(), false);
+    while let Some(flag) = it.next() {
+        match flag.as_str() {
+            "--all" => all = true,
+            "--table" => table = it.next(),
+            "--column" => column = it.next(),
+            "--value" => value = it.next().unwrap_or_default(),
+            "--search" => search = it.next().unwrap_or_default(),
+            "--cache" => cache = it.next().map(PathBuf::from).unwrap_or(cache),
+            _ => die(&format!("unknown database option {flag}")),
+        }
+    }
+    let mut db = pw_import::database::Catalog::open(&root, &cache).unwrap_or_else(|e| die(&e.to_string()));
+    println!("source: {}\nindex cache: {}", db.root().display(), cache.display());
+    if all {
+        let tables: Vec<_> = db.tables().iter().map(|t| t.name.clone()).collect();
+        let begin = Instant::now();
+        let mut rows = 0;
+        for table in tables {
+            let t = Instant::now();
+            let p = db.query(&table, None, "", "", 0, 1).unwrap_or_else(|e| die(&e.to_string()));
+            let cold = t.elapsed();
+            let t = Instant::now();
+            let end = db.query(&table, None, "", "", p.total.saturating_sub(1), 1).unwrap_or_else(|e| die(&e.to_string()));
+            assert_eq!(end.total, p.total);
+            rows += p.total;
+            println!("{table:<38} {:>10} rows {:>7.1} MB index {:>9.3}s first {:>8.3}ms last; malformed {}{}", p.total,
+                p.index_bytes as f64 / 1e6, cold.as_secs_f64(), t.elapsed().as_secs_f64() * 1000.0, p.malformed, if p.cached { " (disk cache)" } else { "" });
+        }
+        println!("{rows} records across {} tables in {:.3}s", db.tables().len(), begin.elapsed().as_secs_f64());
+    } else if let Some(table) = table {
+        let t = Instant::now();
+        let p = db.query(&table, column.as_deref(), &value, &search, 0, 10).unwrap_or_else(|e| die(&e.to_string()));
+        println!("{} matching / {} total; {:.3}ms; {} malformed", p.matched, p.total, t.elapsed().as_secs_f64() * 1000.0, p.malformed);
+        for row in p.rows { println!("record {}: {:?}", row.row + 1, row.fields); }
+    } else {
+        for table in db.tables() { println!("{}: {} bytes; {}", table.name, table.bytes, table.status); }
     }
 }
 

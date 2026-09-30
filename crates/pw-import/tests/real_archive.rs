@@ -62,7 +62,9 @@ fn imported_ability_is_calibrated_by_cohort_and_not_a_function_of_price() {
     for (pid, cold) in w.players.cold.iter_enumerated() {
         let person = &w.people[cold.person];
         let Some(o) = w.origins.person(cold.person) else { continue };
-        if o.get(Facet::Attributes) != Origin::Inferred || cold.value == 0 {
+        // Price calibration compares actual source prices. Missing prices now receive labelled estimates;
+        // feeding those model outputs back into this check would mix two different populations.
+        if o.get(Facet::Attributes) != Origin::Inferred || o.get(Facet::Value) != Origin::Imported || cold.value == 0 {
             continue;
         }
         let club = w.players.hot[pid].club;
@@ -129,7 +131,9 @@ fn the_worlds_own_prices_stay_near_the_imported_ones_after_the_first_month() {
         return;
     };
     let (w, _) = load_dir_with(&dir, DataPack::builtin(), Some(1), LoadOptions::default()).expect("loads");
-    let imported: Vec<(pw_core::PlayerId, i64)> = w.players.cold.iter_enumerated().filter(|(_, c)| c.value > 0).map(|(p, c)| (p, c.value)).collect();
+    let imported: Vec<(pw_core::PlayerId, i64)> = w.players.cold.iter_enumerated()
+        .filter(|(_, c)| c.value > 0 && w.origins.person(c.person).is_some_and(|o| o.get(pw_world::origin::Facet::Value) == pw_world::origin::Origin::Imported))
+        .map(|(p, c)| (p, c.value)).collect();
     let mut sim = pw_sim::Sim::new(w);
     sim.run(35);
     let w = &sim.world;

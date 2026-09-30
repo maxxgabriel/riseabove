@@ -9,22 +9,29 @@ use qa_common::*;
 fn the_size_of_a_world_grows_sub_linearly_over_six_years() {
     let mut s = sim(Scale::TINY, 3);
     let mut sizes = Vec::new();
+    let mut file_sizes = Vec::new();
+    let path = temp_path("save-growth");
     for _ in 0..6 {
         s.run(365);
         let sections = pw_sim::metrics::section_sizes(&s.world);
         sizes.push(sections.iter().map(|(_, bytes)| bytes).sum::<u64>() as f64);
+        pw_sim::save::save_with(&s.world, &path, &pw_sim::save::Info::of_world(&s.world)).unwrap();
+        file_sizes.push(std::fs::metadata(&path).unwrap().len() as f64);
         eprintln!(
-            "year {}: {:.1} MB; {}",
+            "year {}: {:.1} MB raw, {:.1} MB on disk; {}",
             sizes.len(),
             sizes.last().unwrap() / 1e6,
+            file_sizes.last().unwrap() / 1e6,
             sections.iter().take(8).map(|(name, bytes)| format!("{name} {:.1}", *bytes as f64 / 1e6)).collect::<Vec<_>>().join(", ")
         );
     }
+    cleanup(&path);
     let (year2, year3, year5, year6) = (sizes[1], sizes[2], sizes[4], sizes[5]);
     assert!(year6 < 1.6 * year3, "year 6 is {:.1} MB against {:.1} MB in year 3: {:?}", year6 / 1e6, year3 / 1e6, sizes.iter().map(|x| (x / 1e5).round() / 10.0).collect::<Vec<_>>());
     let (early_addition, late_addition) = (sizes[1] - sizes[0], sizes[5] - sizes[4]);
     assert!(late_addition < 0.75 * early_addition, "year 2 added {:.2} MB, year 6 added {:.2} MB", early_addition / 1e6, late_addition / 1e6);
     assert!(year5 > 0.0 && year2 > 0.0);
+    assert!(file_sizes[5] < 2.0 * file_sizes[2], "compressed file size doubled between years 3 and 6: {file_sizes:?}");
 }
 
 #[test]

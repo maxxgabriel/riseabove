@@ -688,6 +688,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("world.status"), None, "StatusView"),
         c("world.new"),
         q("world.inspect_import"),
+        q("world.datasets"),
         q("world.saves"),
         c("world.save"),
         c("world.load"),
@@ -762,6 +763,9 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("ecosystem.export"), None, "ExportView"),
         typed(q("ecosystem.scenario"), None, "ScenarioView"),
         typed(q("ecosystem.district"), None, "DistrictView"),
+        q("database.sources"),
+        c("database.attach"),
+        q("database.query"),
     ]
 }
 

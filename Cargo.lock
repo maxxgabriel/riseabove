@@ -357,6 +357,7 @@ dependencies = [
 name = "pw-import"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "csv",
  "pw-core",
  "pw-data",
@@ -364,6 +365,7 @@ dependencies = [
  "pw-world",
  "rustc-hash",
  "serde",
+ "serde_json",
  "smallvec",
  "thiserror",
  "toml",

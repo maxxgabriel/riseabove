@@ -76,6 +76,7 @@
 @media (min-width: 1800px) { .split { grid-template-columns: minmax(0, 1fr) 22rem; } .stage-body { padding-inline: clamp(1.15rem, 2vw, 3rem); } }
 @media (max-width: 1000px) { .grid-2, .grid-3, .split { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 760px) { :root { --rail-w: 52px; } .app { --rail-w: 52px; } .rail-label, .rail-group, .rail-brand-name { display: none; } .rail-item { justify-content: center; padding: 0; } .top-search { width: auto; flex: 1; min-width: 0; } .top-search kbd, .top-search .kbd { display: none; } .top-date span { display: none; } }
+@media (max-width: 600px) { .top-date { display: none; } .persp-chip { max-width: 8rem; } }
 
 /* ---- search palette ---- */
 .palette-back { position: fixed; inset: 0; z-index: 80; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; background: rgba(5, 8, 12, 0.5); backdrop-filter: blur(1.5px); }

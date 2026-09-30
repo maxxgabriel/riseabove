@@ -153,6 +153,10 @@ fn better_preparation_gives_a_truer_picture() {
 fn observation_is_one_thing_and_the_explanation_another_and_the_same_evidence_is_read_differently() {
     let mut w = season().clone();
     let (a, _b, sa, sb, fx) = pair(&w);
+    // Vary the manager's interpretation in isolation. The season's recruited advisers can otherwise
+    // supply the same strong diagnosis on every call, dominating the reading being varied here.
+    let manager = w.clubs[a].manager;
+    w.clubs[a].staff.retain(|&staff| staff == manager);
     // One defender is being beaten and they are getting the better chances: two true things, several possible explanations.
     let mut l = look(&sa, &sb, 45, true);
     l.sides[1].shots = 12;

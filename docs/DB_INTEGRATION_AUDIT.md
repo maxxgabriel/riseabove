@@ -3,6 +3,10 @@
 Audit date 2026-09-29, run against the user's local files **before** any import code was written.
 All numbers below were measured on the files as found; none of the source files were modified.
 
+**2026-09-30 follow-up:** the playable archive importer and an in-game source browser now exist. Every archive CSV and all
+48 FM23 exported CSVs are accessible. The FM23 binary-schema limit below still applies. Current missing-value rules, exact-ID
+relationships, optimization measurements and verification are documented in [DATABASE_INTEGRATION.md](DATABASE_INTEGRATION.md).
+
 Everything here is local user data. None of it is committed (`/archive/`, `/fm23_extracted/` and
 `/fm23_test_extract_*/` are git-ignored) and none of it ships with the game; the importer reads a folder at
 runtime, as `docs/DATA_PACK_BOUNDARY.md` requires.

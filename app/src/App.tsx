@@ -21,6 +21,7 @@ import { Compare } from "./pages/Compare";
 import { Bookmarks } from "./pages/Bookmarks";
 import { Diagnostics } from "./pages/Diagnostics";
 import { Begin } from "./pages/Begin";
+import { Database } from "./pages/Database";
 import { District } from "./pages/District";
 import { Ecosystem } from "./pages/Ecosystem";
 import { Help } from "./pages/Help";
@@ -105,6 +106,8 @@ function Page() {
       return <Ecosystem />;
     case "begin":
       return <Begin />;
+    case "database":
+      return <div className="database-standalone"><Database /></div>;
     case "district":
       return <District />;
     case "inhabit":
@@ -175,6 +178,7 @@ export function App() {
     return <div className="boot"><Spinner size={22} /></div>;
   }
   if (!st.open) {
+    if (route.segs[0] === "database") return <div className="database-standalone"><Database /></div>;
     return <Start />;
   }
   return (

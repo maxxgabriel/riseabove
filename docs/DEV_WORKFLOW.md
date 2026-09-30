@@ -92,10 +92,14 @@ debug info made each relink of the big test binaries dominate (123 s to 8.6 s af
 | SMOKE, steady state | n/a | 3.4 s |
 | FULL | not measured before (no single command existed) | 3 m 38 s (all tests, type-check and the simulation; tests 148 s, check 35 s, sim 34 s) |
 | Latest FULL, 398 tests plus all-target check and 3-seed tiny balance | n/a | 8 m 52 s |
+| Database follow-up FULL, 427 tests, 4 concurrent cases, all-target check and 3-seed tiny balance | n/a | 9 m 51 s (tests/build 540.7 s, check 5.9 s, sim 44.1 s; balance warnings remain) |
 | Real archive SOAK, 3 years, 1 seed, with archive checks | n/a | 13 m 02 s (9 m 48 balance; 3 m 09 archive-check step, including a 2 m 56 cold test build) |
 | Release build of `pathway-sim` (cold) | 1 m 32 s | 1 m 32 s (unchanged) |
 | Release build, nothing changed | 0.2 s | 0.2 s |
 | `balance micro --years 2` | 0.74 s via `cargo run` | 0.57 s direct |
+| Local database: cold index of all 13 archive CSVs / all 48 FM23 exports | n/a | 32.385 s / 7.863 s |
+| Local database: restart scan using disposable disk indexes, archive / FM23 | n/a | 3.357 s / 1.409 s |
+| Real archive import checks, 3 tests, sequential, warm release build | n/a | 35.87 s (latest database/missing-value work) |
 
 ## Tools evaluated
 

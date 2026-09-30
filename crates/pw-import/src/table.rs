@@ -92,6 +92,7 @@ impl Table {
                     f(row, &Rec { cols: &self.cols, r: &rec, lossy: &lossy });
                 }
                 Ok(false) => break,
+                Err(source) if source.is_io_error() => return Err(ImportError::Csv { file: self.file.clone(), source }),
                 Err(_) => {
                     row += 1;
                     malformed += 1;
