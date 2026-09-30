@@ -1,0 +1,171 @@
+# Football lexicon: concepts with variants. A variant gives word forms, register and (optionally) the conditions under which the word is honest.
+# forms: verbs base/third/past/pp/ing, nouns sing/plur. `when`/`requires` restrict a variant to what the known facts support.
+
+[[concept]]
+id = "bid"
+meaning = "a formal offer for a player"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "bid", plur = "bids" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "offer", plur = "offers" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "approach", plur = "approaches" }
+register = "neutral"
+when = "!fee"
+note = "an approach is an enquiry, not a fee offer; use only when no fee is given"
+
+[[concept]]
+id = "injury"
+meaning = "a player's physical problem"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "injury", plur = "injuries" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "knock", plur = "knocks" }
+register = "informal"
+when = "weeks_out <= 3"
+note = "minor: use only when weeks_out is small"
+[[concept.variant]]
+forms = { sing = "setback", plur = "setbacks" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "blow", plur = "blows" }
+register = "tabloid"
+[[concept.variant]]
+forms = { sing = "problem", plur = "problems" }
+register = "informal"
+
+[[concept]]
+id = "transfer_window"
+meaning = "the period in which clubs may register players"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "window", plur = "windows" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "transfer window", plur = "transfer windows" }
+register = "neutral"
+
+[[concept]]
+id = "squad"
+meaning = "the group of players selected"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "squad", plur = "squads" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "camp", plur = "camps" }
+register = "local"
+note = "Indian usage: the national camp"
+[[concept.variant]]
+forms = { sing = "probables", plur = "probables" }
+register = "local"
+note = "Indian usage: the list of probables before a final squad"
+
+[[concept]]
+id = "deal"
+meaning = "a signed agreement"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "deal", plur = "deals" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "contract", plur = "contracts" }
+register = "formal"
+[[concept.variant]]
+forms = { sing = "agreement", plur = "agreements" }
+register = "formal"
+
+[[concept]]
+id = "move"
+meaning = "a change of club"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "move", plur = "moves" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "switch", plur = "switches" }
+register = "informal"
+[[concept.variant]]
+forms = { sing = "transfer", plur = "transfers" }
+register = "formal"
+
+[[concept]]
+id = "manager_title"
+meaning = "the person in charge of the team; Indian usage prefers head coach"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "head coach", plur = "head coaches" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "manager", plur = "managers" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "coach", plur = "coaches" }
+register = "informal"
+
+[[concept]]
+id = "fan"
+meaning = "supporter"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "fan", plur = "fans" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "supporter", plur = "supporters" }
+register = "formal"
+[[concept.variant]]
+forms = { sing = "follower", plur = "followers" }
+register = "informal"
+
+[[concept]]
+id = "result"
+meaning = "the outcome of a match"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "result", plur = "results" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "scoreline", plur = "scorelines" }
+register = "informal"
+[[concept.variant]]
+forms = { sing = "outcome", plur = "outcomes" }
+register = "formal"
+
+[[concept]]
+id = "win"
+meaning = "a victory"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "win", plur = "wins" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "victory", plur = "victories" }
+register = "formal"
+[[concept.variant]]
+forms = { sing = "triumph", plur = "triumphs" }
+register = "tabloid"
+when = "margin >= 3"
+
+[[concept]]
+id = "season"
+meaning = "a competition year"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "season", plur = "seasons" }
+register = "neutral"
+[[concept.variant]]
+forms = { sing = "campaign", plur = "campaigns" }
+register = "neutral"
+
+[[concept]]
+id = "wait"
+meaning = "time before news"
+pos = "noun"
+[[concept.variant]]
+forms = { sing = "wait", plur = "waits" }
+register = "neutral"

@@ -369,6 +369,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pw-lang"
+version = "0.1.0"
+dependencies = [
+ "pw-core",
+ "serde",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
 name = "pw-match"
 version = "0.1.0"
 dependencies = [
