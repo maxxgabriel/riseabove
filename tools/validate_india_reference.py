@@ -13,7 +13,7 @@ for f in sorted(ROOT.rglob("*.toml")):
     if f.name == "pack.toml" or f.parent.name == "_manifest":
         continue
     try:
-        d = tomllib.loads(f.read_text())
+        d = tomllib.loads(f.read_text(encoding="utf-8"))
     except Exception as e:
         errors.append(f"{f}: parse error {e}"); continue
     if "meta" not in d:
@@ -28,6 +28,9 @@ for f in sorted(ROOT.rglob("*.toml")):
                 errors.append(f"{f}: {t} {r.get('id', r.get('club'))} has no prov")
             elif p.get("status") not in STATUS or p.get("q") not in list("ABCDE"):
                 errors.append(f"{f}: {r.get('id')} bad prov {p}")
+            elif p.get("status") in ("verified", "imported") and (p.get("q") not in ("A", "B") or not p.get("src")):
+                # A record cannot be verified and weakly graded, or verified with nothing to check it against.
+                errors.append(f"{f}: {r.get('id', r.get('club'))} is {p.get('status')} but graded {p.get('q')} with {len(p.get('src', []))} source(s)")
 for i, fs in ids.items():
     if len(fs) > 1:
         errors.append(f"duplicate id {i} in {sorted(set(map(str, fs)))}")
