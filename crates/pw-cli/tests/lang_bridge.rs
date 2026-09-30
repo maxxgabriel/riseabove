@@ -64,7 +64,7 @@ fn sample() {
     let w = &s.world;
     let mut shown = 0;
     for (_, st) in w.media.stories.iter_enumerated() {
-        if !matches!(st.kind, StoryKind::Interview) { continue; }
+        if !matches!(st.kind, StoryKind::Unhappy | StoryKind::Praise | StoryKind::AwardNews | StoryKind::Milestone) { continue; }
         if let Some(t) = lang::story(w, st) {
             eprintln!("[{:?} / {}]\n{}\n{}\n", st.kind, pw_narrate::press::outlet_name(w, st), t.headline, t.body);
             shown += 1;
@@ -221,4 +221,28 @@ fn relay_kinds() {
         *by.entry(k).or_default() += 1;
     }
     eprintln!("{by:?}");
+}
+
+#[test]
+#[ignore = "debug"]
+fn uncovered() {
+    let s = india_world(54, 500);
+    let w = &s.world;
+    let mut by = std::collections::BTreeMap::<String, usize>::new();
+    for (_, st) in w.media.stories.iter_enumerated() {
+        if lang::story(w, st).is_none() {
+            let link = match w.media.links.get(&st.id) {
+                Some(pw_world::media::StoryLink::Milestone(k, _)) => format!("milestone {k:?}"),
+                Some(pw_world::media::StoryLink::Record(k, _)) => format!("record {k:?}"),
+                Some(l) => format!("{}", format!("{l:?}").split(|c: char| !c.is_alphanumeric()).next().unwrap_or("")),
+                None => "no link".into(),
+            };
+            *by.entry(format!("{:?} / {link}", st.kind)).or_default() += 1;
+        }
+    }
+    let mut v: Vec<_> = by.into_iter().collect();
+    v.sort_by_key(|x| std::cmp::Reverse(x.1));
+    for (k, n) in v.into_iter().take(25) {
+        eprintln!("UNCOVERED {n:5} {k}");
+    }
 }

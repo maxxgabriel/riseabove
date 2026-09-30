@@ -163,6 +163,8 @@ fn certainty_of(s: &Story) -> Certainty {
             30..=74 => Certainty::Rumour,
             _ => Certainty::Speculation,
         },
+        // A leak is somebody's word; a quote or a public matter is stated plainly.
+        StoryKind::Unhappy if s.leaker.is_some() => Certainty::SourceClaim,
         _ => Certainty::Fact,
     }
 }
@@ -250,6 +252,63 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     ev
                 },
             ),
+            _ => None,
+        },
+        StoryKind::Milestone => match w.media.links.get(&s.id) {
+            Some(pw_world::media::StoryLink::Milestone(k, count)) if s.player.is_some() => {
+                use pw_world::event::MilestoneKind as M;
+                let kind = match k {
+                    M::ClubApps => "club_apps",
+                    M::CareerGoals => "career_goals",
+                    M::SeniorApps => "senior_apps",
+                    M::Caps => "caps",
+                };
+                let mut ev = LEvent::new("milestone.reached", s.date).ent("player", player_ref(w, s.player)).text("kind", kind).num("count", i64::from(*count));
+                if *k == M::ClubApps && s.club.is_some() {
+                    ev = ev.ent("club", club_ref(w, s.club));
+                }
+                Some(ev)
+            }
+            Some(pw_world::media::StoryLink::Record(k, v)) if s.player.is_some() => {
+                use pw_world::event::RecordKind as R;
+                // A club's record signing or sale, or the highest fee anywhere: the fee is the record.
+                if let Some(kind) = match k {
+                    R::ClubRecordSigning => Some("signing"),
+                    R::ClubRecordSale => Some("sale"),
+                    R::WorldRecordFee => Some("world"),
+                    _ => None,
+                } && s.club.is_some()
+                    && *v > 0
+                {
+                    return Some(LEvent::new("transfer.record", s.date).ent("player", player_ref(w, s.player)).ent("club", club_ref(w, s.club)).text("kind", kind).money("fee", *v));
+                }
+                // Only records a player can be said to have set or broken; a signing, a sale or a fee is not his to break.
+                let (record, value) = match k {
+                    R::ClubTopScorer if s.club.is_some() => (format!("{} scoring record", w.clubs[s.club].short_name), None),
+                    R::ClubMostApps if s.club.is_some() => (format!("{} appearance record", w.clubs[s.club].short_name), None),
+                    R::LeagueGoalsInSeason => ("league scoring record for a season".to_string(), Some(format!("{v} goals"))),
+                    R::NationMostCaps => ("national appearance record".to_string(), None),
+                    R::NationTopScorer => ("national scoring record".to_string(), None),
+                    _ => return None,
+                };
+                let mut ev = LEvent::new("record.broken", s.date).ent("person", player_ref(w, s.player)).text("record", &record);
+                if let Some(v) = value {
+                    ev = ev.text("value", &v);
+                }
+                Some(ev)
+            }
+            _ => None,
+        },
+        StoryKind::Unhappy | StoryKind::Praise if s.player.is_some() => {
+            let kind = if s.kind == StoryKind::Unhappy { "player.unhappy" } else { "player.praise" };
+            let mut ev = LEvent::new(kind, s.date).ent("player", player_ref(w, s.player));
+            if s.club.is_some() {
+                ev = ev.ent("club", club_ref(w, s.club));
+            }
+            Some(ev)
+        }
+        StoryKind::AwardNews => match w.media.links.get(&s.id) {
+            Some(pw_world::media::StoryLink::Award(a)) if s.player.is_some() => Some(LEvent::new("award.won", s.date).ent("player", player_ref(w, s.player)).text("award", &a.label())),
             _ => None,
         },
         StoryKind::Interview => match w.media.links.get(&s.id) {

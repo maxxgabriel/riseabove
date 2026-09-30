@@ -367,7 +367,9 @@ impl Engine {
                 }
                 let mut ws = self.wrapper_for(cert, slot, req, source, f);
                 let attr = (cert, source_key.clone());
-                let repeated = cert != Certainty::Fact && last_attr.as_ref().is_some_and(|l| l.0 == cert && (l.1.is_none() || l.1 == attr.1));
+                // The same attribution is not stated twice: not when the grade and source match, and not when a named source has just been
+                // cited for a differently graded fact (the continuation wording carries the difference: "it is also claimed that ...").
+                let repeated = cert != Certainty::Fact && last_attr.as_ref().is_some_and(|l| (l.0 == cert && (l.1.is_none() || l.1 == attr.1)) || (l.1.is_some() && l.1 == attr.1));
                 let cont: Vec<usize> = ws.iter().copied().filter(|&i| self.lang.wrappers[i].continuation).collect();
                 let plain: Vec<usize> = ws.iter().copied().filter(|&i| !self.lang.wrappers[i].continuation).collect();
                 ws = if repeated && !cont.is_empty() { cont } else { plain };

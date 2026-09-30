@@ -397,6 +397,68 @@ key = "stance"
 type = "text"
 
 [[event]]
+kind = "milestone.reached"
+summary = "A player has reached a round number in his career. `kind` is club_apps, career_goals, senior_apps or caps; `count` is the number reached."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "kind"
+type = "text"
+[[event.fact]]
+key = "count"
+type = "num"
+
+[[event]]
+kind = "transfer.record"
+summary = "A club has paid or received its highest fee. `kind` is signing, sale or world (the highest fee anywhere)."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "kind"
+type = "text"
+[[event.fact]]
+key = "fee"
+type = "money"
+
+[[event]]
+kind = "player.unhappy"
+summary = "A player is said to be unhappy at his club. Whether it is true is for the speaker's certainty, not this event."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "player.praise"
+summary = "A player has been talked up by those who write about football. It carries no claim about how he played."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "award.won"
+summary = "A player has won an award; `award` is its name as it reads after the word wins."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "award"
+type = "text"
+
+[[event]]
 kind = "record.broken"
 summary = "A record has been set."
 [[event.fact]]
