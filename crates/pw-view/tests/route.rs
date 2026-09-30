@@ -71,3 +71,29 @@ fn the_india_world_offers_every_start_and_the_person_made_is_lived_as() {
     wait(&api, "job");
     api.call("me.today", json!({})).unwrap();
 }
+
+#[test]
+fn a_district_describes_the_place_in_words_and_defaults_to_home() {
+    let api = api();
+    new_world(&api, json!({"kind": "india", "scale": "tiny", "seed": 6}));
+    // Observing: no home yet, so it asks for a choice rather than guessing.
+    let none = api.call("ecosystem.district", json!({})).unwrap();
+    assert_eq!(none["available"], false);
+    let o = api.call("route.options", json!({})).unwrap();
+    let d0 = o["states"][0]["districts"][0]["id"].as_u64().unwrap();
+    let d = api.call("ecosystem.district", json!({"id": d0})).unwrap();
+    assert_eq!(d["available"], true);
+    let aspects = d["aspects"].as_array().unwrap();
+    assert!(aspects.len() >= 8);
+    for a in aspects {
+        assert!(["very low", "low", "middling", "high", "very high"].contains(&a["level"].as_str().unwrap()), "levels are words, not numbers: {a}");
+        assert!(!a["note"].as_str().unwrap().is_empty());
+    }
+    assert!(d["name"].as_str().is_some_and(|n| !n.is_empty()) && d["state"].as_str().is_some_and(|n| !n.is_empty()));
+    // Living as a child from that district: the default is their home.
+    api.call("route.begin", json!({"start": "school_standout", "district": d0})).unwrap();
+    let home = api.call("ecosystem.district", json!({})).unwrap();
+    assert_eq!(home["available"], true);
+    assert_eq!(home["name"], d["name"], "the default is where the person grew up");
+    assert!(api.call("ecosystem.district", json!({"id": 99_999_999u64})).unwrap()["available"] == false, "a place that does not exist is refused, not guessed");
+}

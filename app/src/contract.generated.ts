@@ -322,6 +322,25 @@ export interface PathwayView {
   recognition: RecognitionView | null;
 }
 
+export interface AspectRow {
+  label: string;
+  level: string;
+  note: string;
+}
+
+export interface DistrictView {
+  available: boolean;
+  reason: string | null;
+  name: string;
+  state: string;
+  association: string | null;
+  population_k: number;
+  aspects: AspectRow[];
+  academies: Named[];
+  universities: string[];
+  schools: number;
+}
+
 export interface RegionOutputRow {
   region: string;
   kind: string;
@@ -476,6 +495,7 @@ export interface ApiMethods {
   "ecosystem.regions": { kind: "query"; req: Record<string, unknown>; res: RegionOutputView };
   "ecosystem.export": { kind: "query"; req: Record<string, unknown>; res: ExportView };
   "ecosystem.scenario": { kind: "query"; req: Record<string, unknown>; res: ScenarioView };
+  "ecosystem.district": { kind: "query"; req: Record<string, unknown>; res: DistrictView };
 }
 
 /** The methods whose response type is declared here. */
@@ -490,4 +510,5 @@ export type TypedMethod =
   | "ecosystem.regions"
   | "ecosystem.export"
   | "ecosystem.scenario"
+  | "ecosystem.district"
 ;

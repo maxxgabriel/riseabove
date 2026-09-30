@@ -15,7 +15,7 @@ use pw_world::recog::{Learned, Org, Segment, Source, VouchBasis};
 use pw_world::scenario::DataOrigin;
 use serde_json::Value;
 
-use crate::contract::{
+use crate::contract::{AspectRow, DistrictView, 
     CreationView, DerbyRow, EligibilityRow, EvidenceRow, ExportView, KnownBy, MarketRow, PathwayView, RecognitionView, ReferenceStatusRow, RegionOutputRow, RegionOutputView, ScenarioView, SegmentRegard, StepRow, TierRow, VouchView, WatchRow,
 };
 use crate::ctx::Ctx;
@@ -280,5 +280,76 @@ pub fn scenario(c: &Ctx, _args: &Value) -> ApiResult<Value> {
             .map(|d| DerbyRow { name: d.name.clone(), a: c.w.clubs[d.a].name.clone(), b: c.w.clubs[d.b].name.clone(), kind: if d.derby { "Derby" } else { "Rivalry" }.into(), origin: d.origin.label().into() })
             .collect(),
         note: "The weights and thresholds that decide who is noticed are initial tuning held in the scenario's data, not facts about football.".into(),
+    })
+}
+
+fn word(x: f32) -> &'static str {
+    match x {
+        x if x < 20.0 => "very low",
+        x if x < 40.0 => "low",
+        x if x < 60.0 => "middling",
+        x if x < 80.0 => "high",
+        _ => "very high",
+    }
+}
+
+/// `ecosystem.district {id?}`: what a place is like for a child growing up in it, and who is near. With no id, the district of the person
+/// being lived as. These are facts about the place (its coaching, its scouting, its money), never about any child in it.
+pub fn district(c: &Ctx, args: &Value) -> ApiResult<Value> {
+    let eco = &c.w.ext.ecosystem;
+    let none = |why: &str| to_json(&DistrictView { available: false, reason: Some(why.into()), name: String::new(), state: String::new(), association: None, population_k: 0, aspects: Vec::new(), academies: Vec::new(), universities: Vec::new(), schools: 0 });
+    if !eco.is_configured() {
+        return none("This world has no districts.");
+    }
+    let id = match args.get("id").and_then(Value::as_u64) {
+        Some(n) => pw_core::RegionId(n as u32),
+        None => match c.my_player().and_then(|p| eco.story.get(&p)) {
+            Some(s) => s.dev,
+            None => return none("Choose a district to look at."),
+        },
+    };
+    if id.is_none() || (id.0 as usize) >= eco.regions.len() {
+        return none("There is no such place.");
+    }
+    let r = &eco.regions[id];
+    let state = eco.state_of(id);
+    let state_name = if state.is_some() { eco.regions[state].name.clone() } else { r.name.clone() };
+    let a = eco.assoc.get(&state);
+    let mut aspects = vec![
+        AspectRow { label: "Children playing".into(), level: word(r.participation).into(), note: "How much of the district plays organised football at all. More players means more competition for every place, and more talent to find.".into() },
+        AspectRow { label: "Coaching".into(), level: word(r.coach_density).into(), note: "Licensed coaches per child. Good coaches develop players and speak up for the best of them; without them, talent goes unrecognised.".into() },
+        AspectRow { label: "Facilities".into(), level: word(r.facilities).into(), note: "Pitches, floodlights and equipment. Poor facilities limit training and the level of the games scouts can watch.".into() },
+        AspectRow { label: "Competitive football".into(), level: word(r.competition_density).into(), note: "How many real matches a child gets. Evidence from more games, against real opposition, is believed sooner.".into() },
+        AspectRow { label: "Scouting coverage".into(), level: word(r.scouting_coverage).into(), note: "How much of the district's football anyone with influence watches. Low coverage means a great player can go unseen for years.".into() },
+        AspectRow { label: "Academy access".into(), level: word(r.academy_access).into(), note: "How reachable professional academies are from here.".into() },
+        AspectRow { label: "Household means".into(), level: word(r.economic_access).into(), note: "How easily families can afford travel, kit and trials. It decides who can turn up when a chance comes.".into() },
+        AspectRow { label: "Football culture".into(), level: word(r.culture).into(), note: "How much the place cares. It grows from what the district has produced and fades without it.".into() },
+    ];
+    if let Some(a) = a {
+        aspects.push(AspectRow { label: "State association".into(), level: word(a.governance).into(), note: "How well the state association is run. It shapes funding, competitions and how state sides are picked.".into() });
+    }
+    let mut academies: Vec<(f32, pw_core::ClubId)> = c.w.youth.academies.keys().map(|&k| (eco.travel_burden(eco.region_of_club(k), id), k)).filter(|x| x.0 < 0.3).collect();
+    academies.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+    let academies = academies.into_iter().take(12).map(|(_, k)| Named::new(Ref::club(k), c.club_name(k))).collect();
+    let mut unis: Vec<(f32, String)> = eco
+        .inst
+        .iter()
+        .filter(|(i, p)| c.w.minor.institutions.get(**i as usize).is_some_and(|x| x.kind == pw_world::minor::InstKind::University) && p.region.is_some())
+        .map(|(i, p)| (eco.travel_burden(p.region, id), c.w.minor.institutions[*i as usize].name.clone()))
+        .filter(|x| x.0 < 0.3)
+        .collect();
+    unis.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+    let schools = eco.inst.iter().filter(|(i, p)| p.region == id && c.w.minor.institutions.get(**i as usize).is_some_and(|x| x.kind == pw_world::minor::InstKind::School)).count() as u32;
+    to_json(&DistrictView {
+        available: true,
+        reason: None,
+        name: r.name.clone(),
+        state: state_name,
+        association: eco.assoc_name.get(&state).cloned(),
+        population_k: r.population_k,
+        aspects,
+        academies,
+        universities: unis.into_iter().take(8).map(|x| x.1).collect(),
+        schools,
     })
 }

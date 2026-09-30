@@ -33,12 +33,17 @@ const SCALES = [
   { id: "huge", label: "Huge", note: "About 300,000 people in 40 nations. Slow to build and to run." },
 ];
 
+/** A freshly created India world opens on the page where the player chooses where their life begins. */
+let beginNext = false;
+
 /** Start a world (or wait for one) and go to the right first page. */
 export async function afterOpen() {
   const st = await refreshStatus();
   worldChanged();
   markSaved();
-  navigate(st.perspective?.mode === "inhabit" ? "/today" : "/overview", { replace: true });
+  const toBegin = beginNext && st.perspective?.mode !== "inhabit";
+  beginNext = false;
+  navigate(st.perspective?.mode === "inhabit" ? "/today" : toBegin ? "/begin" : "/overview", { replace: true });
 }
 
 const stem = (file: string) => file.replace(/\.pws$/, "");
@@ -72,6 +77,7 @@ export function Start({ inApp = false }: { inApp?: boolean }) {
   const begin = async (method: string, args: Record<string, unknown>) => {
     setErr(null);
     setBusy(true);
+    beginNext = method === "world.new" && args.kind === "india";
     try {
       await call(method, args);
       setAwaiting(true);
