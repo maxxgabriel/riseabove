@@ -6,6 +6,50 @@ use pw_import::fixture::{Archive, player_row, q};
 use pw_import::{LoadOptions, Severity, build_world, load_dir_with, parse_dir};
 use pw_world::origin::{Facet, Origin};
 
+#[test]
+fn missing_values_use_dated_id_evidence_without_future_leaks_or_fake_zeroes() {
+    let mut a = Archive::standard();
+    a.players[0] = player_row("10000", "100", "1995-01-01", |c| { c[24].clear(); c[11].clear(); c[12].clear(); });
+    a.players[1] = player_row("10001", "100", "1995-01-01", |c| { c[24] = "0".into(); });
+    a.players[2] = player_row("10002", "100", "1995-01-01", |c| { c[24].clear(); });
+    let dir = a.write("recovered-values");
+    std::fs::write(dir.join("player_valuations.csv"), "player_id,date,market_value_in_eur\n10000,2026-06-01,1200000\n10000,2026-07-01,2000000\n10000,2026-08-01,90000000\n10001,2026-06-01,5000000\n10002,2026-06-01,3000000\n10002,2026-06-01,4000000\n").unwrap();
+    std::fs::write(dir.join("game_lineups.csv"), "game_lineups_id,date,game_id,player_id,club_id,position,number\n1,2026-06-01,1,10000,100,Left-Back,3\n2,2026-06-08,2,10000,100,Left-Back,3\n3,2026-06-15,3,10000,100,Left-Back,3\n4,2026-08-01,4,10000,100,Goalkeeper,1\n").unwrap();
+    std::fs::write(dir.join("appearances.csv"), "appearance_id,game_id,player_id,competition_id,date,goals,minutes_played\na,1,10000,GB1,2026-06-01,,90\nb,2,10000,GB1,2026-06-08,1,90\nc,3,10000,GB1,2026-08-01,100,90\n").unwrap();
+    let set = parse_dir(&dir, LoadOptions::default()).unwrap();
+    let p = set.players.iter().find(|p| p.key == "10000").unwrap();
+    assert_eq!(p.value, Some(2_000_000));
+    assert!(p.value_inferred && p.position_inferred);
+    assert_eq!(p.positions, [pw_core::Pos::DL]);
+    assert_eq!(p.shirt, Some(3));
+    assert_eq!(p.minutes_12m, Some(180));
+    assert_eq!(p.apps, Some(2));
+    assert_eq!(p.goals, None, "a missing goal field is not an observed zero");
+    let zero = set.players.iter().find(|p| p.key == "10001").unwrap();
+    assert_eq!(zero.value, Some(0), "a stated zero is not overwritten by a past valuation");
+    assert_eq!(zero.minutes_12m, None, "absence from a partial archive is not zero minutes");
+    assert_eq!(set.players.iter().find(|p| p.key == "10002").unwrap().value, None, "conflicting dated evidence stays unresolved");
+    let (w, _) = build_world(&set, DataPack::builtin(), Some(7));
+    let person = w.origins.find("transfermarkt", "player:10000").unwrap();
+    let origin = w.origins.person(person).unwrap();
+    assert_eq!(origin.get(Facet::Value), Origin::Inferred);
+    assert_eq!(origin.get(Facet::Position), Origin::Inferred);
+    let zero_person = w.origins.find("transfermarkt", "player:10001").unwrap();
+    assert_eq!(w.players.cold[w.people[zero_person].player].value, 0);
+    let estimated_person = w.origins.find("transfermarkt", "player:10002").unwrap();
+    assert!(w.players.cold[w.people[estimated_person].player].value > 0);
+    assert_eq!(w.origins.person(estimated_person).unwrap().get(Facet::Value), Origin::Inferred);
+    let mut explicit_wage = parse_dir(&dir, LoadOptions::default()).unwrap();
+    explicit_wage.players.iter_mut().find(|p| p.key == "10001").unwrap().wage = Some(0);
+    let (wage_world, _) = build_world(&explicit_wage, DataPack::builtin(), Some(7));
+    let person = wage_world.origins.find("transfermarkt", "player:10001").unwrap();
+    assert_eq!(wage_world.players.cold[wage_world.people[person].player].contract.wage, 0, "known zero wage is a fact, not a missing value");
+    std::fs::write(dir.join("player_valuations.csv"), "player_id,date,market_value_in_eur\n10002,2026-06-01,4000000\n10002,2026-06-01,3000000\n10000,2026-08-01,90000000\n10000,2026-07-01,2000000\n10000,2026-06-01,1200000\n").unwrap();
+    let reversed = parse_dir(&dir, LoadOptions::default()).unwrap();
+    assert_eq!(reversed.players.iter().find(|p| p.key == "10000").unwrap().value, p.value);
+    assert_eq!(reversed.players.iter().find(|p| p.key == "10002").unwrap().value, None);
+}
+
 fn load(a: &Archive, name: &str) -> (pw_world::World, pw_import::ImportReport) {
     load_dir_with(&a.write(name), DataPack::builtin(), Some(7), LoadOptions::default()).expect("loads")
 }
@@ -264,6 +308,8 @@ fn career_counters_and_shirts_come_from_match_files_and_are_marked() {
     let mut a = Archive::standard();
     for (i, mins) in ["90", "45", "0"].iter().enumerate() {
         a.appearances.push(q(&[&i.to_string(), &(500 + i).to_string(), "10001", "GB1", "1", mins, "n"]));
+        // This appearance export omits date; recover it from the exact recorded game ID.
+        a.games.push(q(&[&(500 + i).to_string(), "GB1", "2025", "1", "2026-05-01", "100", "101", "1", "0"]));
     }
     // National-team games are not club career.
     a.comps.push(q(&["EURO", "euro", "uefa-euro", "uefa_euro", "national_team_competition", "-1", "", "", "europa", "", "u"]));

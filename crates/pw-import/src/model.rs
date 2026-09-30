@@ -190,6 +190,8 @@ pub struct ImpPlayer {
     pub club: Option<Key>,
     pub team: TeamKind,
     pub positions: Vec<Pos>,
+    /// Role estimated from recent lineup evidence when the identity row did not state it.
+    pub position_inferred: bool,
     /// Coarse role when the source gives no specific position.
     pub position_group: Option<PosGroup>,
     pub foot: Option<Foot>,
@@ -203,6 +205,8 @@ pub struct ImpPlayer {
     pub wage: Option<i64>,
     pub contract_end: Option<Date>,
     pub value: Option<i64>,
+    /// Latest dated valuation carried forward to the snapshot, not a stated current valuation.
+    pub value_inferred: bool,
     pub rep_current: Option<u16>,
     pub rep_home: Option<u16>,
     pub rep_world: Option<u16>,
@@ -236,6 +240,7 @@ impl ImpPlayer {
             club: None,
             team: TeamKind::First,
             positions: Vec::new(),
+            position_inferred: false,
             position_group: None,
             foot: None,
             feet: None,
@@ -248,6 +253,7 @@ impl ImpPlayer {
             wage: None,
             contract_end: None,
             value: None,
+            value_inferred: false,
             rep_current: None,
             rep_home: None,
             rep_world: None,

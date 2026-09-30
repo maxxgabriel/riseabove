@@ -9,6 +9,8 @@
 //! and benchmarks only.
 
 mod assemble;
+pub mod database;
+pub mod consolidated;
 pub mod builder;
 mod csv_pack;
 pub mod fixture;
@@ -117,20 +119,26 @@ struct WorldToml {
 
 /// Parse a folder of any supported layout into the import representation, without building a world.
 pub fn parse_dir(dir: &Path, opt: LoadOptions) -> Result<ImportSet, ImportError> {
+    let meta = consolidated::manifest(dir)?;
     let mut set = if transfermarkt::detect(dir) {
-        let mut set = transfermarkt::parse(dir, &transfermarkt::TmOptions { start: None, with_match_files: opt.match_files })?;
-        if let Ok(text) = std::fs::read_to_string(dir.join("world.toml")) {
-            let cfg: WorldToml = toml::from_str(&text).map_err(|e| ImportError::Config(e.to_string()))?;
-            if let Some(d) = cfg.start_date.as_deref().and_then(|s| table::parse_date(s)) {
-                set.start = Some(d);
-            }
-            set.seed = cfg.seed.or(set.seed);
+        let cfg: WorldToml = match std::fs::read_to_string(dir.join("world.toml")) {
+            Ok(text) => toml::from_str(&text).map_err(|e| ImportError::Config(e.to_string()))?,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => WorldToml::default(),
+            Err(source) => return Err(ImportError::Io { file: "world.toml".into(), source }),
+        };
+        let start = cfg.start_date.as_deref().map(|s| table::parse_date(s).ok_or_else(|| ImportError::Config("invalid start_date".into()))).transpose()?;
+        if let Some(meta) = &meta && start != table::parse_date(&meta.start_date) {
+            return Err(ImportError::Config("world.toml start_date differs from the database manifest".into()));
         }
+        // Apply the start before parsing dated evidence, contracts and career counters.
+        let mut set = transfermarkt::parse(dir, &transfermarkt::TmOptions { start, with_match_files: opt.match_files })?;
+        set.seed = cfg.seed.or(set.seed);
         set
     } else {
         csv_pack::parse(dir)?
     };
     staff_list::parse_into(&mut set, dir)?;
+    if let Some(meta) = &meta { consolidated::annotate(&mut set, meta); }
     if set.clubs.is_empty() || set.players.is_empty() {
         return Err(ImportError::Empty("the folder holds no clubs or no players that could be read".into()));
     }

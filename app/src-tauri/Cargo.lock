@@ -2489,6 +2489,7 @@ dependencies = [
 name = "pw-import"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "csv",
  "pw-core",
  "pw-data",
@@ -2496,6 +2497,7 @@ dependencies = [
  "pw-world",
  "rustc-hash",
  "serde",
+ "serde_json",
  "smallvec",
  "thiserror 2.0.21",
  "toml 1.1.6+spec-1.1.0",
@@ -2535,6 +2537,7 @@ dependencies = [
  "rayon",
  "rustc-hash",
  "serde",
+ "serde_json",
  "smallvec",
  "thiserror 2.0.21",
 ]
@@ -2562,6 +2565,7 @@ dependencies = [
 name = "pw-world"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "pw-core",
  "pw-data",
  "pw-match",

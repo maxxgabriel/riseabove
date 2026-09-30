@@ -336,7 +336,12 @@ fn stop_lands_on_a_day_boundary() {
     let api = api();
     new_world(&api, "small");
     api.call("advance.start", json!({"mode": "days", "n": 3000})).unwrap();
-    std::thread::sleep(Duration::from_millis(50));
+    // Wait for actual progress; under a loaded full-suite run, 50 ms may pass before the worker starts.
+    let began = Instant::now();
+    while api.call("world.status", json!({})).unwrap()["job"]["days_done"].as_u64().unwrap_or(0) == 0 {
+        assert!(began.elapsed() < Duration::from_secs(30), "advance worker did not make progress");
+        std::thread::sleep(Duration::from_millis(5));
+    }
     api.call("advance.stop", json!({})).unwrap();
     let job = wait_job(&api);
     assert_eq!(job["stop"]["kind"], "user");

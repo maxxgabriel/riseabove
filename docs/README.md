@@ -14,4 +14,6 @@ Rules: a stale report does not make working code wrong; never build a "missing" 
 missing; check the branch first. Documentation never overrules a failing test.
 
 Data and imports: `DB_INTEGRATION_AUDIT.md` (sources and mappings), `../data/IMPORT_FORMAT.md` (pack format),
+`DATABASE_INTEGRATION.md` (current source browser, missing-value rules and indexing costs),
+`CONSOLIDATED_DATABASE.md` (installed pack, reconciliation, coverage and cleanup),
 `DATA_PACK_BOUNDARY.md` (what may be committed: nothing proprietary). Branch bookkeeping: `LOCAL_INTEGRATION_STATUS.md`.

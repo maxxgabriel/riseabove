@@ -12,7 +12,7 @@ use pw_world::nation::Confed;
 use pw_world::origin::{Facet, Origin, PersonOrigin, Source, SourceRef, Unresolved, gap};
 use pw_world::player::Reputation;
 use pw_world::{CompKind, Contract, Format, Philosophy, PlayerCold, PlayerHot, PlayerStatus, SquadStatus, Team, TeamKind, World};
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::builder::{self, ClubSpec};
 use crate::infer;
@@ -57,6 +57,8 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
     let seed = seed.or(set.seed).unwrap_or_else(pw_core::rng::fresh_seed);
     let mut w = World::new(pack, seed, start);
     let mut rep = ImportReport::default();
+    let mut known_wages = FxHashSet::default();
+    let mut missing_values = Vec::new();
     w.origins.sources = set.sources.iter().map(|s| Source { name: s.name.clone(), snapshot: s.snapshot, note: s.note.clone() }).collect();
 
     // ---- nations ----------------------------------------------------------------------
@@ -317,7 +319,7 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
 
         // Positions.
         let (naturals, pos_origin): (Vec<Pos>, Origin) = if !p.positions.is_empty() {
-            (p.positions.clone(), Origin::Imported)
+            (p.positions.clone(), if p.position_inferred { Origin::Inferred } else { Origin::Imported })
         } else if let Some(g) = p.position_group {
             (vec![default_position(g)], Origin::Inferred)
         } else {
@@ -382,6 +384,7 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
 
         let joined = p.joined.unwrap_or(start);
         let person = builder::add_person(&mut w, &p.first, &p.last, &p.common, dob, nation, nation2);
+        if p.wage.is_some() { known_wages.insert(person); }
         w.people[person].hidden = hidden;
 
         let team = if club.is_some() { club_team(&mut w, club, p.team) } else { TeamId::NONE };
@@ -400,10 +403,10 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
         };
         let loan = loan_from.map(|parent| Loan { parent, club, start, end: p.loan_end.unwrap_or(start.add_months(11)), wage_share: 70, fee: 0, buy_option: 0, recall: true });
         mark.mark(Facet::Contract, if registered.is_none() { Origin::Unknown } else if p.contract_end.is_some() && p.wage.is_some() { Origin::Imported } else if p.contract_end.is_some() { Origin::Inferred } else { Origin::Generated });
-        mark.mark(Facet::Value, if p.value.is_some() { Origin::Imported } else { Origin::Inferred });
+        mark.mark(Facet::Value, if p.value.is_some() && !p.value_inferred { Origin::Imported } else { Origin::Inferred });
         let has_rep = p.rep_current.is_some();
         mark.mark(Facet::Reputation, if has_rep { Origin::Imported } else { Origin::Inferred });
-        mark.mark(Facet::Career, if p.apps.is_some() || p.caps.is_some() || p.goals.is_some() { Origin::Imported } else { Origin::Unknown });
+        mark.mark(Facet::Career, if p.apps.is_some() && p.goals.is_some() { Origin::Imported } else { Origin::Unknown });
         mark.mark(Facet::Club, if p.club.is_some() { Origin::Imported } else { Origin::Unknown });
 
         let mut cold = PlayerCold {
@@ -455,6 +458,7 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
 
         let hot = PlayerHot { club: registered, team, status: if registered.is_some() { PlayerStatus::Active } else { PlayerStatus::FreeAgent }, condition: 95, sharpness: 70, fitness: 85, ..PlayerHot::default() };
         let pid = w.players.push(hot, cold, pw_world::player::Origin { source: pw_world::player::PlayerSource::DatabaseImport, date: w.date });
+        if p.value.is_none() { missing_values.push(pid); }
         w.people[person].player = pid;
         if team.is_some() {
             w.teams[team].squad.push(pid);
@@ -507,7 +511,10 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
 
     builder::finalize(&mut w);
     builder::ensure_staff(&mut w);
-    fill_contracts(&mut w, start);
+    fill_contracts(&mut w, start, &known_wages);
+    for p in missing_values {
+        w.players.cold[p].value = pw_sim::market::value_of(&w, p);
+    }
 
     // ---- bookkeeping ---------------------------------------------------------------------------------------------
     for u in &set.unresolved {
@@ -526,7 +533,7 @@ pub fn assemble(set: &ImportSet, pack: DataPack, seed: Option<u64>) -> (World, I
 }
 
 /// Missing wages, contract ends and reputations get plausible values, and the origin book says so.
-fn fill_contracts(w: &mut World, start: Date) {
+fn fill_contracts(w: &mut World, start: Date, known_wages: &FxHashSet<pw_core::PersonId>) {
     for p in w.players.ids() {
         let club = w.players.hot[p].club;
         if club.is_none() {
@@ -534,7 +541,7 @@ fn fill_contracts(w: &mut World, start: Date) {
         }
         let person = w.players.cold[p].person;
         let mut rng = Rng::keyed(&[w.seed, stream::CONTRACTS, u64::from(p.0)]);
-        if w.players.cold[p].contract.wage == 0 {
+        if w.players.cold[p].contract.wage == 0 && !known_wages.contains(&person) {
             w.players.cold[p].contract.wage = pw_sim::market::wage_demand(w, p, club);
             if let Some(o) = w.origins.people.get_mut(&person) {
                 let cur = o.get(Facet::Contract);

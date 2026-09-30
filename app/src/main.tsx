@@ -13,6 +13,7 @@ import "./styles/shell.css";
 import "./styles/pages.css";
 import "./styles/stage.css";
 import "./styles/newsroom.css";
+import "./styles/database.css";
 
 applySettings(getSettings());
 createRoot(document.getElementById("root")!).render(

@@ -69,8 +69,9 @@ interface PlayerInfo {
   form: number[];
   caps: number;
   intl_goals: number;
-  senior_apps: number;
-  senior_goals: number;
+  senior_apps: number | null;
+  senior_goals: number | null;
+  career_coverage: string;
   joined: number | null;
   youth_club: Named | null;
   internal: null | { ca: number; pa: number; reputation: { current: number; home: number; world: number }; personality: string; bio_offset: number; plan: { focus: string; intensity: string } };
@@ -238,7 +239,7 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
       <StatStrip className="person-stat-strip">
         <Metric label="Position" value={pl.best_pos} detail={pl.squad_status ?? pl.team ?? "First team"} tone="accent" />
         <Metric label="Recent rating" value={pl.form.length ? pl.form[pl.form.length - 1].toFixed(1) : "—"} detail="Latest appearance" />
-        <Metric label="Senior career" value={fmtInt(pl.senior_apps)} detail={`${fmtInt(pl.senior_goals)} goals`} />
+        <Metric label="Recorded senior career" value={pl.senior_apps == null ? "—" : fmtInt(pl.senior_apps)} detail={pl.senior_goals == null ? "Past record unavailable" : `${fmtInt(pl.senior_goals)} goals`} />
         {pl.value != null && <Metric label="Market value" value={<Money v={pl.value} />} detail="Estimated value" tone="accent" />}
       </StatStrip>
       <div className="split player-layout">
@@ -311,7 +312,7 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
                 ...(pl.shirt ? [{ k: "Shirt number", v: pl.shirt }] : []),
                 ...(pl.youth_club ? [{ k: "Youth club", v: <EntityLink r={pl.youth_club}>{pl.youth_club.name}</EntityLink> }] : []),
                 ...(pl.joined != null ? [{ k: "Joined", v: <Dt d={pl.joined} /> }] : []),
-                { k: "Senior career", v: <span className="num">{fmtInt(pl.senior_apps)} apps, {fmtInt(pl.senior_goals)} goals</span> },
+                { k: "Recorded senior career", v: pl.senior_apps == null ? "Unknown" : <span className="num">{fmtInt(pl.senior_apps)} apps, {pl.senior_goals == null ? "unknown" : fmtInt(pl.senior_goals)} goals</span> },
                 ...(pl.caps ? [{ k: "International", v: <span className="num">{pl.caps} caps, {pl.intl_goals} goals</span> }] : []),
                 ...(pl.value != null ? [{ k: "Market value", v: <Money v={pl.value} /> }] : []),
               ]}
@@ -345,7 +346,7 @@ function PlayerOverview({ p, pl }: { p: PersonResp; pl: PlayerInfo }) {
 function DataSource({ prov }: { prov: NonNullable<PersonResp["provenance"]> }) {
   const tone = (o: string) => (o === "imported" ? "pos" : o.startsWith("estimated") ? "warn" : "muted");
   return (
-    <Section title="Data source" aside={<Badge tone="info">Observer only</Badge>}>
+    <Section title="Data source" aside={(prov.source === "transfermarkt" || prov.source === "fpl") && prov.id.startsWith("player:") ? <a href={href(`/database?family=Transfermarkt&table=players.csv&column=player_id&value=${encodeURIComponent(prov.id.slice(7))}`)}>Source records</a> : <Badge tone="info">Observer only</Badge>}>
       <div className="card">
         <KeyVal
           rows={[

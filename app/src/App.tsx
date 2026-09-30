@@ -172,7 +172,7 @@ export function App() {
     return <div className="boot"><Spinner size={22} /></div>;
   }
   if (!st.open) {
-    if (route.segs[0] === "database") return <Database />;
+    if (route.segs[0] === "database") return <div className="database-standalone"><Database /></div>;
     return <Start />;
   }
   return (

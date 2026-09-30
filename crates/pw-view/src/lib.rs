@@ -9,6 +9,7 @@ mod advance;
 pub mod contract;
 mod ctx;
 mod debug;
+mod database;
 mod fmt;
 mod model;
 mod narrative;
@@ -38,6 +39,7 @@ pub struct Shared {
     task: Mutex<Task>,
     stop: AtomicBool,
     dir: PathBuf,
+    database: Mutex<database::Databases>,
 }
 
 #[derive(Clone, Debug, Serialize, Default)]
@@ -97,7 +99,8 @@ impl Api {
     pub fn new(data_dir: impl Into<PathBuf>) -> Self {
         let dir = data_dir.into();
         let _ = std::fs::create_dir_all(dir.join("saves"));
-        Self { sh: Arc::new(Shared { session: Mutex::new(None), job: Mutex::new(Job::default()), task: Mutex::new(Task::default()), stop: AtomicBool::new(false), dir }) }
+        let database = Mutex::new(database::Databases::new(&dir));
+        Self { sh: Arc::new(Shared { session: Mutex::new(None), job: Mutex::new(Job::default()), task: Mutex::new(Task::default()), stop: AtomicBool::new(false), dir, database }) }
     }
 
     fn lock(&self) -> MutexGuard<'_, Option<Session>> {
@@ -131,6 +134,10 @@ impl Api {
             "world.status" => Ok(self.status()),
             "world.new" => self.world_new(args),
             "world.inspect_import" => self.inspect_import(args),
+            "world.datasets" => Ok(self.datasets()),
+            "database.sources" => self.database_sources(),
+            "database.attach" => self.database_attach(args),
+            "database.query" => self.database_query(args),
             "world.saves" => Ok(self.saves()),
             "world.save" => self.save(args),
             "world.load" => self.load(args),
@@ -316,6 +323,9 @@ impl Api {
             let built = std::panic::catch_unwind(|| build_world(&req));
             match built {
                 Ok(Ok((world, name, report))) => {
+                    if req.kind == "import" && let Some(dir) = req.dir.as_deref() {
+                        sh.database.lock().unwrap_or_else(|e| e.into_inner()).attach_import(Path::new(dir));
+                    }
                     *sh.session.lock().unwrap_or_else(|e| e.into_inner()) = Some(Session::new(world, name));
                     *sh.job.lock().unwrap_or_else(|e| e.into_inner()) = Job::default();
                     Api::finish_task(&sh, None, Some(report));
@@ -347,6 +357,7 @@ impl Api {
                     "ok": true, "files": files,
                     "counts": {"nations": set.nations.len(), "competitions": set.comps.len(), "clubs": set.clubs.len(), "players": set.players.len(), "staff": set.staff.len(), "unresolved": set.unresolved.len()},
                     "warnings": warnings, "findings": findings, "start": set.start.map(|d| d.0),
+                    "database": pw_import::consolidated::manifest(Path::new(dir)).ok().flatten(),
                 }))
             }
             Err(e) => Ok(json!({"ok": false, "files": files, "error": e.to_string()})),

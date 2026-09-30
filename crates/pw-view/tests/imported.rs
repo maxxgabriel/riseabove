@@ -71,6 +71,7 @@ fn a_search_an_imported_person_open_the_profile_and_read_the_career() {
     let spells = api.call("table.query", json!({"table": "spells", "filters": {"person": id}, "limit": 20})).unwrap();
     assert!(!spells["rows"].as_array().unwrap().is_empty(), "the current club spell exists");
     api.call("table.query", json!({"table": "player_stats", "filters": {"person": id}, "limit": 20})).unwrap();
+    assert!(p["player"]["senior_apps"].is_null() && p["player"]["senior_goals"].is_null(), "missing past records are not displayed as zero");
     // Clubs, competitions and nations are the imported ones.
     let s = api.call("search", json!({"q": "Football Club GB1"})).unwrap();
     assert!(s["groups"].as_array().unwrap().iter().any(|g| !g["items"].as_array().unwrap().is_empty()));
