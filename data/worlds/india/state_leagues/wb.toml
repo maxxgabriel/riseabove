@@ -75,7 +75,7 @@ relegation = "Two relegated to Third Division."
 qualifies_to = ["comp.wb.cfl-1st-div"]
 fed_by = ["comp.wb.cfl-3rd-div"]
 status = "active"
-prov = { status = "imported", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"], note = "Team count from Wikipedia structure table; not season-verified." }
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"], note = "Team count from Wikipedia structure table; not season-verified." }
 
 [[competition]]
 id = "comp.wb.cfl-3rd-div"
@@ -91,7 +91,7 @@ season = "2025"
 qualifies_to = ["comp.wb.cfl-2nd-div"]
 fed_by = ["comp.wb.cfl-4th-div"]
 status = "active"
-prov = { status = "imported", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
 
 [[competition]]
 id = "comp.wb.cfl-4th-div"
@@ -107,7 +107,7 @@ season = "2025"
 qualifies_to = ["comp.wb.cfl-3rd-div"]
 fed_by = ["comp.wb.cfl-5th-div"]
 status = "active"
-prov = { status = "imported", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
 
 [[competition]]
 id = "comp.wb.cfl-5th-div"
@@ -123,7 +123,7 @@ season = "2025"
 format = "Entry level of the CFL, split into Group A and Group B (Wikipedia lists ~35 and ~18 teams)."
 qualifies_to = ["comp.wb.cfl-4th-div"]
 status = "active"
-prov = { status = "imported", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
 
 [[competition]]
 id = "comp.wb.ifa-shield"
@@ -379,7 +379,7 @@ state = "state.wb"
 kind = "academy"
 parent = "Bidhannagar Municipal Corporation"
 status = "active"
-prov = { status = "verified", q = "C", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"], note = "Promoted for 2026. Municipal parent inferred from name." }
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"], note = "The club and its 2026 league place are sourced. Only the municipal parent was inferred from the name; treat that field as inferred, not verified." }
 
 # Bengal Super League franchises
 [[club]]
