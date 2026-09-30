@@ -529,6 +529,27 @@ contract! {
         pub recognition: Option<RecognitionView>,
     }
 
+    /// One quality of a place, in words, with what it means for a young player there.
+    pub struct AspectRow {
+        pub label: String,
+        pub level: String,
+        pub note: String,
+    }
+
+    /// Somewhere a child grows up: how visible and well coached it is, and who is near enough to notice.
+    pub struct DistrictView {
+        pub available: bool,
+        pub reason: Option<String>,
+        pub name: String,
+        pub state: String,
+        pub association: Option<String>,
+        pub population_k: u32,
+        pub aspects: Vec<AspectRow>,
+        pub academies: Vec<Named>,
+        pub universities: Vec<String>,
+        pub schools: u32,
+    }
+
     pub struct RegionOutputRow {
         pub region: String,
         pub kind: String,
@@ -740,6 +761,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("ecosystem.regions"), None, "RegionOutputView"),
         typed(q("ecosystem.export"), None, "ExportView"),
         typed(q("ecosystem.scenario"), None, "ScenarioView"),
+        typed(q("ecosystem.district"), None, "DistrictView"),
     ]
 }
 
@@ -817,6 +839,8 @@ pub fn declarations() -> Vec<String> {
         WatchRow::declaration(),
         RecognitionView::declaration(),
         PathwayView::declaration(),
+        AspectRow::declaration(),
+        DistrictView::declaration(),
         RegionOutputRow::declaration(),
         RegionOutputView::declaration(),
         SegmentRegard::declaration(),

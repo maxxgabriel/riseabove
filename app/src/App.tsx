@@ -20,6 +20,8 @@ import { Portal } from "./pages/Portal";
 import { Compare } from "./pages/Compare";
 import { Bookmarks } from "./pages/Bookmarks";
 import { Diagnostics } from "./pages/Diagnostics";
+import { Begin } from "./pages/Begin";
+import { District } from "./pages/District";
 import { Ecosystem } from "./pages/Ecosystem";
 import { Help } from "./pages/Help";
 import { Settings } from "./pages/Settings";
@@ -101,6 +103,10 @@ function Page() {
       return <Diagnostics />;
     case "development":
       return <Ecosystem />;
+    case "begin":
+      return <Begin />;
+    case "district":
+      return <District />;
     case "inhabit":
       return <Inhabit />;
     case "match":

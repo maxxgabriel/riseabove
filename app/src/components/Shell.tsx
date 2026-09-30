@@ -31,6 +31,8 @@ function useNav(): { top: NavItem[]; groups: { label: string; items: NavItem[] }
     { label: "Events", to: "/events", icon: "pulse" },
     { label: "History", to: "/history", icon: "clock" },
     { label: "Development", to: "/development", icon: "globe" },
+    { label: "Begin a life", to: "/begin", icon: "person" },
+    { label: "Districts", to: "/district", icon: "globe" },
   ];
   const groups = [];
   if (inhabiting) {

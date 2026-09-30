@@ -216,6 +216,7 @@ impl Api {
             "pathway.player" => self.with(|c| pages::pathway::player(c, &args)),
             "ecosystem.regions" => self.with(|c| pages::pathway::regions(c, &args)),
             "ecosystem.export" => self.with(|c| pages::pathway::export(c, &args)),
+            "ecosystem.district" => self.with(|c| pages::pathway::district(c, &args)),
             "ecosystem.scenario" => self.with(|c| pages::pathway::scenario(c, &args)),
             "insight.club" => self.with(|c| pages::insights::club(c, &args)),
             "insight.comp" => self.with(|c| pages::insights::comp(c, &args)),
