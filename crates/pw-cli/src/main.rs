@@ -2,7 +2,7 @@
 //!
 //! pathway-sim synth [tiny|small|huge|NATIONS] [--days N] [--seed S] [--save FILE]
 //! pathway-sim import DIR [--days N] [--seed S] [--save FILE]
-//! pathway-sim balance <micro|tiny|small|huge|DIR> [--years N] [--seeds 1,2,3]   long-run economy, fame and growth trends
+//! pathway-sim balance <micro|tiny|small|huge|india|india-regional|india-tiny|DIR> [--years N] [--seeds 1,2,3]   long-run economy, fame and growth trends
 //!
 //! `--data DIR` on any command loads the engine data (tuning, weights, ...) from DIR at run time instead of the compiled-in copy
 //! (files missing there fall back to the built-in ones), so calibration can be iterated without rebuilding: `--data data/engine`.
@@ -75,7 +75,14 @@ fn balance(a: &Args) {
     let dir = PathBuf::from(&target);
     let mut problems = 0;
     for &seed in &a.seeds {
-        let world = if dir.is_dir() {
+        let world = if target == "india" || target == "india-tiny" || target == "india-regional" {
+            let scale = match target.as_str() {
+                "india" => pw_import::india::IndiaScale::FULL,
+                "india-regional" => pw_import::india::IndiaScale { states: 12, state_league: 8, squad: 20 },
+                _ => pw_import::india::IndiaScale::TINY,
+            };
+            pw_import::india::build(pack(a), seed, scale)
+        } else if dir.is_dir() {
             pw_import::load_dir_seeded(&dir, pack(a), Some(seed)).unwrap_or_else(|e| die(&e.to_string())).0
         } else {
             pw_import::synthetic::build(pack(a), seed, scale_named(Some(target.as_str())))
@@ -86,6 +93,7 @@ fn balance(a: &Args) {
         println!("
 == {target}, seed {} ({} years, {:.1?}) ==", pw_core::rng::seed_label(seed), a.years, t.elapsed());
         print!("{}", pw_sim::metrics::render(&run));
+        print!("{}", pw_sim::metrics::render_economy(&run));
         let findings = pw_sim::metrics::analyse(&run);
         if findings.is_empty() {
             println!("no drift found");
