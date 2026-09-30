@@ -1,0 +1,1480 @@
+[meta]
+dataset = "competitions.membership_t4_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "State-premier-division ([[competition]] records, game tier 4) for 24 states/regions plus membership seeds for the clubs in clubs/tier4_b.toml and concurrent state-league memberships for clubs recorded in national.toml / tier3_b.toml."
+gaps = [
+ "Not a verified 2026-27 participant list: assignments are scenario seeds based on recollection of recent editions.",
+ "State league names, formats, calendars and team counts are largely from memory; leagues marked q = D have generic or uncertain names (Assam, Punjab, Tamil Nadu, Rajasthan, Odisha, Telangana, Andhra, Jharkhand, Arunachal, Nagaland, Tripura, J&K, Uttarakhand, Gujarat).",
+ "comp.ap.andhra-pradesh-state-league, comp.ar.arunachal-premier-league, comp.tr.tripura-premier-league, comp.uk.uttarakhand-premier-league, comp.gj.gujarat-state-premier-league and comp.rj.rajasthan-state-premier-league have no or almost no members here: real club names could not be recalled reliably.",
+ "Extra field concurrent_national = true marks clubs that are ALSO seeded to a national tier (comp.isl / ifl / ifl2 / ifl3) in other files; the game should place them in one tier only and use this row as evidence they also play the state league. reserve = true means the row is for the club's reserve/development side in the state league, not the first team.",
+ "SCHEMA GAP: the competitions are defined in this membership file (the validator scans all files) because no state_leagues/<state>.toml exists for these states; a later merge into state_leagues/ per state would be cleaner. Also no field for 'game tier' (state league in-state tier = 1 here, which is game tier 4).",
+ "Kerala has two parallel top-level competitions (Kerala Premier League and the franchise Super League Kerala); their relationship in 2026-27 is not verified.",
+]
+
+[[competition]]
+id = "comp.kl.kerala-premier-league"
+name = "Kerala Premier League"
+short = "KPL"
+organiser = "assoc.kfa"
+level = "state"
+tier = 1
+state = "state.kl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Single-state senior league run by the Kerala Football Association (state premier division); recent editions were played as a round-robin among roughly a dozen clubs plus a knockout stage."
+calendar = "Roughly Nov-Mar (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Kerala's state premier division under the KFA. Format, team count and dates vary by edition and were not re-checked; principal venues have included EMS Corporation Stadium (Kozhikode), Payyanad (Manjeri) and Jawaharlal Nehru Stadium (Kochi)." }
+
+[[competition]]
+id = "comp.kl.super-league-kerala"
+name = "Super League Kerala"
+short = "SLK"
+organiser = "assoc.kfa"
+level = "state"
+tier = 1
+state = "state.kl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Franchise-based state league: six city/district franchise clubs, first held in 2025 (autumn-winter), double round-robin plus semi-finals and final."
+calendar = "Sep-Nov (2025 edition)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Started in 2025 alongside the KPL; six franchises (Calicut, Kannur, Kochi, Malappuram, Thrissur, Thiruvananthapuram). Sanction and status relative to the KPL not re-checked; treat as a parallel top-of-state competition." }
+
+[[competition]]
+id = "comp.ga.goa-professional-league"
+name = "Goa Professional League"
+short = "GPL"
+aliases = ["GFA Professional League"]
+organiser = "assoc.gfa"
+level = "state"
+tier = 1
+state = "state.ga"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Goa Football Association's top state division, a league of about 10-12 clubs; principal venues include Tilak Maidan (Vasco), Duler Stadium (Mapusa) and Fatorda."
+calendar = "Roughly Sep-Feb (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Goa's traditional Professional League (Churchill Brothers, Dempo, Salgaocar, Sporting Clube de Goa, Vasco SC historically prominent). Edition length and team count not re-checked." }
+
+[[competition]]
+id = "comp.mn.manipur-state-league"
+name = "Manipur State League"
+short = "MSL"
+organiser = "assoc.fam"
+level = "state"
+tier = 1
+state = "state.mn"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Football Association of Manipur's premier state league played in Imphal, typically at Khuman Lampak Main Stadium / the Sports Complex grounds."
+calendar = "Roughly Jul-Oct (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Principal Manipuri league; the Manipur Premier / State League name and team count have varied by edition." }
+
+[[competition]]
+id = "comp.mz.mizoram-premier-league"
+name = "Mizoram Premier League"
+short = "MPL"
+organiser = "assoc.mfa"
+level = "state"
+tier = 1
+state = "state.mz"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Mizoram Football Association's top division, played in Aizawl at Rajiv Gandhi Stadium and Hawla / Lammual grounds; league of about eight to ten clubs. Winner(s) have been nominated to I-League 3 and the Federation Cup era events."
+calendar = "Roughly Aug-Jan (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Aizawl locality (veng) clubs dominate. Edition details not re-checked." }
+
+[[competition]]
+id = "comp.ml.shillong-premier-league"
+name = "Shillong Premier League"
+short = "SPL"
+aliases = ["Meghalaya State Premier League"]
+organiser = "assoc.mfa-ml"
+level = "state"
+tier = 1
+state = "state.ml"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Meghalaya's top state league, contested by Shillong-based and other district clubs; principal ground is the JN Stadium, Shillong and SSA ground."
+calendar = "Roughly Aug-Nov (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Run by the Shillong Sports Association / Meghalaya FA at various times; naming (Shillong Premier League vs Meghalaya State Premier League) not settled here." }
+
+[[competition]]
+id = "comp.as.assam-state-premier-league"
+name = "Assam State Premier League"
+short = "ASPL"
+aliases = ["Guwahati Premier League"]
+organiser = "assoc.afa"
+level = "state"
+tier = 1
+state = "state.as"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Assam Football Association's top state competition; Guwahati-based clubs, the Assam Police and railway sides feature. Precise format not known."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Name and exact tier are uncertain: Assam also has the Guwahati Premier League (district) and the Bordoloi Trophy. Scenario placeholder for the top of the Assam pyramid." }
+
+[[competition]]
+id = "comp.ka.bdfa-super-division"
+name = "BDFA Super Division"
+short = "BDFA SD"
+aliases = ["Bangalore Super Division"]
+organiser = "assoc.ksfa"
+operator = "Bangalore District Football Association (BDFA)"
+level = "state"
+tier = 1
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Top division of the Bangalore District FA (part of the KSFA state structure): about 10-12 clubs, league then relegation to BDFA A Division."
+calendar = "Roughly Sep-Feb (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Bengaluru's Super Division is the practical top of the Karnataka state pyramid (also the 'Karnataka State Football League' was discussed); AIFF nominees to I-League 3 have come from it." }
+
+[[competition]]
+id = "comp.mh.mdfa-elite-division"
+name = "MDFA Elite Division"
+short = "MDFA Elite"
+aliases = ["Mumbai Elite Division"]
+organiser = "assoc.wifa"
+operator = "Mumbai District Football Association (MDFA), under the Western India Football Association"
+level = "state"
+tier = 1
+state = "state.mh"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Top division of the Mumbai District FA; roughly 10 clubs, single-city home venues such as Cooperage Ground and Mumbai Football Arena (Andheri)."
+calendar = "Roughly Jul-Oct (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Mumbai's Elite Division sits below the national leagues; Pune, Nagpur and Kolhapur run separate district leagues (not modelled here)." }
+
+[[competition]]
+id = "comp.pb.punjab-state-super-football-league"
+name = "Punjab State Super Football League"
+short = "PSSFL"
+aliases = ["Punjab State Football League"]
+organiser = "assoc.fap"
+level = "state"
+tier = 1
+state = "state.pb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Football Association of Punjab's top state competition, mostly departmental (police, BSF, bank) and academy sides; exact format not known."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Precise league name and season dates not verified; Jalandhar (Guru Gobind Singh Stadium) is the main venue." }
+
+[[competition]]
+id = "comp.tn.chennai-league-premier-division"
+name = "Chennai League Premier Division"
+short = "Chennai League"
+aliases = ["Chennai Football League", "CFA Premier Division"]
+organiser = "assoc.tnfa"
+operator = "Chennai District Football Association"
+level = "state"
+tier = 1
+state = "state.tn"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Chennai's top club league, dominated by departmental sides (banks, customs, railways, police); a state-level TNFA league also exists."
+calendar = "Roughly Jan-May / Oct-Dec (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Chosen as the fourth-tier representative for Tamil Nadu; the TNFA state-wide league is thinner. Principal ground: Jawaharlal Nehru Stadium, Chennai." }
+
+[[competition]]
+id = "comp.sk.sikkim-premier-division-league"
+name = "Sikkim Premier Division League"
+short = "SPDL"
+organiser = "assoc.sfa"
+level = "state"
+tier = 1
+state = "state.sk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Sikkim Football Association's premier division played at Paljor Stadium, Gangtok, with a Sikkim Gold Cup and Governor's Gold Cup around it."
+calendar = "Roughly Jun-Sep (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Mid-size Gangtok club league; team count varies." }
+
+[[competition]]
+id = "comp.dl.delhi-premier-league"
+name = "Delhi Premier League"
+short = "DPL"
+aliases = ["Delhi Football League", "Delhi Premier Division"]
+organiser = "assoc.fd"
+level = "state"
+tier = 1
+state = "state.dl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Football Delhi's premier state league: about 10-14 clubs, single round-robin then relegation to Delhi Senior Division; Ambedkar Stadium and Jawaharlal Nehru Stadium host matches."
+calendar = "Roughly Sep-Feb (varies)"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (game tier 4 = state premier division): Top of the Delhi pyramid; Delhi nominates I-League 3 clubs from it." }
+
+[[competition]]
+id = "comp.rj.rajasthan-state-premier-league"
+name = "Rajasthan State Premier League"
+short = "RSPL"
+organiser = "assoc.rfa"
+level = "state"
+tier = 1
+state = "state.rj"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Rajasthan Football Association's top state competition; format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder for the top of the Rajasthan pyramid; league name and structure not verified." }
+
+[[competition]]
+id = "comp.od.odisha-premier-league"
+name = "Odisha Premier League"
+short = "OPL"
+organiser = "assoc.fao"
+level = "state"
+tier = 1
+state = "state.od"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Football Association of Odisha's top state league; format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder; Odisha's state league name and structure not verified." }
+
+[[competition]]
+id = "comp.ts.hyderabad-football-league"
+name = "Hyderabad Football League"
+short = "HFL"
+aliases = ["Hyderabad Premier Division"]
+organiser = "assoc.tfa-ts"
+level = "state"
+tier = 1
+state = "state.ts"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Top league of Hyderabad District FA under the Telangana Football Association; Gachibowli and Fatehmaidan area grounds."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Structure and dates not verified; reserve sides of Hyderabad FC and Sreenidi Deccan have featured in Telangana football." }
+
+[[competition]]
+id = "comp.ap.andhra-pradesh-state-league"
+name = "Andhra Pradesh State League"
+short = "APSL"
+organiser = "assoc.apfa"
+level = "state"
+tier = 1
+state = "state.ap"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Andhra Pradesh Football Association's top state competition; format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder with no known clubs: Andhra football (Visakhapatnam, Vijayawada, Nellore) is thin and participants were not recalled." }
+
+[[competition]]
+id = "comp.jh.jharkhand-state-premier-league"
+name = "Jharkhand State Premier League"
+short = "JSPL"
+organiser = "assoc.jfa"
+level = "state"
+tier = 1
+state = "state.jh"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Jharkhand Football Association's top state league; Jamshedpur and Ranchi clubs. Format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder; name and structure not verified." }
+
+[[competition]]
+id = "comp.ar.arunachal-premier-league"
+name = "Arunachal Premier League"
+short = "APL-AR"
+organiser = "assoc.apfa-ar"
+level = "state"
+tier = 1
+state = "state.ar"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Arunachal Pradesh FA's top state competition; format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder with no known clubs." }
+
+[[competition]]
+id = "comp.nl.nagaland-premier-league"
+name = "Nagaland Premier League"
+short = "NPL"
+organiser = "assoc.nfa"
+level = "state"
+tier = 1
+state = "state.nl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Nagaland Football Association's top state league (Kohima and Dimapur clubs); format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder; league name and structure not verified." }
+
+[[competition]]
+id = "comp.tr.tripura-premier-league"
+name = "Tripura Premier League"
+short = "TPL"
+organiser = "assoc.tfa"
+level = "state"
+tier = 1
+state = "state.tr"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Tripura Football Association's top state competition (Agartala clubs); format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder with no known clubs." }
+
+[[competition]]
+id = "comp.jk.jk-premier-league"
+name = "J&K Premier League"
+short = "JKPL"
+aliases = ["J&K Football League"]
+organiser = "assoc.jkfa"
+level = "state"
+tier = 1
+state = "state.jk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Jammu and Kashmir FA's top state competition; Srinagar (TRC Turf Ground / Bakshi Stadium) and Jammu clubs. Format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Name and structure not verified; Srinagar clubs dominate recent football." }
+
+[[competition]]
+id = "comp.uk.uttarakhand-premier-league"
+name = "Uttarakhand Premier League"
+short = "UKPL"
+organiser = "assoc.ufa"
+level = "state"
+tier = 1
+state = "state.uk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Uttarakhand Football Association's top state competition; format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder; Dehradun, Haldwani and Ramnagar clubs." }
+
+[[competition]]
+id = "comp.gj.gujarat-state-premier-league"
+name = "Gujarat State Premier League"
+short = "GSPL"
+organiser = "assoc.gsfa"
+level = "state"
+tier = 1
+state = "state.gj"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Gujarat State Football Association's top state competition; Ahmedabad, Vadodara, Rajkot and Surat clubs. Format unknown."
+calendar = "Unknown"
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder; name/format unsure (game tier 4 = state premier division): Placeholder; league name and structure not verified." }
+
+[[membership]]
+club = "club.kerala-police"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.luca-sc"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.muthoot-fc"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.quartz-fc"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sat-tirur"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.golden-threads"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.basco-otthapalam"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.wayanad-united"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.kseb-fc"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.travancore-royals"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.calicut-fc"
+competition = "comp.kl.super-league-kerala"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kannur-warriors"
+competition = "comp.kl.super-league-kerala"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.forca-kochi"
+competition = "comp.kl.super-league-kerala"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.malappuram-fc"
+competition = "comp.kl.super-league-kerala"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.thrissur-magic"
+competition = "comp.kl.super-league-kerala"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.thiruvananthapuram-kombans"
+competition = "comp.kl.super-league-kerala"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.calangute-association"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.guardian-angel"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.panjim-footballers"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.ribandar-sc"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.sagolband-united"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.langjing-achouba"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.klasic"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.southern-sporting-union"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.eastern-sporting-union"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.manipur-police"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.mizoram-police"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.electric-veng"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.dinthar"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.ramhlun-north"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.saitual"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.luangmual"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.kulikawn"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.mawlai-sc"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.laitumkhrah-sc"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.sohra-fc"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.malki-sc"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.brothers-union"
+competition = "comp.as.assam-state-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.gauhati-town-club"
+competition = "comp.as.assam-state-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.assam-police"
+competition = "comp.as.assam-state-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.nf-railway"
+competition = "comp.as.assam-state-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.hal-sc"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.students-union"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.bangalore-independents"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.agorc"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.ade-fc"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.asc-centre"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.bangalore-muslims"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.kodagu-fc"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.air-india-fc"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.mumbai-fc"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.bengal-mumbai-fc"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.central-railway-mumbai"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.maharashtra-oranje"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.punjab-police-fc"
+competition = "comp.pb.punjab-state-super-football-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.bsf-jalandhar"
+competition = "comp.pb.punjab-state-super-football-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.punjab-sind-bank"
+competition = "comp.pb.punjab-state-super-football-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.indian-bank-fc"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.iob-fc"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.chennai-customs"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.tamil-nadu-police"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.icf-fc"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.chennai-city-fc"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.sikkim-aakraman"
+competition = "comp.sk.sikkim-premier-division-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.united-sikkim"
+competition = "comp.sk.sikkim-premier-division-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sikkim-police"
+competition = "comp.sk.sikkim-premier-division-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.hindustan-fc"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.royal-rangers"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.friends-united"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.new-delhi-heroes"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.ahbab-fc"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.od.odisha-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.tata-football-academy"
+competition = "comp.jh.jharkhand-state-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kohima-komets"
+competition = "comp.nl.nagaland-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.downtown-heroes"
+competition = "comp.jk.jk-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.jk-bank-fc"
+competition = "comp.jk.jk-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.jk-police-fc"
+competition = "comp.jk.jk-premier-league"
+season = "2026-27"
+note = "Day-0 seed (not a verified 2026-27 participant list)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario seed; participation unsure" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kerala-blasters"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kovalam"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kerala-united"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.fc-kerala"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.pfc-kerala"
+competition = "comp.kl.kerala-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.churchill-brothers"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.dempo"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.salgaocar"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.vasco-sc"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sporting-goa"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sesa-football-academy"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.goa"
+competition = "comp.ga.goa-professional-league"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.neroca"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.trau"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.classic-imphal"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.mn.manipur-state-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.aizawl"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.chanmari"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.chhinga-veng"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.bethlehem-vengthlang"
+competition = "comp.mz.mizoram-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.shillong-lajong"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.rangdajied-united"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.langsning"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.royal-wahingdoh"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.nangkiew-irat"
+competition = "comp.ml.shillong-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.guwahati-city"
+competition = "comp.as.assam-state-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.ozone"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sc-bengaluru"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.south-united"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.fc-bengaluru-united"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.bengaluru"
+competition = "comp.ka.bdfa-super-division"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.kenkre"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.mumbai-city"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.reliance-foundation-young-champs"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.pune-krida-prabodhini"
+competition = "comp.mh.mdfa-elite-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.namdhari"
+competition = "comp.pb.punjab-state-super-football-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.minerva-academy"
+competition = "comp.pb.punjab-state-super-football-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.punjab"
+competition = "comp.pb.punjab-state-super-football-league"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.fc-madras"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.chennaiyin"
+competition = "comp.tn.chennai-league-premier-division"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.gangtok-himalayan"
+competition = "comp.sk.sikkim-premier-division-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.bhaichung-bhutia-football-schools"
+competition = "comp.sk.sikkim-premier-division-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.delhi"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sudeva-delhi"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.garhwal"
+competition = "comp.dl.delhi-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.rajasthan-united"
+competition = "comp.rj.rajasthan-state-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.zinc-football-academy"
+competition = "comp.rj.rajasthan-state-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sports-odisha"
+competition = "comp.od.odisha-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.roots"
+competition = "comp.od.odisha-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.odisha"
+competition = "comp.od.odisha-premier-league"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.sreenidi-deccan"
+competition = "comp.ts.hyderabad-football-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.hyderabad"
+competition = "comp.ts.hyderabad-football-league"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.jamshedpur"
+competition = "comp.jh.jharkhand-state-premier-league"
+season = "2026-27"
+note = "Reserve/development side in the state league; club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+reserve = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.real-kashmir"
+competition = "comp.jk.jk-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.lonestar-kashmir"
+competition = "comp.jk.jk-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.corbett"
+competition = "comp.uk.uttarakhand-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }
+
+[[membership]]
+club = "club.ara"
+competition = "comp.gj.gujarat-state-premier-league"
+season = "2026-27"
+note = "club is also seeded to a national tier in another file; state-league row is evidence of concurrent play, not a second tier placement."
+concurrent_national = true
+prov = { status = "inferred", q = "C", src = [], note = "recent participant per model knowledge; 2026-27 lineup not known" }

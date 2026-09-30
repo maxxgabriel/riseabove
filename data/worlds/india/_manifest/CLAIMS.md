@@ -20,3 +20,9 @@ Files I write (new files use a `_b` suffix; existing files listed here are edite
 - `partnerships/partnerships.toml` (in place), `languages/*_b.toml`
 
 Request to the other thread: if you add clubs to state leagues, use ids of the form `club.<slug>` and grep `clubs/` first so we do not both add the same club.
+
+## 2026-09-30 (later) thread "UI and integration": second wave, all new `_b` files, model knowledge marked C/D
+Maxx asked for base-knowledge data with no web verification. Nothing from the other data thread had landed on origin yet, so this thread is
+also drafting (new `_b` files only, never edits to their files; ids are grepped before use; the other thread's records win on any clash):
+`associations/state_assoc_b.toml`, `state_leagues/*_b.toml`, `universities/universities_b.toml`, `teams/teams_b.toml`, `rules/rules_b.toml`,
+`clubs/women_b.toml`, `media/outlets_specialist_b.toml`, second passes on `stadiums/stadiums_b.toml`, `schools/schools_b.toml`.
