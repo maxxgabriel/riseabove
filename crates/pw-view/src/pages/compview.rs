@@ -316,7 +316,8 @@ pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let mut ties: Vec<Value> = Vec::new();
         let mut date: Option<Date> = None;
         for (i, t) in st.ties.iter().enumerate() {
-            if Some(tie_round.get(&(i as u16)).copied().unwrap_or(0)) != cur {
+            // A slot whose sides are not decided yet has no team to draw.
+            if t.a.is_none() || t.b.is_none() || Some(tie_round.get(&(i as u16)).copied().unwrap_or(0)) != cur {
                 continue;
             }
             let masked = held.iter().any(|f| f.tie == i as u16);

@@ -121,6 +121,15 @@ fn path_key(p: CareerPath) -> String {
     format!("{p:?}")
 }
 
+/// "a coach", "an assistant manager", and no article for a mass noun such as "security".
+fn with_article(noun: &str) -> String {
+    if noun == "security" {
+        return noun.to_string();
+    }
+    let vowel = noun.chars().next().is_some_and(|c| "aeiou".contains(c));
+    format!("{} {noun}", if vowel { "an" } else { "a" })
+}
+
 /// A sentence for something queued but not yet applied.
 pub fn intent_text(c: &Ctx, i: &Intent) -> String {
     let w = c.w;
@@ -134,7 +143,7 @@ pub fn intent_text(c: &Ctx, i: &Intent) -> String {
         Intent::HireAgent(a) => format!("Ask {} to represent you", c.person_name(w.agents.list[a].person)),
         Intent::DropAgent => "Part ways with your agent".into(),
         Intent::Retire => "Retire from playing".into(),
-        Intent::SeekStaffJob(r) => format!("Look for work as a {}", r.label().to_lowercase()),
+        Intent::SeekStaffJob(r) => format!("Look for work as {}", with_article(&r.label().to_lowercase())),
         Intent::Unretire => "Come out of retirement".into(),
         Intent::AskPartner(a) => match a {
             PartnerAsk::MoveIn => "Ask your partner to move in".into(),
@@ -154,7 +163,7 @@ pub fn intent_text(c: &Ctx, i: &Intent) -> String {
         }
         Intent::Enrol(course) => format!("Enrol on the {}", course.label()),
         Intent::MoveHome { buy, .. } => (if buy { "Buy a home" } else { "Rent a home" }).into(),
-        Intent::HireHelper(h, _) => format!("Hire a {}", h.label()),
+        Intent::HireHelper(h, _) => format!("Hire {}", with_article(h.label())),
         Intent::DismissHelper(h) => format!("Let your {} go", h.label()),
         Intent::SetGiving { pct, community } => format!("Give {pct}% of income and {community} hours of community work a month"),
         Intent::StartFoundation => "Start a foundation".into(),
@@ -175,8 +184,12 @@ fn hours(v: &Value, key: &str, fallback: u8) -> u8 {
     v.get(key).and_then(Value::as_u64).map_or(fallback, |h| h.min(60) as u8)
 }
 
-fn person_arg(args: &Value, key: &str) -> ApiResult<PersonId> {
-    args.get(key).and_then(Value::as_u64).map(|n| PersonId(n as u32)).ok_or_else(|| ApiError::Bad(format!("missing {key}")))
+fn person_arg(w: &pw_world::World, args: &Value, key: &str) -> ApiResult<PersonId> {
+    let p = args.get(key).and_then(Value::as_u64).map(|n| PersonId(n as u32)).ok_or_else(|| ApiError::Bad(format!("missing {key}")))?;
+    if w.people.get(p).is_none() {
+        return Err(ApiError::NotFound("person".into()));
+    }
+    Ok(p)
 }
 
 fn text_arg<'a>(args: &'a Value, key: &str) -> ApiResult<&'a str> {
@@ -194,7 +207,7 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
     let need_playing = || if playing { Ok(()) } else { Err(ApiError::State("You need to be playing for a club to do that.".into())) };
     Ok(match action {
         "meet" => {
-            let with = person_arg(args, "with")?;
+            let with = person_arg(w, args, "with")?;
             let topic = topic_from(text_arg(args, "topic")?).ok_or_else(|| ApiError::Bad("Unknown subject.".into()))?;
             let tone = tone_from(args.get("tone").and_then(Value::as_str).unwrap_or("calm")).ok_or_else(|| ApiError::Bad("Unknown tone.".into()))?;
             if with == me || w.people.get(with).is_none() {
@@ -311,10 +324,10 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
         }
         "mentor" => {
             need_playing()?;
-            Intent::Mentor(person_arg(args, "person")?)
+            Intent::Mentor(person_arg(w, args, "person")?)
         }
         "press" => {
-            let about = person_arg(args, "about")?;
+            let about = person_arg(w, args, "about")?;
             let v = text_arg(args, "stance")?;
             Intent::SpeakToPress { about, stance: STANCES.iter().find(|x| x.1 == v).map(|x| x.0).ok_or_else(|| ApiError::Bad("Unknown stance.".into()))? }
         }
@@ -376,6 +389,17 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
 /// Queue an action for the inhabited person. The reply says what was queued and when it takes effect.
 pub fn act(s: &mut Session, args: &Value) -> ApiResult<Value> {
     let intent = build(s, args)?;
+    // Sending the same thing twice before the world has acted (a double click) would do it twice: say it is already waiting.
+    // Settings are the exception: the last one sent wins and repeating one changes nothing.
+    let is_setting = matches!(intent, Intent::SetRoutine(_) | Intent::SetLifestyle(_) | Intent::SetTraining(_) | Intent::SetGiving { .. } | Intent::OpenToDating(_) | Intent::PlayThroughPain(_));
+    if let Some(me) = s.my_person() {
+        if is_setting {
+            // The new setting replaces one still waiting, so the list of what is queued never says the same thing twice.
+            s.game.sim.world.intents.queue.retain(|pi| pi.person != me || std::mem::discriminant(&pi.intent) != std::mem::discriminant(&intent));
+        } else if s.w().intents.queue.iter().any(|pi| pi.person == me && pi.intent == intent) {
+            return Err(ApiError::State("That is already waiting to happen.".into()));
+        }
+    }
     let text = {
         let c = Ctx::new(s);
         intent_text(&c, &intent)

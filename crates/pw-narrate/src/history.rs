@@ -101,7 +101,7 @@ fn scope(w: &World, s: Scope) -> String {
 
 /// A record's value in words.
 pub fn value(stat: Stat, v: i64) -> String {
-    stat.render(v)
+    crate::fmt::singulars(stat.render(v))
 }
 
 /// "the Riverton High School all-time scoring record".

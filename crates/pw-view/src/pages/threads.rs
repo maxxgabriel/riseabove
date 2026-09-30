@@ -123,7 +123,13 @@ fn line(c: &Ctx, m: &Message) -> String {
             Some((what, _)) => format!("{} told you {}.", c.person_name(from), what),
             None => format!("{} told you something.", c.person_name(from)),
         },
-        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).and_then(|e| pw_narrate::events::line(w, e, me)).unwrap_or_default(),
+        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).map_or_else(String::new, |e| {
+            // An event the narration has no sentence for is still listed by what it is, never as a blank line.
+            pw_narrate::events::line(w, e, me).filter(|t| !t.trim().is_empty()).unwrap_or_else(|| {
+                let said: String = narrative::describe(c, e).iter().map(|p| p.t.as_str()).collect();
+                if said.trim().is_empty() { narrative::label(&e.kind).to_string() } else { said }
+            })
+        }),
         MsgSource::Story { story } => c.headline(&w.media.stories[story]),
         MsgSource::Mention { post } => w.net.post(post).map_or_else(String::new, |p| format!("{}: {}", w.net.accounts[p.author as usize].display, c.post_text(p))),
         MsgSource::Question { conference, question } => pw_narrate::press::question(w, conference, question),
@@ -213,6 +219,8 @@ fn thread_title(c: &Ctx, t: &Thread) -> (String, Option<Value>, &'static str) {
             let text = w.net.post(root).map_or_else(String::new, |p| c.post_text(p));
             (if text.is_empty() { "Online".to_string() } else { format!("Online: {}", short(&text, 50)) }, None, "post")
         }
+        // A private matter that names neither a person nor a club is filed under the game itself, with nothing to link to.
+        ThreadKey::Club(cl) if cl.is_none() => ("Personal".to_string(), None, "club"),
         ThreadKey::Club(cl) => (c.club_name(cl), Some(named(Ref::club(cl), c.club_name(cl))), "club"),
         ThreadKey::Decision(d) => (w.decisions.all.get(d).map_or_else(|| "Decision".to_string(), |d| d.kind.title().to_string()), None, "decision"),
     }

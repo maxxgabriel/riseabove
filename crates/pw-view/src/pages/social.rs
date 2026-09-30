@@ -64,7 +64,15 @@ pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to read their feed.".into()))?;
     let n = args.get("limit").and_then(Value::as_u64).map_or(40, |n| n.clamp(5, 100) as usize);
     let ids = pw_sim::socialnet::feed(c.w, me, n);
-    let posts: Vec<Value> = ids.into_iter().filter_map(|id| c.w.net.post(id)).filter(|p| !c.post_spoils(p)).map(|p| post_json(c, p, 0)).collect();
+    // One account saying the same words twice on one day is shown once.
+    let mut said: std::collections::HashSet<(u32, i32, String)> = std::collections::HashSet::new();
+    let posts: Vec<Value> = ids
+        .into_iter()
+        .filter_map(|id| c.w.net.post(id))
+        .filter(|p| !c.post_spoils(p) && !c.post_text(p).trim().is_empty())
+        .filter(|p| said.insert((p.author, p.date.0, c.post_text(p))))
+        .map(|p| post_json(c, p, 0))
+        .collect();
     let mine = c.w.net.account_of(me).map(|a| {
         let acc = &c.w.net.accounts[a as usize];
         json!({"handle": acc.handle, "followers": acc.followers})
@@ -77,6 +85,6 @@ pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing post".into()))? as u32;
     let p = c.w.net.post(id).ok_or_else(|| ApiError::NotFound("post".into()))?;
     if c.post_spoils(p) { return Err(ApiError::NotFound("post".into())); }
-    let replies: Vec<Value> = c.w.net.posts.iter().filter(|r| r.reply_to == id && !c.post_spoils(r)).take(30).map(|r| post_json(c, r, 1)).collect();
+    let replies: Vec<Value> = c.w.net.posts.iter().filter(|r| r.reply_to == id && !c.post_spoils(r) && !c.post_text(r).trim().is_empty()).take(30).map(|r| post_json(c, r, 1)).collect();
     Ok(json!({"post": post_json(c, p, 0), "replies": replies}))
 }

@@ -519,7 +519,7 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
             consequences.push("Your answer changes your home life, and how you feel about your week.".into());
         }
         DecisionKind::Trial { club, days } => {
-            consequences.push(format!("Accepting means training with {} for {days} days; they then decide whether to offer a contract.", c.club_name(*club)));
+            consequences.push(crate::fmt::singulars(format!("Accepting means training with {} for {days} days; they then decide whether to offer a contract.", c.club_name(*club))));
         }
         DecisionKind::NationChoice { .. } => {
             consequences.push("This cannot be undone: the nation you commit to is the one you play for from now on.".into());

@@ -42,7 +42,7 @@ struct Notes {
 
 impl Notes {
     fn add(&mut self, kind: &'static str, tone: Tone, weight: u8, title: impl Into<String>, text: impl Into<String>, basis: impl Into<String>) {
-        self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(singulars(text.into())), basis: basis.into(), link: None, visual: None });
+        self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(crate::fmt::singulars(text.into())), basis: basis.into(), link: None, visual: None });
     }
 
     fn visual(&mut self, visual: Value) {
@@ -112,26 +112,6 @@ fn count_word(n: usize) -> String {
         10 => "ten".into(),
         n => n.to_string(),
     }
-}
-
-/// "1 matches" and "1 points" from counts formatted as digits become "1 match" and "1 point".
-fn singulars(mut s: String) -> String {
-    for (many, one) in
-        [("matches", "match"), ("points", "point"), ("goals", "goal"), ("weeks", "week"), ("months", "month"), ("days", "day"), ("wins", "win"), ("defeats", "defeat"), ("assists", "assist")]
-    {
-        let pat = format!("1 {many}");
-        let mut at = 0;
-        while let Some(i) = s[at..].find(&pat).map(|i| i + at) {
-            let lone = i == 0 || !s.as_bytes()[i - 1].is_ascii_digit();
-            let end = i + pat.len();
-            let whole = s.as_bytes().get(end).is_none_or(|b| !b.is_ascii_alphanumeric());
-            if lone && whole {
-                s.replace_range(i..end, &format!("1 {one}"));
-            }
-            at = i + 1;
-        }
-    }
-    s
 }
 
 fn cap(s: String) -> String {

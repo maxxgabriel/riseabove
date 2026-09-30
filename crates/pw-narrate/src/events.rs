@@ -48,7 +48,7 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         Retired { person: x } => format!("{} retired from playing.", me(x)),
         Injured { player: p, injury, days } => {
             let name = if injury > 0 { w.data.injuries.get(usize::from(injury - 1)).map_or("an injury".to_string(), |d| d.name.to_lowercase()) } else { "an injury".into() };
-            format!("{} {} ({name}), expected out for about {} days.", pl(p), pick(key, &["picked up an injury", "was injured", "suffered an injury"]), days)
+            format!("{} {} ({name}), expected out for about {}.", pl(p), pick(key, &["picked up an injury", "was injured", "suffered an injury"]), crate::fmt::days(u32::from(days)))
         }
         Recovered { player: p } => format!("{} is back in full training.", pl(p)),
         Suspended { player: p, matches } => format!("{} will serve a {matches}-match suspension.", pl(p)),
@@ -409,10 +409,10 @@ pub fn fact(w: &World, f: &Fact, viewer: PersonId) -> String {
         Fact::PromiseDue { promise } => format!("a promise ({}) has come due", w.social.promise(promise).map_or("unknown".into(), |p| p.kind.text())),
         Fact::WageGap { player: p, pct_of_peers } => format!("{} wage is {pct_of_peers}% of comparable teammates'", who(p)),
         Fact::Household { person: x } => format!("{}'s family circumstances", person(w, x)),
-        Fact::Injury { player: p, days } => format!("{} injury ({days} days)", who(p)),
+        Fact::Injury { player: p, days } => format!("{} injury ({})", who(p), crate::fmt::days(days as u32)),
         Fact::Unsettled { person: x, nation: n } => format!("{} has not settled in {}", person(w, x), nation(w, n)),
         Fact::LowTrust { from, about, trust } => format!("{} trusts {} little ({trust}/100)", person(w, from), person(w, about)),
-        Fact::ContractRunningDown { player: p, days } => format!("{} contract has {days} days left", who(p)),
+        Fact::ContractRunningDown { player: p, days } => format!("{} contract has {} left", who(p), crate::fmt::days(days as u32)),
         Fact::PublicCriticism { story } => format!("criticism in the press: {}", crate::press::headline(w, &w.media.stories[story])),
         Fact::Rule { reason } => reason.text(),
         Fact::Said { person: x } => format!("{} said so publicly", person(w, x)),

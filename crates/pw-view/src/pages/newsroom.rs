@@ -73,7 +73,12 @@ pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let mut picked = Vec::with_capacity(limit);
     let mut kinds = HashMap::new();
     let mut subjects = HashMap::new();
+    // Two outlets running the same headline on the same day are one piece of news to a reader.
+    let mut seen_headlines: std::collections::HashSet<(i32, String)> = std::collections::HashSet::new();
     for (s, _) in &stories {
+        if !seen_headlines.insert((s.date.0, c.headline(s))) {
+            continue;
+        }
         let kind_count = *kinds.get(&s.kind).unwrap_or(&0);
         let subject = if s.person.is_some() { Some((true, s.person.0)) } else if s.club.is_some() { Some((false, s.club.0)) } else { None };
         let subject_count = subject.and_then(|key| subjects.get(&key).copied()).unwrap_or(0);

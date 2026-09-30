@@ -332,10 +332,10 @@ pub fn primary(c: &Ctx, k: &E) -> Option<Ref> {
         E::Champion { team, .. } | E::Promoted { team, .. } | E::Relegated { team, .. } => return Some(c.team_ref(team)),
         _ => {}
     }
-    if let Some(&p) = k.people().first() {
+    if let Some(&p) = k.people().iter().find(|p| p.is_some()) {
         return Some(Ref::person(p));
     }
-    k.clubs().first().map(|&x| Ref::club(x))
+    k.clubs().iter().find(|x| x.is_some()).map(|&x| Ref::club(x))
 }
 
 /// The sentence for an event, as parts that link to what it names. Older kinds are built here with
@@ -375,7 +375,7 @@ pub fn describe(c: &Ctx, e: &Event) -> Vec<Part> {
         Retired { person } => vec![Part::l(Ref::person(person), c.person_name(person)), t(" retired from playing")],
         Injured { player, injury, days } => {
             let name = pw_sim::health::injury_name(c.w, injury);
-            vec![pl(c, player), t(&format!(" was injured ({}), out for about {} days", name.to_lowercase(), days))]
+            vec![pl(c, player), t(&crate::fmt::singulars(format!(" was injured ({}), out for about {} days", name.to_lowercase(), days)))]
         }
         Recovered { player } => vec![pl(c, player), t(" recovered from injury")],
         Suspended { player, matches } => vec![pl(c, player), t(&format!(" was suspended for {matches} match{}", if matches == 1 { "" } else { "es" }))],

@@ -365,10 +365,10 @@ fn reason_for(old: &Dossier, new: &Dossier, w: &World) -> Reason {
     if w.players.cold[new.player].injuries_career > 0 && new.risks.iter().any(|r| r.kind == RiskKind::Injuries) && !old.risks.iter().any(|r| r.kind == RiskKind::Injuries) {
         return Reason::Injury;
     }
-    if new.evidence.minutes_seen > old.evidence.minutes_seen + 90 {
+    if new.evidence.minutes_seen > old.evidence.minutes_seen.saturating_add(90) {
         return Reason::MoreEvidence;
     }
-    if new.evidence.days_since_seen > old.evidence.days_since_seen + 45 {
+    if new.evidence.days_since_seen > old.evidence.days_since_seen.saturating_add(45) {
         return Reason::Stale;
     }
     if w.age_years(new.player) < 23.0 {

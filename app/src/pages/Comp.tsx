@@ -43,7 +43,7 @@ interface CompResp {
   relegate: number;
   rules: { yellow_limit: number; bench: number; subs: number; extra_time: boolean; away_goals: boolean; foreigner_limit: number };
   team_kind: string;
-  state: { season: string; stage: string; knockout: boolean; start: number; end: number; teams: number; round: number; winner: Named | null; runner_up: Named | null };
+  state: { season: string; stage: string; knockout: boolean; start: number | null; end: number | null; teams: number; round: number; winner: Named | null; runner_up: Named | null };
   above: Named | null;
   below: Named | null;
   continental_places: { comp: Named; places: number }[];
@@ -176,7 +176,7 @@ function StatePanel({ c }: { c: CompResp }) {
           rows={[
             { k: "Season", v: s.season },
             { k: "Stage", v: s.stage },
-            { k: "Runs", v: <span><Dt d={s.start} year={false} /> to <Dt d={s.end} /></span> },
+            { k: "Runs", v: s.start != null && s.end != null ? <span><Dt d={s.start} year={false} /> to <Dt d={s.end} /></span> : <span className="muted">Not scheduled yet</span> },
             { k: "Teams", v: <span className="num">{s.teams || c.size}</span> },
             ...(s.winner ? [{ k: "Winner", v: <EntityLink r={s.winner}>{s.winner.name}</EntityLink> }] : []),
             ...(s.runner_up ? [{ k: "Runner-up", v: <EntityLink r={s.runner_up}>{s.runner_up.name}</EntityLink> }] : []),
@@ -331,7 +331,7 @@ interface NationResp {
   reputation: number;
   economy: number | null;
   youth_rating: number | null;
-  season: { label: string; start: number; end: number; windows: [number, number][]; winter_break: [number, number] | null };
+  season: { label: string; start: number | null; end: number | null; windows: [number, number][]; winter_break: [number, number] | null };
   leagues: { comp: Named; tier: number; teams: number }[];
   cups: Named[];
   clubs: number;
@@ -396,8 +396,8 @@ export function Nation() {
                     <KeyVal
                       rows={[
                         { k: "Season", v: n.season.label },
-                        { k: "Starts", v: <Dt d={n.season.start} /> },
-                        { k: "Ends", v: <Dt d={n.season.end} /> },
+                        { k: "Starts", v: n.season.start != null ? <Dt d={n.season.start} /> : <span className="muted">Not set</span> },
+                        { k: "Ends", v: n.season.end != null ? <Dt d={n.season.end} /> : <span className="muted">Not set</span> },
                         ...n.season.windows.map((w, i) => ({ k: `Transfer window ${i + 1}`, v: <span><Dt d={w[0]} year={false} /> to <Dt d={w[1]} year={false} /></span> })),
                         ...(n.season.winter_break ? [{ k: "Winter break", v: <span><Dt d={n.season.winter_break[0]} year={false} /> to <Dt d={n.season.winter_break[1]} year={false} /></span> }] : []),
                         { k: "Reputation", v: <span className="num">{fmtInt(n.reputation)}</span> },
