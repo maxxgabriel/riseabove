@@ -1,0 +1,217 @@
+[meta]
+dataset = "universities.more"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "30 more real universities, identity only."
+gaps = ["Which of them actually field AIU football teams is unverified.", "Type, zone and facilities not recorded."]
+
+[[university]]
+id = "uni.punjabi"
+name = "Punjabi University"
+city = "Patiala"
+state = "state.pb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.bharathiar"
+name = "Bharathiar University"
+city = "Coimbatore"
+state = "state.tn"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.anna"
+name = "Anna University"
+city = "Chennai"
+state = "state.tn"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.visva-bharati"
+name = "Visva-Bharati"
+city = "Santiniketan"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.burdwan"
+name = "University of Burdwan"
+city = "Bardhaman"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.kalyani"
+name = "University of Kalyani"
+city = "Kalyani"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.vidyasagar"
+name = "Vidyasagar University"
+city = "Midnapore"
+state = "state.wb"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.sri-venkateswara"
+name = "Sri Venkateswara University"
+city = "Tirupati"
+state = "state.ap"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.andhra"
+name = "Andhra University"
+city = "Visakhapatnam"
+state = "state.ap"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.mangalore"
+name = "Mangalore University"
+city = "Mangalore"
+state = "state.ka"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.kuvempu"
+name = "Kuvempu University"
+city = "Shivamogga"
+state = "state.ka"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.bangalore"
+name = "Bangalore University"
+city = "Bengaluru"
+state = "state.ka"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.cochin-science-and-technology"
+name = "Cochin University of Science and Technology"
+city = "Kochi"
+state = "state.kl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.rashtrasant-tukadoji-maharaj-nagpur"
+name = "Rashtrasant Tukadoji Maharaj Nagpur University"
+city = "Nagpur"
+state = "state.mh"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.jamia-millia-islamia"
+name = "Jamia Millia Islamia"
+city = "New Delhi"
+state = "state.dl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.banaras-hindu"
+name = "Banaras Hindu University"
+city = "Varanasi"
+state = "state.up"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.lucknow"
+name = "University of Lucknow"
+city = "Lucknow"
+state = "state.up"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.ranchi"
+name = "Ranchi University"
+city = "Ranchi"
+state = "state.jh"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.sambalpur"
+name = "Sambalpur University"
+city = "Sambalpur"
+state = "state.od"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.ravenshaw"
+name = "Ravenshaw University"
+city = "Cuttack"
+state = "state.od"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.dibrugarh"
+name = "Dibrugarh University"
+city = "Dibrugarh"
+state = "state.as"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.tezpur"
+name = "Tezpur University"
+city = "Tezpur"
+state = "state.as"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.assam"
+name = "Assam University"
+city = "Silchar"
+state = "state.as"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.tripura"
+name = "Tripura University"
+city = "Agartala"
+state = "state.tr"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.nagaland"
+name = "Nagaland University"
+city = "Lumami"
+state = "state.nl"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.maharshi-dayanand"
+name = "Maharshi Dayanand University"
+city = "Rohtak"
+state = "state.hr"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.kurukshetra"
+name = "Kurukshetra University"
+city = "Kurukshetra"
+state = "state.hr"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.himachal-pradesh"
+name = "Himachal Pradesh University"
+city = "Shimla"
+state = "state.hp"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.kashmir"
+name = "University of Kashmir"
+city = "Srinagar"
+state = "state.jk"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }
+
+[[university]]
+id = "uni.jammu"
+name = "University of Jammu"
+city = "Jammu"
+state = "state.jk"
+prov = { status = "inferred", q = "C", src = [], note = "Institution is real (general knowledge). Football participation, zone, type and achievements not recorded." }

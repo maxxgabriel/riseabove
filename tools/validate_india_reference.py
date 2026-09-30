@@ -54,6 +54,8 @@ for f, t, r in recs:
         for l in r.get("languages", []): chk(f, f"{t}.language", l, LG)
     if t == "rivalry":
         chk(f, "rivalry.a", r["a"], CL | ST); chk(f, "rivalry.b", r["b"], CL | ST)
+    if t == "team": chk(f, "team.association", r.get("association"), AS)
+    if t == "rule" and r.get("competition"): chk(f, "rule.competition", r["competition"], CO)
     if t == "ownership": chk(f, "ownership.club", r["club"], CL)
     if t == "district": chk(f, "district.state", r["state"], ST)
     if t == "licence" and r.get("prerequisite"): chk(f, "licence.prerequisite", r["prerequisite"], by("licence."))
