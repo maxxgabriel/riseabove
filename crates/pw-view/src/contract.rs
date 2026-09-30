@@ -861,6 +861,16 @@ request_enum! {
 }
 
 contract! {
+    /// A state a person would describe in words (condition, stress, a bond): the word, and its place among the words there are
+    /// (`step` of `steps`, the best being `steps`) for drawing a gauge. Never the engine's number behind it (locked design 8.5).
+    pub struct Band {
+        pub label: String,
+        pub step: u8,
+        pub steps: u8,
+    }
+}
+
+contract! {
     /// What `me.act` answers: the action in words, and when the world applies it.
     pub struct ActDone {
         pub ok: bool,
@@ -1118,6 +1128,7 @@ pub fn declarations() -> Vec<String> {
         CreatePersonReq::declaration(),
         RoutineHours::declaration(),
         ActReq::declaration(),
+        Band::declaration(),
         ActDone::declaration(),
     ]
 }

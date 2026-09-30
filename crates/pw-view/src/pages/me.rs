@@ -8,7 +8,7 @@ use pw_world::{Contract, Focus, Intensity, PlayerStatus};
 use serde_json::{Value, json};
 
 use crate::ctx::Ctx;
-use crate::model::{ApiError, ApiResult, Named, Ref};
+use crate::model::{ApiError, ApiResult, Named, Ref, band};
 use crate::narrative;
 use crate::session::Session;
 use crate::tables::{round_text, score_text};
@@ -21,18 +21,15 @@ pub(crate) fn need_me(c: &Ctx) -> ApiResult<PlayerId> {
     c.my_player().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit a player to use this page.".into()))
 }
 
-fn word(v: u8, tiers: &[(u8, &str)], floor: &str) -> String {
-    tiers.iter().find(|(min, _)| v >= *min).map_or(floor, |(_, s)| s).to_string()
-}
-
+/// How the player feels, in the words a player would use: never the engine's 0-100 numbers (locked design 8.5).
 fn condition_words(h: &pw_world::PlayerHot) -> Value {
     json!({
-        "condition": {"label": word(h.condition, &[(92, "Fresh"), (78, "Good"), (62, "Tired")], "Exhausted"), "value": h.condition},
-        "sharpness": {"label": word(h.sharpness, &[(80, "Match sharp"), (60, "Reasonably sharp")], "Rusty"), "value": h.sharpness},
-        "morale": {"label": word(h.morale, &[(80, "Excellent"), (65, "Good"), (45, "Okay"), (30, "Low")], "Very low"), "value": h.morale},
-        "confidence": {"label": word(h.confidence, &[(80, "Very confident"), (62, "Confident"), (42, "Uncertain")], "Doubting"), "value": h.confidence},
-        "wellbeing": {"label": word(h.wellbeing, &[(80, "Thriving"), (62, "Well"), (42, "Strained")], "Struggling"), "value": h.wellbeing},
-        "fatigue": {"label": word(100 - h.fatigue.min(100), &[(85, "Light legs"), (65, "Some fatigue"), (40, "Heavy legs")], "Very heavy legs"), "value": h.fatigue},
+        "condition": band(h.condition, &[(92, "Fresh"), (78, "Good"), (62, "Tired")], "Exhausted"),
+        "sharpness": band(h.sharpness, &[(80, "Match sharp"), (60, "Reasonably sharp")], "Rusty"),
+        "morale": band(h.morale, &[(80, "Excellent"), (65, "Good"), (45, "Okay"), (30, "Low")], "Very low"),
+        "confidence": band(h.confidence, &[(80, "Very confident"), (62, "Confident"), (42, "Uncertain")], "Doubting"),
+        "wellbeing": band(h.wellbeing, &[(80, "Thriving"), (62, "Well"), (42, "Strained")], "Struggling"),
+        "fatigue": band(100 - h.fatigue.min(100), &[(85, "Light legs"), (65, "Some fatigue"), (40, "Heavy legs")], "Very heavy legs"),
     })
 }
 
@@ -185,7 +182,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
     let life = &w.lives[me];
     let mut mind = super::life::merged(&life.morale_why);
     mind.sort_by_key(|(_, x)| std::cmp::Reverse(x.unsigned_abs()));
-    let mind: Vec<Value> = mind.iter().take(4).filter(|(_, x)| x.unsigned_abs() >= 2).map(|(f, x)| json!({"text": format!("{} {}", pw_narrate::fmt::feeling(*x), f.label()), "value": x})).collect();
+    let mind: Vec<Value> = mind.iter().take(4).filter(|(_, x)| x.unsigned_abs() >= 2).map(|(f, x)| json!({"text": format!("{} {}", pw_narrate::fmt::feeling(*x), f.label()), "pull": crate::model::pull(*x)})).collect();
 
     // Things the person has set in motion that the world has not yet acted on.
     let mut waiting_on: Vec<Value> = Vec::new();

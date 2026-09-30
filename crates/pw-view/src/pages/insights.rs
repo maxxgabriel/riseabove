@@ -579,7 +579,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
     // The medical room.
     if inside {
         if let Some(case) = w.medical.open.get(&p) {
-            let mut t = format!("The medical team expect about {} out and are {}% sure of that.", months(i32::from(case.estimate)), case.certainty);
+            let mut t = format!("The medical team expect about {} out, and are {} of that.", months(i32::from(case.estimate)), crate::model::sureness(case.certainty));
             if case.rushed {
                 t.push_str(" A return before the body was ready has already been tried.");
             }

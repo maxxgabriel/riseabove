@@ -482,3 +482,45 @@ fn private_negotiations_and_interest_are_not_listed_outside_the_omniscient_view(
         }
     }
 }
+
+/// How the viewer feels is told in words (locked design 8.5): the pages about oneself carry a word and its place among the words, never
+/// the engine's number, so moving the number inside one word changes nothing on any of them; and a forecast is not a percentage.
+#[test]
+fn the_viewers_own_state_is_in_words_and_a_forecast_is_not_a_percentage() {
+    let api = world();
+    let me = inhabit_mid(&api);
+    let pages = |api: &Api| ["me.today", "me.self", "me.life", "me.agent"].map(|m| api.call(m, json!({})).unwrap());
+    let is_band = |v: &Value| v.as_object().is_some_and(|o| o.len() == 3 && o["label"].is_string() && o["step"].as_u64() <= o["steps"].as_u64() && o["step"].as_u64() >= Some(1));
+    let [today, own, life, agent] = pages(&api);
+    for k in ["condition", "sharpness", "morale", "confidence", "wellbeing", "fatigue"] {
+        assert!(is_band(&today["condition"][k]), "{k} is not a word band: {}", today["condition"][k]);
+    }
+    for k in ["stress", "sleep", "fulfilment"] {
+        assert!(is_band(&own[k]), "{k} is not a word band: {}", own[k]);
+    }
+    for m in today["mind"].as_array().unwrap().iter().chain(own["mood"].as_array().unwrap()).chain(own["wellbeing"].as_array().unwrap()) {
+        assert!(m.get("value").is_none() && ["pos", "neg", "flat"].contains(&m["pull"].as_str().unwrap()), "a feeling with a number: {m}");
+    }
+    for l in life["languages"].as_array().unwrap() {
+        assert!(is_band(&l["level"]) && l.get("value").is_none(), "{l}");
+    }
+    if !agent["agent"].is_null() {
+        assert!(is_band(&agent["agent"]["satisfaction"]));
+    }
+    for t in own["told"].as_array().unwrap() {
+        assert!(!t["text"].as_str().unwrap().contains('%'), "what a coach said is quoted as a percentage: {t}");
+    }
+    // Inside one word, the number underneath moves nothing: fresh at 95 and at 99 reads the same.
+    let set = |api: &Api, v: u8| {
+        api.debug_mutate_world(|w| {
+            let p = w.people[PersonId(me)].player;
+            let h = &mut w.players.hot[p];
+            (h.condition, h.sharpness, h.morale, h.confidence, h.wellbeing, h.fatigue) = (v, v, v, v, v, 100 - v);
+        });
+    };
+    set(&api, 95);
+    let a = pages(&api);
+    set(&api, 99);
+    let b = pages(&api);
+    assert_eq!(a[0]["condition"], b[0]["condition"], "the condition page moved inside one word");
+}

@@ -14,7 +14,7 @@ use serde_json::{Value, json};
 use super::me::named;
 use crate::ctx::Ctx;
 use crate::contract::{Evidence, PeopleView, RelationshipRow, RumourRow, RumoursView};
-use crate::model::{ApiError, ApiResult, Named, Ref, Tone, sureness};
+use crate::model::{ApiError, ApiResult, Named, Ref, Tone, level_band, pull, sureness};
 use crate::session::Session;
 
 fn need(c: &Ctx) -> ApiResult<PersonId> {
@@ -50,7 +50,18 @@ pub(crate) fn merged(mood: &pw_world::life::Mood) -> Vec<(MoodFactor, i8)> {
 fn mood_list(mood: &pw_world::life::Mood) -> Vec<Value> {
     let mut m = merged(mood);
     m.sort_by_key(|(_, x)| std::cmp::Reverse(x.unsigned_abs()));
-    m.iter().filter(|(_, x)| *x != 0).map(|(f, x)| json!({"text": format!("{} {}", feeling(*x), f.label()), "factor": f.label(), "value": x})).collect()
+    m.iter().filter(|(_, x)| *x != 0).map(|(f, x)| json!({"text": format!("{} {}", feeling(*x), f.label()), "factor": f.label(), "pull": pull(*x)})).collect()
+}
+
+/// What a coach's selection forecast means, in words: they are telling you how it looks, not a probability to the percent.
+fn start_outlook(start_pct: u8) -> &'static str {
+    match start_pct {
+        80.. => "expects you to start",
+        60..=79 => "thinks you will probably start",
+        40..=59 => "sees it as open whether you start",
+        20..=39 => "thinks you will probably not start",
+        _ => "does not expect you to start",
+    }
 }
 
 /// How you feel, what your coaches have told you, and how others describe you.
@@ -65,7 +76,7 @@ pub fn self_view(c: &Ctx) -> ApiResult<Value> {
         let text = match b.kind {
             BeliefKind::Assessment { ca_lo, ca_hi, ceiling } => Some(format!("{src} rates your level at {}-{} and sees a ceiling of {} out of 5.", ca_lo / 10, ca_hi / 10, ceiling)),
             BeliefKind::ManagerRating { manager, stars } => Some(format!("{} gives you {} out of 5.", c.person_name(manager), stars)),
-            BeliefKind::SelectionOutlook { start_pct } => Some(format!("{src} put your chance of starting the next match at about {start_pct}%.")),
+            BeliefKind::SelectionOutlook { start_pct } => Some(format!("{src} {} the next match.", start_outlook(start_pct))),
             _ => None,
         };
         if let Some(text) = text {
@@ -85,8 +96,7 @@ pub fn self_view(c: &Ctx) -> ApiResult<Value> {
         "name": c.person_name(me), "age": c.age(me), "nation": named(Ref::nation(pe.nation), c.nation_name(pe.nation)),
         "personality": pe.hidden.personality_label(), "hint": pw_career::views::personality_hint(w, me),
         "mood": mood_list(&life.morale_why), "wellbeing": mood_list(&life.wellbeing_why), "told": told, "career": career,
-        "stress": {"label": level(100 - life.stress), "value": life.stress}, "sleep": {"label": level(life.sleep), "value": life.sleep},
-        "fulfilment": {"label": level(life.fulfilment), "value": life.fulfilment},
+        "stress": level_band(100 - life.stress), "sleep": level_band(life.sleep), "fulfilment": level_band(life.fulfilment),
     }))
 }
 
@@ -121,7 +131,7 @@ fn life_for(c: &Ctx, me: PersonId) -> ApiResult<Value> {
     let partner = l.partner().map(|pt| {
         json!({
             "who": named(Ref::person(pt.person), c.person_name(pt.person)), "status": pt.status.label(), "since": pt.since.0,
-            "bond": {"label": level(pt.bond), "value": pt.bond},
+            "bond": level_band(pt.bond),
             "lives": if pt.lives != l.home { Some(c.nation_name(pt.lives)) } else { None },
             "occupation": w.lives[pt.person].occupation.label(),
         })
@@ -143,7 +153,7 @@ fn life_for(c: &Ctx, me: PersonId) -> ApiResult<Value> {
     .iter()
     .map(|(k, label, h)| json!({"key": k, "label": label, "hours": h}))
     .collect();
-    let languages: Vec<Value> = l.languages.iter().map(|(n, fl)| json!({"nation": named(Ref::nation(*n), c.nation_name(*n)), "level": level(*fl), "value": fl})).collect();
+    let languages: Vec<Value> = l.languages.iter().map(|(n, fl)| json!({"nation": named(Ref::nation(*n), c.nation_name(*n)), "level": level_band(*fl)})).collect();
     let home = aff.map(|a| a.home);
     let studying = aff.and_then(|a| a.studying).map(|s| json!({"course": s.course.label(), "done": s.done, "effort": s.course.effort()}));
     let work = aff.and_then(|a| a.work).map(|wk| json!({"path": wk.path.label(), "income": wk.income, "standing": level(wk.standing), "since": wk.since.0}));
@@ -375,7 +385,7 @@ pub fn agent(c: &Ctx) -> ApiResult<Value> {
         let a = &w.agents.list[r.agent];
         json!({
             "id": r.agent.0, "who": named(Ref::person(a.person), c.person_name(a.person)), "fee_pct": r.fee_pct, "since": r.since.0, "until": r.until.0,
-            "satisfaction": {"label": level(r.satisfaction), "value": r.satisfaction}, "reputation": a.reputation, "clients": a.clients.len(),
+            "satisfaction": level_band(r.satisfaction), "reputation": a.reputation, "clients": a.clients.len(),
             "base": c.nation_name(a.base),
         })
     });

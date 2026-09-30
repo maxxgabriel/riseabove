@@ -4,7 +4,8 @@ import type { Named } from "../types";
 import { Badge, Button, Dialog, Meter } from "../ui/ui";
 import { ConfirmAction, TalkButton, queueAction, useOptions } from "./Actions";
 import { Dt, EntityLink } from "./links";
-import { duration } from "../format";
+import { bandFill, duration } from "../format";
+import type { Band } from "../contract.generated";
 
 interface AgentResp {
   player: boolean;
@@ -14,7 +15,7 @@ interface AgentResp {
     fee_pct: number;
     since: number;
     until: number;
-    satisfaction: { label: string; value: number };
+    satisfaction: Band;
     reputation: number;
     clients: number;
     base: string;
@@ -37,9 +38,9 @@ export function AgentPanel({ today }: { today: number }) {
               <strong><EntityLink r={a.who}>{a.who.name}</EntityLink></strong>
               <div className="hint">Based in {a.base} · {a.clients} clients</div>
             </div>
-            <Badge tone={a.satisfaction.value >= 60 ? "pos" : a.satisfaction.value >= 35 ? "warn" : "neg"}>{a.satisfaction.label}</Badge>
+            <Badge tone={bandFill(a.satisfaction) >= 60 ? "pos" : bandFill(a.satisfaction) >= 35 ? "warn" : "neg"}>{a.satisfaction.label}</Badge>
           </div>
-          <div className="meter-row"><span>How happy they are with you</span><Meter value={a.satisfaction.value} label={a.satisfaction.label} /></div>
+          <div className="meter-row"><span>How happy they are with you</span><Meter value={bandFill(a.satisfaction)} label={a.satisfaction.label} /></div>
           <p className="hint">Takes {a.fee_pct}% of what you earn from new deals. Signed <Dt d={a.since} />, until <Dt d={a.until} /> ({duration(a.until - today)}).</p>
           <div className="formfoot">
             <TalkButton who={a.who} label="Ask for a word" topic="agent_review" size="md" />

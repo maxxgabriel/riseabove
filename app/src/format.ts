@@ -164,3 +164,13 @@ export function initials(name: string | null | undefined, n = 2): string {
     .toUpperCase();
   return out || "?";
 }
+
+/** Where a word band sits, as a gauge fill (0-100): the word's place among the words, never an engine number. */
+export function bandFill(b: { step: number; steps: number }): number {
+  return b.steps > 0 ? (b.step / b.steps) * 100 : 0;
+}
+
+/** How a feeling pulls on someone, in words. */
+export function pullWord(pull: "pos" | "neg" | "flat" | string): string {
+  return pull === "pos" ? "Lifts you" : pull === "neg" ? "Weighs on you" : "Neither way";
+}

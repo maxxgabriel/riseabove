@@ -563,6 +563,12 @@ export type ActReq =
   | { action: "post"; concept: string; about?: number | null; reply_to?: number | null; quote_of?: number | null }
 ;
 
+export interface Band {
+  label: string;
+  step: number;
+  steps: number;
+}
+
 export interface ActDone {
   ok: boolean;
   text: string;

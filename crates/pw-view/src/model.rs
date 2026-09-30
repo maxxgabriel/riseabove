@@ -320,6 +320,29 @@ impl ApiError {
 pub type ApiResult<T> = Result<T, ApiError>;
 
 /// How sure someone is of what they have heard, in words: uncertain knowledge is never turned into a false percentage (locked design 8.5).
+/// How someone would describe one of their own states: a word, and where it sits among the words there are (`step` of `steps`, the
+/// best being `steps`), so a gauge can be drawn without the internal number behind it (locked design 8.5). `tiers` run from the best
+/// word down, each with the least value that earns it; `floor` is the word below them all.
+pub fn band(v: u8, tiers: &[(u8, &str)], floor: &str) -> serde_json::Value {
+    let steps = tiers.len() + 1;
+    let (i, label) = tiers.iter().enumerate().find(|(_, (min, _))| v >= *min).map_or((tiers.len(), floor), |(i, (_, s))| (i, *s));
+    serde_json::to_value(crate::contract::Band { label: label.into(), step: (steps - i) as u8, steps: steps as u8 }).unwrap_or_default()
+}
+
+/// `band` with the general scale of `pw_narrate::fmt::level` (very poor ... excellent).
+pub fn level_band(v: u8) -> serde_json::Value {
+    band(v, &[(85, "excellent"), (70, "very good"), (55, "good"), (40, "okay"), (20, "poor")], "very poor")
+}
+
+/// How a feeling pulls: towards contentment, against it, or hardly at all. The strength is in the words (`feeling`), not a number.
+pub fn pull(v: i8) -> &'static str {
+    match v {
+        i8::MIN..=-1 => "neg",
+        0..=3 => "flat",
+        _ => "pos",
+    }
+}
+
 pub fn sureness(confidence: u8) -> &'static str {
     match confidence {
         90.. => "almost certain",

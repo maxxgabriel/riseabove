@@ -1,4 +1,5 @@
-import { cap } from "../format";
+import { bandFill, cap, pullWord } from "../format";
+import type { Band } from "../contract.generated";
 import { useEffect, useMemo, useState } from "react";
 import { ConfirmAction, queueAction, useOptions, type Options } from "../components/Actions";
 import { Dt, EntityLink, Money } from "../components/links";
@@ -8,11 +9,11 @@ import type { Named } from "../types";
 import { Badge, Button, Field, KeyVal, Meter, Section, Segmented, Tabs } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
-type Word = { label: string; value: number };
+type Word = Band;
 interface Factor {
   text: string;
   factor: string;
-  value: number;
+  pull: "pos" | "neg" | "flat";
 }
 interface SelfResp {
   name: string;
@@ -30,7 +31,7 @@ interface SelfResp {
 }
 interface LifeResp {
   home: { nation: Named; since: number; kind: string | null; quality: number | null };
-  languages: { nation: Named; level: string; value: number }[];
+  languages: { nation: Named; level: Band }[];
   partner: { who: Named; status: string; since: number; bond: Word; lives: string | null; occupation: string } | null;
   children: number;
   siblings: number;
@@ -98,7 +99,7 @@ function FactorList({ items }: { items: Factor[] }) {
       {items.map((f, i) => (
         <li key={i}>
           <span>{f.text}</span>
-          <span className={`num ${f.value > 0 ? "tone-pos" : "tone-neg"}`}>{f.value > 0 ? "+" : "−"}{Math.abs(f.value)}</span>
+          <span className={f.pull === "pos" ? "tone-pos" : f.pull === "neg" ? "tone-neg" : "muted"}>{pullWord(f.pull)}</span>
         </li>
       ))}
     </ul>
@@ -112,9 +113,9 @@ function Overview({ s, l }: { s: SelfResp; l: LifeResp }) {
         <Section title="Your state">
           <div className="card">
             <div className="meters">
-              <div className="meter-row"><span>Fulfilment</span><Meter value={s.fulfilment.value} label={s.fulfilment.label} /></div>
-              <div className="meter-row"><span>Sleep</span><Meter value={s.sleep.value} label={s.sleep.label} /></div>
-              <div className="meter-row"><span>Stress</span><Meter value={s.stress.value} label={s.stress.label} /></div>
+              <div className="meter-row"><span>Fulfilment</span><Meter value={bandFill(s.fulfilment)} label={s.fulfilment.label} /></div>
+              <div className="meter-row"><span>Sleep</span><Meter value={bandFill(s.sleep)} label={s.sleep.label} /></div>
+              <div className="meter-row"><span>Calm (stress)</span><Meter value={bandFill(s.stress)} label={s.stress.label} /></div>
             </div>
             {s.hint && <p className="muted pt">{s.hint}</p>}
           </div>
@@ -315,7 +316,7 @@ function Home({ l }: { l: LifeResp }) {
           <div className="card list-card">
             <ul className="rows">
               {l.languages.map((x) => (
-                <li key={x.nation.id}><EntityLink r={x.nation}>{x.nation.name}</EntityLink><Meter value={x.value} label={x.level} /></li>
+                <li key={x.nation.id}><EntityLink r={x.nation}>{x.nation.name}</EntityLink><Meter value={bandFill(x.level)} label={x.level.label} /></li>
               ))}
             </ul>
           </div>
@@ -331,7 +332,7 @@ function Home({ l }: { l: LifeResp }) {
                     { k: "Partner", v: <EntityLink r={p.who}>{p.who.name}</EntityLink> },
                     { k: "You are", v: p.status },
                     { k: "Together since", v: <Dt d={p.since} /> },
-                    { k: "Bond", v: <Meter value={p.bond.value} label={p.bond.label} /> },
+                    { k: "Bond", v: <Meter value={bandFill(p.bond)} label={p.bond.label} /> },
                     { k: "Works as", v: p.occupation },
                     ...(p.lives ? [{ k: "Lives in", v: p.lives }] : []),
                   ]}

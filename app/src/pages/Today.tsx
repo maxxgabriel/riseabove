@@ -1,6 +1,7 @@
 import { EntityLink, Money, Parts, Dt } from "../components/links";
 import { RatingChips } from "../components/visuals";
-import { cap, initials, dateLong, duration, ordinal, prose, relativeDays } from "../format";
+import { bandFill, cap, initials, dateLong, duration, ordinal, prose, relativeDays } from "../format";
+import type { Band } from "../contract.generated";
 import { href } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named, Part } from "../types";
@@ -26,7 +27,7 @@ interface FixtureBrief {
   score?: string;
   outcome?: "win" | "draw" | "loss";
 }
-type Word = { label: string; value: number };
+type Word = Band;
 export interface TodayResp {
   date: number;
   weekday: number;
@@ -47,7 +48,7 @@ export interface TodayResp {
   plan: { focus: { kind: string; value: string | null }; intensity: string; extra: number; recovery: number };
   conceal_mine: boolean;
   queued: string[];
-  mind: { text: string; value: number }[];
+  mind: { text: string; pull: "pos" | "neg" | "flat" }[];
   promises: { open: number; next_due: number | null };
   plan_pending: unknown | null;
   routine_hours: number;
@@ -181,7 +182,7 @@ export function Today() {
                         return (
                           <div key={k} className="meter-row">
                             <span>{names[k]}</span>
-                            <Meter value={k === "fatigue" ? 100 - w.value : w.value} label={w.label} />
+                            <Meter value={bandFill(w)} label={w.label} />
                           </div>
                         );
                       })}
@@ -199,7 +200,7 @@ export function Today() {
                     <div className="card">
                       <ul className="rows compact">
                         {t.mind.slice(0, 4).map((m, i) => (
-                          <li key={i}><span>{m.text}</span><Badge tone={m.value > 0 ? "pos" : m.value < 0 ? "warn" : "muted"}>{mindState(m.value)}</Badge></li>
+                          <li key={i}><span>{m.text}</span><Badge tone={m.pull === "pos" ? "pos" : m.pull === "neg" ? "warn" : "muted"}>{mindState(m.pull)}</Badge></li>
                         ))}
                       </ul>
                     </div>
@@ -280,13 +281,9 @@ export function focusText(f: { kind: string; value: string | null }): string {
   return f.value.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
-/** Player-facing direction in place of the underlying relationship score. */
-function mindState(value: number): string {
-  if (value >= 8) return "Strongly positive";
-  if (value > 0) return "Positive";
-  if (value <= -8) return "Needs attention";
-  if (value < 0) return "Under strain";
-  return "Stable";
+/** Player-facing direction in place of the underlying score (its strength is in the sentence itself). */
+function mindState(pull: "pos" | "neg" | "flat"): string {
+  return pull === "pos" ? "Positive" : pull === "neg" ? "Under strain" : "Stable";
 }
 
 export function OutcomeChip({ o }: { o?: "win" | "draw" | "loss" }) {

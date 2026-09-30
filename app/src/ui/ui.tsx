@@ -334,7 +334,7 @@ export function KeyVal({ rows, className = "" }: { rows: { k: string; v: ReactNo
 export function Meter({ value, label, tone }: { value: number; label?: string; tone?: "pos" | "neg" | "warn" | "flat" }) {
   const t = tone ?? (value >= 66 ? "pos" : value >= 40 ? "warn" : "neg");
   return (
-    <span className="meter" title={`${Math.round(value)} / 100`}>
+    <span className="meter" title={label ?? `${Math.round(value)} / 100`}>
       <span className="meter-track">
         <span className={`meter-fill tone-${t}`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
       </span>
