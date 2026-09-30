@@ -431,7 +431,8 @@ pub struct Incident {
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Incidents {
-    pub list: Vec<Incident>,
+    /// Addressed by incident id. Old resolved incidents are forgotten (`forget_before`); a forgotten id has no row.
+    pub list: crate::window::Window<Incident>,
     /// Unresolved tension between two people (ordered pair), 0–100.
     pub tension: FxHashMap<(PersonId, PersonId), u8>,
     /// Players away (leave) or left out for discipline until a date.
@@ -447,9 +448,31 @@ pub struct Incidents {
     pub national: Vec<(NationId, IncidentKind, Date, u32)>,
 }
 
+impl crate::window::Keyed for Incident {
+    fn key(&self) -> u32 {
+        self.id
+    }
+}
+
 impl Incidents {
     pub fn get(&self, id: u32) -> Option<&Incident> {
         self.list.get(id as usize)
+    }
+
+    /// Forget the oldest incidents that happened before `date`, stopping at the first one that something still
+    /// waits on (a deferred decision, a pregnancy, an investigation, a national condition). Returns how many were forgotten.
+    pub fn forget_before(&mut self, date: Date) -> usize {
+        let pinned: std::collections::HashSet<u32> = self
+            .deferred
+            .iter()
+            .map(|x| x.0)
+            .chain(self.expecting.iter().map(|x| x.3))
+            .chain(self.investigations.values().map(|x| x.1))
+            .chain(self.national.iter().map(|x| x.3))
+            .collect();
+        let before = self.list.base();
+        let base = self.list.forget_front_while(|i| i.date < date && !pinned.contains(&i.id));
+        (base - before) as usize
     }
 
     fn key(a: PersonId, b: PersonId) -> (PersonId, PersonId) {

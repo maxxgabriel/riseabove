@@ -132,7 +132,7 @@ pub fn run(o: &Opts) {
     let mut table: Vec<(u32, Vec<(&'static str, u64, u64)>)> = Vec::new();
     let s0 = sections(&sim.world);
     let (raw0, lz0) = (s0.iter().map(|x| x.1).sum::<u64>(), s0.iter().map(|x| x.2).sum::<u64>());
-    println!("year  days/s   raw MB   lz4 MB  | run time");
+    println!("year  days/s   raw MB   lz4 MB  | run time, peak memory, active players / all players");
     println!("{:>4} {:>7} {:>8.2} {:>8.2}  |", 0, "-", mb(raw0), mb(lz0));
     table.push((0, s0));
     if !o.detail.is_empty() {
@@ -165,7 +165,8 @@ pub fn run(o: &Opts) {
         if year % o.every == 0 || year == o.years {
             let s = sections(&sim.world);
             let (raw, lz) = (s.iter().map(|x| x.1).sum::<u64>(), s.iter().map(|x| x.2).sum::<u64>());
-            println!("{year:>4} {:>7.1} {:>8.2} {:>8.2}  | {:.0?} elapsed, peak {}", 365.0 / secs, mb(raw), mb(lz), begin.elapsed(), peak_memory().map_or("?".into(), |m| format!("{:.0} MB", mb(m))));
+            let active = sim.world.players.hot.iter().filter(|h| h.status == pw_world::PlayerStatus::Active).count();
+            println!("{year:>4} {:>7.1} {:>8.2} {:>8.2}  | {:.0?} elapsed, peak {}, {active} / {}", 365.0 / secs, mb(raw), mb(lz), begin.elapsed(), peak_memory().map_or("?".into(), |m| format!("{:.0} MB", mb(m))), sim.world.players.len());
             table.push((year, s));
             if pw_sim::profile::enabled() {
                 println!("   time by system this year (PW_PROFILE):");

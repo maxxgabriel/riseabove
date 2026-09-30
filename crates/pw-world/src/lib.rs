@@ -69,6 +69,7 @@ pub mod stafflife;
 pub mod training;
 pub mod stats;
 pub mod tactics;
+pub mod window;
 pub mod world;
 pub mod youth;
 

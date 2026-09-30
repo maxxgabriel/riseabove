@@ -109,7 +109,8 @@ fn stories(w: &World, v: &mut Vec<Violation>) {
         }
         // Private information reaches print only through someone who told the journalist.
         if let Cause::Fact(Fact::Heard { info, .. }) = s.source {
-            let knew = w.grapevine.items.get(info as usize).is_some_and(|it| it.knows(s.journalist));
+            // An item the grapevine has forgotten (older than two years) can no longer be checked either way.
+            let knew = w.grapevine.items.forgotten(info as usize) || w.grapevine.items.get(info as usize).is_some_and(|it| it.knows(s.journalist));
             if !knew {
                 v.push(Violation::SourcelessLeak { story: s.id.0 });
             }

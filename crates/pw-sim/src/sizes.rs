@@ -142,6 +142,7 @@ impl ser::SerializeTupleVariant for Compound {
         self.plain(v)
     }
     fn end(self) -> Result<u64, SizeError> {
+        self.at.record(self.total);
         Ok(self.total)
     }
 }
@@ -178,6 +179,7 @@ impl ser::SerializeStructVariant for Compound {
         self.field(key, v)
     }
     fn end(self) -> Result<u64, SizeError> {
+        self.at.record(self.total);
         Ok(self.total)
     }
 }

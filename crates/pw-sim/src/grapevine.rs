@@ -31,6 +31,8 @@ use crate::consider;
 
 /// Items stop travelling after this many days.
 const SHELF_LIFE: i32 = 21;
+/// An information item is forgotten this long after it was created.
+pub const FORGET_DAYS: i32 = 730;
 /// How long after learning something a person may still pass it on.
 const TELLING_DAYS: i32 = 7;
 
@@ -427,10 +429,11 @@ pub fn tell(w: &mut World, info: u32, from: PersonId, to: PersonId, fidelity: Fi
 /// mind's intent). Only what they actually know can be told, in the form they
 /// know it, retold once more; telling a journalist is how leaks begin.
 pub fn pass_on(w: &mut World, from: PersonId, to: PersonId, info: u32) {
-    if to.is_none() || to == from || info as usize >= w.grapevine.items.len() {
+    if to.is_none() || to == from {
         return;
     }
-    let Some(k) = w.grapevine.items[info as usize].knower(from).copied() else { return };
+    // An item the grapevine has forgotten cannot be passed on.
+    let Some(k) = w.grapevine.items.get(info as usize).and_then(|it| it.knower(from)).copied() else { return };
     let honest = consider::hid(w, from, pw_core::Hidden::Professionalism) / 20.0;
     let roll = w.roll(stream::GRAPEVINE, &[u64::from(from.0), u64::from(to.0), u64::from(info), 0x9a55]);
     let fidelity = k.fidelity.degrade(roll, honest);
@@ -513,7 +516,7 @@ fn react(w: &mut World, who: PersonId, info: u32) {
 /// people it concerns realise it got out.
 pub fn on_published(w: &mut World, info: u32, story: StoryId) {
     let today = w.date;
-    let item = w.grapevine.get(info).clone();
+    let Some(item) = w.grapevine.items.get(info as usize).cloned() else { return };
     {
         let it = &mut w.grapevine.items[info as usize];
         if it.published.is_none() {
@@ -563,7 +566,9 @@ pub fn on_published(w: &mut World, info: u32, story: StoryId) {
 
 /// Mark an item as no longer true (a bid withdrawn, a player settled).
 pub fn outdate(w: &mut World, info: u32) {
-    w.grapevine.items[info as usize].true_now = false;
+    if let Some(it) = w.grapevine.items.get_mut(info as usize) {
+        it.true_now = false;
+    }
 }
 
 fn close_old(w: &mut World) {
@@ -614,6 +619,9 @@ pub fn compact(w: &mut World) {
         ids.retain(|id| items.get(*id as usize).is_some_and(|item| item.knows(*person)));
         !ids.is_empty()
     });
+    // Two years on an item is forgotten altogether (its holders are already gone but for the people whose stories cite it). The
+    // stories stay; `audit` reads a forgotten source as "aged out", not as "never existed".
+    w.grapevine.forget_before(today.add_days(-FORGET_DAYS));
 }
 
 /// Does `person` know something about `player` that has not been published?

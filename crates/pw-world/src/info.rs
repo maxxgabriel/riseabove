@@ -228,6 +228,12 @@ pub struct InfoItem {
     pub closed: bool,
 }
 
+impl crate::window::Keyed for InfoItem {
+    fn key(&self) -> u32 {
+        self.id
+    }
+}
+
 impl InfoItem {
     pub fn knower(&self, p: PersonId) -> Option<&Knower> {
         self.holders.iter().find(|k| k.person == p)
@@ -238,13 +244,30 @@ impl InfoItem {
     }
 }
 
+fn forgotten_item() -> &'static InfoItem {
+    static ITEM: std::sync::OnceLock<InfoItem> = std::sync::OnceLock::new();
+    ITEM.get_or_init(|| InfoItem {
+        id: u32::MAX,
+        kind: InfoKind::Incident { incident: u32::MAX },
+        event: EventId::NONE,
+        date: Date(0),
+        sensitivity: 0,
+        true_now: false,
+        holders: SmallVec::new(),
+        published: None,
+        leak_noticed: true,
+        closed: true,
+    })
+}
+
 /// Holders per item are capped: beyond this, an item is effectively an open
 /// secret and the press will have it.
 pub const MAX_HOLDERS: usize = 40;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Grapevine {
-    pub items: Vec<InfoItem>,
+    /// Addressed by item id. Old items are forgotten (`forget_before`); a forgotten id has no row.
+    pub items: crate::window::Window<InfoItem>,
     /// Items still travelling.
     pub active: Vec<u32>,
     /// Recent items per person (bounded).
@@ -283,6 +306,23 @@ impl Grapevine {
         true
     }
 
+    /// Forget every item created before `date`, and everything that points at one. An id that was forgotten has no row: readers use
+    /// `items.get`. Items are created in date order, so this drops a prefix.
+    pub fn forget_before(&mut self, date: Date) -> usize {
+        let before = self.items.base();
+        let base = self.items.forget_front_while(|it| it.date < date);
+        if base == before {
+            return 0;
+        }
+        self.active.retain(|&i| i >= base);
+        self.by_person.retain(|_, ids| {
+            ids.retain(|i| *i >= base);
+            !ids.is_empty()
+        });
+        self.tells.retain(|t| t.info >= base);
+        (base - before) as usize
+    }
+
     pub fn record_tell(&mut self, t: Tell) {
         self.tells.push(t);
         if self.tells.len() > 20_000 {
@@ -290,8 +330,13 @@ impl Grapevine {
         }
     }
 
+    /// The item with this id. An item the grapevine has forgotten reads as an item nobody knows and nobody is telling.
     pub fn get(&self, id: u32) -> &InfoItem {
-        &self.items[id as usize]
+        match self.items.get(id as usize) {
+            Some(it) => it,
+            None if self.items.forgotten(id as usize) => forgotten_item(),
+            None => panic!("information item {id} was never created"),
+        }
     }
 
     pub fn known_by(&self, p: PersonId) -> impl Iterator<Item = &InfoItem> + '_ {
