@@ -4,7 +4,7 @@ import tomllib, pathlib, sys, collections
 
 ROOT = pathlib.Path("data/worlds/india")
 TABLES = ["state", "district", "association", "competition", "club", "stadium", "academy", "university", "school", "outlet", "broadcaster",
-          "programme", "partnership", "rule", "team", "licence", "grade", "rivalry", "language", "term", "ownership", "membership", "rights", "sponsorship"]
+          "programme", "partnership", "rule", "team", "licence", "grade", "rivalry", "language", "term", "ownership", "membership", "rights", "sponsorship", "alias"]
 STATUS = {"imported", "verified", "inferred", "scenario_seed", "generated", "unknown"}
 errors, warns = [], []
 ids = collections.defaultdict(list)
@@ -65,6 +65,20 @@ for f, t, r in recs:
         errors.append(f"{f}: outlet {r['id']} carries a score field")
     if t in ("stadium",) and "capacity" in r and not r.get("capacity_as_of"):
         errors.append(f"{f}: stadium {r['id']} capacity without capacity_as_of")
+# [[alias]]: every alias points at existing entities and (entity, alias) is unique
+seen_alias = set()
+for f, t, r in recs:
+    if t != "alias":
+        continue
+    for e in ([r["entity"]] if "entity" in r else []) + list(r.get("entity_pair", [])):
+        if e not in ids:
+            errors.append(f"{f}: alias {r.get('id')} -> unknown entity {e}")
+    if "entity" not in r and "entity_pair" not in r:
+        errors.append(f"{f}: alias {r.get('id')} has neither entity nor entity_pair")
+    key = (r.get("entity") or tuple(r.get("entity_pair", [])), r.get("alias", "").lower(), r.get("lang"))
+    if key in seen_alias:
+        errors.append(f"{f}: alias {r.get('id')} duplicates {key}")
+    seen_alias.add(key)
 # aliases must not collide across different entities of the same kind
 seen = collections.defaultdict(set)
 for f, t, r in recs:

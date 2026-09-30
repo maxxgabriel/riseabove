@@ -42,6 +42,7 @@ data/worlds/india/
   commerce/*.toml            [[sponsorship]]
   languages/languages.toml   [[language]]
   languages/terminology.toml [[term]]
+  languages/aliases_b.toml   [[alias]]  nicknames, colours, abbreviations, former names, native-script and romanised forms, derby names
 ```
 
 ## Every file
@@ -223,3 +224,18 @@ season?, effective_from?, effective_to?, prov`
 ### `[[term]]`
 `id, concept, canonical, synonyms? (list), register (formal|neutral|casual|broadcast|headline),
 region? (state ids or "national"), lang (lang id), constraints? (one line), prov`
+
+
+## Alias records (added 2026-09-30)
+
+```toml
+[[alias]]
+id = "alias.mohun-bagan-sg.01"     # alias.<entity-slug>.<nn>
+entity = "club.mohun-bagan-sg"     # an existing id; use entity_pair = ["club.a", "club.b"] for a derby name
+alias = "Mariners"
+kind = "nickname"                  # nickname|supporter_group|colours|short_form|abbreviation|romanisation|native_script|former_name|official_name|sponsor_branding|alternate_name|derby_name
+lang = "lang.en"
+register = "headline"              # headline|casual|formal|chant ...
+prov = { ... }
+```
+The validator checks that the entity exists and that (entity, alias, lang) is unique. `aliases` string lists on club and competition records remain for plain spellings.
