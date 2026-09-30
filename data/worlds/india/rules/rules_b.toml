@@ -99,29 +99,12 @@ season = "2026-27"
 prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA and AIFF registration-ban mechanism; specific cases against Indian clubs are not listed here. Ban lengths not known." }
 
 [[rule]]
-id = "rule.isl-foreign-players"
-competition = "comp.isl"
-topic = "foreign_players"
-statement = "ISL clubs can register up to seven foreign players in the squad, and the number allowed on the pitch at the same time is smaller and has been changed from season to season."
-params = { max_foreign_registered = 7 }
-season = "2024-25"
-prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Registered maximum of 7 recalled for 2023-24 to 2024-25. The on-pitch maximum (thought to be five including the Asian slot) is NOT certain, so it is left out. 2025-26 was disrupted and 2026-27 ISL regulations may differ; check before use." }
-
-[[rule]]
 id = "rule.isl-asian-slot"
 competition = "comp.isl"
 topic = "foreign_players"
 statement = "One of the foreign places in an ISL squad has, in some seasons, been reserved for a player from an AFC member association."
 season = "2024-25"
 prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The '4+1 AFC' style rule was used in earlier ISL seasons; whether it still applies in 2026-27 is not known. No number kept." }
-
-[[rule]]
-id = "rule.ifl-foreign-players"
-competition = "comp.ifl"
-topic = "foreign_players"
-statement = "I-League clubs may sign foreign players within a cap that is set in the season's competition regulations and is lower than in the ISL."
-season = "2026-27"
-prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Cap NOT known (a figure of about six registered was recalled but is not reliable), so no number is given. Also not known: any AFC slot or on-pitch limit." }
 
 [[rule]]
 id = "rule.ifl2-foreign-players"
@@ -498,14 +481,6 @@ sub = "noc"
 statement = "An Indian player leaving to join a foreign club or attend a foreign trial is expected to obtain a release or no-objection from the AIFF and his club, and a foreign club will need the International Transfer Certificate."
 season = "2026-27"
 prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). NOC part is a convention; ITC part is FIFA rule." }
-
-[[rule]]
-id = "rule.isl-squad-size"
-competition = "comp.isl"
-topic = "squad_size"
-statement = "An ISL club has to register its senior squad with the AIFF inside set minimum and maximum sizes and cannot add players after the window shuts."
-season = "2024-25"
-prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Minimum and maximum squad counts NOT certain (a maximum of about thirty-five with a minimum in the mid-twenties was recalled), so no number is given." }
 
 [[rule]]
 id = "rule.ifl-squad-size"

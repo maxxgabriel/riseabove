@@ -15,19 +15,6 @@ gaps = [
 ]
 
 [[association]]
-id = "assoc.anfa"
-name = "Andaman and Nicobar Islands Football Association"
-abbr = "ANIFA"
-kind = "state"
-state = "state.an"
-parent = "assoc.aiff"
-hq_city = "Port Blair"
-aiff_category = "state association (union-territory member of AIFF; membership status not re-checked)"
-status = "unknown"
-competition_names = ["Andaman and Nicobar state league (Port Blair)"]
-prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; abbreviation and exact name unsure; small local league, name of tournament not known" }
-
-[[association]]
 id = "assoc.dnhfa"
 name = "Dadra and Nagar Haveli Football Association"
 abbr = "DNHFA"
@@ -52,19 +39,6 @@ aiff_category = "state association (union-territory member of AIFF; membership s
 status = "unknown"
 competition_names = ["Daman and Diu local league"]
 prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; pre-2020 body of the former UT; may have been folded into a single UT body after the 2020 merger" }
-
-[[association]]
-id = "assoc.lkfa"
-name = "Lakshadweep Football Association"
-abbr = "LFA-LD"
-kind = "state"
-state = "state.ld"
-parent = "assoc.aiff"
-hq_city = "Kavaratti"
-aiff_category = "state association (union-territory member of AIFF; membership status not re-checked)"
-status = "unknown"
-competition_names = ["Lakshadweep inter-island tournament"]
-prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, unsure; unsure it is an active AIFF member; HQ (Kavaratti as the UT capital) inferred; abbreviation is ours to avoid clashing with assoc.lfa (Ladakh)" }
 
 [[association]]
 id = "assoc.bdfa"
