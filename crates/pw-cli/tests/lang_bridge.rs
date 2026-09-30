@@ -15,7 +15,14 @@ fn india_world(seed: u64, days: u32) -> Sim {
 
 #[test]
 fn stories_the_engine_writes_are_clean_and_no_firmer_than_the_story() {
-    let s = india_world(51, 500);
+    // Two worlds: a rare bad phrasing shows up in one seed and not another.
+    for seed in [51, 61] {
+        clean_and_no_firmer(seed);
+    }
+}
+
+fn clean_and_no_firmer(seed: u64) {
+    let s = india_world(seed, 500);
     let w = &s.world;
     let (mut written, mut fallback) = (0usize, 0usize);
     let mut kinds: std::collections::BTreeMap<String, usize> = Default::default();

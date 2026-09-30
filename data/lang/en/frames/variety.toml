@@ -78,7 +78,7 @@ slot = "lede"
 topic = "report"
 needs = ['from', 'player', 'to']
 time = "past"
-text = "{from:poss} {player:desc} is now with {to} {date}"
+text = "{from:poss} {player:desc} is now with {to}"
 
 [[frame]]
 id = "transfer.completed.news.lede.report.more.4"
@@ -97,9 +97,9 @@ event = "transfer.completed"
 channel = "news"
 slot = "detail"
 topic = "fee"
-needs = ['to', 'fee', 'player']
+needs = ['fee', 'player']
 when = "fee > 0"
-text = "{to} paid {fee} for {player:short}."
+text = "The deal cost {fee}."
 
 [[frame]]
 id = "transfer.completed.news.detail.fee.more.2"
