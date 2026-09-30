@@ -65,6 +65,26 @@ fn manager_ref(w: &World, s: pw_core::StaffId) -> LRef {
     LRef::new(&format!("person.{}", w.staff[s].person.0), &name, &short).with_desc("title", "manager")
 }
 
+/// Any person as the public knows them: a player by name, age and position, staff by name and job.
+fn person_ref(w: &World, p: pw_core::PersonId) -> Option<LRef> {
+    let person = w.people.get(p)?;
+    if let Some(pl) = person.player.get() {
+        return Some(player_ref(w, pl));
+    }
+    let st = person.staff.get()?;
+    let name = w.staff_name(st);
+    let short = name.split_whitespace().last().unwrap_or(&name).to_string();
+    Some(LRef::new(&format!("person.{}", p.0), &name, &short).with_desc("title", &w.staff[st].role.label().to_lowercase()))
+}
+
+fn person_club(w: &World, p: pw_core::PersonId) -> ClubId {
+    let Some(person) = w.people.get(p) else { return ClubId::NONE };
+    if let Some(pl) = person.player.get() {
+        return w.players.hot[pl].club;
+    }
+    person.staff.get().map_or(ClubId::NONE, |s| w.staff[s].club)
+}
+
 fn comp_ref(w: &World, c: CompId) -> LRef {
     let comp = &w.comps[c];
     LRef::new(&format!("comp.{}", c.0), &comp.name, if comp.short_name.is_empty() { &comp.name } else { &comp.short_name })
@@ -232,6 +252,31 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
             ),
             _ => None,
         },
+        StoryKind::Interview => match w.media.links.get(&s.id) {
+            Some(pw_world::media::StoryLink::Quote(q)) => {
+                let speaker = person_ref(w, q.speaker)?;
+                let stance = match q.stance {
+                    pw_world::media::Stance::Praise => "praise",
+                    pw_world::media::Stance::Criticise => "criticise",
+                    pw_world::media::Stance::Deflect => "deflect",
+                    pw_world::media::Stance::Ambition => "ambition",
+                    pw_world::media::Stance::Loyalty => "loyalty",
+                    pw_world::media::Stance::Complain => "complain",
+                    pw_world::media::Stance::Support => "support",
+                    pw_world::media::Stance::Deny => "deny",
+                };
+                let mut ev = LEvent::new("interview.quote", s.date).ent("speaker", speaker).text("stance", stance);
+                if let Some(about) = if q.about.is_some() && q.about != q.speaker { person_ref(w, q.about) } else { None } {
+                    ev = ev.ent("about", about);
+                }
+                let club = person_club(w, q.speaker);
+                if club.is_some() {
+                    ev = ev.ent("club", club_ref(w, club));
+                }
+                Some(ev)
+            }
+            _ => None,
+        },
         StoryKind::TransferNews | StoryKind::ManagerChange | StoryKind::Injury | StoryKind::Season | StoryKind::Contract => underlying(w, s),
         _ => None,
     }
@@ -252,4 +297,100 @@ fn underlying(w: &World, s: &Story) -> Option<LEvent> {
         frontier = next;
     }
     None
+}
+
+// ------------------------------------------------------------------------------------------------- inbox
+
+/// The engine's message for a decision put to a person: its subject and what has happened. The options stay the simulation's own (accept,
+/// reject, ...): the engine only words the situation, so nothing offered here is something the world cannot do.
+pub fn decision(w: &World, d: &pw_world::decision::Decision) -> Option<(String, String)> {
+    use pw_world::decision::DecisionKind as K;
+    if !enabled(w) || d.player.is_none() {
+        return None;
+    }
+    let date = d.created;
+    let ev = match &d.kind {
+        K::Trial { club, .. } if club.is_some() => LEvent::new("academy.invitation", date)
+            .with("to_player", pw_lang::Value::Bool(true))
+            .ent("player", player_ref(w, d.player))
+            .ent("academy", club_ref(w, *club))
+            .text("offer_kind", "trial"),
+        K::TransferTalks { club, fee } if club.is_some() => {
+            let seller = w.players.hot[d.player].club;
+            let mut ev = LEvent::new("transfer.bid_made", date).with("ours", pw_lang::Value::Bool(false)).ent("buyer", club_ref(w, *club)).ent("player", player_ref(w, d.player));
+            if seller.is_some() {
+                ev = ev.ent("seller", club_ref(w, seller));
+            }
+            if *fee > 0 {
+                ev = ev.money("fee", *fee);
+            }
+            ev
+        }
+        _ => return None,
+    };
+    let sp = engine().witness("inbox", "staff", "club_official", &ev);
+    let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(d.person.0), date.0 as u64, 0x1b0]);
+    let mut tr = Tracker::new();
+    let r = engine().render(&Request::new(&ev, &sp, "inbox", w.date, seed), &mut tr);
+    if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required")) {
+        return None;
+    }
+    let subject = r.part("subject")?.text.clone();
+    let body: Vec<&str> = r.parts.iter().filter(|p| p.slot != "subject" && p.slot != "closing" && p.slot != "opening").map(|p| p.text.as_str()).collect();
+    if body.is_empty() {
+        return None;
+    }
+    Some((subject, body.join(" ")))
+}
+
+// ------------------------------------------------------------------------------------------------- social
+
+fn account_voice(k: pw_world::socialnet::AccountKind) -> &'static str {
+    use pw_world::socialnet::AccountKind as A;
+    match k {
+        A::Supporter | A::Hardcore | A::Ultra | A::Casual | A::Local | A::International => "fan_hype",
+        A::Provocateur => "fan_sceptic",
+        A::RumourMill => "tabloid",
+        A::Stats => "analyst",
+        A::ClubOfficial => "club_official",
+        A::FanNews | A::AcademyWatcher | A::Neutral | A::Person => "sports_desk",
+    }
+}
+
+/// A post that relays a story, in the account's own voice. It can be no firmer than the story was and no firmer than the post's own claim;
+/// anything else about the post (opinion, banter, chants) stays with the personality-driven text.
+pub fn post(w: &World, p: &pw_world::socialnet::Post) -> Option<String> {
+    use pw_world::media::ClaimType;
+    use pw_world::socialnet::{Concept, Frame};
+    if !enabled(w) || p.concept != Concept::Relay {
+        return None;
+    }
+    let Frame::Story { story } = p.frame else { return None };
+    let st = w.media.stories.get(story)?;
+    let ev = story_event(w, st)?;
+    let post_cert = match p.claim {
+        ClaimType::Fact => Certainty::Fact,
+        ClaimType::Report => Certainty::SourceClaim,
+        ClaimType::Rumour => Certainty::Rumour,
+        ClaimType::Speculation | ClaimType::Opinion => Certainty::Speculation,
+        _ => return None,
+    };
+    let cert = Certainty::combine([certainty_of(st), post_cert]);
+    let a = w.net.accounts.get(p.author as usize)?;
+    let mut sp = engine().witness(&format!("account.{}", p.author), "fan", account_voice(a.kind), &ev);
+    if cert != Certainty::Fact {
+        let keys: Vec<String> = sp.knows.keys().cloned().collect();
+        for k in keys {
+            let know = if cert == Certainty::SourceClaim { Know::of(cert, "unnamed") } else { Know { certainty: cert, source: None } };
+            sp.knows.insert(k, know);
+        }
+    }
+    let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(p.id), 0x50c]);
+    let mut tr = Tracker::new();
+    let r = engine().render(&Request::new(&ev, &sp, "social", p.date, seed), &mut tr);
+    if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required")) {
+        return None;
+    }
+    let text: Vec<&str> = r.parts.iter().filter(|x| x.slot != "tag").map(|x| x.text.as_str()).collect();
+    if text.is_empty() { None } else { Some(text.join(" ")) }
 }

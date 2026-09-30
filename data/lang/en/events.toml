@@ -381,6 +381,22 @@ key = "star"
 type = "person"
 
 [[event]]
+kind = "interview.quote"
+summary = "Someone has spoken on the record. Only the stance of what was said is known to the writer of this text (praise, criticism, ...), never its words."
+[[event.fact]]
+key = "speaker"
+type = "person"
+[[event.fact]]
+key = "about"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "stance"
+type = "text"
+
+[[event]]
 kind = "record.broken"
 summary = "A record has been set."
 [[event.fact]]

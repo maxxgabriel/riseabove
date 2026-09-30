@@ -20,6 +20,12 @@ structure = ["headline:report", "lede:report", "detail:fee"]
 required = ["headline:report", "lede:report"]
 
 [[article]]
+event = "interview.quote"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
 event = "injury.suffered"
 channel = "inbox"
 structure = ["subject:report", "opening:greet", "situation:report", "situation:duration", "ask:choice", "closing:sign"]

@@ -91,6 +91,9 @@ fn frame_words(w: &World, v: &Voice, f: Frame, about_club: pw_core::ClubId) -> S
 
 /// One post, as its author would write it.
 pub fn post(w: &World, p: &Post) -> String {
+    if let Some(t) = crate::lang::post(w, p) {
+        return t;
+    }
     let Some(a) = w.net.accounts.get(p.author as usize) else { return String::new() };
     let v = voice(w, a);
     let key = u64::from(p.id);

@@ -64,7 +64,7 @@ fn sample() {
     let w = &s.world;
     let mut shown = 0;
     for (_, st) in w.media.stories.iter_enumerated() {
-        if !matches!(st.kind, StoryKind::TransferRumour | StoryKind::MatchReport) { continue; }
+        if !matches!(st.kind, StoryKind::Interview) { continue; }
         if let Some(t) = lang::story(w, st) {
             eprintln!("[{:?} / {}]\n{}\n{}\n", st.kind, pw_narrate::press::outlet_name(w, st), t.headline, t.body);
             shown += 1;
@@ -140,4 +140,85 @@ fn notes() {
     for (k, n) in seen {
         eprintln!("NOTE {n}x {k}");
     }
+}
+
+fn decision_for(w: &pw_world::World, p: pw_core::PlayerId, kind: pw_world::decision::DecisionKind) -> pw_world::decision::Decision {
+    pw_world::decision::Decision {
+        person: w.players.cold[p].person,
+        player: p,
+        kind,
+        options: Default::default(),
+        created: w.date,
+        deadline: w.date.add_days(7),
+        default: 0,
+        answer: None,
+        resolved: false,
+    }
+}
+
+#[test]
+fn an_invitation_and_a_bid_reach_the_inbox_in_the_engines_words() {
+    let s = india_world(55, 30);
+    let w = &s.world;
+    let club = *w.youth.academies.keys().min().unwrap();
+    let kid = w.players.hot.iter_enumerated().find(|(_, h)| h.status == pw_world::PlayerStatus::Amateur).map(|x| x.0).unwrap();
+    let trial = decision_for(w, kid, pw_world::decision::DecisionKind::Trial { club, days: 14 });
+    let (subject, body) = lang::decision(w, &trial).expect("a trial invitation is worded by the engine");
+    assert!(subject.contains(&w.clubs[club].name) && subject.to_lowercase().contains("trial"), "{subject}");
+    assert!(body.contains("you") && !body.is_empty(), "{body}");
+    assert!(pw_lang::check::check_text(&body).is_empty() && pw_lang::check::check_text(&subject).is_empty());
+    // The same words reach the thread title and the message the client shows.
+    assert_eq!(pw_narrate::choices::title(w, &trial), subject);
+    let pro = w.players.hot.iter_enumerated().find(|(_, h)| h.club.is_some() && h.status == pw_world::PlayerStatus::Active).map(|x| x.0).unwrap();
+    let buyer = w.clubs.ids().find(|&c| c != w.players.hot[pro].club).unwrap();
+    let talks = decision_for(w, pro, pw_world::decision::DecisionKind::TransferTalks { club: buyer, fee: 25_000_000 });
+    let (subject, body) = lang::decision(w, &talks).expect("talks are worded by the engine");
+    assert!(subject.contains(&w.clubs[buyer].name), "{subject}");
+    assert!(body.contains("Rs") || body.contains('₹'), "the fee is in the world's money: {body}");
+    // A decision the engine has no words for stays with the older text.
+    let nation = decision_for(w, pro, pw_world::decision::DecisionKind::Treatment { surgery_days: 40, rehab_days: 80 });
+    assert!(lang::decision(w, &nation).is_none());
+}
+
+#[test]
+fn a_post_that_relays_a_story_is_no_firmer_than_the_story_or_the_post() {
+    use pw_world::media::ClaimType;
+    use pw_world::socialnet::{Concept, Frame};
+    let s = india_world(56, 500);
+    let w = &s.world;
+    let (mut engine_posts, mut relays) = (0, 0);
+    for p in w.net.posts.iter() {
+        if p.concept != Concept::Relay {
+            continue;
+        }
+        relays += 1;
+        let Some(text) = lang::post(w, p) else { continue };
+        engine_posts += 1;
+        let issues = pw_lang::check::check_text(&text);
+        assert!(issues.is_empty(), "{issues:?}: {text}");
+        if matches!(p.claim, ClaimType::Rumour | ClaimType::Speculation) {
+            let lower = text.to_lowercase();
+            assert!(!lower.contains("completed") && !lower.contains("confirmed"), "a rumour was posted as done: {text}");
+        }
+        assert!(matches!(p.frame, Frame::Story { .. }));
+        assert_eq!(text, lang::post(w, p).unwrap(), "posts read the same way each time");
+    }
+    eprintln!("relay posts {relays}, written by the engine {engine_posts}");
+}
+
+#[test]
+#[ignore = "debug"]
+fn relay_kinds() {
+    use pw_world::socialnet::{Concept, Frame};
+    let s = india_world(56, 500);
+    let w = &s.world;
+    let mut by = std::collections::BTreeMap::<String, usize>::new();
+    for p in w.net.posts.iter().filter(|p| p.concept == Concept::Relay) {
+        let k = match p.frame {
+            Frame::Story { story } => format!("story {:?}", w.media.stories[story].kind),
+            other => format!("{:?}", std::mem::discriminant(&other)),
+        };
+        *by.entry(k).or_default() += 1;
+    }
+    eprintln!("{by:?}");
 }

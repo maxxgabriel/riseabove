@@ -6,6 +6,9 @@ use pw_world::decision::{Choice, Decision, DecisionKind};
 use crate::fmt::{club, money, person, wage};
 
 pub fn title(w: &World, d: &Decision) -> String {
+    if let Some((subject, _)) = crate::lang::decision(w, d) {
+        return subject;
+    }
     match &d.kind {
         DecisionKind::TransferTalks { club: c, fee } => format!("{} want to talk about a {} move", club(w, *c), money(*fee)),
         DecisionKind::ContractOffer { club: c, contract, renewal } => {

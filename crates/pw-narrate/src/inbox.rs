@@ -27,7 +27,7 @@ pub fn thread_title(w: &World, t: &Thread) -> String {
 pub fn message(w: &World, m: &Message) -> String {
     let me = m.to;
     match m.source {
-        MsgSource::Decision { decision } => w.decisions.all.get(decision).map_or_else(String::new, |d| crate::choices::title(w, d)),
+        MsgSource::Decision { decision } => w.decisions.all.get(decision).map_or_else(String::new, |d| crate::lang::decision(w, d).map_or_else(|| crate::choices::title(w, d), |(_, body)| body)),
         MsgSource::Tell { info, from } => {
             let version = crate::grapevine::version(w, info, me).unwrap_or_else(|| crate::grapevine::what(w, info));
             format!("{} told you: {version}", person(w, from))
