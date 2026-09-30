@@ -1,0 +1,575 @@
+# Frames that do not depend on the event's facts: social tails (the speaker's attitude, never a new fact) and inbox greetings, asks and sign-offs. `certainty` on a tail is the certainty of the post it follows.
+
+[[frame]]
+id = "tail.reaction.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reaction"
+form = "full"
+text = "Interesting."
+
+[[frame]]
+id = "tail.reaction.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reaction"
+form = "full"
+text = "Noted."
+
+[[frame]]
+id = "tail.reaction.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reaction"
+form = "full"
+text = "Watching this one."
+
+[[frame]]
+id = "tail.reaction.4"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reaction"
+form = "full"
+text = "Let's see where this goes."
+
+[[frame]]
+id = "tail.reaction.5"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reaction"
+form = "full"
+register = "informal"
+text = "Well, that's something."
+
+[[frame]]
+id = "tail.reaction.6"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reaction"
+form = "full"
+register = "informal"
+text = "Now that's a headline."
+
+[[frame]]
+id = "tail.hype.1"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "hype"
+text = "Love to see it!"
+
+[[frame]]
+id = "tail.hype.2"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "hype"
+text = "Let's go!"
+
+[[frame]]
+id = "tail.hype.3"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "hype"
+text = "Big news!"
+
+[[frame]]
+id = "tail.hype.4"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "hype"
+text = "This is exciting."
+
+[[frame]]
+id = "tail.hype.5"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "hype"
+text = "Please let this be true!"
+
+[[frame]]
+id = "tail.hype.6"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "hype"
+text = "Fingers crossed on this one!"
+
+[[frame]]
+id = "tail.hype.7"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "hype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "hype"
+text = "It would be huge if true!"
+
+[[frame]]
+id = "tail.antihype.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "Let's wait for confirmation."
+
+[[frame]]
+id = "tail.skepticism.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "Let's wait for confirmation."
+
+[[frame]]
+id = "tail.antihype.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "Believe it when it's official."
+
+[[frame]]
+id = "tail.skepticism.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "Believe it when it's official."
+
+[[frame]]
+id = "tail.antihype.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "Not reading too much into this yet."
+
+[[frame]]
+id = "tail.skepticism.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "Not reading too much into this yet."
+
+[[frame]]
+id = "tail.antihype.4"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "One to check before we get excited."
+
+[[frame]]
+id = "tail.skepticism.4"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["rumour", "speculation", "source_claim"]
+register = "sceptical"
+text = "One to check before we get excited."
+
+[[frame]]
+id = "tail.antihype.5"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "sceptical"
+text = "Not getting carried away yet."
+
+[[frame]]
+id = "tail.skepticism.5"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "sceptical"
+text = "Not getting carried away yet."
+
+[[frame]]
+id = "tail.antihype.6"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "sceptical"
+text = "Let's see how it works out."
+
+[[frame]]
+id = "tail.skepticism.6"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "sceptical"
+text = "Let's see how it works out."
+
+[[frame]]
+id = "tail.antihype.7"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "antihype"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "sceptical"
+text = "Early days."
+
+[[frame]]
+id = "tail.skepticism.7"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "skepticism"
+form = "full"
+certainty = ["fact", "verified_report"]
+register = "sceptical"
+text = "Early days."
+
+[[frame]]
+id = "tail.analysis.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "analysis"
+form = "full"
+register = "technical"
+text = "The details will tell us more."
+
+[[frame]]
+id = "tail.analysis.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "analysis"
+form = "full"
+register = "technical"
+text = "Context matters here."
+
+[[frame]]
+id = "tail.analysis.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "analysis"
+form = "full"
+register = "technical"
+text = "Worth watching how this develops."
+
+[[frame]]
+id = "tail.analysis.4"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "analysis"
+form = "full"
+register = "technical"
+text = "This will matter more over a full season."
+
+[[frame]]
+id = "tail.joke.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "joke"
+form = "full"
+register = "wry"
+text = "Transfer window doing transfer window things."
+
+[[frame]]
+id = "tail.joke.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "joke"
+form = "full"
+register = "wry"
+text = "Well, that escalated."
+
+[[frame]]
+id = "tail.joke.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "joke"
+form = "full"
+register = "wry"
+text = "Sure, why not."
+
+[[frame]]
+id = "tail.anger.1"
+event = "transfer.bid_rejected, injury.suffered, manager.departed, competition.relegation, player.released, match.result"
+channel = "social"
+slot = "tail"
+topic = "anger"
+form = "full"
+register = "tabloid"
+text = "Not good enough."
+
+[[frame]]
+id = "tail.anger.2"
+event = "transfer.bid_rejected, injury.suffered, manager.departed, competition.relegation, player.released, match.result"
+channel = "social"
+slot = "tail"
+topic = "anger"
+form = "full"
+register = "tabloid"
+text = "Frustrating."
+
+[[frame]]
+id = "tail.anger.3"
+event = "transfer.bid_rejected, injury.suffered, manager.departed, competition.relegation, player.released, match.result"
+channel = "social"
+slot = "tail"
+topic = "anger"
+form = "full"
+register = "tabloid"
+text = "Hard to take."
+
+[[frame]]
+id = "tail.praise.1"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+text = "Well done all round."
+
+[[frame]]
+id = "tail.praise.2"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+text = "Deserved."
+
+[[frame]]
+id = "tail.praise.3"
+event = "callup.*, transfer.completed, contract.renewed, manager.appointed, competition.promotion, record.broken, match.result, injury.returned, academy.invitation, university.scholarship, exchange.trip"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+text = "Good news."
+
+[[frame]]
+id = "tail.nostalgia.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "nostalgia"
+form = "full"
+register = "local"
+text = "Takes me back."
+
+[[frame]]
+id = "tail.nostalgia.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "nostalgia"
+form = "full"
+register = "local"
+text = "We've been here before."
+
+[[frame]]
+id = "tail.nostalgia.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "nostalgia"
+form = "full"
+register = "local"
+text = "Some things never change."
+
+[[frame]]
+id = "tail.correction.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "correction"
+form = "full"
+certainty = ["correction"]
+text = "Correcting the earlier post."
+
+[[frame]]
+id = "tail.correction.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "correction"
+form = "full"
+certainty = ["correction"]
+text = "Putting this right."
+
+[[frame]]
+id = "tail.quote.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "quote"
+form = "full"
+register = "neutral"
+text = "Sharing this for the record."
+
+[[frame]]
+id = "tail.quote.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "quote"
+form = "full"
+register = "neutral"
+text = "Worth reading in full."
+
+[[frame]]
+id = "inbox.opening.1"
+event = "*"
+channel = "inbox"
+slot = "opening"
+topic = "greet"
+form = "full"
+text = "Hello."
+
+[[frame]]
+id = "inbox.opening.2"
+event = "*"
+channel = "inbox"
+slot = "opening"
+topic = "greet"
+form = "full"
+text = "Hi there."
+
+[[frame]]
+id = "inbox.opening.3"
+event = "*"
+channel = "inbox"
+slot = "opening"
+topic = "greet"
+form = "full"
+text = "A quick update for you."
+
+[[frame]]
+id = "inbox.opening.4"
+event = "*"
+channel = "inbox"
+slot = "opening"
+topic = "greet"
+form = "full"
+text = "Here's the latest."
+
+[[frame]]
+id = "inbox.ask.1"
+event = "*"
+channel = "inbox"
+slot = "ask"
+topic = "choice"
+form = "full"
+text = "What would you like to do?"
+
+[[frame]]
+id = "inbox.ask.2"
+event = "*"
+channel = "inbox"
+slot = "ask"
+topic = "choice"
+form = "full"
+text = "How would you like to proceed?"
+
+[[frame]]
+id = "inbox.ask.3"
+event = "*"
+channel = "inbox"
+slot = "ask"
+topic = "choice"
+form = "full"
+text = "Your call on how to handle this."
+
+[[frame]]
+id = "inbox.closing.1"
+event = "*"
+channel = "inbox"
+slot = "closing"
+topic = "sign"
+form = "full"
+text = "Let me know."
+
+[[frame]]
+id = "inbox.closing.2"
+event = "*"
+channel = "inbox"
+slot = "closing"
+topic = "sign"
+form = "full"
+text = "Tell me what you decide."
+
+[[frame]]
+id = "inbox.closing.3"
+event = "*"
+channel = "inbox"
+slot = "closing"
+topic = "sign"
+form = "full"
+text = "Over to you."

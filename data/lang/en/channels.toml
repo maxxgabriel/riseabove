@@ -1,0 +1,118 @@
+# Channels: where text appears. Each channel is a list of slots; an article entry (articles.toml) says which slot:topic items make up a text for an event.
+# style: sentence (capital + full stop), headline (capital, no full stop), label (capital, no full stop), raw (untouched).
+
+[[channel]]
+id = "news"
+summary = "Article in a newspaper or website: headline, standfirst, lede, details, context, quote."
+forbid = ["#", "@", "lol"]
+default_structure = ["headline:report", "lede:report", "detail:fee", "detail:round", "detail:term", "detail:duration", "detail:scorers", "detail:attendance", "detail:camp", "detail:caps", "detail:first", "detail:table", "detail:background", "context:background"]
+[[channel.slot]]
+slot = "headline"
+style = "headline"
+max_chars = 120
+[[channel.slot]]
+slot = "standfirst"
+style = "sentence"
+[[channel.slot]]
+slot = "lede"
+style = "sentence"
+[[channel.slot]]
+slot = "detail"
+style = "sentence"
+[[channel.slot]]
+slot = "context"
+style = "sentence"
+[[channel.slot]]
+slot = "quote"
+style = "sentence"
+
+[[channel]]
+id = "social"
+summary = "A post from an account. Short, may carry a tag; behaviour picks the register of the post."
+default_structure = ["post:report", "tail:$behaviour"]
+[[channel.slot]]
+slot = "post"
+style = "sentence"
+max_chars = 280
+[[channel.slot]]
+slot = "tail"
+style = "sentence"
+max_chars = 120
+[[channel.slot]]
+slot = "tag"
+style = "raw"
+max_chars = 40
+
+[[channel]]
+id = "inbox"
+summary = "A message to the player or manager: subject, opening, situation, ask, closing; consequential options are attached."
+forbid = ["#", "@"]
+default_structure = ["subject:report", "opening:greet", "situation:report", "situation:duration", "closing:sign"]
+[[channel.slot]]
+slot = "subject"
+style = "headline"
+max_chars = 80
+[[channel.slot]]
+slot = "opening"
+style = "sentence"
+[[channel.slot]]
+slot = "situation"
+style = "sentence"
+[[channel.slot]]
+slot = "ask"
+style = "sentence"
+[[channel.slot]]
+slot = "closing"
+style = "sentence"
+
+[[channel]]
+id = "scout"
+summary = "A scout's written report: heading, summary, strengths, concerns, verdict."
+forbid = ["#", "@"]
+default_structure = ["heading:report", "summary:seen", "strengths:report", "concerns:report", "verdict:report"]
+[[channel.slot]]
+slot = "heading"
+style = "headline"
+[[channel.slot]]
+slot = "summary"
+style = "sentence"
+[[channel.slot]]
+slot = "strengths"
+style = "sentence"
+[[channel.slot]]
+slot = "concerns"
+style = "sentence"
+[[channel.slot]]
+slot = "verdict"
+style = "sentence"
+
+[[channel]]
+id = "press"
+summary = "What someone says in a press conference or club statement."
+forbid = ["#", "@"]
+[[channel.slot]]
+slot = "opening"
+style = "sentence"
+[[channel.slot]]
+slot = "line"
+style = "sentence"
+[[channel.slot]]
+slot = "closing"
+style = "sentence"
+
+[[channel]]
+id = "ui"
+summary = "Interface microcopy: labels, hints and status text. States what is and is not known; never adds meaning."
+forbid = ["#", "@", "!"]
+[[channel.slot]]
+slot = "label"
+style = "label"
+max_chars = 40
+[[channel.slot]]
+slot = "hint"
+style = "sentence"
+max_chars = 140
+[[channel.slot]]
+slot = "status"
+style = "label"
+max_chars = 40

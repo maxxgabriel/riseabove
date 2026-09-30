@@ -8,6 +8,7 @@ members = [
     "crates/pw-sim",
     "crates/pw-import",
     "crates/pw-narrate",
+    "crates/pw-lang",
     "crates/pw-career",
     "crates/pw-cli",
     "crates/pw-view",
@@ -34,6 +35,7 @@ pw-import = { path = "crates/pw-import" }
 pw-career = { path = "crates/pw-career" }
 pw-view = { path = "crates/pw-view" }
 pw-narrate = { path = "crates/pw-narrate" }
+pw-lang = { path = "crates/pw-lang" }
 ofm-engine = { path = "vendor/ofm-engine" }
 rand = "0.10"
 

@@ -1,0 +1,68 @@
+# Article structures: which slot:topic items make up a text, in order, per event and channel. An item with no frame that the speaker can honestly
+# write is skipped; `required` items make the rendering report itself incomplete. `tail:$behaviour` takes the request's behaviour (omitted when none).
+
+[[article]]
+event = "transfer.bid_rejected"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:fee", "detail:round", "detail:minimum", "context:background"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "transfer.bid_rejected"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "situation:minimum", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "injury.suffered"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "situation:duration", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "callup.national"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "academy.invitation"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "university.scholarship"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "match.result"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:scorers", "detail:attendance"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "injury.suffered"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:duration"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "callup.national"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:first", "detail:caps", "detail:camp"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "scout.assessment"
+channel = "scout"
+structure = ["heading:report", "summary:seen", "summary:caution", "strengths:report", "concerns:report", "verdict:report"]
+required = ["heading:report"]
+
+[[article]]
+event = "ui.unknown_value"
+channel = "ui"
+structure = ["label:unknown", "hint:basis"]
+required = ["label:unknown"]

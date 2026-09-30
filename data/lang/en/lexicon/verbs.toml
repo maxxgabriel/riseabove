@@ -1,0 +1,439 @@
+# Football lexicon: concepts with variants. A variant gives word forms, register and (optionally) the conditions under which the word is honest.
+# forms: verbs base/third/past/pp/ing, nouns sing/plur. `when`/`requires` restrict a variant to what the known facts support.
+
+[[concept]]
+id = "report"
+meaning = "a source tells the public something"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "report", third = "reports", past = "reported", pp = "reported", ing = "reporting" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "say", third = "says", past = "said", pp = "said", ing = "saying" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "state", third = "states", past = "stated", pp = "stated", ing = "stating" }
+register = "formal"
+
+[[concept]]
+id = "claim"
+meaning = "a source asserts something that cannot be checked"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "claim", third = "claims", past = "claimed", pp = "claimed", ing = "claiming" }
+register = "neutral"
+not_certainty = ["fact", "verified_report"]
+[[concept.variant]]
+forms = { base = "insist", third = "insists", past = "insisted", pp = "insisted", ing = "insisting" }
+register = "neutral"
+not_certainty = ["fact", "verified_report"]
+
+[[concept]]
+id = "hear"
+meaning = "an unattributed report reaches the speaker"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "hear", third = "hears", past = "heard", pp = "heard", ing = "hearing" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "understand", third = "understands", past = "understood", pp = "understood", ing = "understanding" }
+register = "formal"
+
+[[concept]]
+id = "deny"
+meaning = "a source says something is not true"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "deny", third = "denies", past = "denied", pp = "denied", ing = "denying" }
+register = "neutral"
+
+[[concept]]
+id = "dismiss_claim"
+meaning = "a source refuses to accept a claim; takes `the claim that`"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "dismiss", third = "dismisses", past = "dismissed", pp = "dismissed", ing = "dismissing" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "reject", third = "rejects", past = "rejected", pp = "rejected", ing = "rejecting" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "brush aside", third = "brushes aside", past = "brushed aside", pp = "brushed aside", ing = "brushing aside" }
+register = "informal"
+
+[[concept]]
+id = "reject"
+meaning = "a seller says no to a bid"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "reject", third = "rejects", past = "rejected", pp = "rejected", ing = "rejecting" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "turn down", third = "turns down", past = "turned down", pp = "turned down", ing = "turning down" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "knock back", third = "knocks back", past = "knocked back", pp = "knocked back", ing = "knocking back" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "rebuff", third = "rebuffs", past = "rebuffed", pp = "rebuffed", ing = "rebuffing" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "snub", third = "snubs", past = "snubbed", pp = "snubbed", ing = "snubbing" }
+register = "tabloid"
+note = "tabloid: implies contempt, use only in tabloid voices"
+
+[[concept]]
+id = "make_bid"
+meaning = "a club puts an offer to another club"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "make", third = "makes", past = "made", pp = "made", ing = "making" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "lodge", third = "lodges", past = "lodged", pp = "lodged", ing = "lodging" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "table", third = "tables", past = "tabled", pp = "tabled", ing = "tabling" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "submit", third = "submits", past = "submitted", pp = "submitted", ing = "submitting" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "put in", third = "puts in", past = "put in", pp = "put in", ing = "putting in" }
+register = "informal"
+
+[[concept]]
+id = "sign"
+meaning = "a player joins a club"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "sign", third = "signs", past = "signed", pp = "signed", ing = "signing" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "complete the signing of", third = "completes the signing of", past = "completed the signing of", pp = "completed the signing of", ing = "completing the signing of" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "seal the signing of", third = "seals the signing of", past = "sealed the signing of", pp = "sealed the signing of", ing = "sealing the signing of" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "land", third = "lands", past = "landed", pp = "landed", ing = "landing" }
+register = "tabloid"
+[[concept.variant]]
+forms = { base = "snap up", third = "snaps up", past = "snapped up", pp = "snapped up", ing = "snapping up" }
+register = "tabloid"
+[[concept.variant]]
+forms = { base = "bring in", third = "brings in", past = "brought in", pp = "brought in", ing = "bringing in" }
+register = "informal"
+
+[[concept]]
+id = "join"
+meaning = "a player becomes part of a club"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "join", third = "joins", past = "joined", pp = "joined", ing = "joining" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "move to", third = "moves to", past = "moved to", pp = "moved to", ing = "moving to" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "switch to", third = "switches to", past = "switched to", pp = "switched to", ing = "switching to" }
+register = "informal"
+
+[[concept]]
+id = "renew"
+meaning = "a contract is extended"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "extend", third = "extends", past = "extended", pp = "extended", ing = "extending" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "renew", third = "renews", past = "renewed", pp = "renewed", ing = "renewing" }
+register = "neutral"
+
+[[concept]]
+id = "release"
+meaning = "a club lets a player go at the end of a contract or by decision"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "release", third = "releases", past = "released", pp = "released", ing = "releasing" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "let go", third = "lets go", past = "let go", pp = "let go", ing = "letting go" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "part company with", third = "parts company with", past = "parted company with", pp = "parted company with", ing = "parting company with" }
+register = "formal"
+
+[[concept]]
+id = "suffer"
+meaning = "a player sustains an injury"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "suffer", third = "suffers", past = "suffered", pp = "suffered", ing = "suffering" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "sustain", third = "sustains", past = "sustained", pp = "sustained", ing = "sustaining" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "pick up", third = "picks up", past = "picked up", pp = "picked up", ing = "picking up" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "hobble off with", third = "hobbles off with", past = "hobbled off with", pp = "hobbled off with", ing = "hobbling off with" }
+register = "tabloid"
+when = "in_match == true"
+requires = ["in_match"]
+note = "only when the injury happened during a match"
+
+[[concept]]
+id = "rule_out"
+meaning = "an injury keeps a player out"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "rule out", third = "rules out", past = "ruled out", pp = "ruled out", ing = "ruling out" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "sideline", third = "sidelines", past = "sidelined", pp = "sidelined", ing = "sidelining" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "keep out", third = "keeps out", past = "kept out", pp = "kept out", ing = "keeping out" }
+register = "informal"
+
+[[concept]]
+id = "return"
+meaning = "a player comes back"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "return", third = "returns", past = "returned", pp = "returned", ing = "returning" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "come back", third = "comes back", past = "came back", pp = "come back", ing = "coming back" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "recover", third = "recovers", past = "recovered", pp = "recovered", ing = "recovering" }
+register = "neutral"
+note = "recover from an injury"
+
+[[concept]]
+id = "call_up"
+meaning = "a national or state selector names a player in a squad"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "call up", third = "calls up", past = "called up", pp = "called up", ing = "calling up" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "name", third = "names", past = "named", pp = "named", ing = "naming" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "summon", third = "summons", past = "summoned", pp = "summoned", ing = "summoning" }
+register = "formal"
+
+[[concept]]
+id = "dismiss"
+meaning = "a club ends a manager's employment"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "sack", third = "sacks", past = "sacked", pp = "sacked", ing = "sacking" }
+register = "neutral"
+note = "use only when the manner is a dismissal"
+[[concept.variant]]
+forms = { base = "dismiss", third = "dismisses", past = "dismissed", pp = "dismissed", ing = "dismissing" }
+register = "formal"
+note = "manager dismissal"
+
+[[concept]]
+id = "appoint"
+meaning = "a club names a manager"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "appoint", third = "appoints", past = "appointed", pp = "appointed", ing = "appointing" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "name", third = "names", past = "named", pp = "named", ing = "naming" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "unveil", third = "unveils", past = "unveiled", pp = "unveiled", ing = "unveiling" }
+register = "tabloid"
+[[concept.variant]]
+forms = { base = "hand the job to", third = "hands the job to", past = "handed the job to", pp = "handed the job to", ing = "handing the job to" }
+register = "informal"
+
+[[concept]]
+id = "beat"
+meaning = "a team wins a match"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "beat", third = "beats", past = "beat", pp = "beaten", ing = "beating" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "defeat", third = "defeats", past = "defeated", pp = "defeated", ing = "defeating" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "edge", third = "edges", past = "edged", pp = "edged", ing = "edging" }
+register = "neutral"
+when = "margin == 1"
+note = "a one-goal win"
+[[concept.variant]]
+forms = { base = "see off", third = "sees off", past = "saw off", pp = "seen off", ing = "seeing off" }
+register = "informal"
+when = "margin >= 2"
+[[concept.variant]]
+forms = { base = "overcome", third = "overcomes", past = "overcame", pp = "overcome", ing = "overcoming" }
+register = "formal"
+when = "margin == 1"
+[[concept.variant]]
+forms = { base = "thrash", third = "thrashes", past = "thrashed", pp = "thrashed", ing = "thrashing" }
+register = "tabloid"
+when = "margin >= 4"
+note = "only for a heavy margin"
+[[concept.variant]]
+forms = { base = "cruise past", third = "cruises past", past = "cruised past", pp = "cruised past", ing = "cruising past" }
+register = "informal"
+when = "margin >= 3"
+note = "implies ease; only for a wide margin"
+
+[[concept]]
+id = "draw"
+meaning = "the match ends level"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "draw with", third = "draws with", past = "drew with", pp = "drawn with", ing = "drawing with" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "share the points with", third = "shares the points with", past = "shared the points with", pp = "shared the points with", ing = "sharing the points with" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "play out a draw with", third = "plays out a draw with", past = "played out a draw with", pp = "played out a draw with", ing = "playing out a draw with" }
+register = "formal"
+
+[[concept]]
+id = "promote"
+meaning = "a club moves up a tier"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "secure promotion", third = "secures promotion", past = "secured promotion", pp = "secured promotion", ing = "securing promotion" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "win promotion", third = "wins promotion", past = "won promotion", pp = "won promotion", ing = "winning promotion" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "go up", third = "goes up", past = "went up", pp = "gone up", ing = "going up" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "clinch promotion", third = "clinches promotion", past = "clinched promotion", pp = "clinched promotion", ing = "clinching promotion" }
+register = "neutral"
+when = "position == 1"
+note = "finishing first"
+[[concept.variant]]
+forms = { base = "earn promotion", third = "earns promotion", past = "earned promotion", pp = "earned promotion", ing = "earning promotion" }
+register = "formal"
+
+[[concept]]
+id = "relegate"
+meaning = "a club drops a tier"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "suffer relegation", third = "suffers relegation", past = "suffered relegation", pp = "suffered relegation", ing = "suffering relegation" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "go down", third = "goes down", past = "went down", pp = "gone down", ing = "going down" }
+register = "informal"
+[[concept.variant]]
+forms = { base = "be relegated", third = "is relegated", past = "was relegated", pp = "been relegated", ing = "being relegated" }
+register = "formal"
+
+[[concept]]
+id = "invite"
+meaning = "an academy asks a player to come"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "invite", third = "invites", past = "invited", pp = "invited", ing = "inviting" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "call", third = "calls", past = "called", pp = "called", ing = "calling" }
+register = "informal"
+note = "call for trials"
+[[concept.variant]]
+forms = { base = "summon", third = "summons", past = "summoned", pp = "summoned", ing = "summoning" }
+register = "formal"
+note = "rarely for a youngster"
+
+[[concept]]
+id = "offer"
+meaning = "an institution puts a place or terms to a person"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "offer", third = "offers", past = "offered", pp = "offered", ing = "offering" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "hand", third = "hands", past = "handed", pp = "handed", ing = "handing" }
+register = "informal"
+note = "hand X a place"
+[[concept.variant]]
+forms = { base = "award", third = "awards", past = "awarded", pp = "awarded", ing = "awarding" }
+register = "formal"
+
+[[concept]]
+id = "extend_offer"
+meaning = "an institution makes an offer to a person (single object)"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "extend an offer to", third = "extends an offer to", past = "extended an offer to", pp = "extended an offer to", ing = "extending an offer to" }
+register = "formal"
+[[concept.variant]]
+forms = { base = "make an offer to", third = "makes an offer to", past = "made an offer to", pp = "made an offer to", ing = "making an offer to" }
+register = "neutral"
+
+[[concept]]
+id = "set_record"
+meaning = "a person establishes a new best mark"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "set", third = "sets", past = "set", pp = "set", ing = "setting" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "break", third = "breaks", past = "broke", pp = "broken", ing = "breaking" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "establish", third = "establishes", past = "established", pp = "established", ing = "establishing" }
+register = "formal"
+
+[[concept]]
+id = "host"
+meaning = "a club takes in a visitor"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "host", third = "hosts", past = "hosted", pp = "hosted", ing = "hosting" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "welcome", third = "welcomes", past = "welcomed", pp = "welcomed", ing = "welcoming" }
+register = "informal"
+
+[[concept]]
+id = "resign"
+meaning = "a manager leaves by his or her own decision"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "resign", third = "resigns", past = "resigned", pp = "resigned", ing = "resigning" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "step down", third = "steps down", past = "stepped down", pp = "stepped down", ing = "stepping down" }
+register = "neutral"
+
+[[concept]]
+id = "part_ways"
+meaning = "a club and a manager end the relationship together"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "part ways", third = "parts ways", past = "parted ways", pp = "parted ways", ing = "parting ways" }
+register = "neutral"
+[[concept.variant]]
+forms = { base = "go their separate ways", third = "goes their separate ways", past = "went their separate ways", pp = "gone their separate ways", ing = "going their separate ways" }
+register = "informal"
+
+[[concept]]
+id = "spend"
+meaning = "someone passes time"
+pos = "verb"
+[[concept.variant]]
+forms = { base = "spend", third = "spends", past = "spent", pp = "spent", ing = "spending" }
+register = "neutral"
