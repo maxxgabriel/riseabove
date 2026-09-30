@@ -81,5 +81,5 @@ pub fn begin_route(s: &mut Session, args: &Value) -> ApiResult<Value> {
         w.people[person].last = id;
     }
     s.inhabit(person, salt)?;
-    Ok(json!({"person": person.0}))
+    Ok(crate::contract::wire(crate::contract::Created { person: person.0 }))
 }

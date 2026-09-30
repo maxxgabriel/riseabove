@@ -227,11 +227,11 @@ pub fn reveal(s: &mut crate::session::Session, args: &Value) -> ApiResult<Value>
     let uid = crate::contract::request::<crate::contract::RevealReq>(args.clone())?.uid;
     s.meta.concealed.remove(&uid);
     s.revision += 1;
-    Ok(json!({"revealed": uid}))
+    Ok(crate::contract::wire(crate::contract::Revealed { revealed: uid }))
 }
 
 pub fn reveal_all(s: &mut crate::session::Session) -> ApiResult<Value> {
     s.meta.concealed.clear();
     s.revision += 1;
-    Ok(json!({"revealed": "all"}))
+    Ok(crate::contract::wire(crate::contract::RevealedAll { revealed: "all".into() }))
 }

@@ -612,7 +612,7 @@ pub fn answer(s: &mut Session, args: &Value) -> ApiResult<Value> {
     let id = req.id.strip_prefix('d').and_then(|s| s.parse::<u32>().ok()).ok_or_else(|| ApiError::Bad("That is not a decision id.".into()))?;
     let choice = req.choice;
     s.answer(DecisionId(id), choice)?;
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }
 
 /// Decisions waiting, briefly, for the Today page and the shell.

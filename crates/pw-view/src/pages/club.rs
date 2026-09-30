@@ -109,7 +109,7 @@ pub fn follow(c: &mut crate::session::Session, args: &Value) -> ApiResult<Value>
         }
     }
     c.revision += 1;
-    Ok(json!({"followed": on}))
+    Ok(crate::contract::wire(crate::contract::Followed { followed: on }))
 }
 
 // ---- competitions and nations ----------------------------------------------------------

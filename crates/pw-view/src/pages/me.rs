@@ -249,7 +249,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
 pub fn mark_viewed(s: &mut Session) -> ApiResult<Value> {
     s.meta.last_viewed = s.today().0;
     s.game.session.seen = s.game.sim.world.events.last_id();
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }
 
 // ---- calendar ----------------------------------------------------------------------------------
@@ -332,18 +332,28 @@ fn plan_pending(c: &Ctx) -> Value {
         .unwrap_or(Value::Null)
 }
 
-fn plan_json(plan: &pw_world::TrainingPlan) -> Value {
-    let (fk, fv): (&str, Value) = match plan.focus {
-        Focus::General => ("general", Value::Null),
-        Focus::Group(g) => ("group", json!(format!("{g:?}").to_lowercase())),
-        Focus::Attribute(a) => ("attribute", json!(a.key())),
-        Focus::Position(p) => ("position", json!(p.code())),
+fn plan_view(plan: &pw_world::TrainingPlan) -> crate::contract::PlanView {
+    let (kind, value) = match plan.focus {
+        Focus::General => ("general", None),
+        Focus::Group(g) => ("group", Some(format!("{g:?}").to_lowercase())),
+        Focus::Attribute(a) => ("attribute", Some(a.key().to_string())),
+        Focus::Position(p) => ("position", Some(p.code().to_string())),
     };
-    json!({
-        "focus": {"kind": fk, "value": fv},
-        "intensity": match plan.intensity { Intensity::Light => "light", Intensity::Normal => "normal", Intensity::High => "high" },
-        "extra": plan.extra, "recovery": plan.recovery,
-    })
+    crate::contract::PlanView {
+        focus: crate::contract::FocusView { kind: kind.into(), value },
+        intensity: match plan.intensity {
+            Intensity::Light => "light",
+            Intensity::Normal => "normal",
+            Intensity::High => "high",
+        }
+        .into(),
+        extra: plan.extra,
+        recovery: plan.recovery,
+    }
+}
+
+fn plan_json(plan: &pw_world::TrainingPlan) -> Value {
+    crate::contract::wire(plan_view(plan))
 }
 
 pub fn football(c: &Ctx) -> ApiResult<Value> {
@@ -437,7 +447,7 @@ pub fn set_plan(s: &mut Session, args: &Value) -> ApiResult<Value> {
         };
     }
     s.act(pw_world::Intent::SetTraining(plan))?;
-    Ok(json!({"plan": plan_json(&plan), "applies": "tomorrow"}))
+    Ok(crate::contract::wire(crate::contract::PlanSet { plan: plan_view(&plan), applies: "tomorrow".into() }))
 }
 
 pub fn contract(c: &Ctx) -> ApiResult<Value> {

@@ -346,7 +346,15 @@ pub fn band(v: u8, tiers: &[(u8, &str)], floor: &str) -> serde_json::Value {
 
 /// `band` with the general scale of `pw_narrate::fmt::level` (very poor ... excellent).
 pub fn level_band(v: u8) -> serde_json::Value {
-    band(v, &[(85, "excellent"), (70, "very good"), (55, "good"), (40, "okay"), (20, "poor")], "very poor")
+    serde_json::to_value(band_of(v)).unwrap_or_default()
+}
+
+/// `level_band` as the declared type, for payloads built through the contract.
+pub fn band_of(v: u8) -> crate::contract::Band {
+    let tiers = [(85, "excellent"), (70, "very good"), (55, "good"), (40, "okay"), (20, "poor")];
+    let steps = tiers.len() + 1;
+    let (i, label) = tiers.iter().enumerate().find(|(_, (min, _))| v >= *min).map_or((tiers.len(), "very poor"), |(i, (_, s))| (i, *s));
+    crate::contract::Band { label: label.into(), step: (steps - i) as u8, steps: steps as u8 }
 }
 
 /// How a feeling pulls: towards contentment, against it, or hardly at all. The strength is in the words (`feeling`), not a number.

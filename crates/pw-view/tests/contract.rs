@@ -196,6 +196,42 @@ fn typed_responses_carry_exactly_the_declared_fields() {
     for r in rum["rumours"].as_array().unwrap() {
         check_against(&ts, "RumourRow", r);
     }
+    // Pages of one's own life, typed through the contract.
+    let promises = api.call("me.promises", json!({})).unwrap();
+    check_against(&ts, "PromisesView", &promises);
+    for r in promises["promises"].as_array().unwrap() {
+        check_against(&ts, "PromiseRow", r);
+    }
+    let agent = api.call("me.agent", json!({})).unwrap();
+    check_against(&ts, "AgentView", &agent);
+    if !agent["agent"].is_null() {
+        check_against(&ts, "AgentRow", &agent["agent"]);
+        check_against(&ts, "Band", &agent["agent"]["satisfaction"]);
+    }
+    // Commands answer with their declared replies.
+    check_against(&ts, "Done", &api.call("me.goal", json!({"kind": "goals", "target": 10})).unwrap());
+    check_against(&ts, "Done", &api.call("me.note", json!({"text": "a note"})).unwrap());
+    let journal = api.call("me.journal", json!({})).unwrap();
+    check_against(&ts, "JournalView", &journal);
+    check_against(&ts, "GoalRow", &journal["goals"][0]);
+    check_against(&ts, "GoalProgress", &journal["goals"][0]["progress"]);
+    check_against(&ts, "NoteRow", &journal["notes"][0]);
+    check_against(&ts, "InhabitedRow", &journal["history"][0]);
+    check_against(&ts, "Done", &api.call("me.note_remove", json!({"i": 0})).unwrap());
+    check_against(&ts, "Done", &api.call("me.goal_done", json!({"i": 0})).unwrap());
+    check_against(&ts, "Done", &api.call("me.viewed", json!({})).unwrap());
+    check_against(&ts, "Done", &api.call("settings.set", json!({"conceal_mine": true})).unwrap());
+    let plan = api.call("me.plan", json!({"intensity": "light"})).unwrap();
+    check_against(&ts, "PlanSet", &plan);
+    check_against(&ts, "PlanView", &plan["plan"]);
+    check_against(&ts, "FocusView", &plan["plan"]["focus"]);
+    check_against(&ts, "Followed", &api.call("club.follow", json!({"club": 1})).unwrap());
+    check_against(&ts, "RevealedAll", &api.call("match.reveal_all", json!({})).unwrap());
+    check_against(&ts, "StopRequested", &api.call("advance.stop", json!({})).unwrap());
+    check_against(&ts, "Saved", &api.call("world.save", json!({"file": "typed"})).unwrap());
+    check_against(&ts, "Done", &api.call("persp.observe", json!({})).unwrap());
+    check_against(&ts, "Deleted", &api.call("world.delete_save", json!({"file": "typed.pws"})).unwrap());
+    check_against(&ts, "Closed", &api.call("world.close", json!({})).unwrap());
     // The table request the app sends is the one the backend reads.
     let (req, opt) = contract::interface_fields(&ts, "TableReq").unwrap();
     assert!(req == ["table"] && ["filters", "sort", "offset", "limit", "columns", "preset"].iter().all(|f| opt.contains(&f.to_string())));

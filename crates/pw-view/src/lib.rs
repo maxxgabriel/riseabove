@@ -146,7 +146,7 @@ impl Api {
             "world.close" => {
                 self.not_while_advancing()?;
                 *self.lock() = None;
-                Ok(json!({"closed": true}))
+                Ok(contract::wire(contract::Closed { closed: true }))
             }
             "world.delete_save" => self.delete_save(args),
             "settings.set" => {
@@ -160,7 +160,7 @@ impl Api {
                         s.meta.stops.matches = st.matches.unwrap_or(s.meta.stops.matches);
                         s.meta.stops.major = st.major.unwrap_or(s.meta.stops.major);
                     }
-                    Ok(json!({"ok": true}))
+                    Ok(contract::wire(contract::Done { ok: true }))
                 })
             }
 
@@ -171,7 +171,7 @@ impl Api {
             }
             "advance.stop" => {
                 advance::request_stop(&self.sh);
-                Ok(json!({"requested": true}))
+                Ok(contract::wire(contract::StopRequested { requested: true }))
             }
 
             "persp.observe" => {
@@ -181,7 +181,7 @@ impl Api {
                 let public = !req.omniscient.unwrap_or(req.public == Some(false));
                 self.with_mut(|s| {
                     s.observe(public);
-                    Ok(json!({"ok": true}))
+                    Ok(contract::wire(contract::Done { ok: true }))
                 })
             }
             "persp.inhabit" => {
@@ -190,7 +190,7 @@ impl Api {
                 self.with_mut(|s| {
                     let salt = s.w().seed ^ (u64::from(s.today().0 as u32) << 20) ^ id;
                     s.inhabit(pw_core::PersonId(id as u32), salt)?;
-                    Ok(json!({"ok": true}))
+                    Ok(contract::wire(contract::Done { ok: true }))
                 })
             }
             "person.create" => {
@@ -342,7 +342,7 @@ impl Api {
                 Err(_) => Api::finish_task(&sh, Some("The world could not be built.".into()), None),
             }
         });
-        Ok(json!({"started": true}))
+        Ok(contract::wire(contract::Started { started: true }))
     }
 
     fn inspect_import(&self, args: Value) -> ApiResult<Value> {
@@ -419,7 +419,7 @@ impl Api {
             "version": env!("CARGO_PKG_VERSION"),
         });
         let _ = std::fs::write(path.with_extension("json"), info.to_string());
-        Ok(json!({"file": format!("{file}.pws")}))
+        Ok(contract::wire(contract::Saved { file: format!("{file}.pws") }))
     }
 
     fn load(&self, args: Value) -> ApiResult<Value> {
@@ -440,7 +440,7 @@ impl Api {
             }
             Err(e) => Api::finish_task(&sh, Some(format!("This save could not be loaded: {e}. The file has not been changed.")), None),
         });
-        Ok(json!({"started": true}))
+        Ok(contract::wire(contract::Started { started: true }))
     }
 
     fn delete_save(&self, args: Value) -> ApiResult<Value> {
@@ -451,7 +451,7 @@ impl Api {
         for ext in ["pws", "json", "bak"] {
             let _ = std::fs::remove_file(p.with_extension(ext));
         }
-        Ok(json!({"deleted": true}))
+        Ok(contract::wire(contract::Deleted { deleted: true }))
     }
 }
 

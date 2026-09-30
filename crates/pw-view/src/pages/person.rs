@@ -278,5 +278,5 @@ pub fn create(s: &mut crate::session::Session, args: &Value) -> ApiResult<Value>
     let salt = s.w().seed ^ u64::from(s.today().0 as u32).rotate_left(21) ^ s.w().people.len() as u64;
     let (person, _) = pw_career::create_person(&mut s.game.sim.world, pw_career::NewPerson { first, last, nation, club, age, pos, salt });
     s.inhabit(person, salt)?;
-    Ok(json!({"person": person.0}))
+    Ok(crate::contract::wire(crate::contract::Created { person: person.0 }))
 }

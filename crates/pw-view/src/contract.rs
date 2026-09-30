@@ -877,6 +877,162 @@ contract! {
 }
 
 contract! {
+    /// A command that has nothing to report but that it was done.
+    pub struct Done {
+        pub ok: bool,
+    }
+
+    /// A long operation (building, loading) has begun; `world.status` follows it.
+    pub struct Started {
+        pub started: bool,
+    }
+
+    pub struct Saved {
+        pub file: String,
+    }
+
+    pub struct Closed {
+        pub closed: bool,
+    }
+
+    pub struct Deleted {
+        pub deleted: bool,
+    }
+
+    pub struct StopRequested {
+        pub requested: bool,
+    }
+
+    pub struct Followed {
+        pub followed: bool,
+    }
+
+    pub struct Revealed {
+        pub revealed: u64,
+    }
+
+    /// Every hidden result revealed at once (`revealed` is `"all"`).
+    pub struct RevealedAll {
+        pub revealed: String,
+    }
+
+    /// A person made (or begun on a route) and now inhabited.
+    pub struct Created {
+        pub person: u32,
+    }
+
+    /// What training concentrates on: `general` (no value), an attribute `group`, one `attribute` or a `position`.
+    pub struct FocusView {
+        pub kind: String,
+        pub value: Option<String>,
+    }
+
+    pub struct PlanView {
+        pub focus: FocusView,
+        pub intensity: String,
+        pub extra: u8,
+        pub recovery: u8,
+    }
+
+    pub struct PlanSet {
+        pub plan: PlanView,
+        pub applies: String,
+    }
+}
+
+contract! {
+    /// How a minutes promise is going: the share of the team's minutes played, against the share promised.
+    pub struct PromiseProgress {
+        pub actual: f32,
+        pub promised: f32,
+    }
+
+    pub struct PromiseRow {
+        pub id: u32,
+        /// The viewer made it (otherwise it was made to the viewer).
+        pub mine: bool,
+        pub with: Named,
+        pub text: String,
+        pub made: i32,
+        pub due: i32,
+        pub progress: Option<PromiseProgress>,
+        /// open, kept, broken or void.
+        pub state: String,
+        pub days_left: i32,
+    }
+
+    pub struct PromisesView {
+        pub promises: Vec<PromiseRow>,
+    }
+
+    pub struct GoalProgress {
+        pub now: u16,
+        pub target: u16,
+    }
+
+    pub struct GoalRow {
+        pub i: u32,
+        pub text: String,
+        pub pinned: i32,
+        pub done: Option<i32>,
+        /// appearances, goals, top_flight or personal.
+        pub kind: String,
+        pub progress: Option<GoalProgress>,
+    }
+
+    pub struct NoteRow {
+        pub i: u32,
+        pub date: i32,
+        pub text: String,
+    }
+
+    /// Someone the human has inhabited, and when.
+    pub struct InhabitedRow {
+        pub who: Named,
+        pub from: i32,
+        pub to: Option<i32>,
+    }
+
+    pub struct JournalView {
+        pub goals: Vec<GoalRow>,
+        pub notes: Vec<NoteRow>,
+        pub history: Vec<InhabitedRow>,
+    }
+
+    pub struct AgentRow {
+        pub id: u32,
+        pub who: Named,
+        pub fee_pct: u8,
+        pub since: i32,
+        pub until: i32,
+        pub satisfaction: Band,
+        pub reputation: u16,
+        pub clients: u32,
+        pub base: String,
+    }
+
+    pub struct AgentView {
+        pub agent: Option<AgentRow>,
+        /// False for someone who does not play: they have no agent to show.
+        pub player: bool,
+    }
+
+    /// One story about the viewer, in full.
+    pub struct OwnStoryView {
+        pub id: u32,
+        pub date: i32,
+        pub outlet: String,
+        pub headline: String,
+        pub body: String,
+    }
+}
+
+/// A declared payload as it goes on the wire.
+pub fn wire<T: Serialize>(v: T) -> Value {
+    serde_json::to_value(v).unwrap_or(Value::Null)
+}
+
+contract! {
     /// What `me.act` answers: the action in words, and when the world applies it.
     pub struct ActDone {
         pub ok: bool,
@@ -933,33 +1089,28 @@ const fn typed(mut m: MethodSpec, req: Option<&'static str>, res: &'static str) 
     m.response = Some(res);
     m
 }
-/// A method whose request is declared and read through `request`, its response not yet.
-const fn takes(mut m: MethodSpec, req: &'static str) -> MethodSpec {
-    m.request = Some(req);
-    m
-}
 
 /// Every method of `Api::call`, as a query or a command. A source-level test keeps this list and the dispatcher in step.
 pub fn manifest() -> Vec<MethodSpec> {
     vec![
         typed(q("app.info"), None, "AppInfo"),
         typed(q("world.status"), None, "StatusView"),
-        c("world.new"),
+        typed(c("world.new"), None, "Started"),
         q("world.inspect_import"),
         q("world.datasets"),
         q("world.saves"),
-        takes(c("world.save"), "SaveReq"),
-        takes(c("world.load"), "LoadReq"),
-        c("world.close"),
-        takes(c("world.delete_save"), "FileReq"),
-        takes(c("settings.set"), "SettingsReq"),
-        c("advance.start"),
-        c("advance.stop"),
-        takes(c("persp.observe"), "ObserveReq"),
-        takes(c("persp.inhabit"), "InhabitReq"),
-        takes(c("person.create"), "CreatePersonReq"),
+        typed(c("world.save"), Some("SaveReq"), "Saved"),
+        typed(c("world.load"), Some("LoadReq"), "Started"),
+        typed(c("world.close"), None, "Closed"),
+        typed(c("world.delete_save"), Some("FileReq"), "Deleted"),
+        typed(c("settings.set"), Some("SettingsReq"), "Done"),
+        typed(c("advance.start"), None, "StatusView"),
+        typed(c("advance.stop"), None, "StopRequested"),
+        typed(c("persp.observe"), Some("ObserveReq"), "Done"),
+        typed(c("persp.inhabit"), Some("InhabitReq"), "Done"),
+        typed(c("person.create"), Some("CreatePersonReq"), "Created"),
         q("route.options"),
-        takes(c("route.begin"), "RouteReq"),
+        typed(c("route.begin"), Some("RouteReq"), "Created"),
         typed(q("table.query"), Some("TableReq"), "TableResp"),
         q("search"),
         q("overview"),
@@ -978,43 +1129,43 @@ pub fn manifest() -> Vec<MethodSpec> {
         q("insight.person"),
         q("club"),
         q("club.systems"),
-        takes(c("club.follow"), "FollowReq"),
+        typed(c("club.follow"), Some("FollowReq"), "Followed"),
         q("comp"),
         q("nation"),
         q("match"),
         q("match.watch"),
-        takes(c("match.reveal"), "RevealReq"),
-        c("match.reveal_all"),
+        typed(c("match.reveal"), Some("RevealReq"), "Revealed"),
+        typed(c("match.reveal_all"), None, "RevealedAll"),
         q("me.today"),
-        c("me.viewed"),
+        typed(c("me.viewed"), None, "Done"),
         q("me.messages"),
         q("me.inbox"),
         q("me.thread"),
-        takes(c("me.thread_read"), "IdReq"),
-        takes(c("me.reply"), "ReplyReq"),
+        typed(c("me.thread_read"), Some("IdReq"), "Done"),
+        typed(c("me.reply"), Some("ReplyReq"), "ActDone"),
         q("me.message"),
-        takes(c("me.answer"), "AnswerReq"),
+        typed(c("me.answer"), Some("AnswerReq"), "Done"),
         typed(c("me.act"), Some("ActReq"), "ActDone"),
         q("me.options"),
         q("me.self"),
         q("me.life"),
         q("person.life"),
         typed(q("me.people"), None, "PeopleView"),
-        q("me.promises"),
+        typed(q("me.promises"), None, "PromisesView"),
         typed(q("me.rumours"), None, "RumoursView"),
         q("me.press"),
         q("me.feed"),
         q("social.thread"),
-        q("me.story"),
-        q("me.agent"),
-        q("me.journal"),
-        takes(c("me.goal"), "GoalReq"),
-        takes(c("me.goal_done"), "GoalDoneReq"),
-        takes(c("me.note"), "NoteReq"),
-        takes(c("me.note_remove"), "IndexReq"),
+        typed(q("me.story"), Some("IdReq"), "OwnStoryView"),
+        typed(q("me.agent"), None, "AgentView"),
+        typed(q("me.journal"), None, "JournalView"),
+        typed(c("me.goal"), Some("GoalReq"), "Done"),
+        typed(c("me.goal_done"), Some("GoalDoneReq"), "Done"),
+        typed(c("me.note"), Some("NoteReq"), "Done"),
+        typed(c("me.note_remove"), Some("IndexReq"), "Done"),
         q("me.calendar"),
         q("me.football"),
-        takes(c("me.plan"), "PlanReq"),
+        typed(c("me.plan"), Some("PlanReq"), "PlanSet"),
         q("me.contract"),
         typed(q("pathway.player"), Some("PersonReq"), "PathwayView"),
         typed(q("ecosystem.regions"), None, "RegionOutputView"),
@@ -1135,6 +1286,30 @@ pub fn declarations() -> Vec<String> {
         RoutineHours::declaration(),
         ActReq::declaration(),
         Band::declaration(),
+        Done::declaration(),
+        Started::declaration(),
+        Saved::declaration(),
+        Closed::declaration(),
+        Deleted::declaration(),
+        StopRequested::declaration(),
+        Followed::declaration(),
+        Revealed::declaration(),
+        RevealedAll::declaration(),
+        Created::declaration(),
+        FocusView::declaration(),
+        PlanView::declaration(),
+        PlanSet::declaration(),
+        PromiseProgress::declaration(),
+        PromiseRow::declaration(),
+        PromisesView::declaration(),
+        GoalProgress::declaration(),
+        GoalRow::declaration(),
+        NoteRow::declaration(),
+        InhabitedRow::declaration(),
+        JournalView::declaration(),
+        AgentRow::declaration(),
+        AgentView::declaration(),
+        OwnStoryView::declaration(),
         ActDone::declaration(),
     ]
 }

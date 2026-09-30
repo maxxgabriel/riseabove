@@ -13,8 +13,11 @@ use serde_json::{Value, json};
 
 use super::me::named;
 use crate::ctx::Ctx;
-use crate::contract::{Evidence, PeopleView, RelationshipRow, RumourRow, RumoursView};
-use crate::model::{ApiError, ApiResult, Named, Ref, Tone, level_band, pull, sureness};
+use crate::contract::{
+    AgentRow, AgentView, Evidence, GoalProgress, GoalRow, InhabitedRow, JournalView, NoteRow, OwnStoryView, PeopleView, PromiseProgress, PromiseRow, PromisesView, RelationshipRow,
+    RumourRow, RumoursView,
+};
+use crate::model::{ApiError, ApiResult, Named, Ref, Tone, band_of, level_band, pull, sureness};
 use crate::session::Session;
 
 fn need(c: &Ctx) -> ApiResult<PersonId> {
@@ -243,7 +246,7 @@ pub fn promises(c: &Ctx) -> ApiResult<Value> {
     let me = need(c)?;
     let w = c.w;
     // Both indexes: what was promised to me and what I promised. A promise to myself is listed once.
-    let mut rows: Vec<Value> = w
+    let mut rows: Vec<PromiseRow> = w
         .social
         .promises_to(me)
         .chain(w.social.promises_by(me).filter(|pr| pr.to != me))
@@ -251,22 +254,30 @@ pub fn promises(c: &Ctx) -> ApiResult<Value> {
             let mine = pr.from == me;
             let other = if mine { pr.to } else { pr.from };
             let progress = match pr.kind {
-                pw_world::PromiseKind::Minutes { share } if pr.team_minutes > 0 => Some(json!({"actual": pr.player_minutes as f32 / pr.team_minutes as f32, "promised": share})),
+                pw_world::PromiseKind::Minutes { share } if pr.team_minutes > 0 => Some(PromiseProgress { actual: pr.player_minutes as f32 / pr.team_minutes as f32, promised: share }),
                 _ => None,
             };
-            json!({
-                "id": pr.id, "mine": mine, "with": named(Ref::person(other), c.person_name(other)), "text": pr.kind.text(),
-                "made": pr.made.0, "due": pr.due.0, "progress": progress,
-                "state": match pr.state { PromiseState::Open => "open", PromiseState::Kept => "kept", PromiseState::Broken => "broken", PromiseState::Void => "void" },
-                "days_left": pr.due.0 - w.date.0,
-            })
+            let state = match pr.state {
+                PromiseState::Open => "open",
+                PromiseState::Kept => "kept",
+                PromiseState::Broken => "broken",
+                PromiseState::Void => "void",
+            };
+            PromiseRow {
+                id: pr.id,
+                mine,
+                with: Named::new(Ref::person(other), c.person_name(other)),
+                text: pr.kind.text(),
+                made: pr.made.0,
+                due: pr.due.0,
+                progress,
+                state: state.into(),
+                days_left: pr.due.0 - w.date.0,
+            }
         })
         .collect();
-    rows.sort_by(|a, b| {
-        let open = |v: &Value| v["state"] == "open";
-        open(b).cmp(&open(a)).then_with(|| b["made"].as_i64().cmp(&a["made"].as_i64()))
-    });
-    Ok(json!({"promises": rows}))
+    rows.sort_by(|a, b| (b.state == "open").cmp(&(a.state == "open")).then_with(|| b.made.cmp(&a.made)));
+    typed(&PromisesView { promises: rows })
 }
 
 pub fn rumours(c: &Ctx) -> ApiResult<Value> {
@@ -362,14 +373,12 @@ pub fn press(c: &Ctx) -> ApiResult<Value> {
 
 pub fn story(c: &Ctx, args: &Value) -> ApiResult<Value> {
     need(c)?;
-    let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing story".into()))? as u32;
+    let id = crate::contract::request::<crate::contract::IdReq>(args.clone())?.id;
     let sid = pw_core::StoryId(id);
     let w = c.w;
     let s = w.media.stories.get(sid).ok_or_else(|| ApiError::NotFound("story".into()))?;
-    Ok(json!({
-        "id": id, "date": s.date.0, "outlet": pw_narrate::press::outlet_name(w, s), "headline": c.headline(s),
-        "body": c.story_body(s),
-    }))
+    // The headline and body hold back a result the viewer has not revealed (`Ctx::headline`, `Ctx::story_body`).
+    typed(&OwnStoryView { id, date: s.date.0, outlet: pw_narrate::press::outlet_name(w, s), headline: c.headline(s), body: c.story_body(s) })
 }
 
 // ---- agent ------------------------------------------------------------------------------------------
@@ -379,29 +388,26 @@ pub fn agent(c: &Ctx) -> ApiResult<Value> {
     let w = c.w;
     let p = w.people[me].player;
     if p.is_none() {
-        return Ok(json!({"agent": Value::Null, "player": false}));
+        return typed(&AgentView { agent: None, player: false });
     }
     let current = w.agents.of_player.get(&p).map(|r| {
         let a = &w.agents.list[r.agent];
-        json!({
-            "id": r.agent.0, "who": named(Ref::person(a.person), c.person_name(a.person)), "fee_pct": r.fee_pct, "since": r.since.0, "until": r.until.0,
-            "satisfaction": level_band(r.satisfaction), "reputation": a.reputation, "clients": a.clients.len(),
-            "base": c.nation_name(a.base),
-        })
+        AgentRow {
+            id: r.agent.0,
+            who: Named::new(Ref::person(a.person), c.person_name(a.person)),
+            fee_pct: r.fee_pct,
+            since: r.since.0,
+            until: r.until.0,
+            satisfaction: band_of(r.satisfaction),
+            reputation: a.reputation,
+            clients: a.clients.len() as u32,
+            base: c.nation_name(a.base),
+        }
     });
-    Ok(json!({"agent": current, "player": true}))
+    typed(&AgentView { agent: current, player: true })
 }
 
 // ---- journal ---------------------------------------------------------------------------------------
-
-fn goal_json(w: &pw_world::World, g: &Goal, i: usize) -> Value {
-    let me_player = None::<pw_core::PlayerId>;
-    let _ = (w, me_player);
-    json!({
-        "i": i, "text": g.text, "pinned": g.pinned.0, "done": g.done.map(|d| d.0),
-        "kind": match g.kind { GoalKind::Appearances(_) => "appearances", GoalKind::Goals(_) => "goals", GoalKind::TopFlight => "top_flight", GoalKind::Personal => "personal" },
-    })
-}
 
 pub fn journal(c: &Ctx) -> ApiResult<Value> {
     let me = need(c)?;
@@ -409,23 +415,23 @@ pub fn journal(c: &Ctx) -> ApiResult<Value> {
     let sess = &c.s.game.session;
     let p = w.people[me].player;
     let (apps, goals) = if p.is_some() { (w.players.cold[p].senior_apps, w.players.cold[p].senior_goals) } else { (0, 0) };
-    let goal_rows: Vec<Value> = sess
+    let goal_rows: Vec<GoalRow> = sess
         .goals
         .iter()
         .enumerate()
         .map(|(i, g)| {
-            let mut v = goal_json(w, g, i);
-            match g.kind {
-                GoalKind::Appearances(n) => v["progress"] = json!({"now": apps, "target": n}),
-                GoalKind::Goals(n) => v["progress"] = json!({"now": goals, "target": n}),
-                _ => {}
-            }
-            v
+            let (kind, progress) = match g.kind {
+                GoalKind::Appearances(n) => ("appearances", Some(GoalProgress { now: apps, target: n })),
+                GoalKind::Goals(n) => ("goals", Some(GoalProgress { now: goals, target: n })),
+                GoalKind::TopFlight => ("top_flight", None),
+                GoalKind::Personal => ("personal", None),
+            };
+            GoalRow { i: i as u32, text: g.text.clone(), pinned: g.pinned.0, done: g.done.map(|d| d.0), kind: kind.into(), progress }
         })
         .collect();
-    let notes: Vec<Value> = sess.notes.iter().enumerate().rev().map(|(i, (d, t))| json!({"i": i, "date": d.0, "text": t})).collect();
-    let history: Vec<Value> = sess.history.iter().map(|(p, from, to)| json!({"who": named(Ref::person(*p), c.person_name(*p)), "from": from.0, "to": to.map(|d| d.0)})).collect();
-    Ok(json!({"goals": goal_rows, "notes": notes, "history": history}))
+    let notes: Vec<NoteRow> = sess.notes.iter().enumerate().rev().map(|(i, (d, t))| NoteRow { i: i as u32, date: d.0, text: t.clone() }).collect();
+    let history: Vec<InhabitedRow> = sess.history.iter().map(|(p, from, to)| InhabitedRow { who: Named::new(Ref::person(*p), c.person_name(*p)), from: from.0, to: to.map(|d| d.0) }).collect();
+    typed(&JournalView { goals: goal_rows, notes, history })
 }
 
 pub fn add_goal(s: &mut Session, args: &Value) -> ApiResult<Value> {
@@ -445,7 +451,7 @@ pub fn add_goal(s: &mut Session, args: &Value) -> ApiResult<Value> {
     };
     s.game.session.goals.push(Goal { text, pinned: today, kind, done: None });
     s.revision += 1;
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }
 
 pub fn goal_done(s: &mut Session, args: &Value) -> ApiResult<Value> {
@@ -465,7 +471,7 @@ pub fn goal_done(s: &mut Session, args: &Value) -> ApiResult<Value> {
         goals[i].done = None;
     }
     s.revision += 1;
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }
 
 pub fn add_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
@@ -480,7 +486,7 @@ pub fn add_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
     let today = s.today();
     s.game.session.notes.push((today, text.chars().take(2000).collect()));
     s.revision += 1;
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }
 
 pub fn remove_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
@@ -490,5 +496,5 @@ pub fn remove_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
     }
     s.game.session.notes.remove(i);
     s.revision += 1;
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }

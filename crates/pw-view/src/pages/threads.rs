@@ -307,7 +307,7 @@ pub fn mark_read(s: &mut Session, args: &Value) -> ApiResult<Value> {
         return Err(ApiError::Unauthorized("You are observing the world; there is no inbox to read.".into()));
     }
     s.game.read_thread(id);
-    Ok(json!({"ok": true}))
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
 }
 
 /// `me.reply`: send one of the replies a message offers.
@@ -331,5 +331,5 @@ pub fn reply(s: &mut Session, args: &Value) -> ApiResult<Value> {
     }
     s.revision += 1;
     let applies = if matches!(opts[idx], Reply::KeepQuiet | Reply::Ignore | Reply::Answer(_)) { "now" } else { "next day" };
-    Ok(json!({"ok": true, "text": label, "applies": applies}))
+    Ok(crate::contract::wire(crate::contract::ActDone { ok: true, text: label, applies: applies.into() }))
 }
