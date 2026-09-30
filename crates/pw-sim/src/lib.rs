@@ -90,6 +90,7 @@ pub mod save;
 pub mod schedule;
 pub mod scouting;
 pub mod season;
+pub mod sizes;
 pub mod selection;
 pub mod social;
 pub mod metrics;

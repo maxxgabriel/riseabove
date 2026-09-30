@@ -2,6 +2,7 @@
 //!
 //! pathway-sim synth [tiny|small|huge|NATIONS] [--days N] [--seed S] [--save FILE]
 //! pathway-sim import DIR [--days N] [--seed S] [--save FILE]
+//! pathway-sim growth <micro|tiny|small|huge|india-tiny|india-regional|india-full> [--years N] [--seed S] [--detail media,ext.recog] [--depth D] [--top K] [--every N]   save size and speed by year
 //! pathway-sim balance <micro|tiny|small|huge|DIR> [--years N] [--seeds 1,2,3]   long-run economy, fame and growth trends
 //!
 //! `--data DIR` on any command loads the engine data (tuning, weights, ...) from DIR at run time instead of the compiled-in copy
@@ -11,6 +12,8 @@
 //! world can be rebuilt exactly). Seeds may be hex, decimal or any word.
 //! pathway-sim run FILE --days N [--save FILE]
 //! pathway-sim report FILE
+
+mod growth;
 
 use std::path::PathBuf;
 use std::time::Instant;
@@ -29,18 +32,26 @@ struct Args {
     years: u32,
     seeds: Vec<u64>,
     data: Option<PathBuf>,
+    detail: Vec<String>,
+    depth: usize,
+    top: usize,
+    every: u32,
 }
 
 fn parse() -> Args {
     let mut it = std::env::args().skip(1);
     let cmd = it.next().unwrap_or_else(|| "help".into());
-    let mut a = Args { cmd, positional: None, days: 0, seed: None, save: None, years: 5, seeds: vec![1, 2, 3], data: None };
+    let mut a = Args { cmd, positional: None, days: 0, seed: None, save: None, years: 5, seeds: vec![1, 2, 3], data: None, detail: Vec::new(), depth: 3, top: 40, every: 1 };
     while let Some(x) = it.next() {
         match x.as_str() {
             "--days" => a.days = it.next().and_then(|v| v.parse().ok()).unwrap_or(0),
             "--seed" => a.seed = it.next().map(|v| pw_core::rng::parse_seed(&v)),
             "--save" => a.save = it.next().map(PathBuf::from),
             "--data" => a.data = it.next().map(PathBuf::from),
+            "--detail" => a.detail = it.next().map(|v| v.split(',').map(String::from).collect()).unwrap_or_default(),
+            "--depth" => a.depth = it.next().and_then(|v| v.parse().ok()).unwrap_or(3),
+            "--top" => a.top = it.next().and_then(|v| v.parse().ok()).unwrap_or(40),
+            "--every" => a.every = it.next().and_then(|v| v.parse().ok()).unwrap_or(1).max(1),
             "--years" => a.years = it.next().and_then(|v| v.parse().ok()).unwrap_or(5),
             "--seeds" => a.seeds = it.next().map(|v| v.split(',').map(pw_core::rng::parse_seed).collect()).unwrap_or_default(),
             _ => a.positional = Some(x),
@@ -123,6 +134,21 @@ fn main() {
     let a = parse();
     if a.cmd == "balance" {
         balance(&a);
+        return;
+    }
+    if a.cmd == "growth" {
+        let o = growth::Opts {
+            world: a.positional.clone().unwrap_or_else(|| "small".into()),
+            years: a.years,
+            seed: a.seed.unwrap_or(1),
+            depth: a.depth,
+            top: a.top,
+            detail: a.detail.clone(),
+            data: a.data.clone(),
+            every: a.every,
+            save: a.save.clone(),
+        };
+        growth::run(&o);
         return;
     }
     if a.cmd == "check" {
