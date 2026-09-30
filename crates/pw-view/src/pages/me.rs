@@ -189,8 +189,13 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
 
     // Things the person has set in motion that the world has not yet acted on.
     let mut waiting_on: Vec<Value> = Vec::new();
+    // Asking the same person about the same thing twice before the day ends is one request to the reader.
+    let mut asked: std::collections::HashSet<String> = std::collections::HashSet::new();
     for pi in w.intents.queue.iter().filter(|pi| pi.person == me) {
-        waiting_on.push(json!({"kind": "intent", "text": super::act::intent_text(c, &pi.intent), "since": pi.date.0}));
+        let text = super::act::intent_text(c, &pi.intent);
+        if asked.insert(text.clone()) {
+            waiting_on.push(json!({"kind": "intent", "text": text, "since": pi.date.0}));
+        }
     }
     for (_, m) in w.meetings.pending().filter(|(_, m)| m.initiator == me) {
         waiting_on.push(
@@ -212,6 +217,10 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             position_in_league = json!({"comp": named(Ref::comp(l), c.comp_name(l)), "position": pos + 1, "teams": rows.len(), "points": rows[pos].points});
         }
     }
+    let queued: Vec<String> = {
+        let mut seen = std::collections::HashSet::new();
+        c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).filter(|t| seen.insert(t.clone())).collect()
+    };
     Ok(json!({
         "date": date.0, "weekday": date.weekday().index(),
         "me": {
@@ -234,7 +243,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         "form": c.visible_form(p),
         "minutes_4w": h.minutes_4w,
         "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
-        "queued": c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).collect::<Vec<_>>(),
+        "queued": queued,
         "last_viewed": c.s.meta.last_viewed,
         "conceal_mine": c.s.meta.conceal_mine,
     }))

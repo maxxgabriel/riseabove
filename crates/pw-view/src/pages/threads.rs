@@ -136,6 +136,17 @@ fn line(c: &Ctx, m: &Message) -> String {
     }
 }
 
+/// Whether what a message was about is still in the records (old events are compacted away). A note that says only that something
+/// is gone is not worth showing.
+fn still_on_record(c: &Ctx, m: &Message) -> bool {
+    let w = c.w;
+    match m.source {
+        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).is_some(),
+        MsgSource::Mention { post } => w.net.post(post).is_some_and(|p| !c.post_text(p).trim().is_empty()),
+        _ => true,
+    }
+}
+
 fn kind_key(s: &MsgSource) -> &'static str {
     match s {
         MsgSource::Decision { .. } => "decision",
@@ -243,7 +254,7 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let mut unread_total = 0usize;
     let mut action_total = 0usize;
     for t in w.inbox.threads_of(me) {
-        let msgs: Vec<&Message> = t.messages.iter().map(|&i| &w.inbox.messages[i as usize]).collect();
+        let msgs: Vec<&Message> = t.messages.iter().map(|&i| &w.inbox.messages[i as usize]).filter(|m| still_on_record(c, m)).collect();
         let unread = msgs.iter().filter(|m| !m.read).count();
         let needs = msgs.iter().any(|m| awaiting(w, m));
         let deadline = msgs.iter().rev().find_map(|m| {
@@ -276,7 +287,16 @@ pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing thread".into()))? as usize;
     let t = c.w.inbox.threads.get(id).filter(|t| t.owner == me).ok_or_else(|| ApiError::NotFound("conversation".into()))?;
     let (title, with, kind) = thread_title(c, t);
-    let msgs: Vec<Value> = t.messages.iter().map(|&i| message_json(c, &c.w.inbox.messages[i as usize])).collect();
+    // The same words from the same person on the same day, with nothing to reply to, are said once.
+    let mut said: std::collections::HashSet<(i32, u32, String)> = std::collections::HashSet::new();
+    let msgs: Vec<Value> = t
+        .messages
+        .iter()
+        .map(|&i| &c.w.inbox.messages[i as usize])
+        .filter(|m| still_on_record(c, m))
+        .filter(|m| !replies_json(c, m).is_empty() || m.replied.is_some() || said.insert((m.date.0, m.from.0, line(c, m))))
+        .map(|m| message_json(c, m))
+        .collect();
     Ok(json!({"id": t.id, "title": title, "with": with, "kind": kind, "opened": t.opened.0, "last": t.last.0, "messages": msgs}))
 }
 

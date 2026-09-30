@@ -38,7 +38,7 @@ pub fn title(w: &World, d: &Decision) -> String {
         }
         DecisionKind::Endorsement { brand, fee_year, years, days } => {
             let b = &w.commerce.brands[*brand as usize];
-            format!("{} ({}) offer {} a year for {years} years, {days} appearance days a month", b.name, b.sector.label(), money(*fee_year))
+            format!("{} ({}) offer {} a year for {}, {days} appearance days a month", b.name, b.sector.label(), money(*fee_year), if *years == 1 { "1 year".to_string() } else { format!("{years} years") })
         }
         DecisionKind::PressQuestion { conference, question } => crate::press::question(w, *conference, *question),
         DecisionKind::Appeal { controversy } => w

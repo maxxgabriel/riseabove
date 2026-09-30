@@ -96,8 +96,12 @@ pub fn meeting(w: &World, m: &Meeting, viewer: PersonId) -> Vec<String> {
     out
 }
 
+fn years(n: u32) -> String {
+    if n == 1 { "1 year".to_string() } else { format!("{n} years") }
+}
+
 pub fn terms(t: &Terms) -> String {
-    let mut s = format!("{} for {} year(s)", wage(t.wage), t.years);
+    let mut s = format!("{} for {}", wage(t.wage), years(u32::from(t.years)));
     if t.signing_fee > 0 {
         s += &format!(", signing fee {}", crate::fmt::money(t.signing_fee));
     }
@@ -111,13 +115,13 @@ pub fn terms(t: &Terms) -> String {
         s += &format!(", loyalty bonus {}", crate::fmt::money(t.loyalty_bonus));
     }
     if t.options.club_years > 0 {
-        s += &format!(", club option +{}", t.options.club_years);
+        s += &format!(", club option +{}", years(u32::from(t.options.club_years)));
     }
     if t.options.player_years > 0 {
-        s += &format!(", player option +{}", t.options.player_years);
+        s += &format!(", player option +{}", years(u32::from(t.options.player_years)));
     }
     if let Some((trigger, extra)) = t.options.auto {
-        s += &format!(", +{} year(s) on {}", extra, trigger.label());
+        s += &format!(", +{} on {}", years(u32::from(extra)), trigger.label());
     }
     s
 }

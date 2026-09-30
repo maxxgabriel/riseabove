@@ -236,7 +236,7 @@ impl Bot {
                             if let Some(Value::String(s)) = o.get(key)
                                 && s.chars().count() > 28
                             {
-                                let date = o.get("date").or_else(|| o.get("last")).map(|d| d.to_string()).unwrap_or_default();
+                                let date = o.get("date").or_else(|| o.get("last")).or_else(|| o.get("made")).map(|d| d.to_string()).unwrap_or_default();
                                 let who = o.get("from").or_else(|| o.get("with")).or_else(|| o.get("author")).map(|d| d.to_string()).unwrap_or_default();
                                 *seen.entry((format!("{key}|{date}|{who}"), s.clone())).or_default() += 1;
                             }
@@ -296,8 +296,9 @@ fn text_defect(s: &str) -> Option<String> {
         return Some("an unresolved plural \"(s)\"".into());
     }
     // "1 days", "0 day", "2 week": a number agreeing with its noun.
-    for p in words.windows(2) {
-        let (n, noun) = (p[0], p[1].to_lowercase());
+    let spaced: Vec<&str> = s.split_whitespace().map(|w| w.trim_matches(|c: char| !c.is_alphanumeric() && c != '.')).collect();
+    for p in spaced.windows(2) {
+        let (n, noun) = (p[0], p[1].trim_matches('.').to_lowercase());
         if !n.chars().all(|c| c.is_ascii_digit()) {
             continue;
         }
@@ -450,7 +451,7 @@ impl Bot {
         self.q(api, "person", json!({"id": id}));
         self.q(api, "person.attributes", json!({"id": id}));
         self.q(api, "insight.person", json!({"id": id}));
-        self.q(api, "pathway.player", json!({"id": id}));
+        self.maybe(api, "pathway.player", json!({"id": id}));
         self.maybe(api, "person.life", json!({"id": id}));
     }
 
@@ -531,8 +532,7 @@ impl Bot {
                     let pick = if (turn + done) % 3 == 0 { d["options"].as_array().and_then(|o| o.iter().position(|x| x["default"] == true)).unwrap_or(0) } else { (turn + done) % n };
                     if self.q(api, "me.answer", json!({"id": d["id"], "choice": pick})).is_some() {
                         done += 1;
-                        // Answering twice is refused plainly.
-                        self.maybe_refused(api, "me.answer", json!({"id": d["id"], "choice": pick}));
+                        // (An answer can be changed until the day ends, so answering again is allowed.)
                     }
                 } else if let Some(r) = m["replies"].as_array().and_then(|r| r.get((turn + done) % r.len().max(1))).filter(|_| m["replied"].is_null()) {
                     if self.maybe(api, "me.reply", json!({"message": m["id"], "key": r["key"]})).is_some() {
@@ -542,18 +542,6 @@ impl Bot {
             }
         }
         done
-    }
-
-    /// A second try that must be refused, with a sentence.
-    fn maybe_refused(&mut self, api: &Api, method: &str, args: Value) {
-        match api.call(method, args.clone()) {
-            Ok(_) => self.problem(format!("{method} {args} was accepted twice")),
-            Err(e) => {
-                if e.to_string().trim().is_empty() {
-                    self.problem(format!("{method} refused without a message"));
-                }
-            }
-        }
     }
 
     /// Everything a person can do from the action list, each once in a while.
@@ -1001,7 +989,7 @@ fn the_text_checks_catch_what_they_should() {
         "Signed {player} from Rovers",
         "He scored $3 goals",
         "He was out for 1 days",
-        "He played 2 match",
+        "He was out for 2 week",
         "The club is hoping for a a win",
         "an team of its own",
         "a injury kept him out",

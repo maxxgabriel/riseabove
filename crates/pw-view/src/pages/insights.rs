@@ -42,7 +42,7 @@ struct Notes {
 
 impl Notes {
     fn add(&mut self, kind: &'static str, tone: Tone, weight: u8, title: impl Into<String>, text: impl Into<String>, basis: impl Into<String>) {
-        self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(crate::fmt::singulars(text.into())), basis: basis.into(), link: None, visual: None });
+        self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(crate::fmt::singulars(text.into())), basis: crate::fmt::singulars(basis.into()), link: None, visual: None });
     }
 
     fn visual(&mut self, visual: Value) {
