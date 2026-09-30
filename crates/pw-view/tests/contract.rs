@@ -215,6 +215,21 @@ fn typed_responses_carry_exactly_the_declared_fields() {
         }
     }
     assert!(!visuals.is_empty(), "no note carried a visual");
+    // The news: a feed of summaries, and a story in full.
+    let mut graphics = std::collections::BTreeSet::new();
+    for filter in ["for_you", "world"] {
+        let feed = api.call("news.feed", json!({"filter": filter, "limit": 60})).unwrap();
+        check_against(&ts, "NewsFeedView", &feed);
+        for st in feed["stories"].as_array().unwrap() {
+            check_against(&ts, "StorySummary", st);
+            graphics.insert(st["graphic"]["kind"].as_str().unwrap().to_string());
+            assert!(ts.contains(&format!("kind: \"{}\"", st["graphic"]["kind"].as_str().unwrap())));
+        }
+        if let Some(first) = feed["stories"].as_array().unwrap().first() {
+            check_against(&ts, "StoryFull", &api.call("news.story", json!({"id": first["id"]})).unwrap());
+        }
+    }
+    assert!(!graphics.is_empty(), "the feed had no stories");
     // Pages of one's own life, typed through the contract.
     let promises = api.call("me.promises", json!({})).unwrap();
     check_against(&ts, "PromisesView", &promises);

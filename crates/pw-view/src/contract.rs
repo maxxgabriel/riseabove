@@ -1065,6 +1065,73 @@ contract! {
     }
 }
 
+/// The picture at the head of a story: the result it reports, the club or person it is about, or just the paper's type.
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum StoryGraphic {
+    Result {
+        #[serde(rename = "match")]
+        fixture: crate::model::Ref,
+        home: Named,
+        away: Named,
+        score: Vec<u8>,
+    },
+    Club {
+        club: Named,
+    },
+    Person {
+        person: Named,
+    },
+    Type,
+}
+
+impl Ts for StoryGraphic {
+    fn ts() -> String {
+        "StoryGraphic".into()
+    }
+}
+
+pub const STORY_GRAPHIC_TS: &str = "export type StoryGraphic =\n  | { kind: \"result\"; match: Ref; home: Named; away: Named; score: number[] }\n  | { kind: \"club\"; club: Named }\n  | { kind: \"person\"; person: Named }\n  | { kind: \"type\" };\n";
+
+contract! {
+    /// A story as a list shows it. A story about a result the viewer has not revealed never enters a list; opened directly, its
+    /// headline says it is held back.
+    pub struct StorySummary {
+        pub id: u32,
+        pub date: i32,
+        pub outlet: String,
+        pub headline: String,
+        pub kind: String,
+        /// What sort of claim it makes (fact, rumour, opinion ...), in words.
+        pub claim: String,
+        pub about_you: bool,
+        pub following: bool,
+        pub graphic: StoryGraphic,
+        pub subject: Option<Named>,
+    }
+
+    /// A story in full: the summary and its text.
+    pub struct StoryFull {
+        pub id: u32,
+        pub date: i32,
+        pub outlet: String,
+        pub headline: String,
+        pub kind: String,
+        pub claim: String,
+        pub about_you: bool,
+        pub following: bool,
+        pub graphic: StoryGraphic,
+        pub subject: Option<Named>,
+        pub body: String,
+    }
+
+    pub struct NewsFeedView {
+        pub stories: Vec<StorySummary>,
+        /// for_you, following or world.
+        pub filter: String,
+    }
+}
+
 /// A declared payload as it goes on the wire.
 pub fn wire<T: Serialize>(v: T) -> Value {
     serde_json::to_value(v).unwrap_or(Value::Null)
@@ -1153,8 +1220,8 @@ pub fn manifest() -> Vec<MethodSpec> {
         q("search"),
         q("overview"),
         q("world.pulse"),
-        q("news.feed"),
-        q("news.story"),
+        typed(q("news.feed"), None, "NewsFeedView"),
+        typed(q("news.story"), Some("IdReq"), "StoryFull"),
         q("diagnostics"),
         q("capabilities"),
         q("person"),
@@ -1238,6 +1305,7 @@ pub fn typescript() -> String {
     out.push_str(ATTR_ROW_TS);
     out.push_str(PERSPECTIVE_TS);
     out.push_str(INSIGHT_VISUAL_TS);
+    out.push_str(STORY_GRAPHIC_TS);
     out.push('\n');
     for d in declarations() {
         out.push_str(&d);
@@ -1351,6 +1419,9 @@ pub fn declarations() -> Vec<String> {
         OwnStoryView::declaration(),
         InsightItem::declaration(),
         InsightsView::declaration(),
+        StorySummary::declaration(),
+        StoryFull::declaration(),
+        NewsFeedView::declaration(),
         ActDone::declaration(),
     ]
 }

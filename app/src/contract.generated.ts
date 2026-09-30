@@ -111,6 +111,11 @@ export type InsightVisual =
   | { kind: "sparkline"; label: string; unit: string; values: number[] }
   | { kind: "sequence"; label: string; unit: string; values: string[] }
   | { kind: "comparison"; label: string; unit: string; names: string[]; values: number[] };
+export type StoryGraphic =
+  | { kind: "result"; match: Ref; home: Named; away: Named; score: number[] }
+  | { kind: "club"; club: Named }
+  | { kind: "person"; person: Named }
+  | { kind: "type" };
 
 export interface ErrorBody {
   kind: ErrorKind;
@@ -730,6 +735,38 @@ export interface InsightsView {
   held: number;
 }
 
+export interface StorySummary {
+  id: number;
+  date: number;
+  outlet: string;
+  headline: string;
+  kind: string;
+  claim: string;
+  about_you: boolean;
+  following: boolean;
+  graphic: StoryGraphic;
+  subject: Named | null;
+}
+
+export interface StoryFull {
+  id: number;
+  date: number;
+  outlet: string;
+  headline: string;
+  kind: string;
+  claim: string;
+  about_you: boolean;
+  following: boolean;
+  graphic: StoryGraphic;
+  subject: Named | null;
+  body: string;
+}
+
+export interface NewsFeedView {
+  stories: StorySummary[];
+  filter: string;
+}
+
 export interface ActDone {
   ok: boolean;
   text: string;
@@ -760,8 +797,8 @@ export interface ApiMethods {
   "search": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "overview": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "world.pulse": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "news.feed": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "news.story": { kind: "query"; req: Record<string, unknown>; res: unknown };
+  "news.feed": { kind: "query"; req: Record<string, unknown>; res: NewsFeedView };
+  "news.story": { kind: "query"; req: IdReq; res: StoryFull };
   "diagnostics": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "capabilities": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "person": { kind: "query"; req: Record<string, unknown>; res: unknown };
@@ -839,6 +876,8 @@ export type TypedMethod =
   | "person.create"
   | "route.begin"
   | "table.query"
+  | "news.feed"
+  | "news.story"
   | "person.attributes"
   | "insight.club"
   | "insight.comp"

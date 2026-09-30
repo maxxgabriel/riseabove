@@ -3,25 +3,12 @@ import { Dt, EntityLink, Parts } from "./links";
 import { initials } from "../format";
 import { href, refPath } from "../router";
 import { useApi } from "../store";
-import type { Named, Part, Ref } from "../types";
+import type { NewsFeedView, StorySummary } from "../contract.generated";
+import type { Part, Ref } from "../types";
 import { Badge, Empty, Section } from "../ui/ui";
 
-export interface NewsStory {
-  id: number;
-  date: number;
-  outlet: string;
-  headline: string;
-  kind: string;
-  claim: string;
-  about_you: boolean;
-  following: boolean;
-  subject: Named | null;
-  graphic: { kind: "result"; match: Ref; home: Named; away: Named; score: [number, number] }
-    | { kind: "club"; club: Named }
-    | { kind: "person"; person: Named }
-    | { kind: "type" };
-}
-export interface NewsFeed { stories: NewsStory[]; filter: string }
+export type NewsStory = StorySummary;
+export type NewsFeed = NewsFeedView;
 export interface PulseItem { id: number; date: number; label: string; parts: Part[]; target: Ref | { k: "news"; id: number } }
 
 const kindText = (s: string) => s.replace(/([a-z])([A-Z])/g, "$1 $2");
