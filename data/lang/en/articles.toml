@@ -14,6 +14,12 @@ structure = ["subject:report", "opening:greet", "situation:report", "situation:m
 required = ["subject:report", "situation:report"]
 
 [[article]]
+event = "transfer.interest"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:fee"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
 event = "injury.suffered"
 channel = "inbox"
 structure = ["subject:report", "opening:greet", "situation:report", "situation:duration", "ask:choice", "closing:sign"]
@@ -40,7 +46,7 @@ required = ["subject:report", "situation:report"]
 [[article]]
 event = "match.result"
 channel = "news"
-structure = ["headline:report", "lede:report", "detail:scorers", "detail:attendance"]
+structure = ["headline:report", "lede:report", "detail:star", "detail:scorers", "detail:attendance"]
 required = ["headline:report", "lede:report"]
 
 [[article]]

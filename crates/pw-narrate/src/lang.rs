@@ -153,8 +153,10 @@ fn speaker(s: &Story, w: &World, ev: &LEvent, cert: Certainty) -> Speaker {
     let mut sp = eng.witness(&id, "journalist", voice_of(w, s), ev);
     if cert != Certainty::Fact {
         let keys: Vec<String> = sp.knows.keys().cloned().collect();
+        // What the outlet has behind it: sources for a claim, nothing checkable for talk or a guess.
         for k in keys {
-            sp.knows.insert(k, Know::of(cert, "sources"));
+            let know = if cert == Certainty::SourceClaim { Know::of(cert, "unnamed") } else { Know { certainty: cert, source: None } };
+            sp.knows.insert(k, know);
         }
     }
     sp
@@ -196,8 +198,21 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
     match s.kind {
         // A rumour is a bid only when the story says a move is close; a club merely "monitoring" has bid for nobody.
         StoryKind::TransferRumour => {
-            if s.claim < 75 || s.other_club.is_none() || s.club.is_none() || s.player.is_none() {
+            if s.other_club.is_none() || s.club.is_none() || s.player.is_none() {
                 return None;
+            }
+            if s.claim < 75 {
+                // Interest, at the stage the story says it has reached; never a bid.
+                let stage = match s.claim {
+                    0..=29 => "watching",
+                    30..=54 => "keen",
+                    _ => "preparing",
+                };
+                let mut ev = LEvent::new("transfer.interest", s.date).ent("buyer", club_ref(w, s.other_club)).ent("seller", club_ref(w, s.club)).ent("player", player_ref(w, s.player)).text("stage", stage);
+                if s.fee > 0 && s.claim >= 55 {
+                    ev = ev.money("fee", s.fee);
+                }
+                return Some(ev);
             }
             let mut ev = LEvent::new("transfer.bid_made", s.date).ent("buyer", club_ref(w, s.other_club)).ent("seller", club_ref(w, s.club)).ent("player", player_ref(w, s.player));
             if s.fee > 0 {
@@ -206,8 +221,14 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
             Some(ev)
         }
         StoryKind::MatchReport => match w.media.links.get(&s.id) {
-            Some(pw_world::media::StoryLink::Fixture { home, away, hg, ag, .. }) if home.is_some() && away.is_some() => Some(
-                LEvent::new("match.result", s.date).ent("home", club_ref(w, *home)).ent("away", club_ref(w, *away)).num("home_goals", i64::from(*hg)).num("away_goals", i64::from(*ag)),
+            Some(pw_world::media::StoryLink::Fixture { home, away, hg, ag, star, .. }) if home.is_some() && away.is_some() => Some(
+                {
+                    let mut ev = LEvent::new("match.result", s.date).ent("home", club_ref(w, *home)).ent("away", club_ref(w, *away)).num("home_goals", i64::from(*hg)).num("away_goals", i64::from(*ag));
+                    if star.is_some() {
+                        ev = ev.ent("star", player_ref(w, *star));
+                    }
+                    ev
+                },
             ),
             _ => None,
         },

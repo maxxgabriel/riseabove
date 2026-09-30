@@ -547,3 +547,147 @@ topic = "report"
 needs = ["club", "player"]
 time = "past"
 text = "{club} {lex:release.past} {player} {date}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.1"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} are keeping tabs on {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.2"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{player} on the radar of {buyer}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.3"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are keen on {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.4"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are tracking {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.5"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are preparing a move for {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.6"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are lining up an offer for {player}"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.7"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} are monitoring {player:desc}[?seller: at {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.8"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} have {player:desc} on their radar"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.9"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are keen on {player:desc}[?seller: of {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.10"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} have been tracking {player:desc}[?seller: at {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.11"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are preparing an offer for {player:desc}[?seller: of {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.12"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are getting ready to move for {player:desc}[?seller: of {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.detail.fee.13"
+event = "transfer.interest"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ["fee"]
+when = "fee > 0"
+time = "present"
+text = "The fee under discussion is around {fee}."
+

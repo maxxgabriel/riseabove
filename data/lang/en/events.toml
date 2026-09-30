@@ -28,6 +28,25 @@ key = "round"
 type = "num"
 
 [[event]]
+kind = "transfer.interest"
+summary = "A club is reported to be interested in a player. It says nothing about a bid having been made; stage is how far the interest is said to have gone (watching, keen, preparing)."
+[[event.fact]]
+key = "buyer"
+type = "club"
+[[event.fact]]
+key = "seller"
+type = "club"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "fee"
+type = "money"
+[[event.fact]]
+key = "stage"
+type = "text"
+
+[[event]]
 kind = "transfer.bid_rejected"
 summary = "A bid was turned down. A journalist may know the bid and the rejection but not the seller's minimum."
 [[event.fact]]
@@ -357,6 +376,9 @@ type = "list"
 [[event.fact]]
 key = "attendance"
 type = "num"
+[[event.fact]]
+key = "star"
+type = "person"
 
 [[event]]
 kind = "record.broken"

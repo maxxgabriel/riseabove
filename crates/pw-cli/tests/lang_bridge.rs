@@ -30,8 +30,9 @@ fn stories_the_engine_writes_are_clean_and_no_firmer_than_the_story() {
                 }
                 assert!(!t.headline.trim().is_empty() && !t.body.trim().is_empty());
                 // A rumour that is not close to a deal is never written as one.
-                if st.kind == StoryKind::TransferRumour {
-                    assert!(st.claim >= 75, "a claim of {} became a bid: {}", st.claim, t.headline);
+                if st.kind == StoryKind::TransferRumour && st.claim < 75 {
+                    let lower = format!("{} {}", t.headline, t.body).to_lowercase();
+                    assert!(!lower.contains(" bid") && !lower.contains("agreed") && !lower.contains("completed"), "a claim of {} was written as a done deal: {}", st.claim, lower);
                 }
             }
             None => fallback += 1,
@@ -63,7 +64,7 @@ fn sample() {
     let w = &s.world;
     let mut shown = 0;
     for (_, st) in w.media.stories.iter_enumerated() {
-        if st.kind == StoryKind::Injury { continue; }
+        if !matches!(st.kind, StoryKind::TransferRumour | StoryKind::MatchReport) { continue; }
         if let Some(t) = lang::story(w, st) {
             eprintln!("[{:?} / {}]\n{}\n{}\n", st.kind, pw_narrate::press::outlet_name(w, st), t.headline, t.body);
             shown += 1;

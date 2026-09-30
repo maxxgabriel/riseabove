@@ -1088,6 +1088,42 @@ needs = ["scorers"]
 text = "Goals came from {scorers}."
 
 [[frame]]
+id = "match.result.news.detail.star.1"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "{star} was the pick of the performers."
+
+[[frame]]
+id = "match.result.news.detail.star.2"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "{star} stood out on the day."
+
+[[frame]]
+id = "match.result.news.detail.star.3"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "The match belonged to {star}."
+
+[[frame]]
+id = "match.result.news.detail.star.4"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "{star} made the difference."
+
+[[frame]]
 id = "match.result.news.detail.attendance.1"
 event = "match.result"
 channel = "news"
