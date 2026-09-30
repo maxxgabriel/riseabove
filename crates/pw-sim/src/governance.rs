@@ -325,11 +325,13 @@ fn commission(w: &mut World, club: ClubId, revenue: Money, rng: &mut Rng) {
     if gap < 1 {
         return;
     }
+    // The bill is paid from cash when the project starts, so a club starts only what it can pay for: a board that spent two seasons of
+    // revenue it did not hold drove itself into administration (and the dip in the balance sheets showed in every long run).
     let cost = match kind {
-        ProjectKind::Stadium => revenue * 2,
-        _ => revenue / 5 * (1 + gap as Money),
+        ProjectKind::Stadium => revenue * 3 / 4,
+        _ => (revenue / 8).saturating_mul(1 + (gap as Money).min(3)),
     };
-    if balance < cost / 2 || !rng.chance(0.5) {
+    if balance < cost + revenue / 4 || !rng.chance(0.5) {
         return;
     }
     let years = if kind == ProjectKind::Stadium { rng.range_i32(2, 3) } else { rng.range_i32(1, 2) };

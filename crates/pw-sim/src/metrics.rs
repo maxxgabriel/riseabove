@@ -64,6 +64,10 @@ pub struct Snapshot {
     pub records_other: u32,
     /// Mean best-14 ability of the clubs in tier-1 leagues (league quality).
     pub top_tier_quality: f32,
+    /// The world's general price index, the mean national wage index, the summed top-flight broadcast pools, and the 90th-percentile club reputation.
+    pub price_index: f32,
+    pub wage_index: f32,
+    pub broadcast_pools: f64,
     // market
     pub transfers: u32,
     pub loans: u32,
@@ -307,6 +311,9 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.wage_tier2 = pct(&mut t2, 0.5).unwrap_or(0.0);
     s.wage_tier3 = pct(&mut t3, 0.5).unwrap_or(0.0);
     s.top_tier_quality = mean(&q1);
+    s.price_index = w.economy.global();
+    s.wage_index = if w.economy.nations.is_empty() { 1.0 } else { w.economy.nations.values().map(|e| e.wage_index).sum::<f32>() / w.economy.nations.len() as f32 };
+    s.broadcast_pools = w.economy.nations.values().map(|e| e.broadcast_pool as f64).sum();
     s.balance_p10 = pct(&mut balances.clone(), 0.1).unwrap_or(0.0);
     s.balance_median = pct(&mut balances.clone(), 0.5).unwrap_or(0.0);
     s.balance_p90 = pct(&mut balances, 0.9).unwrap_or(0.0);
@@ -476,10 +483,19 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     } else if last.wage_to_revenue_median > 0.85 {
         flag(Level::Warn, "wages", format!("the median club pays {:.0}% of its revenue in wages", last.wage_to_revenue_median * 100.0));
     }
-    if let Some(g) = yearly_growth(&series(&|s| s.first_team_wage_median)) {
+    // The mean wage follows the wage bill and so the revenue; the median also moves with how spread out ability is inside squads
+    // (a league whose stars fade pays its middle players more of a fixed bill), so it is read with a higher bar.
+    if let Some(g) = yearly_growth(&series(&|s| if s.first_team_wage_mean > 0.0 { s.first_team_wage_mean } else { s.first_team_wage_median })) {
         if g > 12.0 {
-            flag(Level::Problem, "wages", format!("median first-team wage inflates {g:.0}% a year"));
+            flag(Level::Problem, "wages", format!("mean first-team wage inflates {g:.0}% a year"));
         } else if g > 6.0 {
+            flag(Level::Warn, "wages", format!("mean first-team wage inflates {g:.0}% a year"));
+        }
+    }
+    if let Some(g) = yearly_growth(&series(&|s| s.first_team_wage_median)) {
+        if g > 20.0 {
+            flag(Level::Problem, "wages", format!("median first-team wage inflates {g:.0}% a year"));
+        } else if g > 12.0 {
             flag(Level::Warn, "wages", format!("median first-team wage inflates {g:.0}% a year"));
         }
     }
@@ -622,10 +638,10 @@ pub fn render(run: &[Snapshot]) -> String {
 /// The money series of a run, one row per year: wages by tier, fees, cash, revenue against wages, unemployment, records and insolvency.
 pub fn render_economy(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev  free  staffU  recSign recSale recWorld recOther quality\n");
+    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1}\n",
+            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
             r.year,
             money(r.wage_tier1),
             money(r.wage_tier2),
@@ -647,6 +663,7 @@ pub fn render_economy(run: &[Snapshot]) -> String {
             money(r.revenue_total),
             money(r.wage_bill_total),
             if r.revenue_total > 0.0 { r.wage_bill_total / r.revenue_total } else { 0.0 },
+            r.wage_to_revenue_p90,
             r.free_agents,
             r.staff_unemployed,
             r.record_signings,
@@ -654,6 +671,10 @@ pub fn render_economy(run: &[Snapshot]) -> String {
             r.record_world_fees,
             r.records_other,
             r.top_tier_quality,
+            r.price_index,
+            r.wage_index,
+            money(r.broadcast_pools),
+            r.club_rep_p90,
         ));
     }
     s

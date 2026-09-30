@@ -63,9 +63,15 @@ pub fn yearly(w: &mut World) {
         e.wage_index *= 1.0 + e.growth;
         e.league_strength = e.league_strength * 0.7 + strength * 0.3;
         if year >= e.deal_until {
-            let coef: f32 = e.coefficient.iter().sum::<f32>() / e.coefficient.len().max(1) as f32;
-            let boom = rng.normal_ms(0.12, 0.15) + (e.league_strength - 0.5) * 0.4 + coef * 0.05;
-            e.broadcast_pool = ((e.broadcast_pool as f64) * (1.0 + f64::from(boom.clamp(-0.3, 0.8)))) as Money;
+            // No continental results (a nation with no European competition, or a young world) is neutral, not a bad record.
+            let coef: f32 = if e.coefficient.is_empty() { 1.3 } else { e.coefficient.iter().sum::<f32>() / e.coefficient.len() as f32 };
+            // The pool is in real terms (inflation and national growth are applied to revenue as a whole, see `club_revenue`), and a renewal moves it
+            // around where it was: a strong league and good continental results earn a rise, a weak one a cut, an ordinary one none. A
+            // positive average here would compound every renewal on top of inflation and national growth, and revenue, wages and
+            // fees with it, without end.
+            let boom = rng.normal() * 0.06 + (e.league_strength - 0.8) * 0.3 + (coef - 1.3) * 0.05;
+            e.broadcast_pool = ((e.broadcast_pool as f64) * (1.0 + f64::from(boom.clamp(-0.2, 0.3)))) as Money;
+
             e.deal_until = year + 3;
             let pool = e.broadcast_pool;
             w.events.push(today, Visibility::Public, EventKind::BroadcastDeal { nation: n, pool });
@@ -134,5 +140,6 @@ pub fn club_revenue(w: &World, club: ClubId) -> Money {
     };
     let fame: f64 = c.teams.first().map_or(0.0, |&t| w.teams[t].squad.iter().map(|&p| f64::from(w.players.cold[p].rep.world)).sum::<f64>()) / 10_000.0;
     let commercial = fame * 150_000.0 * econ;
+    // `idx` is the world's general price level times the nation's own real growth.
     ((base + broadcast + commercial) * idx) as Money
 }
