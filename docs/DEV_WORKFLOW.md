@@ -116,3 +116,13 @@ requests run FULL; SOAK is a scheduled or manually triggered job and must not ga
 * Cold release build (1.5 min) and cold dev test build (about 2.3 min): dependency-bound, paid once.
 * First SMOKE after changing crates in the middle of the tree recompiles several test targets (26 s for `pw-import`'s).
 * The `pw-cli` `manager_ai` and `world` and `pw-view` `api` test targets run whole seasons (10-80 s); they are FULL, not SMOKE, by design.
+
+## Playing it like a person: the UI playthrough
+
+`crates/pw-view/tests/playthrough.rs` drives the same API the interface calls: it makes an India world, begins a career at each point of the route
+(school standout, released academy player, university freshman and star, state league, semi-professional), lets weeks pass, and at every stop calls
+every query in the contract manifest, answers decisions, replies to messages, sends actions, saves and reloads. Every response is read the way a
+player would: no NaN, no placeholder or debug residue, no repeated sentence, "1 days", "a assistant", names that resolve, references to things that
+exist, sane dates and money, and the perspective firewall by non-interference. `cargo test -p pw-view --test playthrough` (about 7 minutes) is the
+short run; `-- --ignored` plays three seasons (slow). `PW_ONLY=state_league` limits it to one start, `PW_TEXT_DUMP=file` writes every distinct line of
+text seen so it can be read. The browser side is `app/e2e/india.mjs` (same steps in Chrome against `pathway-serve --static app/dist`).

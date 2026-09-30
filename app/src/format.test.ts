@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageAt, dateIn, duration, money, ordinal, prose, relativeDays } from "./format";
+import { ageAt, byFmt, cap, dateIn, date, duration, initials, money, ordinal, prose, relativeDays } from "./format";
 
 // 2026-07-01 as days since 1970.
 const JUL_1_2026 = Date.UTC(2026, 6, 1) / 86_400_000;
@@ -53,5 +53,23 @@ describe("words", () => {
     expect(duration(400)).toBe("13 months");
     expect(duration(1100)).toBe("3.0 years");
     expect(duration(-3)).toBe("ended");
+  });
+});
+
+describe("text helpers that must not throw on odd input", () => {
+  it("capitalises without indexing an empty string", () => {
+    expect(cap("relationship")).toBe("Relationship");
+    expect(cap("")).toBe("");
+    expect(cap(null)).toBe("");
+  });
+  it("makes initials from any name", () => {
+    expect(initials("Asha Devi Rao")).toBe("AD");
+    expect(initials("  ")).toBe("?");
+    expect(initials(undefined)).toBe("?");
+  });
+  it("shows nothing for a number that is not one", () => {
+    expect(money(Number.NaN)).toBe("");
+    expect(date(Number.POSITIVE_INFINITY)).toBe("");
+    expect(byFmt("dec1", Number.NaN)).toBe("");
   });
 });

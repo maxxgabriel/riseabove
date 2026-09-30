@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PostDialog } from "../components/Actions";
 import { Dt, EntityLink } from "../components/links";
 import { WorldPulse } from "../components/Newsroom";
+import { initials } from "../format";
 import { href, useRoute } from "../router";
 import { useApi } from "../store";
 import type { Named } from "../types";
@@ -26,7 +27,7 @@ function Count({ n, label }: { n: number; label: string }) {
 }
 
 function Initials({ name }: { name: string }) {
-  return <span className="social-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</span>;
+  return <span className="social-avatar" aria-hidden="true">{initials(name)}</span>;
 }
 
 export function PostCard({ p, onReply, onQuote, nested = false }: { p: PostView; onReply?: (p: PostView) => void; onQuote?: (p: PostView) => void; nested?: boolean }) {

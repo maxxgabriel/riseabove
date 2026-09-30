@@ -150,6 +150,9 @@ pub fn post(w: &World, p: &Post) -> String {
         Concept::Statement => {
             if target.is_empty() {
                 what
+            } else if what.is_empty() {
+                // A bare name is not a post.
+                pick(key, &["all eyes on {}", "{} again", "talking point: {}", "so, {}", "{}, then"]).replace("{}", &target)
             } else {
                 target
             }

@@ -1,5 +1,5 @@
 import { Dt, EntityLink, Money } from "../components/links";
-import { fmtInt, plural } from "../format";
+import { cap, fmtInt, plural } from "../format";
 import { href } from "../router";
 import type { Named } from "../types";
 import { Badge, KeyVal, Meter, Section } from "../ui/ui";
@@ -105,7 +105,7 @@ export function BoardTab({ s }: { s: Systems }) {
                 <tbody>
                   {b.projects.map((p, i) => (
                     <tr key={i}>
-                      <td>{p.kind[0].toUpperCase() + p.kind.slice(1)}</td>
+                      <td>{cap(p.kind)}</td>
                       <td className="r"><Dt d={p.started} year /></td>
                       <td className="r"><Dt d={p.completes} year /></td>
                       {s.internal && <td className="r"><Money v={p.cost} /></td>}
@@ -166,7 +166,7 @@ export function BoardTab({ s }: { s: Systems }) {
             <div className="card">
               <KeyVal
                 rows={[
-                  { k: "Transfers", v: b.policy.transfer_style[0].toUpperCase() + b.policy.transfer_style.slice(1) },
+                  { k: "Transfers", v: cap(b.policy.transfer_style) },
                   { k: "Signing age limit", v: b.policy.max_signing_age ? <span className="num">{b.policy.max_signing_age}</span> : "None" },
                   { k: "Top wage", v: <span className="num">{b.policy.wage_cap_mult.toFixed(1)}× the median</span> },
                   { k: "Debt allowed", v: <span className="num">{b.policy.debt_tolerance.toFixed(2)}× a year's revenue</span> },
@@ -189,7 +189,7 @@ export function BoardTab({ s }: { s: Systems }) {
                 <ul className="rows compact">
                   {b.concerns.map((c) => (
                     <li key={c.label}>
-                      <span>{c.label[0].toUpperCase() + c.label.slice(1)}</span>
+                      <span>{cap(c.label)}</span>
                       <span className={`num ${c.value < 0 ? "tone-warn" : "tone-pos"}`}>{c.value < 0 ? "Worried" : "Pleased"}</span>
                     </li>
                   ))}

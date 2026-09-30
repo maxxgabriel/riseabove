@@ -1,3 +1,4 @@
+import { cap } from "../format";
 import { useEffect, useState, type ReactNode } from "react";
 import { act, notify, useApi } from "../store";
 import type { Named } from "../types";
@@ -41,7 +42,7 @@ function Select({ value, onChange, options, label }: { value: string; onChange: 
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
       {options.map((o) => (
-        <option key={o.key} value={o.key}>{o.label[0].toUpperCase() + o.label.slice(1)}</option>
+        <option key={o.key} value={o.key}>{cap(o.label)}</option>
       ))}
     </select>
   );

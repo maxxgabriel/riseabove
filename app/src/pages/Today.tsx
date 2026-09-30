@@ -1,6 +1,6 @@
 import { EntityLink, Money, Parts, Dt } from "../components/links";
 import { RatingChips } from "../components/visuals";
-import { dateLong, duration, ordinal, prose, relativeDays } from "../format";
+import { cap, initials, dateLong, duration, ordinal, prose, relativeDays } from "../format";
 import { href } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named, Part } from "../types";
@@ -67,7 +67,7 @@ export function Today() {
         {(t) => (
           <>
             <StageHeader
-              crest={club ? <ClubCrest id={club.id} name={club.name} size={58} plain={false} /> : <Avatar initials={t.me.name.split(" ").map((w) => w[0]).join("").slice(0, 2)} size={58} you />}
+              crest={club ? <ClubCrest id={club.id} name={club.name} size={58} plain={false} /> : <Avatar initials={initials(t.me.name)} size={58} you />}
               title="Today"
               sub={`${dateLong(t.date)}. You are ${t.me.name}${t.me.club ? `, ${t.me.position} at ${t.me.club.name}${t.me.team && t.me.team !== "First team" ? ` (${t.me.team})` : ""}` : `, without a club`}.`}
               meta={[
@@ -242,7 +242,7 @@ export function Today() {
                   <div className="card">
                     <KeyVal
                       rows={[
-                        { k: "Intensity", v: t.plan.intensity[0].toUpperCase() + t.plan.intensity.slice(1) },
+                        { k: "Intensity", v: cap(t.plan.intensity) },
                         { k: "Focus", v: focusText(t.plan.focus) },
                       ]}
                     />
@@ -275,7 +275,7 @@ function strip(t: TodayResp): TickerItem[] {
 
 export function focusText(f: { kind: string; value: string | null }): string {
   if (f.kind === "general" || !f.value) return "General";
-  if (f.kind === "group") return `${f.value[0].toUpperCase()}${f.value.slice(1)} attributes`;
+  if (f.kind === "group") return `${cap(f.value)} attributes`;
   if (f.kind === "position") return `Playing as ${f.value}`;
   return f.value.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
@@ -291,5 +291,5 @@ function mindState(value: number): string {
 
 export function OutcomeChip({ o }: { o?: "win" | "draw" | "loss" }) {
   if (!o) return null;
-  return <span className={`form-dot form-${o === "win" ? "w" : o === "draw" ? "d" : "l"}`} title={o[0].toUpperCase() + o.slice(1)}>{o === "win" ? "W" : o === "draw" ? "D" : "L"}</span>;
+  return <span className={`form-dot form-${o === "win" ? "w" : o === "draw" ? "d" : "l"}`} title={cap(o)}>{o === "win" ? "W" : o === "draw" ? "D" : "L"}</span>;
 }

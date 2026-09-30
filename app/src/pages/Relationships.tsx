@@ -1,3 +1,4 @@
+import { cap } from "../format";
 import { TalkButton } from "../components/Actions";
 import { Dt, EntityLink } from "../components/links";
 import { navigate, useRoute } from "../router";
@@ -113,7 +114,7 @@ function PromiseRow({ p }: { p: Promise_ }) {
           </div>
         )}
       </div>
-      <Badge tone={p.state === "open" ? "info" : p.state === "kept" ? "pos" : p.state === "broken" ? "neg" : "muted"}>{p.state === "void" ? "No longer applies" : p.state[0].toUpperCase() + p.state.slice(1)}</Badge>
+      <Badge tone={p.state === "open" ? "info" : p.state === "kept" ? "pos" : p.state === "broken" ? "neg" : "muted"}>{p.state === "void" ? "No longer applies" : cap(p.state)}</Badge>
     </li>
   );
 }

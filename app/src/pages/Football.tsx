@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { EntityLink, Dt } from "../components/links";
 import { OutcomeChip, focusText } from "./Today";
-import { fmtInt } from "../format";
+import { cap, fmtInt } from "../format";
 import { href } from "../router";
 import { act, notify, useApi } from "../store";
 import type { Named } from "../types";
@@ -172,7 +172,7 @@ function TrainingPlan({ f, reload }: { f: FootballResp; reload: () => void }) {
             </select>
             {kind === "group" && (
               <select aria-label="Attribute group" value={plan.focus.value ?? "technical"} onChange={(e) => change({ focus: { kind, value: e.target.value } })}>
-                {groups.filter((g) => g !== "goalkeeping" || attrsByGroup.some((a) => a.group.toLowerCase() === "goalkeeping")).map((g) => <option key={g} value={g}>{g[0].toUpperCase() + g.slice(1)}</option>)}
+                {groups.filter((g) => g !== "goalkeeping" || attrsByGroup.some((a) => a.group.toLowerCase() === "goalkeeping")).map((g) => <option key={g} value={g}>{cap(g)}</option>)}
               </select>
             )}
             {kind === "attribute" && (

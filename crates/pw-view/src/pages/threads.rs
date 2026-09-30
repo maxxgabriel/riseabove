@@ -123,7 +123,7 @@ fn line(c: &Ctx, m: &Message) -> String {
             Some((what, _)) => format!("{} told you {}.", c.person_name(from), what),
             None => format!("{} told you something.", c.person_name(from)),
         },
-        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).map_or_else(String::new, |e| {
+        MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).map_or_else(|| "Something from earlier that is no longer on record.".to_string(), |e| {
             // An event the narration has no sentence for is still listed by what it is, never as a blank line.
             pw_narrate::events::line(w, e, me).filter(|t| !t.trim().is_empty()).unwrap_or_else(|| {
                 let said: String = narrative::describe(c, e).iter().map(|p| p.t.as_str()).collect();

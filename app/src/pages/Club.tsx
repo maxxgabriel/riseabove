@@ -3,7 +3,7 @@ import { EntityLink, Money, Dt } from "../components/links";
 import { SelectFilter } from "../components/filters";
 import { TableView } from "../components/TableView";
 import { toggleBookmark, useIsBookmarked } from "../bookmarks";
-import { fmtInt, ordinal, plural } from "../format";
+import { cap, fmtInt, ordinal, plural } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import type { Named } from "../types";
@@ -223,7 +223,7 @@ function Overview({ c }: { c: ClubResp }) {
           <Section title="Facilities">
             <div className="card meters">
               {(["training", "youth", "academy", "medical"] as const).map((k) => (
-                <div key={k} className="meter-row"><span>{k[0].toUpperCase() + k.slice(1)}</span><Meter value={c.facilities![k] * 5} label={`${c.facilities![k]} / 20`} /></div>
+                <div key={k} className="meter-row"><span>{cap(k)}</span><Meter value={c.facilities![k] * 5} label={`${c.facilities![k]} / 20`} /></div>
               ))}
             </div>
           </Section>

@@ -101,6 +101,10 @@ fn scope(w: &World, s: Scope) -> String {
 
 /// A record's value in words.
 pub fn value(stat: Stat, v: i64) -> String {
+    // Fees are money like every other amount in the text ("12k"), not a bare number of thousands.
+    if matches!(stat, Stat::FeePaid | Stat::FeeReceived) {
+        return crate::fmt::money(v);
+    }
     crate::fmt::singulars(stat.render(v))
 }
 

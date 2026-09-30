@@ -78,6 +78,12 @@ pub fn nation(w: &World, n: pw_core::NationId) -> String {
     w.nations[n].name.clone()
 }
 
+/// "a knee injury", "an ankle sprain".
+pub fn with_article(noun: &str) -> String {
+    let vowel = noun.chars().next().is_some_and(|c| "aeiouAEIOU".contains(c));
+    format!("{} {noun}", if vowel { "an" } else { "a" })
+}
+
 /// "1 day", "12 days".
 pub fn days(n: u32) -> String {
     if n == 1 { "1 day".into() } else { format!("{n} days") }

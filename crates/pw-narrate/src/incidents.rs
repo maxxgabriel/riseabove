@@ -74,7 +74,7 @@ fn describe(w: &World, id: u32, vague: bool, loud: bool, viewer: PersonId) -> St
         IncidentKind::EquipmentProblem => format!("that {c} lost a training session to equipment failures"),
         IncidentKind::PitchDamage => format!("that the {c} pitch was damaged"),
         IncidentKind::TravelDelay => format!("that {c} were badly delayed travelling to a match"),
-        IncidentKind::Postponement => format!("that a {c} match was postponed"),
+        IncidentKind::Postponement => format!("that {c}'s match was postponed"),
         IncidentKind::VisaProblem => format!("that {a} {is} held up by a visa problem"),
         IncidentKind::RegistrationError => format!("that {c} failed to register {a} properly"),
         IncidentKind::PaperworkProblem => format!("that paperwork problems are holding up {c}'s business"),

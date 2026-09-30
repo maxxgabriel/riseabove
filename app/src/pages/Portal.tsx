@@ -5,7 +5,7 @@ import { Dt, EntityLink } from "../components/links";
 import { DEFAULT_TINT, Stage, StageHeader } from "../components/Stage";
 import { tintOf } from "../color";
 import { useClubColors } from "../crest";
-import { dateLong, ordinal, relativeDays } from "../format";
+import { cap, dateLong, ordinal, relativeDays } from "../format";
 import { href } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import { Badge, Button, Meter, Section } from "../ui/ui";
@@ -64,7 +64,7 @@ export function Portal() {
               {t.next_match && <Insights method="insight.match" args={{ uid: t.next_match.uid }} title="What to watch" limit={2} compact hideEmpty />}
             </Section>
             <Section title="Your status" aside={<a href={href(`/person/${t.me.person}`)}>Profile</a>}>
-              <div className="portal-status">{(["condition", "sharpness", "morale", "confidence", "wellbeing", "fatigue"] as const).map((k) => <div className="meter-row" key={k}><span>{k === "fatigue" ? "Legs" : k[0].toUpperCase() + k.slice(1)}</span><Meter value={k === "fatigue" ? 100 - t.condition[k].value : t.condition[k].value} label={t.condition[k].label} /></div>)}</div>
+              <div className="portal-status">{(["condition", "sharpness", "morale", "confidence", "wellbeing", "fatigue"] as const).map((k) => <div className="meter-row" key={k}><span>{k === "fatigue" ? "Legs" : cap(k)}</span><Meter value={k === "fatigue" ? 100 - t.condition[k].value : t.condition[k].value} label={t.condition[k].label} /></div>)}</div>
               {(t.availability.injured || t.availability.ban > 0) && <div className="portal-alert">{t.availability.injured ? `Injured: ${t.availability.injury}` : `Suspended for ${t.availability.ban} matches`}</div>}
             </Section>
             <Insights method="insight.person" args={{ id: t.me.person }} title="About your game" limit={2} compact hideEmpty />

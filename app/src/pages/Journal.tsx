@@ -70,11 +70,11 @@ export function Journal() {
                         <option value="personal">Something else</option>
                       </select>
                       {kind === "personal" ? (
-                        <input type="text" value={text} placeholder="What do you want?" onChange={(e) => setText(e.target.value)} />
+                        <input type="text" value={text} placeholder="What do you want?" aria-label="Your goal" onChange={(e) => setText(e.target.value)} />
                       ) : kind !== "top_flight" ? (
-                        <input type="number" min={1} value={target} placeholder="How many?" onChange={(e) => setTarget(e.target.value)} />
+                        <input type="number" min={1} value={target} placeholder="How many?" aria-label="How many" onChange={(e) => setTarget(e.target.value)} />
                       ) : null}
-                      <Button variant="primary" onClick={async () => { if (await call("me.goal", { kind, target: Number(target) || 0, text })) { setText(""); setTarget(""); } }}>Add</Button>
+                      <Button variant="primary" disabled={(kind === "personal" && !text.trim()) || (kind !== "personal" && kind !== "top_flight" && !(Number(target) > 0))} onClick={async () => { if (await call("me.goal", { kind, target: Number(target) || 0, text })) { setText(""); setTarget(""); } }}>Add</Button>
                     </div>
                   </Field>
                 </div>

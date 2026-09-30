@@ -119,6 +119,16 @@ fn cap(s: String) -> String {
     ch.next().map_or(String::new(), |f| f.to_uppercase().collect::<String>() + ch.as_str())
 }
 
+/// "by three points", or "on goal difference" when the margin is nothing (two sides level on points are not separated by 0 points).
+fn margin(gap: i32) -> String {
+    if gap <= 0 { "on goal difference".to_string() } else { format!("by {}", plural(gap as usize, "point", "points")) }
+}
+
+/// "three points ahead of", or "level on points with" when there is no gap.
+fn ahead_of(gap: i32) -> String {
+    if gap <= 0 { "level on points with".to_string() } else { format!("{} ahead of", plural(gap as usize, "point", "points")) }
+}
+
 /// "one point", "three points", "12 points".
 fn pts_word(n: f32) -> String {
     plural(n.round().max(0.0) as usize, "point", "points")
@@ -940,8 +950,9 @@ pub fn club(c: &Ctx, args: &Value) -> ApiResult<Value> {
             let (rows, _) = crate::tables::visible_table(c, comp);
             let pts = |i: usize| i32::from(rows[i].points);
             let mine = pts(st.pos - 1);
-            // Where the season is pointing.
-            if usize::from(co.relegate) > 0 && st.pos > st.n - usize::from(co.relegate) {
+            // Where the season is pointing (nothing to say before anyone has played).
+            if rows.iter().all(|r| r.played == 0) {
+            } else if usize::from(co.relegate) > 0 && st.pos > st.n - usize::from(co.relegate) {
                 let safe = pts(st.n - usize::from(co.relegate) - 1);
                 n.add(
                     "table",
@@ -971,7 +982,9 @@ pub fn club(c: &Ctx, args: &Value) -> ApiResult<Value> {
                     );
                 }
             }
-            if co.promote > 0 && st.pos <= usize::from(co.promote) {
+            let started = rows.iter().any(|r| r.played > 0);
+            if !started {
+            } else if co.promote > 0 && st.pos <= usize::from(co.promote) {
                 n.add(
                     "table",
                     Tone::Pos,
@@ -991,7 +1004,7 @@ pub fn club(c: &Ctx, args: &Value) -> ApiResult<Value> {
                     format!("{} table", co.short_name),
                 );
             }
-            if let Some(&(cont, places)) = co.continental.first() {
+            if let Some(&(cont, places)) = co.continental.first().filter(|_| started) {
                 let places = usize::from(places);
                 if st.pos > places && st.pos <= places + 3 {
                     let gap = pts(places - 1) - mine;
@@ -1025,7 +1038,11 @@ pub fn club(c: &Ctx, args: &Value) -> ApiResult<Value> {
                     if caught {
                         format!("{} clear with {} matches left: nobody can catch them.", pts_word(gap as f32), st.left)
                     } else {
-                        format!("{} clear of {} with {} matches left.", plural(gap.max(0) as usize, "point", "points"), c.team_short(rows[1].team), st.left)
+                        if gap <= 0 {
+                            format!("Level on points with {}, ahead on goal difference, with {} matches left.", c.team_short(rows[1].team), st.left)
+                        } else {
+                            format!("{} clear of {} with {} matches left.", plural(gap as usize, "point", "points"), c.team_short(rows[1].team), st.left)
+                        }
                     },
                     format!("{} table", co.short_name),
                 );
@@ -1345,7 +1362,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let gap = pts(0) - pts(1);
     let l1 = left(&rows[1]);
     if left(&rows[0]) == 0 && rows[0].played > 0 {
-        n.add("table", Tone::Pos, 90, format!("{} are champions", name(0)), format!("{} points, {} clear of {}.", pts(0), plural(gap.max(0) as usize, "point", "points"), name(1)), basis.clone());
+        n.add("table", Tone::Pos, 90, format!("{} are champions", name(0)), if gap <= 0 { format!("{} points, ahead of {} on goal difference.", pts(0), name(1)) } else { format!("{} points, {} clear of {}.", pts(0), plural(gap as usize, "point", "points"), name(1)) }, basis.clone());
     } else if gap > 3 * l1 as i32 {
         n.add(
             "table",
@@ -1361,7 +1378,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
             Tone::Info,
             80,
             "A tight race at the top",
-            format!("{} lead {} by {} with {} matches left for the leaders.", name(0), name(1), plural(gap.max(0) as usize, "point", "points"), left(&rows[0])),
+            format!("{} lead {} {} with {} matches left for the leaders.", name(0), name(1), margin(gap), left(&rows[0])),
             basis.clone(),
         );
     } else {
@@ -1370,7 +1387,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
             Tone::Info,
             70,
             "The title race",
-            format!("{} lead {} by {} with {} matches left for the leaders.", name(0), name(1), plural(gap.max(0) as usize, "point", "points"), left(&rows[0])),
+            format!("{} lead {} {} with {} matches left for the leaders.", name(0), name(1), margin(gap), left(&rows[0])),
             basis.clone(),
         );
     }
@@ -1426,9 +1443,9 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
                 68,
                 "The relegation battle",
                 format!(
-                    "{} are the last safe side, {} ahead of {} in the drop zone, with {} matches left. {} teams are within six points of the line.",
+                    "{} are the last safe side, {} {} in the drop zone, with {} matches left. {} teams are within six points of the line.",
                     name(safe),
-                    plural(d.max(0) as usize, "point", "points"),
+                    ahead_of(d),
                     name(safe + 1),
                     left(&rows[safe]),
                     within
