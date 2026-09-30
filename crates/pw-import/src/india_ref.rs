@@ -215,7 +215,7 @@ impl Prov {
     fn inconsistency(&self) -> Option<String> {
         match self.status {
             ProvStatus::Verified | ProvStatus::Imported if self.src.is_empty() => Some(format!("status {:?} but no source is listed", self.status)),
-            ProvStatus::Verified if self.q > Quality::B => Some(format!("status verified but quality {:?}: verified means A or B", self.q)),
+            ProvStatus::Verified | ProvStatus::Imported if self.q > Quality::B => Some(format!("status verified but quality {:?}: verified means A or B", self.q)),
             ProvStatus::Generated if self.q != Quality::E => Some(format!("status generated but quality {:?}: generated means E", self.q)),
             _ => None,
         }

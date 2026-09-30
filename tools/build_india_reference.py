@@ -55,7 +55,7 @@ def meta(dataset, qual, coverage, gaps, season=None):
     return m
 
 
-pack = tomllib.loads((ROOT / "pack.toml").read_text())
+pack = tomllib.loads((ROOT / "pack.toml").read_text(encoding="utf-8"))
 manifest = []
 
 
