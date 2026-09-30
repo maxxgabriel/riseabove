@@ -1,0 +1,2789 @@
+[meta]
+dataset = "national_teams.b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "India national teams (senior, U23, U20/U19, U17, U15, futsal, beach soccer; men and women where they exist) and state/institutional representative teams for the Santosh Trophy, Senior Women's NFC, Junior and Sub-Junior National Championships (boys and girls). No player squads."
+gaps = [
+  "Written from model knowledge only (brief v2, no web access); nothing here is verified against an AIFF or AFC source.",
+  "Participation of individual states in each age-group or women's championship varies by year; age-group and girls' state teams are scenario seeds (q=D) meaning 'the state can field one', not 'it fielded one in 2026-27'.",
+  "Age bands of Junior (U19), Sub-Junior boys (U16) and girls (U17) championships have changed between seasons and are unverified.",
+  "Extra optional fields used and NOT in SCHEMA.md: 'state' (state id the representative team is drawn from), 'nicknames' (list of text), 'discipline' (futsal or beach_soccer; absent means 11-a-side). Smallest schema addition: add these three optional fields to [[team]].",
+  "No association records exist for Andaman and Nicobar Islands, Dadra and Nagar Haveli and Daman and Diu, or Lakshadweep, so their teams reference assoc.aiff as a placeholder and carry the 'state' field. SCHEMA GAP: add assoc records for those UT football bodies.",
+  "Nicknames Blue Colts / Young Tigresses for youth sides are from memory of common media usage, not an official AIFF style guide.",
+  "Futsal (women) and beach soccer teams are low-confidence: existence and competitions recalled, not checked.",
+  "Services women and other institutional women sides (e.g. PSPB) not recorded; unsure they exist in the Senior Women's NFC.",
+]
+
+[[team]]
+id = "team.ind-men-senior"
+name = "India senior men"
+kind = "national"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+nicknames = ["Blue Tigers"]
+competitions = ["AFC Asian Cup and FIFA World Cup qualifiers", "SAFF Championship", "Intercontinental Cup", "Nehru Cup (occasional)", "Asian Games (usually fielded as U23)", "FIFA international windows friendlies"]
+eligibility = "Indian passport holders. India does not recognise dual citizenship; OCI/PIO status has historically not been sufficient. Any 2026-27 rule change is unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; also known as the Blue Tigers." }
+
+[[team]]
+id = "team.ind-women-senior"
+name = "India senior women"
+kind = "national"
+gender = "women"
+age = "senior"
+association = "assoc.aiff"
+nicknames = ["Blue Tigresses"]
+competitions = ["AFC Women's Asian Cup qualifying", "SAFF Women's Championship", "Asian Games", "Olympic qualifying tournaments", "Friendlies and invitational tournaments"]
+eligibility = "Indian passport holders under the same citizenship rule as the men's team; unverified for 2026-27."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; also known as the Blue Tigresses." }
+
+[[team]]
+id = "team.ind-men-u23"
+name = "India U23 men"
+kind = "national"
+gender = "men"
+age = "u23"
+association = "assoc.aiff"
+nicknames = ["Blue Colts"]
+competitions = ["AFC U23 Asian Cup qualifying", "Asian Games (men's football is an U23 event)", "Friendlies and invitational tournaments"]
+eligibility = "Age-limited squad of Indian passport holders; overage exceptions only where the tournament allows."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the Blue Colts label is used in media for India youth men's sides." }
+
+[[team]]
+id = "team.ind-men-u20"
+name = "India U20 men (U19 for SAFF)"
+kind = "national"
+gender = "men"
+age = "u20"
+association = "assoc.aiff"
+nicknames = ["Blue Colts"]
+competitions = ["AFC U20 Asian Cup qualifying", "SAFF U19/U20 Championship", "Friendlies and invitational tournaments"]
+eligibility = "Age band follows the tournament: U20 for AFC qualifying, U19 for the SAFF Championship (band has changed between editions)."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; U20 and U19 sides are treated as one record because the same age pool feeds both tournaments." }
+
+[[team]]
+id = "team.ind-women-u20"
+name = "India U20 women (U19 for SAFF)"
+kind = "national"
+gender = "women"
+age = "u20"
+association = "assoc.aiff"
+nicknames = ["Young Tigresses"]
+competitions = ["AFC U20 Women's Asian Cup qualifying", "SAFF U19 Women's Championship", "Friendlies and invitational tournaments"]
+eligibility = "Age band follows the tournament: U20 for AFC qualifying, U19 for SAFF (has changed between editions)."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[team]]
+id = "team.ind-men-u17"
+name = "India U17 men"
+kind = "national"
+gender = "men"
+age = "u17"
+association = "assoc.aiff"
+nicknames = ["Blue Colts"]
+competitions = ["AFC U17 Asian Cup qualifying", "SAFF U17 (formerly U16) Championship", "Friendlies and invitational tournaments"]
+eligibility = "Age-limited squad of Indian passport holders. India hosted the 2017 FIFA U-17 World Cup."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; age band (U16 vs U17) for AFC qualifying has changed over time." }
+
+[[team]]
+id = "team.ind-women-u17"
+name = "India U17 women"
+kind = "national"
+gender = "women"
+age = "u17"
+association = "assoc.aiff"
+nicknames = ["Young Tigresses"]
+competitions = ["AFC U17 Women's Asian Cup qualifying", "SAFF U17 Women's Championship", "FIFA U-17 Women's World Cup (hosted by India in 2022)"]
+eligibility = "Age-limited squad of Indian passport holders."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[team]]
+id = "team.ind-men-u15"
+name = "India U15 men"
+kind = "national"
+gender = "men"
+age = "u15"
+association = "assoc.aiff"
+competitions = ["SAFF U15 Championship", "Friendlies and development tours"]
+eligibility = "Age-limited squad of Indian passport holders."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Existence in 2026-27 and the exact tournaments are recalled from memory and may differ." }
+
+[[team]]
+id = "team.ind-women-u15"
+name = "India U15 women"
+kind = "national"
+gender = "women"
+age = "u15"
+association = "assoc.aiff"
+competitions = ["SAFF U15 Women's Championship", "Friendlies and development tours"]
+eligibility = "Age-limited squad of Indian passport holders."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Existence in 2026-27 and the exact tournaments are recalled from memory and may differ." }
+
+[[team]]
+id = "team.ind-men-futsal"
+name = "India futsal men"
+kind = "national"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+discipline = "futsal"
+competitions = ["AFC Futsal Asian Cup qualifying", "SAFF Futsal Championship"]
+eligibility = "Indian passport holders."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Low confidence: team's existence and tournaments recalled from memory, results and dates not checked." }
+
+[[team]]
+id = "team.ind-women-futsal"
+name = "India futsal women"
+kind = "national"
+gender = "women"
+age = "senior"
+association = "assoc.aiff"
+discipline = "futsal"
+competitions = ["AFC Women's Futsal Asian Cup qualifying (if entered)"]
+eligibility = "Indian passport holders."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Low confidence: existence of a regularly active side is not confirmed." }
+
+[[team]]
+id = "team.ind-men-beach-soccer"
+name = "India beach soccer men"
+kind = "national"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+discipline = "beach_soccer"
+competitions = ["AFC Beach Soccer Asian Cup qualifying (if entered)"]
+eligibility = "Indian passport holders."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Low confidence: existence of a regularly active side is not confirmed." }
+
+# ---------- State representative teams ----------
+
+[[team]]
+id = "team.ap-men-santosh"
+name = "Andhra Pradesh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.apfa"
+state = "state.ap"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ap-women-nfc"
+name = "Andhra Pradesh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.apfa"
+state = "state.ap"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ap-men-junior"
+name = "Andhra Pradesh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.apfa"
+state = "state.ap"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ap-men-subjunior"
+name = "Andhra Pradesh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.apfa"
+state = "state.ap"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ap-women-junior"
+name = "Andhra Pradesh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.apfa"
+state = "state.ap"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ap-women-subjunior"
+name = "Andhra Pradesh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.apfa"
+state = "state.ap"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ar-men-santosh"
+name = "Arunachal Pradesh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.apfa-ar"
+state = "state.ar"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ar-women-nfc"
+name = "Arunachal Pradesh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.apfa-ar"
+state = "state.ar"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ar-men-junior"
+name = "Arunachal Pradesh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.apfa-ar"
+state = "state.ar"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ar-men-subjunior"
+name = "Arunachal Pradesh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.apfa-ar"
+state = "state.ar"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ar-women-junior"
+name = "Arunachal Pradesh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.apfa-ar"
+state = "state.ar"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ar-women-subjunior"
+name = "Arunachal Pradesh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.apfa-ar"
+state = "state.ar"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.as-men-santosh"
+name = "Assam (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.afa"
+state = "state.as"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.as-women-nfc"
+name = "Assam (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.afa"
+state = "state.as"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.as-men-junior"
+name = "Assam Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.afa"
+state = "state.as"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.as-men-subjunior"
+name = "Assam Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.afa"
+state = "state.as"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.as-women-junior"
+name = "Assam Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.afa"
+state = "state.as"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.as-women-subjunior"
+name = "Assam Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.afa"
+state = "state.as"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.br-men-santosh"
+name = "Bihar (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.bfa"
+state = "state.br"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.br-women-nfc"
+name = "Bihar (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.bfa"
+state = "state.br"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.br-men-junior"
+name = "Bihar Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.bfa"
+state = "state.br"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.br-men-subjunior"
+name = "Bihar Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.bfa"
+state = "state.br"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.br-women-junior"
+name = "Bihar Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.bfa"
+state = "state.br"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.br-women-subjunior"
+name = "Bihar Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.bfa"
+state = "state.br"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.cg-men-santosh"
+name = "Chhattisgarh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.cfa"
+state = "state.cg"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.cg-women-nfc"
+name = "Chhattisgarh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.cfa"
+state = "state.cg"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.cg-men-junior"
+name = "Chhattisgarh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.cfa"
+state = "state.cg"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.cg-men-subjunior"
+name = "Chhattisgarh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.cfa"
+state = "state.cg"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.cg-women-junior"
+name = "Chhattisgarh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.cfa"
+state = "state.cg"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.cg-women-subjunior"
+name = "Chhattisgarh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.cfa"
+state = "state.cg"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ga-men-santosh"
+name = "Goa (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.gfa"
+state = "state.ga"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ga-women-nfc"
+name = "Goa (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.gfa"
+state = "state.ga"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ga-men-junior"
+name = "Goa Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.gfa"
+state = "state.ga"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ga-men-subjunior"
+name = "Goa Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.gfa"
+state = "state.ga"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ga-women-junior"
+name = "Goa Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.gfa"
+state = "state.ga"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ga-women-subjunior"
+name = "Goa Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.gfa"
+state = "state.ga"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.gj-men-santosh"
+name = "Gujarat (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.gsfa"
+state = "state.gj"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.gj-women-nfc"
+name = "Gujarat (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.gsfa"
+state = "state.gj"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.gj-men-junior"
+name = "Gujarat Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.gsfa"
+state = "state.gj"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.gj-men-subjunior"
+name = "Gujarat Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.gsfa"
+state = "state.gj"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.gj-women-junior"
+name = "Gujarat Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.gsfa"
+state = "state.gj"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.gj-women-subjunior"
+name = "Gujarat Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.gsfa"
+state = "state.gj"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hr-men-santosh"
+name = "Haryana (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.hfa"
+state = "state.hr"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.hr-women-nfc"
+name = "Haryana (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.hfa"
+state = "state.hr"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.hr-men-junior"
+name = "Haryana Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.hfa"
+state = "state.hr"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hr-men-subjunior"
+name = "Haryana Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.hfa"
+state = "state.hr"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hr-women-junior"
+name = "Haryana Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.hfa"
+state = "state.hr"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hr-women-subjunior"
+name = "Haryana Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.hfa"
+state = "state.hr"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hp-men-santosh"
+name = "Himachal Pradesh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.hpfa"
+state = "state.hp"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.hp-women-nfc"
+name = "Himachal Pradesh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.hpfa"
+state = "state.hp"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.hp-men-junior"
+name = "Himachal Pradesh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.hpfa"
+state = "state.hp"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hp-men-subjunior"
+name = "Himachal Pradesh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.hpfa"
+state = "state.hp"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hp-women-junior"
+name = "Himachal Pradesh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.hpfa"
+state = "state.hp"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.hp-women-subjunior"
+name = "Himachal Pradesh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.hpfa"
+state = "state.hp"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jh-men-santosh"
+name = "Jharkhand (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.jfa"
+state = "state.jh"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.jh-women-nfc"
+name = "Jharkhand (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.jfa"
+state = "state.jh"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.jh-men-junior"
+name = "Jharkhand Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.jfa"
+state = "state.jh"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jh-men-subjunior"
+name = "Jharkhand Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.jfa"
+state = "state.jh"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jh-women-junior"
+name = "Jharkhand Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.jfa"
+state = "state.jh"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jh-women-subjunior"
+name = "Jharkhand Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.jfa"
+state = "state.jh"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ka-men-santosh"
+name = "Karnataka (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.ksfa"
+state = "state.ka"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ka-women-nfc"
+name = "Karnataka (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.ksfa"
+state = "state.ka"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ka-men-junior"
+name = "Karnataka Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.ksfa"
+state = "state.ka"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ka-men-subjunior"
+name = "Karnataka Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.ksfa"
+state = "state.ka"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ka-women-junior"
+name = "Karnataka Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.ksfa"
+state = "state.ka"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ka-women-subjunior"
+name = "Karnataka Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.ksfa"
+state = "state.ka"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.kl-men-santosh"
+name = "Kerala (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.kfa"
+state = "state.kl"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.kl-women-nfc"
+name = "Kerala (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.kfa"
+state = "state.kl"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.kl-men-junior"
+name = "Kerala Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.kfa"
+state = "state.kl"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.kl-men-subjunior"
+name = "Kerala Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.kfa"
+state = "state.kl"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.kl-women-junior"
+name = "Kerala Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.kfa"
+state = "state.kl"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.kl-women-subjunior"
+name = "Kerala Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.kfa"
+state = "state.kl"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mp-men-santosh"
+name = "Madhya Pradesh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.mpfa"
+state = "state.mp"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.mp-women-nfc"
+name = "Madhya Pradesh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.mpfa"
+state = "state.mp"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.mp-men-junior"
+name = "Madhya Pradesh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.mpfa"
+state = "state.mp"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mp-men-subjunior"
+name = "Madhya Pradesh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.mpfa"
+state = "state.mp"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mp-women-junior"
+name = "Madhya Pradesh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.mpfa"
+state = "state.mp"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mp-women-subjunior"
+name = "Madhya Pradesh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.mpfa"
+state = "state.mp"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mh-men-santosh"
+name = "Maharashtra (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.wifa"
+state = "state.mh"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year. Maharashtra's state body in this dataset is Western India Football Association (assoc.wifa)." }
+
+[[team]]
+id = "team.mh-women-nfc"
+name = "Maharashtra (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.wifa"
+state = "state.mh"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year. Maharashtra's state body in this dataset is Western India Football Association (assoc.wifa)." }
+
+[[team]]
+id = "team.mh-men-junior"
+name = "Maharashtra Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.wifa"
+state = "state.mh"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked. Maharashtra's state body in this dataset is Western India Football Association (assoc.wifa)." }
+
+[[team]]
+id = "team.mh-men-subjunior"
+name = "Maharashtra Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.wifa"
+state = "state.mh"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked. Maharashtra's state body in this dataset is Western India Football Association (assoc.wifa)." }
+
+[[team]]
+id = "team.mh-women-junior"
+name = "Maharashtra Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.wifa"
+state = "state.mh"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked. Maharashtra's state body in this dataset is Western India Football Association (assoc.wifa)." }
+
+[[team]]
+id = "team.mh-women-subjunior"
+name = "Maharashtra Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.wifa"
+state = "state.mh"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked. Maharashtra's state body in this dataset is Western India Football Association (assoc.wifa)." }
+
+[[team]]
+id = "team.mn-men-santosh"
+name = "Manipur (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.fam"
+state = "state.mn"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.mn-women-nfc"
+name = "Manipur (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.fam"
+state = "state.mn"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.mn-men-junior"
+name = "Manipur Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.fam"
+state = "state.mn"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mn-men-subjunior"
+name = "Manipur Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.fam"
+state = "state.mn"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mn-women-junior"
+name = "Manipur Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.fam"
+state = "state.mn"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mn-women-subjunior"
+name = "Manipur Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.fam"
+state = "state.mn"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ml-men-santosh"
+name = "Meghalaya (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.mfa-ml"
+state = "state.ml"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ml-women-nfc"
+name = "Meghalaya (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.mfa-ml"
+state = "state.ml"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ml-men-junior"
+name = "Meghalaya Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.mfa-ml"
+state = "state.ml"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ml-men-subjunior"
+name = "Meghalaya Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.mfa-ml"
+state = "state.ml"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ml-women-junior"
+name = "Meghalaya Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.mfa-ml"
+state = "state.ml"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ml-women-subjunior"
+name = "Meghalaya Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.mfa-ml"
+state = "state.ml"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mz-men-santosh"
+name = "Mizoram (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.mfa"
+state = "state.mz"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.mz-women-nfc"
+name = "Mizoram (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.mfa"
+state = "state.mz"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.mz-men-junior"
+name = "Mizoram Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.mfa"
+state = "state.mz"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mz-men-subjunior"
+name = "Mizoram Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.mfa"
+state = "state.mz"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mz-women-junior"
+name = "Mizoram Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.mfa"
+state = "state.mz"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.mz-women-subjunior"
+name = "Mizoram Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.mfa"
+state = "state.mz"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.nl-men-santosh"
+name = "Nagaland (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.nfa"
+state = "state.nl"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.nl-women-nfc"
+name = "Nagaland (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.nfa"
+state = "state.nl"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.nl-men-junior"
+name = "Nagaland Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.nfa"
+state = "state.nl"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.nl-men-subjunior"
+name = "Nagaland Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.nfa"
+state = "state.nl"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.nl-women-junior"
+name = "Nagaland Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.nfa"
+state = "state.nl"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.nl-women-subjunior"
+name = "Nagaland Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.nfa"
+state = "state.nl"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.od-men-santosh"
+name = "Odisha (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.fao"
+state = "state.od"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.od-women-nfc"
+name = "Odisha (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.fao"
+state = "state.od"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.od-men-junior"
+name = "Odisha Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.fao"
+state = "state.od"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.od-men-subjunior"
+name = "Odisha Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.fao"
+state = "state.od"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.od-women-junior"
+name = "Odisha Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.fao"
+state = "state.od"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.od-women-subjunior"
+name = "Odisha Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.fao"
+state = "state.od"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.pb-men-santosh"
+name = "Punjab (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.fap"
+state = "state.pb"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.pb-women-nfc"
+name = "Punjab (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.fap"
+state = "state.pb"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.pb-men-junior"
+name = "Punjab Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.fap"
+state = "state.pb"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.pb-men-subjunior"
+name = "Punjab Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.fap"
+state = "state.pb"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.pb-women-junior"
+name = "Punjab Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.fap"
+state = "state.pb"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.pb-women-subjunior"
+name = "Punjab Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.fap"
+state = "state.pb"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.rj-men-santosh"
+name = "Rajasthan (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.rfa"
+state = "state.rj"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.rj-women-nfc"
+name = "Rajasthan (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.rfa"
+state = "state.rj"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.rj-men-junior"
+name = "Rajasthan Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.rfa"
+state = "state.rj"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.rj-men-subjunior"
+name = "Rajasthan Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.rfa"
+state = "state.rj"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.rj-women-junior"
+name = "Rajasthan Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.rfa"
+state = "state.rj"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.rj-women-subjunior"
+name = "Rajasthan Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.rfa"
+state = "state.rj"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.sk-men-santosh"
+name = "Sikkim (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.sfa"
+state = "state.sk"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.sk-women-nfc"
+name = "Sikkim (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.sfa"
+state = "state.sk"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.sk-men-junior"
+name = "Sikkim Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.sfa"
+state = "state.sk"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.sk-men-subjunior"
+name = "Sikkim Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.sfa"
+state = "state.sk"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.sk-women-junior"
+name = "Sikkim Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.sfa"
+state = "state.sk"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.sk-women-subjunior"
+name = "Sikkim Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.sfa"
+state = "state.sk"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tn-men-santosh"
+name = "Tamil Nadu (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.tnfa"
+state = "state.tn"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.tn-women-nfc"
+name = "Tamil Nadu (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.tnfa"
+state = "state.tn"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.tn-men-junior"
+name = "Tamil Nadu Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.tnfa"
+state = "state.tn"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tn-men-subjunior"
+name = "Tamil Nadu Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.tnfa"
+state = "state.tn"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tn-women-junior"
+name = "Tamil Nadu Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.tnfa"
+state = "state.tn"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tn-women-subjunior"
+name = "Tamil Nadu Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.tnfa"
+state = "state.tn"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ts-men-santosh"
+name = "Telangana (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.tfa-ts"
+state = "state.ts"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ts-women-nfc"
+name = "Telangana (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.tfa-ts"
+state = "state.ts"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ts-men-junior"
+name = "Telangana Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.tfa-ts"
+state = "state.ts"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ts-men-subjunior"
+name = "Telangana Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.tfa-ts"
+state = "state.ts"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ts-women-junior"
+name = "Telangana Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.tfa-ts"
+state = "state.ts"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ts-women-subjunior"
+name = "Telangana Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.tfa-ts"
+state = "state.ts"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tr-men-santosh"
+name = "Tripura (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.tfa"
+state = "state.tr"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.tr-women-nfc"
+name = "Tripura (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.tfa"
+state = "state.tr"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.tr-men-junior"
+name = "Tripura Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.tfa"
+state = "state.tr"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tr-men-subjunior"
+name = "Tripura Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.tfa"
+state = "state.tr"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tr-women-junior"
+name = "Tripura Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.tfa"
+state = "state.tr"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.tr-women-subjunior"
+name = "Tripura Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.tfa"
+state = "state.tr"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.up-men-santosh"
+name = "Uttar Pradesh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.upfa"
+state = "state.up"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.up-women-nfc"
+name = "Uttar Pradesh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.upfa"
+state = "state.up"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.up-men-junior"
+name = "Uttar Pradesh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.upfa"
+state = "state.up"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.up-men-subjunior"
+name = "Uttar Pradesh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.upfa"
+state = "state.up"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.up-women-junior"
+name = "Uttar Pradesh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.upfa"
+state = "state.up"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.up-women-subjunior"
+name = "Uttar Pradesh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.upfa"
+state = "state.up"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.uk-men-santosh"
+name = "Uttarakhand (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.ufa"
+state = "state.uk"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.uk-women-nfc"
+name = "Uttarakhand (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.ufa"
+state = "state.uk"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.uk-men-junior"
+name = "Uttarakhand Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.ufa"
+state = "state.uk"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.uk-men-subjunior"
+name = "Uttarakhand Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.ufa"
+state = "state.uk"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.uk-women-junior"
+name = "Uttarakhand Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.ufa"
+state = "state.uk"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.uk-women-subjunior"
+name = "Uttarakhand Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.ufa"
+state = "state.uk"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.wb-men-santosh"
+name = "Bengal (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.ifa"
+state = "state.wb"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.wb-women-nfc"
+name = "Bengal (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.ifa"
+state = "state.wb"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.wb-men-junior"
+name = "Bengal Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.ifa"
+state = "state.wb"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.wb-men-subjunior"
+name = "Bengal Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.ifa"
+state = "state.wb"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.wb-women-junior"
+name = "Bengal Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.ifa"
+state = "state.wb"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.wb-women-subjunior"
+name = "Bengal Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.ifa"
+state = "state.wb"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.an-men-santosh"
+name = "Andaman and Nicobar Islands (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+state = "state.an"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.an-women-nfc"
+name = "Andaman and Nicobar Islands (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.aiff"
+state = "state.an"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.an-men-junior"
+name = "Andaman and Nicobar Islands Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.aiff"
+state = "state.an"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.an-men-subjunior"
+name = "Andaman and Nicobar Islands Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.aiff"
+state = "state.an"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.an-women-junior"
+name = "Andaman and Nicobar Islands Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.aiff"
+state = "state.an"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.an-women-subjunior"
+name = "Andaman and Nicobar Islands Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.aiff"
+state = "state.an"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.ch-men-santosh"
+name = "Chandigarh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.cfa-ch"
+state = "state.ch"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.ch-women-nfc"
+name = "Chandigarh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.cfa-ch"
+state = "state.ch"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.ch-men-junior"
+name = "Chandigarh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.cfa-ch"
+state = "state.ch"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ch-men-subjunior"
+name = "Chandigarh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.cfa-ch"
+state = "state.ch"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ch-women-junior"
+name = "Chandigarh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.cfa-ch"
+state = "state.ch"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ch-women-subjunior"
+name = "Chandigarh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.cfa-ch"
+state = "state.ch"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.dn-men-santosh"
+name = "Dadra and Nagar Haveli and Daman and Diu (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+state = "state.dn"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.dn-women-nfc"
+name = "Dadra and Nagar Haveli and Daman and Diu (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.aiff"
+state = "state.dn"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.dn-men-junior"
+name = "Dadra and Nagar Haveli and Daman and Diu Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.aiff"
+state = "state.dn"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.dn-men-subjunior"
+name = "Dadra and Nagar Haveli and Daman and Diu Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.aiff"
+state = "state.dn"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.dn-women-junior"
+name = "Dadra and Nagar Haveli and Daman and Diu Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.aiff"
+state = "state.dn"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.dn-women-subjunior"
+name = "Dadra and Nagar Haveli and Daman and Diu Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.aiff"
+state = "state.dn"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.dl-men-santosh"
+name = "Delhi (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.fd"
+state = "state.dl"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.dl-women-nfc"
+name = "Delhi (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.fd"
+state = "state.dl"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.dl-men-junior"
+name = "Delhi Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.fd"
+state = "state.dl"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.dl-men-subjunior"
+name = "Delhi Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.fd"
+state = "state.dl"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.dl-women-junior"
+name = "Delhi Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.fd"
+state = "state.dl"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.dl-women-subjunior"
+name = "Delhi Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.fd"
+state = "state.dl"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jk-men-santosh"
+name = "Jammu and Kashmir (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.jkfa"
+state = "state.jk"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.jk-women-nfc"
+name = "Jammu and Kashmir (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.jkfa"
+state = "state.jk"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.jk-men-junior"
+name = "Jammu and Kashmir Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.jkfa"
+state = "state.jk"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jk-men-subjunior"
+name = "Jammu and Kashmir Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.jkfa"
+state = "state.jk"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jk-women-junior"
+name = "Jammu and Kashmir Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.jkfa"
+state = "state.jk"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.jk-women-subjunior"
+name = "Jammu and Kashmir Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.jkfa"
+state = "state.jk"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.la-men-santosh"
+name = "Ladakh (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.lfa"
+state = "state.la"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.la-women-nfc"
+name = "Ladakh (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.lfa"
+state = "state.la"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.la-men-junior"
+name = "Ladakh Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.lfa"
+state = "state.la"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.la-men-subjunior"
+name = "Ladakh Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.lfa"
+state = "state.la"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.la-women-junior"
+name = "Ladakh Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.lfa"
+state = "state.la"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.la-women-subjunior"
+name = "Ladakh Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.lfa"
+state = "state.la"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.ld-men-santosh"
+name = "Lakshadweep (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+state = "state.ld"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.ld-women-nfc"
+name = "Lakshadweep (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.aiff"
+state = "state.ld"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.ld-men-junior"
+name = "Lakshadweep Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.aiff"
+state = "state.ld"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.ld-men-subjunior"
+name = "Lakshadweep Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.aiff"
+state = "state.ld"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.ld-women-junior"
+name = "Lakshadweep Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.aiff"
+state = "state.ld"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.ld-women-subjunior"
+name = "Lakshadweep Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.aiff"
+state = "state.ld"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked. No state football association record exists in this dataset for this UT, so assoc.aiff is a placeholder." }
+
+[[team]]
+id = "team.py-men-santosh"
+name = "Puducherry (Santosh Trophy)"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.pfa"
+state = "state.py"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Players registered with the state association under AIFF Santosh Trophy regulations; exact residence/employment rules unverified. National Games entry only in years football is on the programme."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the state side that enters the Santosh Trophy; not every state qualifies for the final round each year." }
+
+[[team]]
+id = "team.py-women-nfc"
+name = "Puducherry (Senior Women's NFC)"
+kind = "state_representative"
+gender = "women"
+age = "senior"
+association = "assoc.pfa"
+state = "state.py"
+competitions = ["comp.senior-women-nfc", "comp.national-games-football-women"]
+eligibility = "Players registered with the state association; exact rules unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; participation varies by year." }
+
+[[team]]
+id = "team.py-men-junior"
+name = "Puducherry Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u19"
+association = "assoc.pfa"
+state = "state.py"
+competitions = ["comp.junior-nfc"]
+eligibility = "State-registered boys within the Junior NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.py-men-subjunior"
+name = "Puducherry Sub-Junior boys"
+kind = "state_representative"
+gender = "men"
+age = "u16"
+association = "assoc.pfa"
+state = "state.py"
+competitions = ["comp.sub-junior-nfc"]
+eligibility = "State-registered boys within the Sub-Junior NFC age band (U16 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.py-women-junior"
+name = "Puducherry Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u19"
+association = "assoc.pfa"
+state = "state.py"
+competitions = ["comp.junior-girls-nfc"]
+eligibility = "State-registered girls within the Junior Girls NFC age band (U19 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+[[team]]
+id = "team.py-women-subjunior"
+name = "Puducherry Sub-Junior girls"
+kind = "state_representative"
+gender = "women"
+age = "u17"
+association = "assoc.pfa"
+state = "state.py"
+competitions = ["comp.sub-junior-girls-nfc"]
+eligibility = "State-registered girls within the Sub-Junior Girls NFC age band (U17 assumed)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Scenario seed: the state can field a Sub-Junior Girls NFC side; actual 2026-27 entry not checked." }
+
+# ---------- Institutional teams ----------
+
+[[team]]
+id = "team.services-men-santosh"
+name = "Services (Santosh Trophy)"
+kind = "institutional"
+gender = "men"
+age = "senior"
+association = "assoc.sscb"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers", "comp.national-games-football-men"]
+eligibility = "Serving personnel of the Army, Navy and Air Force under the Services Sports Control Board."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Services is one of the most successful Santosh Trophy sides historically (title count not recorded here)." }
+
+[[team]]
+id = "team.railways-men-santosh"
+name = "Railways (Santosh Trophy)"
+kind = "institutional"
+gender = "men"
+age = "senior"
+association = "assoc.rspb"
+competitions = ["comp.santosh-trophy", "comp.santosh-trophy-qualifiers"]
+eligibility = "Indian Railways employees under the Railway Sports Promotion Board."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked." }
+
+[[team]]
+id = "team.railways-women-nfc"
+name = "Railways (Senior Women's NFC)"
+kind = "institutional"
+gender = "women"
+age = "senior"
+association = "assoc.rspb"
+competitions = ["comp.senior-women-nfc"]
+eligibility = "Indian Railways employees under the Railway Sports Promotion Board."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; historically one of the strongest sides in the women's championship." }
+
