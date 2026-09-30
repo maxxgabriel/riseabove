@@ -37,6 +37,8 @@ fn leave(w: &mut World, s: StaffId, end: StaffEnd) {
         w.events.push(w.date, Visibility::Public, EventKind::StaffLeft { staff: s, club });
     }
     w.staff[s].club = ClubId::NONE;
+    // The date of separation: how long a person has been out of work is counted from it (`leave_the_game`).
+    w.staff[s].contract_end = w.date;
     close_job(w, s, end);
 }
 
@@ -166,6 +168,18 @@ pub fn yearly(w: &mut World) {
                 }
             } else if age > 55.0 && cur > 4 && roll < 0.05 * (age - 55.0) {
                 w.staff[s].attrs.set(a, cur - 1);
+            }
+        }
+        // Out of work for long: people give up on football work and go back to ordinary jobs, so the pool of the unemployed
+        // reaches a level where jobs and people balance instead of growing without end.
+        if role != StaffRole::Manager && !employed && !w.intl.managers.contains(&s) {
+            let months = (w.date.0 - w.staff[s].contract_end.0).max(0) as f32 / 30.0;
+            if months >= 10.0 {
+                let p = (0.25 + 0.04 * (months - 10.0).min(24.0) + if age >= 50.0 { 0.2 } else { 0.0 }).min(0.9);
+                if w.roll(stream::STAFF, &[u64::from(s.0), year, 0x7e7]) < p {
+                    w.staff[s].retired = true;
+                    continue;
+                }
             }
         }
         // Retirement (managers retire through `managers::monthly`).

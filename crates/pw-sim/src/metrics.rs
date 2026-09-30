@@ -44,6 +44,30 @@ pub struct Snapshot {
     /// Median weekly wage across all active contracted players.
     pub player_wage_median: f64,
     pub player_wage_p99: f64,
+    /// Mean weekly first-team wage, and the median first-team wage of clubs in league tier 1, 2 and 3 or lower.
+    pub first_team_wage_mean: f64,
+    pub wage_tier1: f64,
+    pub wage_tier2: f64,
+    pub wage_tier3: f64,
+    /// Sum of season revenue and of the wage bills (52 weeks) over all clubs: the two must not drift apart.
+    pub revenue_total: f64,
+    pub wage_bill_total: f64,
+    /// Clubs that hold more than two seasons of revenue in cash (hoarding), and clubs in administration now.
+    pub clubs_hoarding: usize,
+    pub clubs_in_administration: usize,
+    /// Administrations begun, in the period.
+    pub insolvencies: u32,
+    /// Club-record signings and sales, world-record fees, and all other records broken, in the period.
+    pub record_signings: u32,
+    pub record_sales: u32,
+    pub record_world_fees: u32,
+    pub records_other: u32,
+    /// Mean best-14 ability of the clubs in tier-1 leagues (league quality).
+    pub top_tier_quality: f32,
+    /// The world's general price index, the mean national wage index, the summed top-flight broadcast pools, and the 90th-percentile club reputation.
+    pub price_index: f32,
+    pub wage_index: f32,
+    pub broadcast_pools: f64,
     // market
     pub transfers: u32,
     pub loans: u32,
@@ -68,6 +92,7 @@ pub struct Snapshot {
     pub appetite_max: f32,
     pub fee_median: f64,
     pub fee_p90: f64,
+    pub fee_p95: f64,
     pub fee_max: f64,
     // fame and reputation
     pub fame_mean: f32,
@@ -238,6 +263,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.mean_ca = mean(&cas);
     s.p99_ca = pct(&mut cas.clone(), 0.99).unwrap_or(0.0);
     s.player_wage_median = pct(&mut wages.clone(), 0.5).unwrap_or(0.0);
+    s.first_team_wage_mean = first_team_wages.iter().sum::<f64>() / first_team_wages.len().max(1) as f64;
     s.first_team_wage_median = pct(&mut first_team_wages, 0.5).unwrap_or(0.0);
     s.player_wage_p99 = pct(&mut wages, 0.99).unwrap_or(0.0);
     s.fame_mean = mean(&fame);
@@ -257,6 +283,50 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
         reps.push(f32::from(w.clubs[c].reputation));
     }
     s.clubs = w.clubs.len();
+    s.revenue_total = revenues.iter().sum();
+    s.wage_bill_total = w.clubs.ids().map(|c| w.clubs[c].finance.wage_bill as f64 * 52.0).sum();
+    for c in w.clubs.ids() {
+        let revenue = crate::finance::season_revenue(w, c).max(1);
+        if w.clubs[c].finance.balance > revenue * 2 {
+            s.clubs_hoarding += 1;
+        }
+        if w.governance.get(&c).is_some_and(|g| g.administration.is_some()) {
+            s.clubs_in_administration += 1;
+        }
+    }
+    let (mut t1, mut t2, mut t3, mut q1): (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f32>) = (vec![], vec![], vec![], vec![]);
+    for c in w.clubs.ids() {
+        let league = w.clubs[c].league;
+        if league.is_none() {
+            continue;
+        }
+        let tier = w.comps[league].tier;
+        let team = w.clubs[c].first_team();
+        let mut cas: Vec<f32> = Vec::new();
+        for &p in &w.teams[team].squad {
+            let pl = &w.players.cold[p];
+            cas.push(f32::from(pl.ca));
+            let wage = pl.contract.current_wage(w.date);
+            if wage > 0 {
+                match tier {
+                    1 => t1.push(wage as f64),
+                    2 => t2.push(wage as f64),
+                    _ => t3.push(wage as f64),
+                }
+            }
+        }
+        if tier == 1 && !cas.is_empty() {
+            cas.sort_by(|a, b| b.total_cmp(a));
+            q1.push(cas.iter().take(14).sum::<f32>() / cas.len().min(14) as f32);
+        }
+    }
+    s.wage_tier1 = pct(&mut t1, 0.5).unwrap_or(0.0);
+    s.wage_tier2 = pct(&mut t2, 0.5).unwrap_or(0.0);
+    s.wage_tier3 = pct(&mut t3, 0.5).unwrap_or(0.0);
+    s.top_tier_quality = mean(&q1);
+    s.price_index = w.economy.global();
+    s.wage_index = if w.economy.nations.is_empty() { 1.0 } else { w.economy.nations.values().map(|e| e.wage_index).sum::<f32>() / w.economy.nations.len() as f32 };
+    s.broadcast_pools = w.economy.nations.values().map(|e| e.broadcast_pool as f64).sum();
     s.balance_p10 = pct(&mut balances.clone(), 0.1).unwrap_or(0.0);
     s.balance_median = pct(&mut balances.clone(), 0.5).unwrap_or(0.0);
     s.balance_p90 = pct(&mut balances, 0.9).unwrap_or(0.0);
@@ -297,6 +367,13 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
             EventKind::Retired { .. } => s.retirements += 1,
             EventKind::YouthIntake { count, .. } => s.youth_intakes += u32::from(count),
             EventKind::ManagerSacked { .. } => s.sackings += 1,
+            EventKind::Administration { .. } => s.insolvencies += 1,
+            EventKind::RecordBroken { kind, .. } => match kind {
+                pw_world::event::RecordKind::ClubRecordSigning => s.record_signings += 1,
+                pw_world::event::RecordKind::ClubRecordSale => s.record_sales += 1,
+                pw_world::event::RecordKind::WorldRecordFee => s.record_world_fees += 1,
+                _ => s.records_other += 1,
+            },
             _ => {}
         }
     }
@@ -330,6 +407,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s.fees_total = fees.iter().sum();
     s.fee_median = pct(&mut fees.clone(), 0.5).unwrap_or(0.0);
     s.fee_p90 = pct(&mut fees.clone(), 0.9).unwrap_or(0.0);
+    s.fee_p95 = pct(&mut fees.clone(), 0.95).unwrap_or(0.0);
     s.fee_max = pct(&mut fees, 1.0).unwrap_or(0.0);
     // Memory and growth.
     s.records = w.records.records.len();
@@ -418,10 +496,19 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     } else if last.wage_to_revenue_median > 0.85 {
         flag(Level::Warn, "wages", format!("the median club pays {:.0}% of its revenue in wages", last.wage_to_revenue_median * 100.0));
     }
-    if let Some(g) = yearly_growth(&series(&|s| s.first_team_wage_median)) {
+    // The mean wage follows the wage bill and so the revenue; the median also moves with how spread out ability is inside squads
+    // (a league whose stars fade pays its middle players more of a fixed bill), so it is read with a higher bar.
+    if let Some(g) = yearly_growth(&series(&|s| if s.first_team_wage_mean > 0.0 { s.first_team_wage_mean } else { s.first_team_wage_median })) {
         if g > 12.0 {
-            flag(Level::Problem, "wages", format!("median first-team wage inflates {g:.0}% a year"));
+            flag(Level::Problem, "wages", format!("mean first-team wage inflates {g:.0}% a year"));
         } else if g > 6.0 {
+            flag(Level::Warn, "wages", format!("mean first-team wage inflates {g:.0}% a year"));
+        }
+    }
+    if let Some(g) = yearly_growth(&series(&|s| s.first_team_wage_median)) {
+        if g > 20.0 {
+            flag(Level::Problem, "wages", format!("median first-team wage inflates {g:.0}% a year"));
+        } else if g > 12.0 {
             flag(Level::Warn, "wages", format!("median first-team wage inflates {g:.0}% a year"));
         }
     }
@@ -557,6 +644,51 @@ pub fn render(run: &[Snapshot]) -> String {
     }
     for r in run {
         s.push_str(&format!("  save y{}: {}\n", r.year, r.top_sections));
+    }
+    s
+}
+
+/// The money series of a run, one row per year: wages by tier, fees, cash, revenue against wages, unemployment, records and insolvency.
+pub fn render_economy(run: &[Snapshot]) -> String {
+    let mut s = String::new();
+    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
+    for r in run {
+        s.push_str(&format!(
+            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
+            r.year,
+            money(r.wage_tier1),
+            money(r.wage_tier2),
+            money(r.wage_tier3),
+            money(r.first_team_wage_mean),
+            money(r.player_wage_median),
+            money(r.player_wage_p99),
+            money(r.fee_median),
+            money(r.fee_p90),
+            money(r.fee_p95),
+            money(r.fee_max),
+            money(r.balance_p10),
+            money(r.balance_median),
+            money(r.balance_p90),
+            r.clubs_hoarding,
+            r.clubs_in_debt,
+            r.clubs_in_administration,
+            r.insolvencies,
+            money(r.revenue_total),
+            money(r.wage_bill_total),
+            if r.revenue_total > 0.0 { r.wage_bill_total / r.revenue_total } else { 0.0 },
+            r.wage_to_revenue_p90,
+            r.free_agents,
+            r.staff_unemployed,
+            r.record_signings,
+            r.record_sales,
+            r.record_world_fees,
+            r.records_other,
+            r.top_tier_quality,
+            r.price_index,
+            r.wage_index,
+            money(r.broadcast_pools),
+            r.club_rep_p90,
+        ));
     }
     s
 }

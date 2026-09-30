@@ -172,7 +172,7 @@ pub(crate) fn hire(w: &mut World, club: ClubId, s: StaffId) {
     st.club = club;
     st.joined = today;
     st.contract_end = today.add_months(24);
-    st.wage = (revenue * 0.0012 / 52.0 * f64::from(st.role_rating(st.role)) / 10.0).max(200.0) as i64;
+    st.wage = (revenue * 0.0012 / 52.0 * f64::from(st.role_rating(st.role)) / 10.0).max(5.0) as i64; // no fixed minimum: it would exceed the whole budget of a small club
     let person = st.person;
     w.clubs[club].staff.push(s);
     w.events.push(today, Visibility::Public, EventKind::JoinedStaff { person, staff: s, club });

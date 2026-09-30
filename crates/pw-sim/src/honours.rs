@@ -123,6 +123,14 @@ pub fn on_cap(w: &mut World, p: PlayerId, n: NationId) {
     crate::records::mirror(w, Scope::Nation(n), Stat::IntlGoals, RHolder::Person(who), i64::from(goals), None);
 }
 
+/// A new high fee is news only when it clearly beats the old one and is big for the club: a margin over the old mark, and a floor tied
+/// to the club's own scale (its season revenue). Otherwise every club of a young world would "break its record" with each dearer deal
+/// and the headline would mean nothing. The record itself is always kept up to date; only the story is rationed.
+fn is_notable(w: &World, club: ClubId, old: Holder, fee: i64, margin_pct: i64, floor_pct_of_revenue: i64) -> bool {
+    let revenue = crate::finance::season_revenue(w, club).max(1);
+    old.value > 0 && old.date.days_until(w.date) >= 365 && fee * 100 >= old.value * margin_pct && fee * 100 >= revenue * floor_pct_of_revenue
+}
+
 /// After a transfer: record signings, sales, and the world record.
 pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fee: i64) {
     if fee <= 0 {
@@ -131,32 +139,34 @@ pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fe
     let today = w.date;
     let mut events = Vec::new();
     if buyer.is_some() {
-        let r = w.honours.clubs.entry(buyer).or_default();
-        if fee > r.record_signing.value {
-            let first = r.record_signing.value == 0;
-            r.record_signing = Holder { player: p, value: fee, date: today };
-            if !first {
+        let old = w.honours.clubs.get(&buyer).map_or_else(Holder::default, |r| r.record_signing.clone());
+        if fee > old.value {
+            let news = is_notable(w, buyer, old, fee, 125, 15);
+            w.honours.clubs.entry(buyer).or_default().record_signing = Holder { player: p, value: fee, date: today };
+            if news {
                 events.push((RecordKind::ClubRecordSigning, buyer));
             }
         }
     }
     if seller.is_some() {
-        let r = w.honours.clubs.entry(seller).or_default();
-        if fee > r.record_sale.value {
-            let first = r.record_sale.value == 0;
-            r.record_sale = Holder { player: p, value: fee, date: today };
-            if !first {
+        let old = w.honours.clubs.get(&seller).map_or_else(Holder::default, |r| r.record_sale.clone());
+        if fee > old.value {
+            let news = is_notable(w, seller, old, fee, 125, 15);
+            w.honours.clubs.entry(seller).or_default().record_sale = Holder { player: p, value: fee, date: today };
+            if news {
                 events.push((RecordKind::ClubRecordSale, seller));
             }
         }
     }
     if fee > w.honours.world_fee.value {
-        let first = w.honours.world_fee.value == 0;
+        let old = w.honours.world_fee.clone();
+        let news = buyer.is_some() && is_notable(w, buyer, old, fee, 110, 3);
         w.honours.world_fee = Holder { player: p, value: fee, date: today };
-        if !first {
+        if news {
             events.push((RecordKind::WorldRecordFee, buyer));
         }
     }
+    let signing_news = events.iter().any(|&(k, c)| k == RecordKind::ClubRecordSigning && c == buyer);
     for (kind, club) in events {
         w.events.push(today, Visibility::Public, EventKind::RecordBroken { player: p, kind, club, value: fee });
     }
@@ -169,7 +179,7 @@ pub fn on_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fe
     }
     crate::records::mirror(w, Scope::World, Stat::FeePaid, RHolder::Person(who), fee, None);
     // A record fee is a weight: fans expect, the media watch.
-    if w.honours.clubs.get(&buyer).is_some_and(|r| r.record_signing.player == p) {
+    if signing_news {
         let who = w.players.cold[p].person;
         let l = &mut w.lives[who];
         l.stress = l.stress.saturating_add(5).min(100);
