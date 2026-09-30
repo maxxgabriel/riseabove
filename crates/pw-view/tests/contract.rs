@@ -305,3 +305,72 @@ fn unknown_hidden_estimated_and_known_are_four_different_things_on_the_wire() {
     let ts = contract::typescript();
     assert!(ts.contains("export type Knowledge<T>") && ts.contains("\"hidden\"") && ts.contains("\"unknown\""));
 }
+
+#[test]
+fn commands_are_read_through_declared_requests_that_refuse_what_they_do_not_name() {
+    // Every command that takes arguments declares its request type, and the TypeScript the app compiles against has it.
+    let ts = contract::typescript();
+    for m in contract::manifest().iter().filter(|m| m.kind == MethodKind::Command) {
+        if let Some(req) = m.request {
+            assert!(ts.contains(&format!("export interface {req} ")) || ts.contains(&format!("export type {req} =")), "{}: {req} is not declared", m.name);
+        }
+    }
+    for name in ["me.act", "me.answer", "me.reply", "me.plan", "me.goal", "me.note", "settings.set", "persp.observe", "persp.inhabit", "world.load", "world.save", "club.follow"] {
+        assert!(contract::manifest().iter().any(|m| m.name == name && m.request.is_some()), "{name} has no declared request");
+    }
+    // Every action kind is in the TypeScript union, with its choices.
+    for tag in contract::ActReq::TAGS {
+        assert!(ts.contains(&format!("action: \"{tag}\"")), "action {tag} missing from ActReq");
+    }
+    assert!(ts.contains("| { action: \"meet\"; with: number; topic: string; tone?: string | null }"));
+
+    let api = world();
+    let me = inhabit(&api);
+    let kind = |r: pw_view::ApiResult<Value>| r.map(|_| ()).map_err(|e| e.kind());
+    // An action the world does not know, a missing choice, a choice of the wrong type and a field no action takes are all refused as
+    // malformed, and none of them is queued.
+    let before = api.call("me.today", json!({})).unwrap();
+    assert_eq!(kind(api.call("me.act", json!({"action": "fly"}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.act", json!({}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.act", json!({"action": "meet", "topic": "feedback"}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.act", json!({"action": "hire_agent", "agent": "the best one"}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.act", json!({"action": "transfer_request", "wage": 999_999}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.act", json!({"action": "invest", "amount": 1000, "return": 50}))), Err(ErrorKind::InvalidRequest));
+    let err = api.call("me.act", json!({"action": "meet", "with": me, "topic": "feedback", "score": 3})).unwrap_err();
+    assert!(err.to_string().contains("score"), "the refusal names the field: {err}");
+    assert_eq!(api.call("me.today", json!({})).unwrap(), before, "a refused command changed nothing");
+    // The same holds for the other commands.
+    assert_eq!(kind(api.call("me.note", json!({"text": "x", "date": 5}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.goal_done", json!({"i": "first"}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("me.plan", json!({"intensity": "high", "sharpness": 100}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("settings.set", json!({"stops": {"decisions": true, "always": true}}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("persp.inhabit", json!({"person": "someone"}))), Err(ErrorKind::InvalidRequest));
+    // A well-formed action is queued and answered with the declared reply.
+    let done = api.call("me.act", json!({"action": "dating", "open": false})).unwrap();
+    check_against(&ts, "ActDone", &done);
+    assert_eq!(done["applies"], "next day");
+}
+
+#[test]
+fn a_world_opens_in_the_public_view_and_omniscience_is_asked_for_by_name() {
+    let api = world();
+    let s = api.call("world.status", json!({})).unwrap();
+    assert_eq!((s["perspective"]["mode"].as_str(), s["perspective"]["omniscient"].as_bool()), (Some("public"), Some(false)), "{s}");
+    // What only the debug view may do is refused in the view a world opens in.
+    let t = api.call("table.query", json!({"table": "players", "limit": 3})).unwrap();
+    let pid = t["rows"][0]["open"]["id"].as_u64().unwrap();
+    assert!(api.call("person.attributes", json!({"id": pid})).unwrap()["internal"].is_null(), "no true ability in the public view");
+    // Stopping inhabiting goes back to the public view; the omniscient view has to be named.
+    inhabit(&api);
+    api.call("persp.observe", json!({})).unwrap();
+    assert_eq!(api.call("world.status", json!({})).unwrap()["perspective"]["mode"], "public");
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
+    let s = api.call("world.status", json!({})).unwrap();
+    assert_eq!((s["perspective"]["mode"].as_str(), s["perspective"]["omniscient"].as_bool()), (Some("observer"), Some(true)));
+    assert!(!api.call("person.attributes", json!({"id": pid})).unwrap()["internal"].is_null(), "the debug view shows the truth");
+    // A saved and reloaded world opens in the public view again, whatever view it was saved from.
+    api.call("world.save", json!({"file": "view"})).unwrap();
+    api.call("world.load", json!({"file": "view.pws"})).unwrap();
+    wait(&api, "task");
+    assert_eq!(api.call("world.status", json!({})).unwrap()["perspective"]["mode"], "public");
+}

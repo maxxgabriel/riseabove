@@ -251,7 +251,7 @@ fn player_lists_are_not_ordered_by_true_ability() {
     });
     assert_eq!(before, ids(&q()), "the order of a position-sorted list follows something the viewer cannot see");
     // And the omniscient view is allowed its truth columns, sorted by them.
-    api.call("persp.observe", json!({})).unwrap();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let t = api.call("table.query", json!({"table": "players", "filters": {"kind": "first", "status": "active"}, "sort": {"key": "ca", "desc": true}, "limit": 5})).unwrap();
     assert!(t["all_columns"].as_array().unwrap().iter().any(|c| c["key"] == "ca"));
 }
@@ -267,6 +267,7 @@ fn filters_and_sorts_by_hidden_truth_are_refused_outside_the_omniscient_view() {
         let t = api.call("table.query", q).unwrap();
         (t["total"].as_u64().unwrap(), ids(&t), t["sort"].clone())
     };
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let all = total(&api, json!({"kind": "first"}), None).0;
     assert!(total(&api, json!({"kind": "first", "min_ca": 150}), None).0 < all, "the omniscient view may filter by true ability");
     for public in [true, false] {
@@ -334,6 +335,7 @@ fn relationship_pages_show_evidence_and_tone_and_not_the_internal_numbers() {
 fn the_diagnosis_of_an_injury_is_the_clubs_business() {
     let api = world();
     // Find a first-team player who is injured, in the omniscient view.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let t = api.call("table.query", json!({"table": "players", "filters": {"kind": "first", "status": "active", "injured": true}, "limit": 20})).unwrap();
     let hurt = t["rows"].as_array().unwrap().first().map(|r| (r["open"]["id"].as_u64().unwrap(), r["cells"].clone()));
     let (id, _) = hurt.expect("after ten weeks somebody is injured");
@@ -366,12 +368,17 @@ fn omniscience_is_its_own_labelled_view_and_the_others_do_not_reach_it() {
     let status = |api: &Api| api.call("world.status", json!({})).unwrap()["perspective"].clone();
     let internal = |api: &Api| api.call("person", json!({"id": 1008})).unwrap()["player"]["internal"].clone();
     let cols = |api: &Api| api.call("table.query", json!({"table": "players", "limit": 3})).unwrap()["all_columns"].as_array().unwrap().iter().map(|c| c["key"].as_str().unwrap().to_string()).collect::<Vec<_>>();
-    // Default: the omniscient debug view, and it says so.
+    // A world opens in the public view: the same world, without the truth.
+    let s = status(&api);
+    assert_eq!((s["mode"].as_str(), s["omniscient"].as_bool()), (Some("public"), Some(false)));
+    assert!(internal(&api).is_null() && !cols(&api).contains(&"ca".to_string()));
+    // The omniscient debug view has to be asked for by name, and it says what it is.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let s = status(&api);
     assert_eq!((s["mode"].as_str(), s["omniscient"].as_bool()), (Some("observer"), Some(true)));
     assert!(!internal(&api).is_null() && cols(&api).contains(&"ca".to_string()));
-    // The public view: the same world, without the truth.
-    api.call("persp.observe", json!({"public": true})).unwrap();
+    // Leaving it without naming a view goes back to the public one.
+    api.call("persp.observe", json!({})).unwrap();
     let s = status(&api);
     assert_eq!((s["mode"].as_str(), s["omniscient"].as_bool()), (Some("public"), Some(false)));
     assert!(internal(&api).is_null() && !cols(&api).contains(&"ca".to_string()));
@@ -381,12 +388,13 @@ fn omniscience_is_its_own_labelled_view_and_the_others_do_not_reach_it() {
     inhabit_mid(&api);
     assert_eq!(status(&api)["mode"], "inhabit");
     assert!(internal(&api).is_null());
-    // A public view survives no save: reopening a world starts in the default view, never in a stale one.
-    api.call("persp.observe", json!({"public": true})).unwrap();
+    // No view survives a save: reopening a world starts in the public view, even one saved from the omniscient view.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     api.call("world.save", json!({"file": "fw"})).unwrap();
     api.call("world.load", json!({"file": "fw.pws"})).unwrap();
     wait(&api, "task");
-    assert_eq!(status(&api)["mode"], "observer");
+    assert_eq!(status(&api)["mode"], "public");
+    assert!(internal(&api).is_null());
 }
 
 /// The places in this crate that read the engine's private truth. Adding one anywhere else fails this test: it has to be reviewed,

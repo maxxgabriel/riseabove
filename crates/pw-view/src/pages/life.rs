@@ -423,10 +423,10 @@ pub fn add_goal(s: &mut Session, args: &Value) -> ApiResult<Value> {
         return Err(ApiError::Unauthorized("You are observing the world.".into()));
     }
     let today = s.today();
-    let kind_s = args.get("kind").and_then(Value::as_str).unwrap_or("personal");
-    let n = args.get("target").and_then(Value::as_u64).map_or(0, |n| n.min(u16::MAX as u64) as u16);
-    let text = args.get("text").and_then(Value::as_str).map(str::trim).unwrap_or("").to_string();
-    let (kind, text) = match kind_s {
+    let req: crate::contract::GoalReq = crate::contract::request(args.clone())?;
+    let n = req.target.map_or(0, |n| n.min(u64::from(u16::MAX)) as u16);
+    let text = req.text.as_deref().map(str::trim).unwrap_or("").to_string();
+    let (kind, text) = match req.kind.as_deref().unwrap_or("personal") {
         "appearances" if n > 0 => (GoalKind::Appearances(n), format!("Reach {n} senior appearances")),
         "goals" if n > 0 => (GoalKind::Goals(n), format!("Score {n} senior goals")),
         "top_flight" => (GoalKind::TopFlight, "Play for a club in a top-tier league".to_string()),
@@ -439,9 +439,10 @@ pub fn add_goal(s: &mut Session, args: &Value) -> ApiResult<Value> {
 }
 
 pub fn goal_done(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let i = args.get("i").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing goal".into()))? as usize;
+    let req: crate::contract::GoalDoneReq = crate::contract::request(args.clone())?;
+    let i = req.i as usize;
     let today = s.today();
-    let remove = args.get("remove").and_then(Value::as_bool).unwrap_or(false);
+    let remove = req.remove.unwrap_or(false);
     let goals = &mut s.game.session.goals;
     if i >= goals.len() {
         return Err(ApiError::NotFound("goal".into()));
@@ -461,7 +462,8 @@ pub fn add_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
     if s.my_person().is_none() {
         return Err(ApiError::Unauthorized("You are observing the world.".into()));
     }
-    let text = args.get("text").and_then(Value::as_str).map(str::trim).unwrap_or("");
+    let req: crate::contract::NoteReq = crate::contract::request(args.clone())?;
+    let text = req.text.as_deref().map(str::trim).unwrap_or("");
     if text.is_empty() {
         return Err(ApiError::Bad("Write something first.".into()));
     }
@@ -472,7 +474,7 @@ pub fn add_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
 }
 
 pub fn remove_note(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let i = args.get("i").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing note".into()))? as usize;
+    let i = crate::contract::request::<crate::contract::IndexReq>(args.clone())?.i as usize;
     if i >= s.game.session.notes.len() {
         return Err(ApiError::NotFound("note".into()));
     }

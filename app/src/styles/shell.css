@@ -36,6 +36,8 @@
 .persp-chip.you { border-color: color-mix(in srgb, var(--you) 55%, var(--line-2)); background: var(--you-soft); color: var(--text); }
 .persp-chip .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--text-3); flex: none; }
 .persp-chip.you .dot { background: var(--you); }
+.persp-chip.debug { border-color: color-mix(in srgb, var(--warn) 60%, var(--line-2)); }
+.persp-chip.debug .dot { background: var(--warn); }
 .persp-chip .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .advance { display: inline-flex; }

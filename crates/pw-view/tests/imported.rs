@@ -58,6 +58,9 @@ fn a_search_an_imported_person_open_the_profile_and_read_the_career() {
     let api = api();
     import_world(&api, "journey-a");
     let id = find_person(&api, "Player10005");
+    // Provenance is for the observer (debug) view, which a world does not open in.
+    assert!(api.call("person", json!({"id": id})).unwrap()["provenance"].is_null(), "the public view is not shown where records came from");
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let p = api.call("person", json!({"id": id})).unwrap();
     assert_eq!(p["player"].is_null(), false);
     // An observer sees where the record came from and which facts were estimated.
@@ -176,7 +179,7 @@ fn e_save_and_reload_keep_the_person_the_world_the_history_and_the_provenance() 
     assert_eq!(api.call("me.journal", json!({})).unwrap()["notes"], journal_before["notes"]);
     assert_eq!(api.call("table.query", json!({"table": "spells", "filters": {"person": id}, "limit": 50})).unwrap()["rows"], spells_before["rows"]);
     // Provenance is part of the world and returns with it.
-    api.call("persp.observe", json!({})).unwrap();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let p = api.call("person", json!({"id": id})).unwrap();
     assert_eq!(p["provenance"]["id"], "player:10005");
     // The saves list says the file is in the current format.

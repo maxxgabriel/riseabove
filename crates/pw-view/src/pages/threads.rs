@@ -302,7 +302,7 @@ pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
 
 /// `me.thread_read`: mark a conversation read.
 pub fn mark_read(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing thread".into()))? as u32;
+    let id = crate::contract::request::<crate::contract::IdReq>(args.clone())?.id;
     if s.my_person().is_none() {
         return Err(ApiError::Unauthorized("You are observing the world; there is no inbox to read.".into()));
     }
@@ -312,8 +312,8 @@ pub fn mark_read(s: &mut Session, args: &Value) -> ApiResult<Value> {
 
 /// `me.reply`: send one of the replies a message offers.
 pub fn reply(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let msg = args.get("message").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing message".into()))? as u32;
-    let key = args.get("key").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing reply".into()))?;
+    let req: crate::contract::ReplyReq = crate::contract::request(args.clone())?;
+    let (msg, key) = (req.message, req.key.as_str());
     let me = s.my_person().ok_or_else(|| ApiError::Unauthorized("You are observing the world; there is nobody to reply for.".into()))?;
     let w = s.w();
     let m = w.inbox.messages.get(msg as usize).copied().filter(|m| m.to == me).ok_or_else(|| ApiError::NotFound("message".into()))?;

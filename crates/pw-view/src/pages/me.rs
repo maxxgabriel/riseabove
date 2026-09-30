@@ -406,8 +406,9 @@ pub fn set_plan(s: &mut Session, args: &Value) -> ApiResult<Value> {
     if s.w().players.hot[p].status == PlayerStatus::Retired {
         return Err(ApiError::State("You have retired.".into()));
     }
+    let req: crate::contract::PlanReq = crate::contract::request(args.clone())?;
     let mut plan = s.w().players.cold[p].plan;
-    if let Some(i) = args.get("intensity").and_then(Value::as_str) {
+    if let Some(i) = req.intensity.as_deref() {
         plan.intensity = match i {
             "light" => Intensity::Light,
             "normal" => Intensity::Normal,
@@ -415,15 +416,15 @@ pub fn set_plan(s: &mut Session, args: &Value) -> ApiResult<Value> {
             _ => return Err(ApiError::Bad("Unknown intensity.".into())),
         };
     }
-    if let Some(e) = args.get("extra").and_then(Value::as_u64) {
+    if let Some(e) = req.extra {
         plan.extra = e.min(3) as u8;
     }
-    if let Some(r) = args.get("recovery").and_then(Value::as_u64) {
+    if let Some(r) = req.recovery {
         plan.recovery = r.min(2) as u8;
     }
-    if let Some(f) = args.get("focus") {
-        let kind = f.get("kind").and_then(Value::as_str).unwrap_or("general");
-        let value = f.get("value").and_then(Value::as_str).unwrap_or("");
+    if let Some(f) = req.focus {
+        let kind = f.kind.as_deref().unwrap_or("general");
+        let value = f.value.as_deref().unwrap_or("");
         plan.focus = match kind {
             "general" => Focus::General,
             "group" => Focus::Group(match value {

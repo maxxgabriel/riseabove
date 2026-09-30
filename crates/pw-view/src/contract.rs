@@ -63,6 +63,76 @@ macro_rules! contract {
     )*};
 }
 
+/// Declare a request once: a Rust struct that refuses fields it does not name (so a client cannot slip authoritative world state, a
+/// wage or a score, into a command) and its TypeScript interface. An `Option` field may be left out.
+macro_rules! request {
+    ($( $(#[$m:meta])* pub struct $name:ident { $( $(#[$fm:meta])* pub $f:ident : $t:ty ),* $(,)? } )*) => {$(
+        $(#[$m])*
+        #[derive(Clone, Debug, Default, serde::Deserialize, Serialize)]
+        #[serde(deny_unknown_fields)]
+        pub struct $name { $( $(#[$fm])* pub $f: $t ),* }
+
+        impl Ts for $name {
+            fn ts() -> String { stringify!($name).into() }
+        }
+
+        impl $name {
+            pub fn declaration() -> String {
+                let mut s = format!("export interface {} {{\n", stringify!($name));
+                $( s.push_str(&format!("  {}\n", ts_field(stringify!($f), &<$t as Ts>::ts()))); )*
+                s.push_str("}\n");
+                s
+            }
+        }
+    )*};
+}
+
+/// A request with one shape per kind, told apart by a tag field (`me.act`'s `action`). Unknown kinds and unknown fields are refused.
+macro_rules! request_enum {
+    ($(#[$m:meta])* pub enum $name:ident tag $tag:literal { $( $(#[$vm:meta])* $var:ident $key:literal { $( $f:ident : $t:ty ),* $(,)? } ),* $(,)? }) => {
+        $(#[$m])*
+        #[derive(Clone, Debug, serde::Deserialize, Serialize)]
+        #[serde(tag = $tag, deny_unknown_fields)]
+        pub enum $name { $( $(#[$vm])* #[serde(rename = $key)] $var { $( $f: $t ),* } ),* }
+
+        impl Ts for $name {
+            fn ts() -> String { stringify!($name).into() }
+        }
+
+        impl $name {
+            /// Every kind, in declaration order.
+            pub const TAGS: &'static [&'static str] = &[$($key),*];
+
+            pub fn tag(&self) -> &'static str {
+                match self { $( $name::$var { .. } => $key ),* }
+            }
+
+            pub fn declaration() -> String {
+                let mut s = format!("export type {} =\n", stringify!($name));
+                $(
+                    s.push_str(&format!("  | {{ {}: \"{}\"", $tag, $key));
+                    $( s.push_str(&format!("; {}", ts_field(stringify!($f), &<$t as Ts>::ts()).trim_end_matches(';'))); )*
+                    s.push_str(" }\n");
+                )*
+                s.push_str(";\n");
+                s
+            }
+        }
+    };
+}
+
+/// `name: type;`, or `name?: type;` for a field that may be left out.
+fn ts_field(name: &str, ty: &str) -> String {
+    if ty.ends_with("| null") { format!("{name}?: {ty};") } else { format!("{name}: {ty};") }
+}
+
+/// Read a call's arguments as its declared request type. A malformed request (a missing or mistyped field, a field the request does
+/// not have) is an `InvalidRequest` that names the problem, never a half-read command.
+pub fn request<T: serde::de::DeserializeOwned>(args: Value) -> crate::model::ApiResult<T> {
+    let args = if args.is_null() { Value::Object(Default::default()) } else { args };
+    serde_json::from_value(args).map_err(|e| crate::model::ApiError::Bad(format!("Invalid request: {e}.")))
+}
+
 // ------------------------------------------------------------------ errors
 
 /// What went wrong, in terms the client can act on.
@@ -632,6 +702,173 @@ contract! {
     }
 }
 
+// ------------------------------------------------------------------ requests (commands)
+
+request! {
+    /// Stop inhabiting. The public view unless the omniscient debug view is asked for by name (`public: false` is the older way).
+    pub struct ObserveReq {
+        pub omniscient: Option<bool>,
+        pub public: Option<bool>,
+    }
+
+    pub struct InhabitReq {
+        pub person: u32,
+    }
+
+    pub struct StopsReq {
+        pub decisions: Option<bool>,
+        pub matches: Option<bool>,
+        pub major: Option<bool>,
+    }
+
+    pub struct SettingsReq {
+        pub conceal_mine: Option<bool>,
+        pub stops: Option<StopsReq>,
+    }
+
+    pub struct SaveReq {
+        pub file: Option<String>,
+    }
+
+    pub struct LoadReq {
+        pub file: String,
+        pub backup: Option<bool>,
+    }
+
+    pub struct FileReq {
+        pub file: String,
+    }
+
+    /// An answer to one of the inhabited person's decisions (`id` as the inbox gives it, `d` and a number).
+    pub struct AnswerReq {
+        pub id: String,
+        pub choice: u8,
+    }
+
+    pub struct ReplyReq {
+        pub message: u32,
+        pub key: String,
+    }
+
+    pub struct IdReq {
+        pub id: u32,
+    }
+
+    pub struct GoalReq {
+        pub kind: Option<String>,
+        pub target: Option<u64>,
+        pub text: Option<String>,
+    }
+
+    pub struct GoalDoneReq {
+        pub i: u32,
+        pub remove: Option<bool>,
+    }
+
+    pub struct NoteReq {
+        pub text: Option<String>,
+    }
+
+    pub struct IndexReq {
+        pub i: u32,
+    }
+
+    pub struct FocusReq {
+        pub kind: Option<String>,
+        pub value: Option<String>,
+    }
+
+    pub struct PlanReq {
+        pub intensity: Option<String>,
+        pub extra: Option<u64>,
+        pub recovery: Option<u64>,
+        pub focus: Option<FocusReq>,
+    }
+
+    pub struct FollowReq {
+        pub club: u32,
+        pub follow: Option<bool>,
+    }
+
+    pub struct RevealReq {
+        pub uid: u64,
+    }
+
+    pub struct RouteReq {
+        pub start: String,
+        pub district: Option<u32>,
+        pub first: Option<String>,
+        pub last: Option<String>,
+    }
+
+    pub struct CreatePersonReq {
+        pub first: Option<String>,
+        pub last: Option<String>,
+        pub age: Option<u64>,
+        pub pos: Option<String>,
+        pub club: Option<u32>,
+        pub nation: Option<u32>,
+    }
+
+    /// Hours a week for each part of life; one left out keeps its current share.
+    pub struct RoutineHours {
+        pub rest: Option<u64>,
+        pub recovery: Option<u64>,
+        pub family: Option<u64>,
+        pub partner: Option<u64>,
+        pub social: Option<u64>,
+        pub study: Option<u64>,
+        pub hobbies: Option<u64>,
+        pub media: Option<u64>,
+        pub nightlife: Option<u64>,
+        pub language: Option<u64>,
+    }
+}
+
+request_enum! {
+    /// Something the inhabited person decides to do (`me.act`). Each action names exactly the choices it takes; none carries a value
+    /// the world owns (a wage, a fee, an ability).
+    pub enum ActReq tag "action" {
+        Meet "meet" { with: u32, topic: String, tone: Option<String> },
+        TransferRequest "transfer_request" {},
+        WithdrawRequest "withdraw_request" {},
+        Routine "routine" { hours: Option<RoutineHours> },
+        Lifestyle "lifestyle" { value: String },
+        HireAgent "hire_agent" { agent: u32 },
+        DropAgent "drop_agent" {},
+        Retire "retire" {},
+        Unretire "unretire" {},
+        SeekJob "seek_job" { role: String },
+        Dating "dating" { open: Option<bool> },
+        Partner "partner" { ask: String },
+        Amateur "amateur" {},
+        Nation "nation" { nation: u32 },
+        RetireInternational "retire_international" {},
+        Pain "pain" { on: Option<bool> },
+        Mentor "mentor" { person: u32 },
+        Press "press" { about: u32, stance: String },
+        Enrol "enrol" { course: String },
+        MoveHome "move_home" { buy: Option<bool>, quality: Option<u64> },
+        Helper "helper" { helper: String, quality: Option<u64> },
+        DismissHelper "dismiss_helper" { helper: String },
+        Giving "giving" { pct: Option<u64>, community: Option<u64> },
+        Foundation "foundation" {},
+        Invest "invest" { amount: Option<i64>, risk: Option<u64> },
+        Career "career" { path: String },
+        LeaveCareer "leave_career" {},
+        Post "post" { concept: String, about: Option<u32>, reply_to: Option<u32>, quote_of: Option<u32> },
+    }
+}
+
+contract! {
+    /// What `me.act` answers: the action in words, and when the world applies it.
+    pub struct ActDone {
+        pub ok: bool,
+        pub text: String,
+        pub applies: String,
+    }
+}
+
 /// Which view is looking. The omniscient view is the debug view and says so.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "mode", rename_all = "snake_case")]
@@ -680,6 +917,11 @@ const fn typed(mut m: MethodSpec, req: Option<&'static str>, res: &'static str) 
     m.response = Some(res);
     m
 }
+/// A method whose request is declared and read through `request`, its response not yet.
+const fn takes(mut m: MethodSpec, req: &'static str) -> MethodSpec {
+    m.request = Some(req);
+    m
+}
 
 /// Every method of `Api::call`, as a query or a command. A source-level test keeps this list and the dispatcher in step.
 pub fn manifest() -> Vec<MethodSpec> {
@@ -690,18 +932,18 @@ pub fn manifest() -> Vec<MethodSpec> {
         q("world.inspect_import"),
         q("world.datasets"),
         q("world.saves"),
-        c("world.save"),
-        c("world.load"),
+        takes(c("world.save"), "SaveReq"),
+        takes(c("world.load"), "LoadReq"),
         c("world.close"),
-        c("world.delete_save"),
-        c("settings.set"),
+        takes(c("world.delete_save"), "FileReq"),
+        takes(c("settings.set"), "SettingsReq"),
         c("advance.start"),
         c("advance.stop"),
-        c("persp.observe"),
-        c("persp.inhabit"),
-        c("person.create"),
+        takes(c("persp.observe"), "ObserveReq"),
+        takes(c("persp.inhabit"), "InhabitReq"),
+        takes(c("person.create"), "CreatePersonReq"),
         q("route.options"),
-        c("route.begin"),
+        takes(c("route.begin"), "RouteReq"),
         typed(q("table.query"), Some("TableReq"), "TableResp"),
         q("search"),
         q("overview"),
@@ -720,23 +962,23 @@ pub fn manifest() -> Vec<MethodSpec> {
         q("insight.person"),
         q("club"),
         q("club.systems"),
-        c("club.follow"),
+        takes(c("club.follow"), "FollowReq"),
         q("comp"),
         q("nation"),
         q("match"),
         q("match.watch"),
-        c("match.reveal"),
+        takes(c("match.reveal"), "RevealReq"),
         c("match.reveal_all"),
         q("me.today"),
         c("me.viewed"),
         q("me.messages"),
         q("me.inbox"),
         q("me.thread"),
-        c("me.thread_read"),
-        c("me.reply"),
+        takes(c("me.thread_read"), "IdReq"),
+        takes(c("me.reply"), "ReplyReq"),
         q("me.message"),
-        c("me.answer"),
-        c("me.act"),
+        takes(c("me.answer"), "AnswerReq"),
+        typed(c("me.act"), Some("ActReq"), "ActDone"),
         q("me.options"),
         q("me.self"),
         q("me.life"),
@@ -750,13 +992,13 @@ pub fn manifest() -> Vec<MethodSpec> {
         q("me.story"),
         q("me.agent"),
         q("me.journal"),
-        c("me.goal"),
-        c("me.goal_done"),
-        c("me.note"),
-        c("me.note_remove"),
+        takes(c("me.goal"), "GoalReq"),
+        takes(c("me.goal_done"), "GoalDoneReq"),
+        takes(c("me.note"), "NoteReq"),
+        takes(c("me.note_remove"), "IndexReq"),
         q("me.calendar"),
         q("me.football"),
-        c("me.plan"),
+        takes(c("me.plan"), "PlanReq"),
         q("me.contract"),
         typed(q("pathway.player"), Some("PersonReq"), "PathwayView"),
         typed(q("ecosystem.regions"), None, "RegionOutputView"),
@@ -854,6 +1096,29 @@ pub fn declarations() -> Vec<String> {
         ReferenceStatusRow::declaration(),
         DerbyRow::declaration(),
         ScenarioView::declaration(),
+        ObserveReq::declaration(),
+        InhabitReq::declaration(),
+        StopsReq::declaration(),
+        SettingsReq::declaration(),
+        SaveReq::declaration(),
+        LoadReq::declaration(),
+        FileReq::declaration(),
+        AnswerReq::declaration(),
+        ReplyReq::declaration(),
+        IdReq::declaration(),
+        GoalReq::declaration(),
+        GoalDoneReq::declaration(),
+        NoteReq::declaration(),
+        IndexReq::declaration(),
+        FocusReq::declaration(),
+        PlanReq::declaration(),
+        FollowReq::declaration(),
+        RevealReq::declaration(),
+        RouteReq::declaration(),
+        CreatePersonReq::declaration(),
+        RoutineHours::declaration(),
+        ActReq::declaration(),
+        ActDone::declaration(),
     ]
 }
 

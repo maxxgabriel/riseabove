@@ -62,7 +62,7 @@ export function Database() {
   };
   const observe = async () => {
     setBusy(true); setError(null);
-    try { await act("persp.observe"); }
+    try { await act("persp.observe", { omniscient: true }); }
     catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   };
@@ -85,7 +85,7 @@ export function Database() {
     {error && <p role="alert" className="tone-neg">{error}</p>}
     {sources.error && <ErrorState error={sources.error} onRetry={sources.reload} />}
     {sources.data?.errors.map((e) => <p key={e} role="alert" className="muted">{e}</p>)}
-    {!observer ? <div className="database-empty"><h2>Observer view</h2><p>Source data is separate from your character’s knowledge.</p><Button disabled={busy} onClick={() => void observe()}>Switch to observer</Button></div>
+    {!observer ? <div className="database-empty"><h2>Observer view</h2><p>Source data is separate from your character’s knowledge.</p><Button disabled={busy} onClick={() => void observe()}>Switch to the observer (debug) view</Button></div>
       : source ? <>
         <div className="database-source">
           <label>Dataset <select value={sourceId} onChange={(e) => setQuery({ source: e.target.value, table: null, column: null, value: null, search: null, offset: null })}>

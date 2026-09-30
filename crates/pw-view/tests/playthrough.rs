@@ -918,7 +918,7 @@ impl Run {
         self.bot.person_pages(&self.api, self.me);
         self.bot.tables(&self.api, 0, self.me);
         self.bot.at = "observer view".into();
-        self.api.call("persp.observe", json!({})).unwrap();
+        self.api.call("persp.observe", json!({"omniscient": true})).unwrap();
         self.bot.world_pages(&self.api, 2, false);
         self.bot.person_pages(&self.api, self.me);
         if let Ok(path) = std::env::var("PW_TEXT_DUMP") {

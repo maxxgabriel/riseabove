@@ -149,23 +149,20 @@ impl Api {
                 Ok(json!({"closed": true}))
             }
             "world.delete_save" => self.delete_save(args),
-            "settings.set" => self.with_mut(|s| {
-                if let Some(v) = args.get("conceal_mine").and_then(Value::as_bool) {
-                    s.meta.conceal_mine = v;
-                }
-                if let Some(st) = args.get("stops") {
-                    if let Some(v) = st.get("decisions").and_then(Value::as_bool) {
-                        s.meta.stops.decisions = v;
+            "settings.set" => {
+                let req: contract::SettingsReq = contract::request(args)?;
+                self.with_mut(|s| {
+                    if let Some(v) = req.conceal_mine {
+                        s.meta.conceal_mine = v;
                     }
-                    if let Some(v) = st.get("matches").and_then(Value::as_bool) {
-                        s.meta.stops.matches = v;
+                    if let Some(st) = req.stops {
+                        s.meta.stops.decisions = st.decisions.unwrap_or(s.meta.stops.decisions);
+                        s.meta.stops.matches = st.matches.unwrap_or(s.meta.stops.matches);
+                        s.meta.stops.major = st.major.unwrap_or(s.meta.stops.major);
                     }
-                    if let Some(v) = st.get("major").and_then(Value::as_bool) {
-                        s.meta.stops.major = v;
-                    }
-                }
-                Ok(json!({"ok": true}))
-            }),
+                    Ok(json!({"ok": true}))
+                })
+            }
 
             "advance.start" => {
                 let req: AdvanceReq = serde_json::from_value(args).map_err(|e| ApiError::Bad(e.to_string()))?;
@@ -179,7 +176,9 @@ impl Api {
 
             "persp.observe" => {
                 self.not_while_advancing()?;
-                let public = args.get("public").and_then(Value::as_bool).unwrap_or(false);
+                let req: contract::ObserveReq = contract::request(args)?;
+                // The omniscient debug view only when asked for by name; `public: false` is the older way of asking.
+                let public = !req.omniscient.unwrap_or(req.public == Some(false));
                 self.with_mut(|s| {
                     s.observe(public);
                     Ok(json!({"ok": true}))
@@ -187,7 +186,7 @@ impl Api {
             }
             "persp.inhabit" => {
                 self.not_while_advancing()?;
-                let id = args.get("person").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing person".into()))?;
+                let id = u64::from(contract::request::<contract::InhabitReq>(args)?.person);
                 self.with_mut(|s| {
                     let salt = s.w().seed ^ (u64::from(s.today().0 as u32) << 20) ^ id;
                     s.inhabit(pw_core::PersonId(id as u32), salt)?;
@@ -406,7 +405,8 @@ impl Api {
         self.not_while_advancing()?;
         let g = self.lock();
         let s = g.as_ref().ok_or_else(|| ApiError::State("No world is open.".into()))?;
-        let file = args.get("file").and_then(Value::as_str).map(slug).unwrap_or_else(|| slug(&s.meta.name));
+        let req: contract::SaveReq = contract::request(args)?;
+        let file = req.file.as_deref().map(slug).unwrap_or_else(|| slug(&s.meta.name));
         let path = self.saves_dir().join(format!("{file}.pws"));
         if path.exists() {
             let _ = std::fs::copy(&path, path.with_extension("bak"));
@@ -424,8 +424,8 @@ impl Api {
 
     fn load(&self, args: Value) -> ApiResult<Value> {
         self.not_while_advancing()?;
-        let file = args.get("file").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing file".into()))?;
-        let backup = args.get("backup").and_then(Value::as_bool).unwrap_or(false);
+        let req: contract::LoadReq = contract::request(args)?;
+        let (file, backup) = (req.file.as_str(), req.backup.unwrap_or(false));
         let mut path = self.saves_dir().join(Path::new(file).file_name().ok_or_else(|| ApiError::Bad("bad file name".into()))?);
         if backup {
             path = path.with_extension("bak");
@@ -444,7 +444,8 @@ impl Api {
     }
 
     fn delete_save(&self, args: Value) -> ApiResult<Value> {
-        let file = args.get("file").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing file".into()))?;
+        let req: contract::FileReq = contract::request(args)?;
+        let file = req.file.as_str();
         let name = Path::new(file).file_name().ok_or_else(|| ApiError::Bad("bad file name".into()))?;
         let p = self.saves_dir().join(name);
         for ext in ["pws", "json", "bak"] {

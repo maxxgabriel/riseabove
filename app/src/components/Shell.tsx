@@ -121,14 +121,17 @@ function PerspectiveChip() {
   const p = st.perspective;
   const busy = st.job.running;
   const you = p?.mode === "inhabit";
-  const observe = async () => {
+  const debug = p?.mode === "observer";
+  // Watching from outside opens in the public view; the omniscient view is a debug tool asked for by name.
+  const observe = async (omniscient: boolean) => {
     try {
-      await act("persp.observe");
-      navigate("/overview");
+      await act("persp.observe", { omniscient });
+      if (you) navigate("/overview");
     } catch (e) {
       notify({ tone: "neg", text: (e as Error).message });
     }
   };
+  const label = you ? p.name : debug ? "Observer (debug)" : "Public view";
   return (
     <Menu
       align="end"
@@ -140,20 +143,31 @@ function PerspectiveChip() {
               { label: p.name, hint: p.club ?? undefined, icon: "person", onSelect: () => navigate("/me") },
               { kind: "sep" },
               { label: "Choose someone else…", icon: "swap", onSelect: () => navigate("/inhabit"), disabled: busy },
-              { label: "Go back to observing", icon: "eye", onSelect: observe, disabled: busy },
+              { label: "Go back to watching from outside", icon: "eye", onSelect: () => void observe(false), disabled: busy },
             ]
           : [
-              { kind: "label", label: "You are observing" },
-              { label: "You see everything the simulation knows.", icon: "eye", onSelect: () => undefined, disabled: true },
+              { kind: "label", label: debug ? "Observer (debug view)" : "Public view" },
+              { label: debug ? "You see everything the simulation knows, hidden ability and private feelings included." : "You see what the public can: results, news and what clubs make known.", icon: "eye", onSelect: () => undefined, disabled: true },
               { kind: "sep" },
+              debug
+                ? { label: "Switch to the public view", icon: "eye", onSelect: () => void observe(false), disabled: busy }
+                : { label: "Switch to the observer (debug) view", icon: "eye", onSelect: () => void observe(true), disabled: busy },
               { label: "Inhabit a player…", icon: "person", onSelect: () => navigate("/inhabit"), disabled: busy },
             ]
       }
     >
       {({ setRef, toggle, open }) => (
-        <button ref={setRef} type="button" className={`persp-chip ${you ? "you" : ""}`} onClick={toggle} aria-haspopup="menu" aria-expanded={open} title={you ? "You are living this person's career. Others' private details are hidden." : "Observer: you can see everything"}>
+        <button
+          ref={setRef}
+          type="button"
+          className={`persp-chip ${you ? "you" : ""} ${debug ? "debug" : ""}`}
+          onClick={toggle}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          title={you ? "You are living this person's career. Others' private details are hidden." : debug ? "Observer (debug): you can see everything" : "Public view: what anyone following the game could know"}
+        >
           <span className="dot" />
-          <span className="name">{you ? p.name : "Observing"}</span>
+          <span className="name">{label}</span>
           <Icon name="down" size={12} />
         </button>
       )}

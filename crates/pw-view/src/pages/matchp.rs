@@ -215,7 +215,7 @@ fn detail_or_null(v: &Value) -> Value {
 }
 
 pub fn reveal(s: &mut crate::session::Session, args: &Value) -> ApiResult<Value> {
-    let uid = uid_arg(args)?;
+    let uid = crate::contract::request::<crate::contract::RevealReq>(args.clone())?.uid;
     s.meta.concealed.remove(&uid);
     s.revision += 1;
     Ok(json!({"revealed": uid}))

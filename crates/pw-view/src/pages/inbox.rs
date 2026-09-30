@@ -608,8 +608,9 @@ pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
 }
 
 pub fn answer(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let id = args.get("id").and_then(Value::as_str).and_then(|s| s.strip_prefix('d')).and_then(|s| s.parse::<u32>().ok()).ok_or_else(|| ApiError::Bad("missing decision".into()))?;
-    let choice = args.get("choice").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing choice".into()))? as u8;
+    let req: crate::contract::AnswerReq = crate::contract::request(args.clone())?;
+    let id = req.id.strip_prefix('d').and_then(|s| s.parse::<u32>().ok()).ok_or_else(|| ApiError::Bad("That is not a decision id.".into()))?;
+    let choice = req.choice;
     s.answer(DecisionId(id), choice)?;
     Ok(json!({"ok": true}))
 }

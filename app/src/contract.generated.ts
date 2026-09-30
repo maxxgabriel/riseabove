@@ -416,6 +416,159 @@ export interface ScenarioView {
   note: string;
 }
 
+export interface ObserveReq {
+  omniscient?: boolean | null;
+  public?: boolean | null;
+}
+
+export interface InhabitReq {
+  person: number;
+}
+
+export interface StopsReq {
+  decisions?: boolean | null;
+  matches?: boolean | null;
+  major?: boolean | null;
+}
+
+export interface SettingsReq {
+  conceal_mine?: boolean | null;
+  stops?: StopsReq | null;
+}
+
+export interface SaveReq {
+  file?: string | null;
+}
+
+export interface LoadReq {
+  file: string;
+  backup?: boolean | null;
+}
+
+export interface FileReq {
+  file: string;
+}
+
+export interface AnswerReq {
+  id: string;
+  choice: number;
+}
+
+export interface ReplyReq {
+  message: number;
+  key: string;
+}
+
+export interface IdReq {
+  id: number;
+}
+
+export interface GoalReq {
+  kind?: string | null;
+  target?: number | null;
+  text?: string | null;
+}
+
+export interface GoalDoneReq {
+  i: number;
+  remove?: boolean | null;
+}
+
+export interface NoteReq {
+  text?: string | null;
+}
+
+export interface IndexReq {
+  i: number;
+}
+
+export interface FocusReq {
+  kind?: string | null;
+  value?: string | null;
+}
+
+export interface PlanReq {
+  intensity?: string | null;
+  extra?: number | null;
+  recovery?: number | null;
+  focus?: FocusReq | null;
+}
+
+export interface FollowReq {
+  club: number;
+  follow?: boolean | null;
+}
+
+export interface RevealReq {
+  uid: number;
+}
+
+export interface RouteReq {
+  start: string;
+  district?: number | null;
+  first?: string | null;
+  last?: string | null;
+}
+
+export interface CreatePersonReq {
+  first?: string | null;
+  last?: string | null;
+  age?: number | null;
+  pos?: string | null;
+  club?: number | null;
+  nation?: number | null;
+}
+
+export interface RoutineHours {
+  rest?: number | null;
+  recovery?: number | null;
+  family?: number | null;
+  partner?: number | null;
+  social?: number | null;
+  study?: number | null;
+  hobbies?: number | null;
+  media?: number | null;
+  nightlife?: number | null;
+  language?: number | null;
+}
+
+export type ActReq =
+  | { action: "meet"; with: number; topic: string; tone?: string | null }
+  | { action: "transfer_request" }
+  | { action: "withdraw_request" }
+  | { action: "routine"; hours?: RoutineHours | null }
+  | { action: "lifestyle"; value: string }
+  | { action: "hire_agent"; agent: number }
+  | { action: "drop_agent" }
+  | { action: "retire" }
+  | { action: "unretire" }
+  | { action: "seek_job"; role: string }
+  | { action: "dating"; open?: boolean | null }
+  | { action: "partner"; ask: string }
+  | { action: "amateur" }
+  | { action: "nation"; nation: number }
+  | { action: "retire_international" }
+  | { action: "pain"; on?: boolean | null }
+  | { action: "mentor"; person: number }
+  | { action: "press"; about: number; stance: string }
+  | { action: "enrol"; course: string }
+  | { action: "move_home"; buy?: boolean | null; quality?: number | null }
+  | { action: "helper"; helper: string; quality?: number | null }
+  | { action: "dismiss_helper"; helper: string }
+  | { action: "giving"; pct?: number | null; community?: number | null }
+  | { action: "foundation" }
+  | { action: "invest"; amount?: number | null; risk?: number | null }
+  | { action: "career"; path: string }
+  | { action: "leave_career" }
+  | { action: "post"; concept: string; about?: number | null; reply_to?: number | null; quote_of?: number | null }
+;
+
+export interface ActDone {
+  ok: boolean;
+  text: string;
+  applies: string;
+}
+
 /** Every method: whether it is a query or a command, and its request and response types where they are declared. */
 export interface ApiMethods {
   "app.info": { kind: "query"; req: Record<string, unknown>; res: AppInfo };
@@ -424,18 +577,18 @@ export interface ApiMethods {
   "world.inspect_import": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "world.datasets": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "world.saves": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "world.save": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "world.load": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "world.save": { kind: "command"; req: SaveReq; res: unknown };
+  "world.load": { kind: "command"; req: LoadReq; res: unknown };
   "world.close": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "world.delete_save": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "settings.set": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "world.delete_save": { kind: "command"; req: FileReq; res: unknown };
+  "settings.set": { kind: "command"; req: SettingsReq; res: unknown };
   "advance.start": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "advance.stop": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "persp.observe": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "persp.inhabit": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "person.create": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "persp.observe": { kind: "command"; req: ObserveReq; res: unknown };
+  "persp.inhabit": { kind: "command"; req: InhabitReq; res: unknown };
+  "person.create": { kind: "command"; req: CreatePersonReq; res: unknown };
   "route.options": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "route.begin": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "route.begin": { kind: "command"; req: RouteReq; res: unknown };
   "table.query": { kind: "query"; req: TableReq; res: TableResp };
   "search": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "overview": { kind: "query"; req: Record<string, unknown>; res: unknown };
@@ -454,23 +607,23 @@ export interface ApiMethods {
   "insight.person": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "club": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "club.systems": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "club.follow": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "club.follow": { kind: "command"; req: FollowReq; res: unknown };
   "comp": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "nation": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "match": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "match.watch": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "match.reveal": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "match.reveal": { kind: "command"; req: RevealReq; res: unknown };
   "match.reveal_all": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "me.today": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.viewed": { kind: "command"; req: Record<string, unknown>; res: unknown };
   "me.messages": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.inbox": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.thread": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "me.thread_read": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "me.reply": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "me.thread_read": { kind: "command"; req: IdReq; res: unknown };
+  "me.reply": { kind: "command"; req: ReplyReq; res: unknown };
   "me.message": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "me.answer": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "me.act": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "me.answer": { kind: "command"; req: AnswerReq; res: unknown };
+  "me.act": { kind: "command"; req: ActReq; res: ActDone };
   "me.options": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.self": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.life": { kind: "query"; req: Record<string, unknown>; res: unknown };
@@ -484,13 +637,13 @@ export interface ApiMethods {
   "me.story": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.agent": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "me.goal": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "me.goal_done": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "me.note": { kind: "command"; req: Record<string, unknown>; res: unknown };
-  "me.note_remove": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "me.goal": { kind: "command"; req: GoalReq; res: unknown };
+  "me.goal_done": { kind: "command"; req: GoalDoneReq; res: unknown };
+  "me.note": { kind: "command"; req: NoteReq; res: unknown };
+  "me.note_remove": { kind: "command"; req: IndexReq; res: unknown };
   "me.calendar": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "me.football": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "me.plan": { kind: "command"; req: Record<string, unknown>; res: unknown };
+  "me.plan": { kind: "command"; req: PlanReq; res: unknown };
   "me.contract": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "pathway.player": { kind: "query"; req: PersonReq; res: PathwayView };
   "ecosystem.regions": { kind: "query"; req: Record<string, unknown>; res: RegionOutputView };
@@ -508,6 +661,7 @@ export type TypedMethod =
   | "world.status"
   | "table.query"
   | "person.attributes"
+  | "me.act"
   | "me.people"
   | "me.rumours"
   | "pathway.player"

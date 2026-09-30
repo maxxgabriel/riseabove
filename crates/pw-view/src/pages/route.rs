@@ -49,12 +49,13 @@ pub fn options(c: &Ctx) -> ApiResult<Value> {
 
 /// Make a person at the chosen start and district, then step into them.
 pub fn begin_route(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let key = args.get("start").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("Choose where to begin.".into()))?;
+    let req: crate::contract::RouteReq = crate::contract::request(args.clone())?;
+    let key = req.start.as_str();
     let start = STARTS.iter().find(|(_, k, _, _)| *k == key).map(|x| x.0).ok_or_else(|| ApiError::Bad("That is not a place to begin.".into()))?;
     if !s.w().ext.ecosystem.is_configured() {
         return Err(ApiError::State("This world has no route to begin on.".into()));
     }
-    let region = match args.get("district").and_then(Value::as_u64) {
+    let region = match req.district.map(u64::from) {
         Some(n) => {
             let id = RegionId(n as u32);
             let e = &s.w().ext.ecosystem;
@@ -65,8 +66,8 @@ pub fn begin_route(s: &mut Session, args: &Value) -> ApiResult<Value> {
         }
         None => RegionId::NONE,
     };
-    let text = |k: &str| args.get(k).and_then(Value::as_str).map(str::trim).filter(|t| !t.is_empty()).map(str::to_string);
-    let (first, last) = (text("first"), text("last"));
+    let text = |v: &Option<String>| v.as_deref().map(str::trim).filter(|t| !t.is_empty()).map(str::to_string);
+    let (first, last) = (text(&req.first), text(&req.last));
     let salt = s.w().seed ^ u64::from(s.today().0 as u32).rotate_left(21) ^ s.w().people.len() as u64;
     let w = &mut s.game.sim.world;
     let p = begin(w, start, region, salt).ok_or_else(|| ApiError::State("There is no school, university or club in that district for that start. Try another district or start.".into()))?;

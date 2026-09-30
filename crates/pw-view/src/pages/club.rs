@@ -94,8 +94,9 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
 }
 
 pub fn follow(c: &mut crate::session::Session, args: &Value) -> ApiResult<Value> {
-    let id = ClubId(args.get("club").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing club".into()))? as u32);
-    let on = args.get("follow").and_then(Value::as_bool).unwrap_or(true);
+    let req: crate::contract::FollowReq = crate::contract::request(args.clone())?;
+    let id = ClubId(req.club);
+    let on = req.follow.unwrap_or(true);
     if id.0 as usize >= c.w().clubs.len() {
         return Err(ApiError::NotFound(format!("club {}", id.0)));
     }

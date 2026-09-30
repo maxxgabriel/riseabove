@@ -1,6 +1,7 @@
 import { cap } from "../format";
 import { useEffect, useState, type ReactNode } from "react";
 import { act, notify, useApi } from "../store";
+import type { ActDone, ActReq } from "../contract.generated";
 import type { Named } from "../types";
 import { Button, Dialog, Field, Menu } from "../ui/ui";
 
@@ -26,10 +27,14 @@ export interface Options {
 
 export const useOptions = (enabled = true) => useApi<Options>(enabled ? "me.options" : null);
 
+/** An action the inhabited person can take, and the choices it takes, as the contract declares them (`ActReq`). */
+export type Action = ActReq["action"];
+export type ActArgs<A extends Action> = Omit<Extract<ActReq, { action: A }>, "action">;
+
 /** Queue something for the inhabited person to do. The world acts on it when the day ends. */
-export async function queueAction(action: string, args: Record<string, unknown> = {}): Promise<boolean> {
+export async function queueAction<A extends Action>(action: A, args?: ActArgs<A>): Promise<boolean> {
   try {
-    const r = await act<{ text: string; applies: string }>("me.act", { action, ...args });
+    const r = await act<ActDone>("me.act", { action, ...(args ?? {}) });
     notify({ tone: "pos", text: `Queued: ${r.text}. The world acts on it when the day ends.` });
     return true;
   } catch (e) {
@@ -167,7 +172,7 @@ export function SpeakDialog({ open, onClose, about }: { open: boolean; onClose: 
 
 // ---- confirm before doing something that is hard to take back -----------------------------------------------
 
-export function ConfirmAction({
+export function ConfirmAction<A extends Action>({
   label,
   title,
   children,
@@ -182,8 +187,8 @@ export function ConfirmAction({
   label: string;
   title: string;
   children: ReactNode;
-  action: string;
-  args?: Record<string, unknown>;
+  action: A;
+  args?: ActArgs<A>;
   danger?: boolean;
   disabled?: boolean;
   confirmLabel?: string;
@@ -194,7 +199,7 @@ export function ConfirmAction({
   const [busy, setBusy] = useState(false);
   const go = async () => {
     setBusy(true);
-    const ok = await queueAction(action, args ?? {});
+    const ok = await queueAction(action, args);
     setBusy(false);
     if (ok) setOpen(false);
   };

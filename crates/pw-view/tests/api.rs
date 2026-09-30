@@ -95,6 +95,8 @@ fn every_table_answers() {
 fn observer_pages_and_search() {
     let api = api();
     new_world(&api, "small");
+    // A world opens in the public view; the omniscient observer is the debug view and is asked for by name.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     advance(&api, 45);
     let p = api.call("person", json!({"id": 1008})).unwrap();
     assert!(!p["player"]["internal"].is_null(), "observer sees internal state");
@@ -161,7 +163,7 @@ fn inhabiting_limits_what_is_visible() {
     let c = api.call("me.contract", json!({})).unwrap();
     assert_eq!(c["has_contract"], true);
     // Observer mode restores the full view.
-    api.call("persp.observe", json!({})).unwrap();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let cols = table(&api, "players", json!({}), 5)["all_columns"].as_array().unwrap().len();
     assert!(cols > 20);
 }
@@ -379,7 +381,7 @@ fn the_inhabited_pages_all_answer() {
     api.call("person.life", json!({"id": me})).unwrap();
     assert_eq!(api.call("person.life", json!({"id": me + 1})).unwrap_err().code(), "state");
     api.call("club.systems", json!({"id": 3})).unwrap();
-    api.call("persp.observe", json!({})).unwrap();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     api.call("person.life", json!({"id": me + 1})).unwrap();
 }
 
@@ -607,6 +609,8 @@ fn the_world_inbox_groups_conversations_and_replies_become_actions() {
 fn insights_answer_everywhere_and_read_sensibly() {
     let api = api();
     new_world(&api, "small");
+    // Every kind of note, private ones included, is read from the omniscient view.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     advance(&api, 150);
     let sane = |place: &str, v: &Value| {
         for it in v["items"].as_array().unwrap_or_else(|| panic!("{place}: no items: {v}")) {
@@ -693,7 +697,7 @@ fn insights_only_use_what_the_viewer_could_know() {
         assert!(!internal(&v), "the board and the books are private: {v}");
     }
     // The observer may read the private side.
-    api.call("persp.observe", json!({})).unwrap();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let mut saw_internal = false;
     for id in 0..40 {
         saw_internal |= internal(&api.call("insight.club", json!({"id": id})).unwrap());

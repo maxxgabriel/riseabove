@@ -16,6 +16,9 @@ fn sources_are_connected_remembered_and_linked_only_by_the_correct_source_namesp
         assert!(begin.elapsed() < Duration::from_secs(60));
         std::thread::sleep(Duration::from_millis(15));
     }
+    // The world opens in the public view, and source records are for the observer (debug) view only.
+    assert!(api.call("database.query", json!({"table": "players.csv"})).is_err(), "the public view reads no source records");
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let sources = api.call("database.sources", json!({})).unwrap();
     assert!(sources["sources"][0]["tables"].as_array().unwrap().iter().any(|t| t["name"] == "players.csv"));
     let p = api.call("database.query", json!({"table": "players.csv", "column": "player_id", "value": "10005"})).unwrap();
@@ -27,7 +30,7 @@ fn sources_are_connected_remembered_and_linked_only_by_the_correct_source_namesp
     assert!(matches!(api.call("database.query", json!({"table": "players.csv"})), Err(pw_view::ApiError::Unauthorized(_))));
     api.call("persp.observe", json!({"public": true})).unwrap();
     assert!(api.call("database.query", json!({"table": "players.csv"})).is_err());
-    api.call("persp.observe", json!({})).unwrap();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
     let fm = root.join("fm/usable");
     std::fs::create_dir_all(&fm).unwrap();
     std::fs::write(fm.join("fm23_export_catalog.csv"), "file,status\npeople_names_usable.csv,name_only\n").unwrap();

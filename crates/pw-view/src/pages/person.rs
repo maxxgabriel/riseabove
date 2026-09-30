@@ -259,18 +259,19 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
 /// Bring a new person into the world with the world's own generator, then step into them.
 /// Talent is never chosen: potential comes from the club's own intake and stays hidden.
 pub fn create(s: &mut crate::session::Session, args: &Value) -> ApiResult<Value> {
-    let first = args.get("first").and_then(Value::as_str).unwrap_or("").trim().to_string();
-    let last = args.get("last").and_then(Value::as_str).unwrap_or("").trim().to_string();
+    let req: crate::contract::CreatePersonReq = crate::contract::request(args.clone())?;
+    let first = req.first.as_deref().unwrap_or("").trim().to_string();
+    let last = req.last.as_deref().unwrap_or("").trim().to_string();
     if first.is_empty() || last.is_empty() {
         return Err(ApiError::Bad("Give them a first and a last name.".into()));
     }
-    let age = args.get("age").and_then(Value::as_u64).unwrap_or(17).clamp(8, 40) as u8;
-    let pos = args.get("pos").and_then(Value::as_str).and_then(pw_core::Pos::from_code).ok_or_else(|| ApiError::Bad("Choose a position.".into()))?;
-    let club = args.get("club").and_then(Value::as_u64).map_or(pw_core::ClubId::NONE, |n| pw_core::ClubId(n as u32));
+    let age = req.age.unwrap_or(17).clamp(8, 40) as u8;
+    let pos = req.pos.as_deref().and_then(pw_core::Pos::from_code).ok_or_else(|| ApiError::Bad("Choose a position.".into()))?;
+    let club = req.club.map_or(pw_core::ClubId::NONE, pw_core::ClubId);
     if club.is_some() && club.0 as usize >= s.w().clubs.len() {
         return Err(ApiError::NotFound(format!("club {}", club.0)));
     }
-    let nation = args.get("nation").and_then(Value::as_u64).map_or(pw_core::NationId::NONE, |n| pw_core::NationId(n as u32));
+    let nation = req.nation.map_or(pw_core::NationId::NONE, pw_core::NationId);
     if nation.is_some() && nation.0 as usize >= s.w().nations.len() {
         return Err(ApiError::NotFound(format!("nation {}", nation.0)));
     }

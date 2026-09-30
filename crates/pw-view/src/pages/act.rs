@@ -14,6 +14,7 @@ use pw_world::{Intent, PartnerAsk, PlayerStatus};
 use serde_json::{Value, json};
 
 use super::me::named;
+use crate::contract::{ActDone, ActReq};
 use crate::ctx::Ctx;
 use crate::model::{ApiError, ApiResult, Ref};
 use crate::session::Session;
@@ -180,37 +181,32 @@ pub fn intent_text(c: &Ctx, i: &Intent) -> String {
     }
 }
 
-fn hours(v: &Value, key: &str, fallback: u8) -> u8 {
-    v.get(key).and_then(Value::as_u64).map_or(fallback, |h| h.min(60) as u8)
+fn hours(h: Option<u64>, fallback: u8) -> u8 {
+    h.map_or(fallback, |h| h.min(60) as u8)
 }
 
-fn person_arg(w: &pw_world::World, args: &Value, key: &str) -> ApiResult<PersonId> {
-    let p = args.get(key).and_then(Value::as_u64).map(|n| PersonId(n as u32)).ok_or_else(|| ApiError::Bad(format!("missing {key}")))?;
+fn person_id(w: &pw_world::World, id: u32) -> ApiResult<PersonId> {
+    let p = PersonId(id);
     if w.people.get(p).is_none() {
         return Err(ApiError::NotFound("person".into()));
     }
     Ok(p)
 }
 
-fn text_arg<'a>(args: &'a Value, key: &str) -> ApiResult<&'a str> {
-    args.get(key).and_then(Value::as_str).ok_or_else(|| ApiError::Bad(format!("missing {key}")))
-}
-
-fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
+fn build(s: &Session, req: ActReq) -> ApiResult<Intent> {
     let me = s.my_person().ok_or_else(|| ApiError::Unauthorized("You are observing the world; there is nobody to act for.".into()))?;
     let w = s.w();
     let p = w.people[me].player;
     let status = (p.is_some()).then(|| w.players.hot[p].status);
     let playing = status == Some(PlayerStatus::Active);
-    let action = text_arg(args, "action")?;
     let need_player = || if p.is_some() { Ok(()) } else { Err(ApiError::State("Only a player can do that.".into())) };
     let need_playing = || if playing { Ok(()) } else { Err(ApiError::State("You need to be playing for a club to do that.".into())) };
-    Ok(match action {
-        "meet" => {
-            let with = person_arg(w, args, "with")?;
-            let topic = topic_from(text_arg(args, "topic")?).ok_or_else(|| ApiError::Bad("Unknown subject.".into()))?;
-            let tone = tone_from(args.get("tone").and_then(Value::as_str).unwrap_or("calm")).ok_or_else(|| ApiError::Bad("Unknown tone.".into()))?;
-            if with == me || w.people.get(with).is_none() {
+    Ok(match req {
+        ActReq::Meet { with, topic, tone } => {
+            let with = person_id(w, with)?;
+            let topic = topic_from(&topic).ok_or_else(|| ApiError::Bad("Unknown subject.".into()))?;
+            let tone = tone_from(tone.as_deref().unwrap_or("calm")).ok_or_else(|| ApiError::Bad("Unknown tone.".into()))?;
+            if with == me {
                 return Err(ApiError::Bad("Choose someone else to talk to.".into()));
             }
             let queued = w.intents.queue.iter().any(|pi| pi.person == me && matches!(pi.intent, Intent::RequestMeeting { with: x, .. } if x == with));
@@ -219,154 +215,133 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
             }
             Intent::RequestMeeting { with, topic, tone }
         }
-        "transfer_request" => {
+        ActReq::TransferRequest {} => {
             need_playing()?;
             if w.market.has_requested(p) {
                 return Err(ApiError::State("You have already handed in a transfer request.".into()));
             }
             Intent::TransferRequest
         }
-        "withdraw_request" => {
+        ActReq::WithdrawRequest {} => {
             need_playing()?;
             if !w.market.has_requested(p) {
                 return Err(ApiError::State("You have no transfer request to withdraw.".into()));
             }
             Intent::WithdrawTransferRequest
         }
-        "routine" => {
+        ActReq::Routine { hours: h } => {
             let cur = w.lives[me].routine;
-            let h = args.get("hours").cloned().unwrap_or(Value::Null);
+            let h = h.unwrap_or_default();
             Intent::SetRoutine(Routine {
-                rest: hours(&h, "rest", cur.rest),
-                recovery: hours(&h, "recovery", cur.recovery),
-                family: hours(&h, "family", cur.family),
-                partner: hours(&h, "partner", cur.partner),
-                social: hours(&h, "social", cur.social),
-                study: hours(&h, "study", cur.study),
-                hobbies: hours(&h, "hobbies", cur.hobbies),
-                media: hours(&h, "media", cur.media),
-                nightlife: hours(&h, "nightlife", cur.nightlife),
-                language: hours(&h, "language", cur.language),
+                rest: hours(h.rest, cur.rest),
+                recovery: hours(h.recovery, cur.recovery),
+                family: hours(h.family, cur.family),
+                partner: hours(h.partner, cur.partner),
+                social: hours(h.social, cur.social),
+                study: hours(h.study, cur.study),
+                hobbies: hours(h.hobbies, cur.hobbies),
+                media: hours(h.media, cur.media),
+                nightlife: hours(h.nightlife, cur.nightlife),
+                language: hours(h.language, cur.language),
             })
         }
-        "lifestyle" => {
-            let v = text_arg(args, "value")?;
-            Intent::SetLifestyle(Lifestyle::ALL.iter().copied().find(|l| l.label() == v).ok_or_else(|| ApiError::Bad("Unknown lifestyle.".into()))?)
-        }
-        "hire_agent" => {
+        ActReq::Lifestyle { value } => Intent::SetLifestyle(Lifestyle::ALL.iter().copied().find(|l| l.label() == value).ok_or_else(|| ApiError::Bad("Unknown lifestyle.".into()))?),
+        ActReq::HireAgent { agent } => {
             need_player()?;
-            let a = args.get("agent").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing agent".into()))? as u32;
-            if a as usize >= w.agents.list.len() {
+            if agent as usize >= w.agents.list.len() {
                 return Err(ApiError::NotFound("agent".into()));
             }
             if w.agents.of_player.contains_key(&p) {
                 return Err(ApiError::State("You already have an agent. Part ways first.".into()));
             }
-            Intent::HireAgent(AgentId(a))
+            Intent::HireAgent(AgentId(agent))
         }
-        "drop_agent" => {
+        ActReq::DropAgent {} => {
             need_player()?;
             if !w.agents.of_player.contains_key(&p) {
                 return Err(ApiError::State("You do not have an agent.".into()));
             }
             Intent::DropAgent
         }
-        "retire" => {
+        ActReq::Retire {} => {
             need_player()?;
             if status == Some(PlayerStatus::Retired) {
                 return Err(ApiError::State("You have already retired from playing.".into()));
             }
             Intent::Retire
         }
-        "unretire" => {
+        ActReq::Unretire {} => {
             if status != Some(PlayerStatus::Retired) {
                 return Err(ApiError::State("Only a retired player can come back.".into()));
             }
             Intent::Unretire
         }
-        "seek_job" => {
-            let v = text_arg(args, "role")?;
-            Intent::SeekStaffJob(ROLES.iter().find(|r| r.1 == v).map(|r| r.0).ok_or_else(|| ApiError::Bad("Unknown role.".into()))?)
-        }
-        "dating" => Intent::OpenToDating(args.get("open").and_then(Value::as_bool).unwrap_or(true)),
-        "partner" => {
+        ActReq::SeekJob { role } => Intent::SeekStaffJob(ROLES.iter().find(|r| r.1 == role).map(|r| r.0).ok_or_else(|| ApiError::Bad("Unknown role.".into()))?),
+        ActReq::Dating { open } => Intent::OpenToDating(open.unwrap_or(true)),
+        ActReq::Partner { ask } => {
             if w.lives[me].partner().is_none() {
                 return Err(ApiError::State("You do not have a partner.".into()));
             }
-            Intent::AskPartner(match text_arg(args, "ask")? {
+            Intent::AskPartner(match ask.as_str() {
                 "movein" => PartnerAsk::MoveIn,
                 "marry" => PartnerAsk::Marry,
                 "separate" => PartnerAsk::Separate,
                 _ => return Err(ApiError::Bad("Unknown question.".into())),
             })
         }
-        "amateur" => {
+        ActReq::Amateur {} => {
             if status != Some(PlayerStatus::FreeAgent) {
                 return Err(ApiError::State("Only a player without a club can sign up for amateur football.".into()));
             }
             Intent::JoinAmateurFootball
         }
-        "nation" => {
+        ActReq::Nation { nation } => {
             need_player()?;
-            let n = NationId(args.get("nation").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing nation".into()))? as u32);
+            let n = NationId(nation);
             if !pw_sim::intl::eligible_nations(w, p).contains(&n) {
                 return Err(ApiError::State("You are not eligible for that nation.".into()));
             }
             Intent::DeclareForNation(n)
         }
-        "retire_international" => {
+        ActReq::RetireInternational {} => {
             need_player()?;
             Intent::RetireFromInternational
         }
-        "pain" => {
+        ActReq::Pain { on } => {
             need_player()?;
-            Intent::PlayThroughPain(args.get("on").and_then(Value::as_bool).unwrap_or(false))
+            Intent::PlayThroughPain(on.unwrap_or(false))
         }
-        "mentor" => {
+        ActReq::Mentor { person } => {
             need_playing()?;
-            Intent::Mentor(person_arg(w, args, "person")?)
+            Intent::Mentor(person_id(w, person)?)
         }
-        "press" => {
-            let about = person_arg(w, args, "about")?;
-            let v = text_arg(args, "stance")?;
-            Intent::SpeakToPress { about, stance: STANCES.iter().find(|x| x.1 == v).map(|x| x.0).ok_or_else(|| ApiError::Bad("Unknown stance.".into()))? }
+        ActReq::Press { about, stance } => {
+            let about = person_id(w, about)?;
+            Intent::SpeakToPress { about, stance: STANCES.iter().find(|x| x.1 == stance).map(|x| x.0).ok_or_else(|| ApiError::Bad("Unknown stance.".into()))? }
         }
-        "enrol" => {
-            let v = text_arg(args, "course")?;
-            Intent::Enrol(COURSES.iter().copied().find(|c| course_key(*c) == v).ok_or_else(|| ApiError::Bad("Unknown course.".into()))?)
+        ActReq::Enrol { course } => Intent::Enrol(COURSES.iter().copied().find(|c| course_key(*c) == course).ok_or_else(|| ApiError::Bad("Unknown course.".into()))?),
+        ActReq::MoveHome { buy, quality } => Intent::MoveHome { buy: buy.unwrap_or(false), quality: quality.map_or(3, |q| q.clamp(1, 5) as u8) },
+        ActReq::Helper { helper, quality } => {
+            let h = Helper::ALL.iter().copied().find(|h| helper_key(*h) == helper).ok_or_else(|| ApiError::Bad("Unknown kind of help.".into()))?;
+            Intent::HireHelper(h, quality.map_or(10, |q| q.clamp(1, 20) as u8))
         }
-        "move_home" => Intent::MoveHome { buy: args.get("buy").and_then(Value::as_bool).unwrap_or(false), quality: args.get("quality").and_then(Value::as_u64).map_or(3, |q| q.clamp(1, 5) as u8) },
-        "helper" => {
-            let v = text_arg(args, "helper")?;
-            let h = Helper::ALL.iter().copied().find(|h| helper_key(*h) == v).ok_or_else(|| ApiError::Bad("Unknown kind of help.".into()))?;
-            Intent::HireHelper(h, args.get("quality").and_then(Value::as_u64).map_or(10, |q| q.clamp(1, 20) as u8))
+        ActReq::DismissHelper { helper } => Intent::DismissHelper(Helper::ALL.iter().copied().find(|h| helper_key(*h) == helper).ok_or_else(|| ApiError::Bad("Unknown kind of help.".into()))?),
+        ActReq::Giving { pct, community } => Intent::SetGiving { pct: pct.map_or(0, |v| v.min(60) as u8), community: community.map_or(0, |v| v.min(40) as u8) },
+        ActReq::Foundation {} => Intent::StartFoundation,
+        ActReq::Invest { amount, risk } => {
+            Intent::Invest { amount: amount.filter(|a| *a > 0).ok_or_else(|| ApiError::Bad("Choose an amount to invest.".into()))?, risk: risk.map_or(8, |r| r.clamp(1, 20) as u8) }
         }
-        "dismiss_helper" => {
-            let v = text_arg(args, "helper")?;
-            Intent::DismissHelper(Helper::ALL.iter().copied().find(|h| helper_key(*h) == v).ok_or_else(|| ApiError::Bad("Unknown kind of help.".into()))?)
-        }
-        "giving" => {
-            Intent::SetGiving { pct: args.get("pct").and_then(Value::as_u64).map_or(0, |v| v.min(60) as u8), community: args.get("community").and_then(Value::as_u64).map_or(0, |v| v.min(40) as u8) }
-        }
-        "foundation" => Intent::StartFoundation,
-        "invest" => Intent::Invest {
-            amount: args.get("amount").and_then(Value::as_i64).filter(|a| *a > 0).ok_or_else(|| ApiError::Bad("Choose an amount to invest.".into()))?,
-            risk: args.get("risk").and_then(Value::as_u64).map_or(8, |r| r.clamp(1, 20) as u8),
-        },
-        "career" => {
+        ActReq::Career { path } => {
             if playing {
                 return Err(ApiError::State("A second career can only start once you are no longer playing for a club.".into()));
             }
-            let v = text_arg(args, "path")?;
-            Intent::PursueCareer(PATHS.iter().copied().find(|c| path_key(*c) == v).ok_or_else(|| ApiError::Bad("Unknown kind of work.".into()))?)
+            Intent::PursueCareer(PATHS.iter().copied().find(|c| path_key(*c) == path).ok_or_else(|| ApiError::Bad("Unknown kind of work.".into()))?)
         }
-        "leave_career" => Intent::LeaveCareer,
-        "post" => {
-            let v = text_arg(args, "concept")?;
-            let concept = POSTS.iter().find(|p| p.1 == v).map(|p| p.0).ok_or_else(|| ApiError::Bad("Unknown kind of post.".into()))?;
-            let post_id = |key: &str| args.get(key).and_then(Value::as_u64).map_or(NO_POST, |n| n as u32);
-            let (reply_to, quote_of) = (post_id("reply_to"), post_id("quote_of"));
-            let mut about = args.get("about").and_then(Value::as_u64).map(|n| PersonId(n as u32)).unwrap_or(me);
+        ActReq::LeaveCareer {} => Intent::LeaveCareer,
+        ActReq::Post { concept, about, reply_to, quote_of } => {
+            let concept = POSTS.iter().find(|p| p.1 == concept).map(|p| p.0).ok_or_else(|| ApiError::Bad("Unknown kind of post.".into()))?;
+            let (reply_to, quote_of) = (reply_to.unwrap_or(NO_POST), quote_of.unwrap_or(NO_POST));
+            let mut about = about.map_or(me, PersonId);
             if about.0 as usize >= w.people.len() {
                 return Err(ApiError::NotFound("person".into()));
             }
@@ -382,13 +357,13 @@ fn build(s: &Session, args: &Value) -> ApiResult<Intent> {
             }
             Intent::Post { about, concept, reply_to, quote_of }
         }
-        _ => return Err(ApiError::Bad("Unknown action.".into())),
     })
 }
 
 /// Queue an action for the inhabited person. The reply says what was queued and when it takes effect.
 pub fn act(s: &mut Session, args: &Value) -> ApiResult<Value> {
-    let intent = build(s, args)?;
+    let req: ActReq = crate::contract::request(args.clone())?;
+    let intent = build(s, req)?;
     // Sending the same thing twice before the world has acted (a double click) would do it twice: say it is already waiting.
     // Settings are the exception: the last one sent wins and repeating one changes nothing.
     let is_setting = matches!(intent, Intent::SetRoutine(_) | Intent::SetLifestyle(_) | Intent::SetTraining(_) | Intent::SetGiving { .. } | Intent::OpenToDating(_) | Intent::PlayThroughPain(_));
@@ -405,7 +380,7 @@ pub fn act(s: &mut Session, args: &Value) -> ApiResult<Value> {
         intent_text(&c, &intent)
     };
     s.act(intent)?;
-    Ok(json!({"ok": true, "text": text, "applies": "next day"}))
+    Ok(serde_json::to_value(ActDone { ok: true, text, applies: "next day".into() }).unwrap_or(Value::Null))
 }
 
 /// The choices behind each action's picker, drawn from the world as this person can know it.

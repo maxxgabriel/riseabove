@@ -48,8 +48,9 @@ pub struct Session {
     pub revision: u64,
     /// Rolling per-day timings for diagnostics.
     pub timings: Vec<(i32, u32)>,
-    /// Watching from the outside as the public does, not as the omniscient debug view. Never saved: a loaded game starts in the
-    /// default observer view (locked design 8.8).
+    /// Watching from the outside as the public does, not as the omniscient debug view. A world opens in it, new or loaded: the
+    /// omniscient view is a development tool the client asks for by name (`persp.observe {"omniscient": true}`), never where a normal
+    /// session starts (locked design 8.8). Not saved.
     pub public_view: bool,
 }
 
@@ -71,7 +72,7 @@ struct TextClientSave {
 impl Session {
     pub fn new(world: World, name: String) -> Self {
         let meta = Meta::fresh(name, world.date);
-        Self { game: Game::new(world), meta, revision: 1, timings: Vec::new(), public_view: false }
+        Self { game: Game::new(world), meta, revision: 1, timings: Vec::new(), public_view: true }
     }
 
     pub fn w(&self) -> &World {
@@ -101,7 +102,7 @@ impl Session {
     fn assemble(world: World, session: pw_career::Session, meta: Meta) -> Self {
         let mut game = Game::new(world);
         game.session = session;
-        Self { game, meta, revision: 1, timings: Vec::new(), public_view: false }
+        Self { game, meta, revision: 1, timings: Vec::new(), public_view: true }
     }
 
     /// The inhabited person, if any.
