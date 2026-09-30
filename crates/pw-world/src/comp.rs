@@ -288,6 +288,11 @@ impl Fixtures {
         self.list.iter_enumerated()
     }
 
+    /// Whether a match with this id was ever scheduled, kept or not (`compact` forgets old ones; their ids are never reused).
+    pub fn issued(&self, uid: u64) -> bool {
+        uid < self.next_uid
+    }
+
     pub fn len(&self) -> usize {
         self.list.len()
     }

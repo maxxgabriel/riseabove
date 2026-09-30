@@ -1590,7 +1590,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
 /// Talking points for a match: what is at stake before it, and what it meant after.
 pub fn matchup(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let uid = crate::pages::matchp::uid_arg(args)?;
-    let (_, fx) = crate::pages::matchp::find(c, uid).ok_or_else(|| ApiError::NotFound("That match is no longer in the records.".into()))?;
+    let (_, fx) = crate::pages::matchp::find(c, uid).ok_or_else(|| crate::pages::matchp::gone(c, uid))?;
     let w = c.w;
     let mut n = Notes::default();
     if c.is_concealed(uid) {

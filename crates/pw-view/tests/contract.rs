@@ -374,3 +374,25 @@ fn a_world_opens_in_the_public_view_and_omniscience_is_asked_for_by_name() {
     wait(&api, "task");
     assert_eq!(api.call("world.status", json!({})).unwrap()["perspective"]["mode"], "public");
 }
+
+#[test]
+fn what_the_viewer_cannot_have_is_unavailable_not_missing() {
+    let api = world();
+    // A match that was played and has since been forgotten (old seasons keep only summaries) existed: its detail is unavailable.
+    let t = api.call("table.query", json!({"table": "fixtures", "filters": {"comp": 0, "played": true}, "limit": 1})).unwrap();
+    let uid = t["rows"][0]["open"]["id"].as_u64().expect("a played match");
+    api.call("match", json!({"uid": uid})).unwrap();
+    api.debug_mutate_world(|w| {
+        let d = w.date;
+        w.fixtures.compact(d);
+    });
+    for m in ["match", "insight.match"] {
+        let e = api.call(m, json!({"uid": uid})).unwrap_err();
+        assert_eq!(e.kind(), ErrorKind::UnavailableInformation, "{m} of a forgotten match: {e}");
+        // A match that never existed is simply not found.
+        assert_eq!(api.call(m, json!({"uid": 1u64 << 40})).unwrap_err().kind(), ErrorKind::NotFound, "{m} of a match that never was");
+    }
+    // Not a failure: the body says so, and it is not worth retrying.
+    let body = serde_json::to_value(ErrorBody::of(&api.call("match", json!({"uid": uid})).unwrap_err())).unwrap();
+    assert_eq!((body["kind"].as_str(), body["retryable"].as_bool()), (Some("unavailable_information"), Some(false)));
+}

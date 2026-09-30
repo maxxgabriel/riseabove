@@ -15,6 +15,15 @@ pub fn find<'a>(c: &Ctx<'a>, uid: u64) -> Option<(FixtureId, &'a Fixture)> {
     c.w.fixtures.iter().find(|(_, f)| f.uid == uid)
 }
 
+/// A match that was played but is no longer kept is information the viewer cannot have, not a match that does not exist.
+pub fn gone(c: &Ctx, uid: u64) -> ApiError {
+    if c.w.fixtures.issued(uid) {
+        ApiError::Unavailable("That match is no longer in the records; only summaries are kept for old seasons.".into())
+    } else {
+        ApiError::NotFound(format!("match {uid}"))
+    }
+}
+
 pub fn uid_arg(args: &Value) -> ApiResult<u64> {
     args.get("uid").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing match id".into()))
 }
@@ -158,7 +167,7 @@ fn absences(c: &Ctx, t: TeamId) -> Vec<Value> {
 
 pub fn get(c: &Ctx, args: &Value, watching: bool) -> ApiResult<Value> {
     let uid = uid_arg(args)?;
-    let (_, fx) = find(c, uid).ok_or_else(|| ApiError::NotFound("That match is no longer in the records; only summaries are kept for old seasons.".into()))?;
+    let (_, fx) = find(c, uid).ok_or_else(|| gone(c, uid))?;
     let w = c.w;
     let concealed = c.is_concealed(uid);
     let played = fx.score.is_some();

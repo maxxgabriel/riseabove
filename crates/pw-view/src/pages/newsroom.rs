@@ -99,7 +99,8 @@ pub fn story(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing story".into()))? as u32;
     let s = c.w.media.stories.get(StoryId(id)).ok_or_else(|| ApiError::NotFound("story".into()))?;
     if c.story_spoils(s) {
-        return Err(ApiError::NotFound("story".into()));
+        // It exists; what it says is a result the viewer has chosen not to know yet.
+        return Err(ApiError::Unavailable("That story is about a result you have not revealed yet.".into()));
     }
     let mut out = summary(c, s);
     out["body"] = json!(c.story_body(s));
