@@ -60,7 +60,7 @@ pub fn play_today(w: &mut World) {
     }
     let watched = w.watched_teams();
     let world: &World = w;
-    let outcomes: Vec<Outcome> = todo.par_iter().map(|&f| play_one(world, f, &watched)).collect();
+    let outcomes: Vec<Outcome> = prof!("matchday::play", todo.par_iter().map(|&f| play_one(world, f, &watched)).collect());
     for o in outcomes {
         match o {
             Outcome::Played { fixture, home, away, result, thinking } => apply(w, fixture, &home, &away, *result, &watched, thinking),

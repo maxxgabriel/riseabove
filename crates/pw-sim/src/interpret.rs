@@ -136,7 +136,9 @@ pub fn manager_reading(w: &World, arch: Archetype, p: PlayerId) -> Option<f32> {
 pub fn monthly(w: &mut World) {
     let today = w.date;
     let year = today.year();
-    let ids: Vec<PlayerId> = w.perf.recent.keys().copied().collect();
+    // Sorted: the readings that changed are queued in this order, and the map holds its keys in an order that differs after a reload.
+    let mut ids: Vec<PlayerId> = w.perf.recent.keys().copied().collect();
+    ids.sort();
     let mut changed: Vec<(PlayerId, Label, Lens)> = Vec::new();
     for p in ids {
         if w.players.hot[p].status != PlayerStatus::Active {

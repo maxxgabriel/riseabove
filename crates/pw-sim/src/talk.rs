@@ -75,10 +75,10 @@ pub fn request(w: &mut World, initiator: PersonId, with: PersonId, player: Playe
 /// Meetings whose date has come are held.
 pub fn daily(w: &mut World) {
     let today = w.date;
-    w.meetings.trim_open();
-    let due: Vec<MeetingId> = w.meetings.pending().filter(|(_, m)| m.date <= today && m.response.is_some()).map(|(id, _)| id).collect();
+    prof!("talk::trim", w.meetings.trim_open());
+    let due: Vec<MeetingId> = prof!("talk::due", w.meetings.pending().filter(|(_, m)| m.date <= today && m.response.is_some()).map(|(id, _)| id).collect());
     for id in due {
-        hold(w, id);
+        prof!("talk::hold", hold(w, id));
     }
 }
 
@@ -176,7 +176,7 @@ pub fn hold(w: &mut World, id: MeetingId) {
         return;
     }
     let response = m.response.unwrap_or(Tone::Calm);
-    let ev = w.events.push_caused(today, Visibility::Between(m.initiator, m.with), EventKind::Meeting { meeting: id, from: m.initiator, with: m.with }, m.causes.clone());
+    let ev = prof!("talk::event", w.events.push_caused(today, Visibility::Between(m.initiator, m.with), EventKind::Meeting { meeting: id, from: m.initiator, with: m.with }, m.causes.clone()));
     let player_person = if m.player.is_some() { w.players.cold[m.player].person } else { m.initiator };
     let manager = if player_person == m.initiator { m.with } else { m.initiator };
     let mut c = Ctx {
@@ -196,13 +196,13 @@ pub fn hold(w: &mut World, id: MeetingId) {
     };
     // The initiator's tone lands on the responder; the response lands back.
     let serious = matches!(m.topic, Topic::Attitude | Topic::Discipline | Topic::WantAway | Topic::Dropped);
-    let (recv_a, row_a) = tone_lands(w, c.opening, c.initiator, c.with, serious);
-    let (recv_b, row_b) = tone_lands(w, c.response, c.with, c.initiator, serious);
+    let (recv_a, row_a) = prof!("talk::tone", tone_lands(w, c.opening, c.initiator, c.with, serious));
+    let (recv_b, row_b) = prof!("talk::tone", tone_lands(w, c.response, c.with, c.initiator, serious));
     let row = c.rng.chance(row_a.max(row_b) * 0.8);
     let mood = recv_a + recv_b;
 
     if m.player.is_some() && w.players.hot[m.player].status == PlayerStatus::Active {
-        match m.topic {
+        prof!("talk::topic", match m.topic {
             Topic::PlayingTime => playing_time(w, &mut c, mood),
             Topic::Feedback => feedback(w, &mut c, mood),
             Topic::Position => position(w, &mut c, mood),
@@ -217,7 +217,7 @@ pub fn hold(w: &mut World, id: MeetingId) {
             Topic::Dropped => dropped(w, &mut c, mood),
             Topic::Encouragement => encouragement(w, &mut c, mood),
             Topic::AgentReview => crate::agents::review(w, c.initiator, c.with, c.player, ev),
-        }
+        })
     }
     if row {
         fall_out(w, &mut c);
@@ -260,9 +260,10 @@ fn standing_in_squad(w: &World, p: PlayerId) -> f32 {
         return -1.0;
     }
     let team = w.players.hot[p].team;
-    let (me, _, _, _) = club_view(w, club, p);
+    let judging = w.club_manager_judging(club).0;
+    let me = crate::perception::club_ca_judged(w, club, p, judging);
     let group = w.players.cold[p].best_pos.group();
-    let mut rivals: Vec<f32> = w.teams[team].squad.iter().filter(|&&x| x != p && w.players.cold[x].best_pos.group() == group).map(|&x| club_view(w, club, x).0).collect();
+    let mut rivals: Vec<f32> = w.teams[team].squad.iter().filter(|&&x| x != p && w.players.cold[x].best_pos.group() == group).map(|&x| crate::perception::club_ca_judged(w, club, x, judging)).collect();
     rivals.sort_by(|a, b| b.total_cmp(a));
     let starters: usize = match group {
         pw_core::PosGroup::Gk => 1,

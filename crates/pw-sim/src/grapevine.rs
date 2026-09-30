@@ -31,6 +31,8 @@ use crate::consider;
 
 /// Items stop travelling after this many days.
 const SHELF_LIFE: i32 = 21;
+/// An information item is forgotten this long after it was created.
+pub const FORGET_DAYS: i32 = 730;
 /// How long after learning something a person may still pass it on.
 const TELLING_DAYS: i32 = 7;
 
@@ -274,6 +276,55 @@ fn subject_person(w: &World, kind: &InfoKind) -> PersonId {
     }
 }
 
+/// The most `inclination` can return for this role and kind of item: its base for the role (the highest it takes for the kind), times
+/// the most every other factor can be (discretion 0, closeness at its cap), clamped as `inclination` clamps. A journalist's base depends
+/// on grudges and strategies, so it has no cheap ceiling.
+fn ceiling(role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32) -> f32 {
+    let base = match role {
+        Role::Partner => 0.22,
+        Role::OwnAgent => 0.35,
+        Role::Client => 0.45,
+        Role::Teammate => 0.05,
+        Role::Colleague => 0.04,
+        Role::Superior => match kind {
+            InfoKind::Incident { .. } | InfoKind::DressingRoom { .. } | InfoKind::Discipline { .. } | InfoKind::InjuryWorse { .. } => 0.3,
+            _ => 0.03,
+        },
+        Role::Board => 0.15,
+        Role::Journalist => return f32::INFINITY,
+    };
+    (base * (0.5 + f32::from(sensitivity) / 100.0) * freshness * 1.25 * 1.2 * 1.0001).clamp(0.0, 0.9)
+}
+
+/// For tests: `inclination` never exceeds `ceiling` (the value `spread` uses to skip a contact without computing it). Checked for every
+/// contact of every holder of the newest `items` information items, at each of their ages. Returns how many were checked.
+pub fn check_ceiling(w: &World, items: usize) -> Result<usize, String> {
+    let mut sources_of: FxHashMap<PersonId, SmallVec<[PersonId; 2]>> = FxHashMap::default();
+    for j in w.media.journalists.values() {
+        for &s in &j.sources {
+            sources_of.entry(s).or_default().push(j.person);
+        }
+    }
+    let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+    let mut checked = 0;
+    for it in w.grapevine.items.iter().rev().take(items) {
+        for age in [0, 3, 10, 20] {
+            let freshness = (1.0 - age as f32 / SHELF_LIFE as f32).max(0.0);
+            for k in &it.holders {
+                for (to, role) in contacts(w, k.person, &sources_of, &agent_by_person) {
+                    let (p, _) = inclination(w, k.person, to, role, &it.kind, it.sensitivity, freshness, &agent_by_person);
+                    let c = ceiling(role, &it.kind, it.sensitivity, freshness);
+                    if p > c {
+                        return Err(format!("{role:?} contact, {:?}: inclination {p} exceeds ceiling {c}", it.kind));
+                    }
+                    checked += 1;
+                }
+            }
+        }
+    }
+    Ok(checked)
+}
+
 /// How likely `teller` is to tell `to` today, and why.
 fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32, agent_by_person: &FxHashMap<PersonId, AgentId>) -> (f32, Motive) {
     let prof = consider::hid(w, teller, pw_core::Hidden::Professionalism) / 20.0;
@@ -347,13 +398,16 @@ fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &Inf
 fn spread(w: &mut World) {
     let today = w.date;
     // Who counts whom as a source; which people are agents.
-    let mut sources_of: FxHashMap<PersonId, SmallVec<[PersonId; 2]>> = FxHashMap::default();
-    for j in w.media.journalists.values() {
-        for &s in &j.sources {
-            sources_of.entry(s).or_default().push(j.person);
+    let (sources_of, agent_by_person) = prof!("grapevine::setup", {
+        let mut sources_of: FxHashMap<PersonId, SmallVec<[PersonId; 2]>> = FxHashMap::default();
+        for j in w.media.journalists.values() {
+            for &s in &j.sources {
+                sources_of.entry(s).or_default().push(j.person);
+            }
         }
-    }
-    let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+        let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+        (sources_of, agent_by_person)
+    });
     let active = w.grapevine.active.clone();
     // Who someone talks to is a daily fact; work it out once per person.
     let mut contacts_of: FxHashMap<PersonId, SmallVec<[(PersonId, Role); 16]>> = FxHashMap::default();
@@ -371,7 +425,12 @@ fn spread(w: &mut World) {
             continue;
         }
         let holders: Vec<pw_world::info::Knower> = w.grapevine.get(info).holders.to_vec();
-        let mut knowers: FxHashSet<PersonId> = holders.iter().map(|k| k.person).collect();
+        let tells = |k: &pw_world::info::Knower| k.told < 6 && k.person.is_some() && k.date.days_until(today) <= TELLING_DAYS;
+        if !holders.iter().any(tells) {
+            continue;
+        }
+        // Few people know an item (forty at most): a scan of a short list beats hashing.
+        let mut knowers: SmallVec<[PersonId; 16]> = holders.iter().map(|k| k.person).collect();
         for k in holders {
             // People pass on what they have just heard; after a week it is
             // old news to them (and they have told whom they were going to).
@@ -379,13 +438,18 @@ fn spread(w: &mut World) {
                 continue;
             }
             let teller = k.person;
-            let mine = contacts_of.entry(teller).or_insert_with(|| contacts(w, teller, &sources_of, &agent_by_person)).clone();
+            let mine = contacts_of.entry(teller).or_insert_with(|| prof!("grapevine::contacts", contacts(w, teller, &sources_of, &agent_by_person))).clone();
             for (to, role) in mine {
                 if to.is_none() || knowers.contains(&to) {
                     continue;
                 }
-                let (p, motive) = inclination(w, teller, to, role, &kind, sensitivity, freshness, &agent_by_person);
+                // The roll is a pure function of who, whom and the day, so it is drawn first: most contacts are far from telling, and
+                // `inclination` (a dozen lookups) is only worth computing when the roll is below the largest value it could return.
                 let roll = w.roll(stream::GRAPEVINE, &[u64::from(info), u64::from(teller.0), u64::from(to.0), period::day(today)]);
+                if roll >= ceiling(role, &kind, sensitivity, freshness) {
+                    continue;
+                }
+                let (p, motive) = inclination(w, teller, to, role, &kind, sensitivity, freshness, &agent_by_person);
                 if roll >= p {
                     continue;
                 }
@@ -401,7 +465,7 @@ fn spread(w: &mut World) {
                     fidelity = Fidelity::Planted;
                 }
                 prof!("grapevine::tell", tell(w, info, teller, to, fidelity, motive, k.confidence));
-                knowers.insert(to);
+                knowers.push(to);
             }
         }
     }
@@ -427,10 +491,11 @@ pub fn tell(w: &mut World, info: u32, from: PersonId, to: PersonId, fidelity: Fi
 /// mind's intent). Only what they actually know can be told, in the form they
 /// know it, retold once more; telling a journalist is how leaks begin.
 pub fn pass_on(w: &mut World, from: PersonId, to: PersonId, info: u32) {
-    if to.is_none() || to == from || info as usize >= w.grapevine.items.len() {
+    if to.is_none() || to == from {
         return;
     }
-    let Some(k) = w.grapevine.items[info as usize].knower(from).copied() else { return };
+    // An item the grapevine has forgotten cannot be passed on.
+    let Some(k) = w.grapevine.items.get(info as usize).and_then(|it| it.knower(from)).copied() else { return };
     let honest = consider::hid(w, from, pw_core::Hidden::Professionalism) / 20.0;
     let roll = w.roll(stream::GRAPEVINE, &[u64::from(from.0), u64::from(to.0), u64::from(info), 0x9a55]);
     let fidelity = k.fidelity.degrade(roll, honest);
@@ -513,7 +578,7 @@ fn react(w: &mut World, who: PersonId, info: u32) {
 /// people it concerns realise it got out.
 pub fn on_published(w: &mut World, info: u32, story: StoryId) {
     let today = w.date;
-    let item = w.grapevine.get(info).clone();
+    let Some(item) = w.grapevine.items.get(info as usize).cloned() else { return };
     {
         let it = &mut w.grapevine.items[info as usize];
         if it.published.is_none() {
@@ -563,7 +628,9 @@ pub fn on_published(w: &mut World, info: u32, story: StoryId) {
 
 /// Mark an item as no longer true (a bid withdrawn, a player settled).
 pub fn outdate(w: &mut World, info: u32) {
-    w.grapevine.items[info as usize].true_now = false;
+    if let Some(it) = w.grapevine.items.get_mut(info as usize) {
+        it.true_now = false;
+    }
 }
 
 fn close_old(w: &mut World) {
@@ -614,6 +681,9 @@ pub fn compact(w: &mut World) {
         ids.retain(|id| items.get(*id as usize).is_some_and(|item| item.knows(*person)));
         !ids.is_empty()
     });
+    // Two years on an item is forgotten altogether (its holders are already gone but for the people whose stories cite it). The
+    // stories stay; `audit` reads a forgotten source as "aged out", not as "never existed".
+    w.grapevine.forget_before(today.add_days(-FORGET_DAYS));
 }
 
 /// Does `person` know something about `player` that has not been published?

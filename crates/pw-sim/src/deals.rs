@@ -33,8 +33,33 @@ pub fn shortlists(w: &mut World) {
     let clubs: Vec<ClubId> = w.deals.plans.keys().copied().collect();
     let mut clubs = clubs;
     clubs.sort();
-    for club in clubs {
-        let plan = w.deals.plans[&club].clone();
+    // Every club reads the world as it stands and writes only its own lists, so the reading is done in parallel (in club order) and
+    // the lists are written afterwards.
+    let found: Vec<(ClubId, Vec<(pw_core::PosGroup, Shortlist)>, Option<(PlayerId, pw_core::Date)>)> = {
+        use rayon::prelude::*;
+        let w: &World = w;
+        clubs.par_iter().map(|&club| (club, shortlists_of(w, club, today), opportunity_of(w, club, today))).collect()
+    };
+    for (club, lists, opportunity) in found {
+        for (group, list) in lists {
+            w.deals.shortlists.insert((club, group), list);
+        }
+        match opportunity {
+            Some(o) => {
+                w.deals.opportunities.insert(club, o);
+            }
+            None => {
+                w.deals.opportunities.remove(&club);
+            }
+        }
+    }
+}
+
+/// One club's ranked targets for each need in its plan, from what it knows.
+fn shortlists_of(w: &World, club: ClubId, today: pw_core::Date) -> Vec<(pw_core::PosGroup, Shortlist)> {
+    let mut out = Vec::new();
+    {
+        let plan = &w.deals.plans[&club];
         let nation = w.clubs[club].nation;
         let prof = pw_world::rules::profile(w, nation);
         for need in plan.needs.iter() {
@@ -77,21 +102,28 @@ pub fn shortlists(w: &mut World) {
             cands.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
             let targets: SmallVec<[(PlayerId, f32); 5]> = cands.into_iter().take(5).collect();
             let failures = w.deals.shortlists.get(&(club, need.group)).map_or(0, |s| s.failures);
-            w.deals.shortlists.insert((club, need.group), Shortlist { updated: today, targets, failures });
+            out.push((need.group, Shortlist { updated: today, targets, failures }));
         }
-        notice_opportunity(w, club);
     }
+    out
 }
 
 /// Outside its plan, a club can still notice a player far better than it expected to afford, priced well under what it thinks he is
 /// worth (section 4.10). Planned and opportunistic recruitment are told apart: this one has no need behind it.
-fn notice_opportunity(w: &mut World, club: ClubId) {
-    let today = w.date;
+fn opportunity_of(w: &World, club: ClubId, today: pw_core::Date) -> Option<(PlayerId, pw_core::Date)> {
     let rep = w.clubs[club].reputation;
     let ideal = market::ideal_ca(rep);
     let budget = w.clubs[club].finance.transfer_budget as f32;
     let mut best: Option<(PlayerId, f32)> = None;
-    for (p, seen) in w.knowledge.known(club).take(400) {
+    // The four hundred players the club has watched most (ties by id). A plain `take(400)` of the map would depend on the order the
+    // map happens to hold its entries in, which differs after a reload.
+    let mut watched: Vec<(PlayerId, pw_world::knowledge::Seen)> = w.knowledge.known(club).filter(|(_, s)| s.minutes >= 300).collect();
+    if watched.len() > 400 {
+        watched.select_nth_unstable_by(399, |a, b| b.1.minutes.cmp(&a.1.minutes).then(a.0.cmp(&b.0)));
+        watched.truncate(400);
+    }
+    watched.sort_by_key(|(p, _)| *p);
+    for (p, seen) in watched {
         if seen.minutes < 300 {
             continue;
         }
@@ -113,14 +145,7 @@ fn notice_opportunity(w: &mut World, club: ClubId) {
             best = Some((p, bargain));
         }
     }
-    match best {
-        Some((p, _)) => {
-            w.deals.opportunities.insert(club, (p, today));
-        }
-        None => {
-            w.deals.opportunities.remove(&club);
-        }
-    }
+    best.map(|(p, _)| (p, today))
 }
 
 /// A club with an open window works down its shortlist. Returns true if it acted.

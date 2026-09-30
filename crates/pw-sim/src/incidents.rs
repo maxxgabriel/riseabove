@@ -263,17 +263,59 @@ fn hazard(w: &World, d: &IncidentDef, c: &Ctx) -> (f32, SmallVec<[(Pressure, u8)
     ((d.hazard * pw_core::math::exp(sum)).min(0.5), top)
 }
 
+/// [`hazard`] for a caller that already holds the roll: `None` as soon as the roll can no longer fall under the probability.
+/// Every pressure is in [0, 1], so once the pressures read so far are added, the most the rest can contribute is the sum of their
+/// positive weights. The pressures are read and summed in the same order as `hazard`, so a hazard that is returned is identical.
+fn hazard_under(w: &World, d: &IncidentDef, c: &Ctx, roll: f32) -> Option<(f32, SmallVec<[(Pressure, u8); 4]>)> {
+    const SLACK: f32 = 1.0 + 1e-4;
+    let mut remaining: f32 = d.pressures.iter().map(|&(_, weight)| weight.max(0.0)).sum();
+    if roll >= (d.hazard * pw_core::math::exp(remaining) * SLACK).min(0.5) {
+        return None;
+    }
+    let mut sum = 0.0f32;
+    let mut parts: SmallVec<[(Pressure, f32); 8]> = SmallVec::new();
+    for &(pr, weight) in d.pressures {
+        remaining -= weight.max(0.0);
+        let contrib = weight * pressure(w, pr, c);
+        sum += contrib;
+        if contrib > 0.0 {
+            parts.push((pr, contrib));
+        }
+        if roll >= (d.hazard * pw_core::math::exp(sum + remaining.max(0.0)) * SLACK).min(0.5) {
+            return None;
+        }
+    }
+    parts.sort_by(|x, y| y.1.total_cmp(&x.1));
+    let top: SmallVec<[(Pressure, u8); 4]> = parts.iter().filter(|x| x.1 >= 0.15).take(4).map(|&(p, v)| (p, (v * 100.0).min(255.0) as u8)).collect();
+    Some(((d.hazard * pw_core::math::exp(sum)).min(0.5), top))
+}
+
+/// For tests: does the bounded reading agree with the plain one? `Ok` when [`hazard_under`] either returns exactly what [`hazard`]
+/// returns, or gives up only for a roll the plain hazard would also have refused.
+pub fn hazard_agrees(w: &World, kind: IncidentKind, c: &Ctx, roll: f32) -> Result<(), String> {
+    let d = def(kind);
+    let (p, top) = hazard(w, &d, c);
+    match hazard_under(w, &d, c, roll) {
+        Some((q, top2)) if q == p && top == top2 => Ok(()),
+        Some((q, _)) => Err(format!("{kind:?}: hazard {p} but bounded reading {q}")),
+        None if roll >= p => Ok(()),
+        None => Err(format!("{kind:?}: gave up on roll {roll} although the hazard is {p}")),
+    }
+}
+
 /// Roll for an incident; trigger it if it happens.
 fn consider_incident(w: &mut World, kind: IncidentKind, c: Ctx, keys: &[u64]) -> Option<u32> {
     let d = def(kind);
     if d.hazard <= 0.0 {
         return None;
     }
-    let (p, top) = hazard(w, &d, &c);
     let mut k: SmallVec<[u64; 6]> = SmallVec::new();
     k.push(kind as u64);
     k.extend_from_slice(keys);
-    if w.roll(stream::INCIDENTS, &k) >= p {
+    // The roll does not depend on the world, so it is drawn first and the (costly) pressures are only read while it could still hit.
+    let roll = w.roll(stream::INCIDENTS, &k);
+    let (p, top) = hazard_under(w, &d, &c, roll)?;
+    if roll >= p {
         return None;
     }
     Some(trigger(w, &d, c, top, None))
@@ -489,14 +531,25 @@ pub fn weekly(w: &mut World) {
         let people: Vec<PersonId> = squad.iter().map(|&p| w.players.cold[p].person).collect();
         // Each player's sharpest point of friction in the squad.
         let mut pairs: Vec<(usize, usize)> = Vec::new();
-        for i in 0..squad.len() {
+        let index: pw_world::FxHashMap<PersonId, usize> = people.iter().enumerate().map(|(i, &p)| (p, i)).collect();
+        let mut grievance = vec![0.0f32; squad.len()];
+        prof!("incidents::pairs", for i in 0..squad.len() {
             let mut best: Option<(usize, f32)> = None;
+            // Everything `a` holds against each squad-mate, gathered in one pass over `a`'s memories (the sum for each mate is taken in
+            // the same order as `consider::grievance` would, so the values are identical).
+            grievance.iter_mut().for_each(|g| *g = 0.0);
+            let (a, grudge, today) = (people[i], consider::grudge(w, people[i]), w.date);
+            for m in w.social.memories_of(a) {
+                if let Some(&j) = index.get(&m.about) {
+                    grievance[j] += if m.kind.negative() { m.weight(today, grudge) } else { -0.6 * m.weight(today, grudge) };
+                }
+            }
             for j in 0..squad.len() {
                 if i == j {
                     continue;
                 }
-                let (a, b) = (people[i], people[j]);
-                let mut f = consider::grievance(w, a, b) + f32::from(w.incidents.tension(a, b)) / 100.0 - consider::affinity(w, a, b).min(0.0);
+                let b = people[j];
+                let mut f = (grievance[j] / 60.0).max(0.0) + f32::from(w.incidents.tension(a, b)) / 100.0 - consider::affinity(w, a, b).min(0.0);
                 let (x, y) = (&w.players.cold[squad[i]], &w.players.cold[squad[j]]);
                 if x.best_pos == y.best_pos {
                     f += 0.2;
@@ -513,7 +566,7 @@ pub fn weekly(w: &mut World) {
                     pairs.push(pair);
                 }
             }
-        }
+        });
         for (i, j) in pairs {
             // The instigator is the one with the shorter fuse.
             let (x, y) = if consider::hid(w, people[i], Hidden::Temperament) <= consider::hid(w, people[j], Hidden::Temperament) { (i, j) } else { (j, i) };

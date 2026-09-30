@@ -24,7 +24,12 @@ pub fn weekly(w: &mut World) {
             _ => {}
         }
     }
-    let updates: Vec<(pw_core::PlayerId, f32, Mood)> = ids.iter().map(|&p| (p, compose(w, p, &owed))).map(|(p, (t, m))| (p, t, m)).collect();
+    // Each player's morale is composed from the world as it stands, and nothing else; in parallel, in the order of `ids`.
+    let updates: Vec<(pw_core::PlayerId, f32, Mood)> = {
+        use rayon::prelude::*;
+        let w: &World = w;
+        ids.par_iter().map(|&p| (p, compose(w, p, &owed))).map(|(p, (t, m))| (p, t, m)).collect()
+    };
     for (p, target, mood) in updates {
         let who = w.players.cold[p].person;
         let h = &mut w.players.hot[p];

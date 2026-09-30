@@ -159,7 +159,8 @@ pub struct Meeting {
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Meetings {
     /// Every meeting ever held (append-only; add with `push`).
-    pub list: pw_core::IdVec<MeetingId, Meeting>,
+    /// Addressed by meeting id. Old meetings are forgotten (`forget_before`); a forgotten id has no row.
+    pub list: crate::window::Window<Meeting, MeetingId>,
     /// Meetings between each pair of people (the pair's smaller id first),
     /// so looking up history costs the pair's meetings, not the world's.
     by_pair: crate::FxHashMap<(PersonId, PersonId), SmallVec<[MeetingId; 4]>>,
@@ -171,7 +172,29 @@ fn pair(a: PersonId, b: PersonId) -> (PersonId, PersonId) {
     if a <= b { (a, b) } else { (b, a) }
 }
 
+impl crate::window::Keyed for Meeting {
+    fn key(&self) -> u32 {
+        self.id.0
+    }
+}
+
 impl Meetings {
+    /// Forget the oldest meetings held before `date` that are not in `keep` (a meeting a decision still points at), stopping at the
+    /// first one that must stay. Returns how many were forgotten.
+    pub fn forget_before(&mut self, date: Date, keep: &std::collections::HashSet<MeetingId>) -> usize {
+        let before = self.list.base();
+        let base = self.list.forget_front_while(|m| m.date < date && m.state != MeetingState::Pending && !keep.contains(&m.id));
+        if base == before {
+            return 0;
+        }
+        self.by_pair.retain(|_, ids| {
+            ids.retain(|id| id.0 >= base);
+            !ids.is_empty()
+        });
+        self.open.retain(|id| id.0 >= base);
+        (base - before) as usize
+    }
+
     pub fn push(&mut self, m: Meeting) -> MeetingId {
         let key = pair(m.initiator, m.with);
         let id = self.list.push(m);

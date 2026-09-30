@@ -90,6 +90,7 @@ pub mod save;
 pub mod schedule;
 pub mod scouting;
 pub mod season;
+pub mod sizes;
 pub mod selection;
 pub mod social;
 pub mod metrics;
@@ -238,6 +239,7 @@ impl Sim {
             prof!("honours::monthly", honours::monthly(w));
             prof!("renown::monthly", renown::monthly(w));
             prof!("grapevine::compact", grapevine::compact(w));
+            prof!("retention::monthly", retention::monthly(w));
             prof!("incidents::monthly", incidents::monthly(w));
             prof!("affairs::monthly", affairs::monthly(w));
             prof!("commerce::monthly", commerce::monthly(w));
@@ -417,31 +419,10 @@ fn vacancies(w: &mut World) {
     }
 }
 
-/// Yearly: drop old fixtures and events, keep history (01 §8 compaction).
+/// Yearly: drop old fixtures and working detail, keep history (the event log is compacted monthly, retention::monthly) (01 §8 compaction).
 fn compact(w: &mut World) {
     let cutoff = w.date.add_days(-400);
     w.fixtures.compact(cutoff);
-    use pw_world::event::EventKind as E;
-    w.events.compact(cutoff, |e| {
-        // History people and the press will keep quoting.
-        matches!(
-            e.kind,
-            E::Transfer { .. }
-                | E::Champion { .. }
-                | E::Award { .. }
-                | E::Debut { .. }
-                | E::Retired { .. }
-                | E::ManagerAppointed { .. }
-                | E::Meeting { .. }
-                | E::PromiseMade { .. }
-                | E::PromiseKept { .. }
-                | E::PromiseBroken { .. }
-                | E::TransferRequested { .. }
-                | E::Published { .. }
-                | E::Life { .. }
-                | E::JoinedStaff { .. }
-        )
-    });
     let keep: std::collections::HashSet<u64> = w.fixtures.iter().map(|(_, f)| f.uid).collect();
     let external: Vec<_> = w.external_players().collect();
     // Recording level of detail only (S2): full reports are kept for matches

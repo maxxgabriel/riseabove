@@ -451,6 +451,16 @@ impl Social {
         }
     }
 
+    /// Forget ties nobody has touched for a long time. A tie untouched since `stale_before` goes when either end is `gone` (left the
+    /// game); one untouched since `very_stale_before` goes whoever it joins. The memories a gone person held go with them; the memories
+    /// other people hold about them stay (they fade by their own weight).
+    pub fn forget_ties(&mut self, stale_before: Date, very_stale_before: Date, gone: impl Fn(PersonId) -> bool) -> usize {
+        let before = self.rel.len();
+        self.rel.retain(|&(a, b), r| r.last >= stale_before || (r.last >= very_stale_before && !gone(a) && !gone(b)));
+        self.held.retain(|&p, _| !gone(p));
+        before - self.rel.len()
+    }
+
     pub fn len(&self) -> usize {
         self.rel.len()
     }
