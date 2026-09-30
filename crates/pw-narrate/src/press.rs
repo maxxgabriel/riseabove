@@ -28,6 +28,9 @@ pub fn outlet_name(w: &World, s: &Story) -> String {
 }
 
 pub fn headline(w: &World, s: &Story) -> String {
+    if let Some(t) = crate::lang::story(w, s) {
+        return t.headline;
+    }
     let key = u64::from(s.id.0);
     let who = subject(w, s);
     let loud = tabloid(w, s);
@@ -210,6 +213,9 @@ pub fn voice(w: &World, s: &Story) -> crate::lexicon::Voice {
 
 /// A short article body: who says it, what it rests on (as the paper frames it).
 pub fn body(w: &World, s: &Story) -> String {
+    if let Some(t) = crate::lang::story(w, s) {
+        return t.body;
+    }
     let key = u64::from(s.id.0) ^ 0xabcd;
     let outlet = outlet_name(w, s);
     let who = subject(w, s);

@@ -15,6 +15,7 @@ pub mod grapevine;
 pub mod history;
 pub mod inbox;
 pub mod incidents;
+pub mod lang;
 pub mod lexicon;
 pub mod officiating;
 pub mod press;

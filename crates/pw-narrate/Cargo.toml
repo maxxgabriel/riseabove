@@ -8,3 +8,4 @@ license.workspace = true
 pw-core.workspace = true
 pw-data.workspace = true
 pw-world.workspace = true
+pw-lang.workspace = true
