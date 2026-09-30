@@ -246,3 +246,43 @@ fn uncovered() {
         eprintln!("UNCOVERED {n:5} {k}");
     }
 }
+
+#[test]
+fn an_old_story_reads_the_same_as_the_world_ages() {
+    let mut s = india_world(57, 300);
+    let before: Vec<(u32, String, String)> = s
+        .world
+        .media
+        .stories
+        .iter_enumerated()
+        .filter_map(|(id, st)| lang::story(&s.world, st).map(|t| (id.0, t.headline, t.body)))
+        .collect();
+    assert!(before.len() > 100);
+    s.run(400);
+    let mut changed = Vec::new();
+    for (id, h, b) in &before {
+        let st = s.world.media.stories.get(pw_core::StoryId(*id)).expect("stories are kept");
+        let now = lang::story(&s.world, st).expect("still writable");
+        if (&now.headline, &now.body) != (h, b) {
+            changed.push(format!("{id}: {h} / {b}\n   now: {} / {}", now.headline, now.body));
+        }
+    }
+    assert!(changed.is_empty(), "{} of {} stories read differently a year later, e.g.\n{}", changed.len(), before.len(), changed.iter().take(3).cloned().collect::<Vec<_>>().join("\n"));
+}
+
+#[test]
+#[ignore = "timing"]
+fn cost() {
+    let s = india_world(58, 300);
+    let w = &s.world;
+    let stories: Vec<_> = w.media.stories.iter().collect();
+    let t0 = std::time::Instant::now();
+    let mut n = 0;
+    for st in &stories {
+        if lang::story(w, st).is_some() {
+            n += 1;
+        }
+    }
+    let per = t0.elapsed().as_secs_f64() * 1e6 / stories.len() as f64;
+    eprintln!("COST {} stories, {n} written, {per:.0} us per story", stories.len());
+}

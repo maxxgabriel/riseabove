@@ -44,13 +44,14 @@ fn role_word(g: PosGroup) -> &'static str {
 }
 
 /// A player as the public knows him: name, age and position (never ability).
-pub fn player_ref(w: &World, p: PlayerId) -> LRef {
+pub fn player_ref(w: &World, p: PlayerId, on: Date) -> LRef {
     let person = w.person_of(p);
     let full = w.player_name(p);
     let short = w.names.get(person.last).to_string();
     let short = if short.is_empty() { full.clone() } else { short };
     let role = role_word(w.players.cold[p].best_pos.group());
-    let age = w.age(p);
+    // His age when the text is about, not today: an old story keeps the age he was.
+    let age = person.dob.age_on(on);
     let mut r = LRef::new(&format!("person.{}", w.players.cold[p].person.0), &full, &short);
     r = r.with_desc("role", role);
     if (15..=45).contains(&age) {
@@ -66,10 +67,10 @@ fn manager_ref(w: &World, s: pw_core::StaffId) -> LRef {
 }
 
 /// Any person as the public knows them: a player by name, age and position, staff by name and job.
-fn person_ref(w: &World, p: pw_core::PersonId) -> Option<LRef> {
+fn person_ref(w: &World, p: pw_core::PersonId, on: Date) -> Option<LRef> {
     let person = w.people.get(p)?;
     if let Some(pl) = person.player.get() {
-        return Some(player_ref(w, pl));
+        return Some(player_ref(w, pl, on));
     }
     let st = person.staff.get()?;
     let name = w.staff_name(st);
@@ -77,10 +78,19 @@ fn person_ref(w: &World, p: pw_core::PersonId) -> Option<LRef> {
     Some(LRef::new(&format!("person.{}", p.0), &name, &short).with_desc("title", &w.staff[st].role.label().to_lowercase()))
 }
 
-fn person_club(w: &World, p: pw_core::PersonId) -> ClubId {
+/// The club a player was with on a date, from his recorded spells (today's club only when the record says nothing). A story about last
+/// season says which club he was at then, not where he is now.
+fn club_at(w: &World, p: PlayerId, on: Date) -> ClubId {
+    match w.history.spells.get(&p) {
+        Some(v) if !v.is_empty() => v.iter().rev().find(|s| s.from <= on && s.to.is_none_or(|t| t >= on)).map_or(ClubId::NONE, |s| s.club),
+        _ => w.players.hot[p].club,
+    }
+}
+
+fn person_club(w: &World, p: pw_core::PersonId, on: Date) -> ClubId {
     let Some(person) = w.people.get(p) else { return ClubId::NONE };
     if let Some(pl) = person.player.get() {
-        return w.players.hot[pl].club;
+        return club_at(w, pl, on);
     }
     person.staff.get().map_or(ClubId::NONE, |s| w.staff[s].club)
 }
@@ -100,7 +110,7 @@ fn team_club(w: &World, t: TeamId) -> ClubId {
 pub fn event(w: &World, k: &E, date: Date) -> Option<LEvent> {
     Some(match *k {
         E::Transfer { player, from, to, fee } if from.is_some() && to.is_some() => {
-            let mut ev = LEvent::new("transfer.completed", date).ent("player", player_ref(w, player)).ent("from", club_ref(w, from)).ent("to", club_ref(w, to));
+            let mut ev = LEvent::new("transfer.completed", date).ent("player", player_ref(w, player, date)).ent("from", club_ref(w, from)).ent("to", club_ref(w, to));
             if fee > 0 {
                 ev = ev.money("fee", fee);
             }
@@ -108,13 +118,13 @@ pub fn event(w: &World, k: &E, date: Date) -> Option<LEvent> {
         }
         E::ContractSigned { player, club, until, renewal: true, .. } if club.is_some() => {
             let years = (until.0 - date.0).max(0) / 365;
-            LEvent::new("contract.renewed", date).ent("player", player_ref(w, player)).ent("club", club_ref(w, club)).num("contract_years", i64::from(years.max(1)))
+            LEvent::new("contract.renewed", date).ent("player", player_ref(w, player, date)).ent("club", club_ref(w, club)).num("contract_years", i64::from(years.max(1)))
         }
-        E::Released { player, club } if club.is_some() => LEvent::new("player.released", date).ent("player", player_ref(w, player)).ent("club", club_ref(w, club)),
+        E::Released { player, club } if club.is_some() => LEvent::new("player.released", date).ent("player", player_ref(w, player, date)).ent("club", club_ref(w, club)),
         E::Injured { player, injury, days } => {
-            let club = w.players.hot[player].club;
+            let club = club_at(w, player, date);
             let name = if injury > 0 { w.data.injuries.get(usize::from(injury - 1)).map(|d| d.name.to_lowercase()) } else { None };
-            let mut ev = LEvent::new("injury.suffered", date).ent("player", player_ref(w, player)).num("weeks_out", i64::from(days.div_ceil(7).max(1)));
+            let mut ev = LEvent::new("injury.suffered", date).ent("player", player_ref(w, player, date)).num("weeks_out", i64::from(days.div_ceil(7).max(1)));
             if club.is_some() {
                 ev = ev.ent("club", club_ref(w, club));
             }
@@ -128,11 +138,11 @@ pub fn event(w: &World, k: &E, date: Date) -> Option<LEvent> {
         E::Promoted { comp, team } => LEvent::new("competition.promotion", date).ent("club", club_ref(w, team_club(w, team))).ent("competition", comp_ref(w, comp)),
         E::Relegated { comp, team } => LEvent::new("competition.relegation", date).ent("club", club_ref(w, team_club(w, team))).ent("competition", comp_ref(w, comp)),
         E::BidRejected { player, club, fee } if club.is_some() => {
-            let seller = w.players.hot[player].club;
+            let seller = club_at(w, player, date);
             if seller.is_none() {
                 return None;
             }
-            LEvent::new("transfer.bid_rejected", date).ent("buyer", club_ref(w, club)).ent("seller", club_ref(w, seller)).ent("player", player_ref(w, player)).money("fee", fee)
+            LEvent::new("transfer.bid_rejected", date).ent("buyer", club_ref(w, club)).ent("seller", club_ref(w, seller)).ent("player", player_ref(w, player, date)).money("fee", fee)
         }
         _ => return None,
     })
@@ -186,14 +196,26 @@ fn speaker(s: &Story, w: &World, ev: &LEvent, cert: Certainty) -> Speaker {
 
 // ------------------------------------------------------------------------------------------------- stories
 
+#[derive(Clone)]
 pub struct Text {
     pub headline: String,
     pub body: String,
 }
 
 /// The engine's article for a story, when it has one that does not say more than the story does.
+thread_local! {
+    /// The last story written. A page asks for a story's headline and then its body; the second is answered from here.
+    static LAST: std::cell::RefCell<Option<((usize, u64, usize, u32, i32), Option<Text>)>> = const { std::cell::RefCell::new(None) };
+}
+
 pub fn story(w: &World, s: &Story) -> Option<Text> {
-    try_story(w, s).ok()
+    let key = (std::ptr::from_ref(w) as usize, w.seed, w.media.stories.len(), s.id.0, w.date.0);
+    if let Some(hit) = LAST.with(|l| l.borrow().as_ref().filter(|(k, _)| *k == key).map(|(_, t)| t.clone())) {
+        return hit;
+    }
+    let t = try_story(w, s).ok();
+    LAST.with(|l| *l.borrow_mut() = Some((key, t.clone())));
+    t
 }
 
 /// As [`story`], saying why the engine did not write it (no event for it, or the engine reported the rendering incomplete).
@@ -230,13 +252,13 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     30..=54 => "keen",
                     _ => "preparing",
                 };
-                let mut ev = LEvent::new("transfer.interest", s.date).ent("buyer", club_ref(w, s.other_club)).ent("seller", club_ref(w, s.club)).ent("player", player_ref(w, s.player)).text("stage", stage);
+                let mut ev = LEvent::new("transfer.interest", s.date).ent("buyer", club_ref(w, s.other_club)).ent("seller", club_ref(w, s.club)).ent("player", player_ref(w, s.player, s.date)).text("stage", stage);
                 if s.fee > 0 && s.claim >= 55 {
                     ev = ev.money("fee", s.fee);
                 }
                 return Some(ev);
             }
-            let mut ev = LEvent::new("transfer.bid_made", s.date).ent("buyer", club_ref(w, s.other_club)).ent("seller", club_ref(w, s.club)).ent("player", player_ref(w, s.player));
+            let mut ev = LEvent::new("transfer.bid_made", s.date).ent("buyer", club_ref(w, s.other_club)).ent("seller", club_ref(w, s.club)).ent("player", player_ref(w, s.player, s.date));
             if s.fee > 0 {
                 ev = ev.money("fee", s.fee);
             }
@@ -247,7 +269,7 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                 {
                     let mut ev = LEvent::new("match.result", s.date).ent("home", club_ref(w, *home)).ent("away", club_ref(w, *away)).num("home_goals", i64::from(*hg)).num("away_goals", i64::from(*ag));
                     if star.is_some() {
-                        ev = ev.ent("star", player_ref(w, *star));
+                        ev = ev.ent("star", player_ref(w, *star, s.date));
                     }
                     ev
                 },
@@ -263,7 +285,7 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     M::SeniorApps => "senior_apps",
                     M::Caps => "caps",
                 };
-                let mut ev = LEvent::new("milestone.reached", s.date).ent("player", player_ref(w, s.player)).text("kind", kind).num("count", i64::from(*count));
+                let mut ev = LEvent::new("milestone.reached", s.date).ent("player", player_ref(w, s.player, s.date)).text("kind", kind).num("count", i64::from(*count));
                 if *k == M::ClubApps && s.club.is_some() {
                     ev = ev.ent("club", club_ref(w, s.club));
                 }
@@ -280,7 +302,7 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                 } && s.club.is_some()
                     && *v > 0
                 {
-                    return Some(LEvent::new("transfer.record", s.date).ent("player", player_ref(w, s.player)).ent("club", club_ref(w, s.club)).text("kind", kind).money("fee", *v));
+                    return Some(LEvent::new("transfer.record", s.date).ent("player", player_ref(w, s.player, s.date)).ent("club", club_ref(w, s.club)).text("kind", kind).money("fee", *v));
                 }
                 // Only records a player can be said to have set or broken; a signing, a sale or a fee is not his to break.
                 let (record, value) = match k {
@@ -291,7 +313,7 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     R::NationTopScorer => ("national scoring record".to_string(), None),
                     _ => return None,
                 };
-                let mut ev = LEvent::new("record.broken", s.date).ent("person", player_ref(w, s.player)).text("record", &record);
+                let mut ev = LEvent::new("record.broken", s.date).ent("person", player_ref(w, s.player, s.date)).text("record", &record);
                 if let Some(v) = value {
                     ev = ev.text("value", &v);
                 }
@@ -301,19 +323,19 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
         },
         StoryKind::Unhappy | StoryKind::Praise if s.player.is_some() => {
             let kind = if s.kind == StoryKind::Unhappy { "player.unhappy" } else { "player.praise" };
-            let mut ev = LEvent::new(kind, s.date).ent("player", player_ref(w, s.player));
+            let mut ev = LEvent::new(kind, s.date).ent("player", player_ref(w, s.player, s.date));
             if s.club.is_some() {
                 ev = ev.ent("club", club_ref(w, s.club));
             }
             Some(ev)
         }
         StoryKind::AwardNews => match w.media.links.get(&s.id) {
-            Some(pw_world::media::StoryLink::Award(a)) if s.player.is_some() => Some(LEvent::new("award.won", s.date).ent("player", player_ref(w, s.player)).text("award", &a.label())),
+            Some(pw_world::media::StoryLink::Award(a)) if s.player.is_some() => Some(LEvent::new("award.won", s.date).ent("player", player_ref(w, s.player, s.date)).text("award", &a.label())),
             _ => None,
         },
         StoryKind::Interview => match w.media.links.get(&s.id) {
             Some(pw_world::media::StoryLink::Quote(q)) => {
-                let speaker = person_ref(w, q.speaker)?;
+                let speaker = person_ref(w, q.speaker, s.date)?;
                 let stance = match q.stance {
                     pw_world::media::Stance::Praise => "praise",
                     pw_world::media::Stance::Criticise => "criticise",
@@ -325,10 +347,10 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     pw_world::media::Stance::Deny => "deny",
                 };
                 let mut ev = LEvent::new("interview.quote", s.date).ent("speaker", speaker).text("stance", stance);
-                if let Some(about) = if q.about.is_some() && q.about != q.speaker { person_ref(w, q.about) } else { None } {
+                if let Some(about) = if q.about.is_some() && q.about != q.speaker { person_ref(w, q.about, s.date) } else { None } {
                     ev = ev.ent("about", about);
                 }
-                let club = person_club(w, q.speaker);
+                let club = person_club(w, q.speaker, s.date);
                 if club.is_some() {
                     ev = ev.ent("club", club_ref(w, club));
                 }
@@ -371,12 +393,12 @@ pub fn decision(w: &World, d: &pw_world::decision::Decision) -> Option<(String, 
     let ev = match &d.kind {
         K::Trial { club, .. } if club.is_some() => LEvent::new("academy.invitation", date)
             .with("to_player", pw_lang::Value::Bool(true))
-            .ent("player", player_ref(w, d.player))
+            .ent("player", player_ref(w, d.player, date))
             .ent("academy", club_ref(w, *club))
             .text("offer_kind", "trial"),
         K::TransferTalks { club, fee } if club.is_some() => {
             let seller = w.players.hot[d.player].club;
-            let mut ev = LEvent::new("transfer.bid_made", date).with("ours", pw_lang::Value::Bool(false)).ent("buyer", club_ref(w, *club)).ent("player", player_ref(w, d.player));
+            let mut ev = LEvent::new("transfer.bid_made", date).with("ours", pw_lang::Value::Bool(false)).ent("buyer", club_ref(w, *club)).ent("player", player_ref(w, d.player, date));
             if seller.is_some() {
                 ev = ev.ent("seller", club_ref(w, seller));
             }
