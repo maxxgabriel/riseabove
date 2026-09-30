@@ -16,7 +16,7 @@ use pw_world::scenario::DataOrigin;
 use serde_json::Value;
 
 use crate::contract::{
-    CreationView, EligibilityRow, EvidenceRow, ExportView, KnownBy, MarketRow, PathwayView, RecognitionView, RegionOutputRow, RegionOutputView, ScenarioView, SegmentRegard, StepRow, TierRow, VouchView, WatchRow,
+    CreationView, DerbyRow, EligibilityRow, EvidenceRow, ExportView, KnownBy, MarketRow, PathwayView, RecognitionView, ReferenceStatusRow, RegionOutputRow, RegionOutputView, ScenarioView, SegmentRegard, StepRow, TierRow, VouchView, WatchRow,
 };
 use crate::ctx::Ctx;
 use crate::model::{ApiError, ApiResult, Named, Ref};
@@ -234,9 +234,11 @@ pub fn export(c: &Ctx, _args: &Value) -> ApiResult<Value> {
     to_json(&ExportView { available: true, markets, note: "Regard is per market and per kind of football. Nations in no market do not look at this country at all.".into() })
 }
 
-/// `ecosystem.scenario`: the calendar, where the tuning came from, and where each club's starting data came from.
+/// `ecosystem.scenario`: the calendar, where the tuning came from, where each club's starting data came from, what reading the
+/// reference data found, and the derbies it names (labels only).
 pub fn scenario(c: &Ctx, _args: &Value) -> ApiResult<Value> {
     let sc = &c.w.ext.scenario;
+    let rep = &sc.reference;
     let mut origin = [0u32; 3];
     for o in sc.club_origin.values() {
         origin[match o {
@@ -264,6 +266,19 @@ pub fn scenario(c: &Ctx, _args: &Value) -> ApiResult<Value> {
         clubs_seeded: origin[1],
         clubs_generated: origin[2],
         clubs_unknown: unknown,
+        reference_loaded: rep.records > 0,
+        reference_files: rep.files,
+        reference_records: rep.records,
+        reference_by_status: if rep.records > 0 { pw_world::scenario::REFERENCE_STATUS_LABELS.iter().zip(rep.by_status).map(|(l, n)| ReferenceStatusRow { label: (*l).into(), records: n }).collect() } else { Vec::new() },
+        reference_findings: rep.findings,
+        finding_samples: rep.finding_samples.clone(),
+        clubs_matched: rep.clubs_matched,
+        clubs_from_reference: rep.clubs_from_reference,
+        derbies: sc
+            .known_derbies
+            .iter()
+            .map(|d| DerbyRow { name: d.name.clone(), a: c.w.clubs[d.a].name.clone(), b: c.w.clubs[d.b].name.clone(), kind: if d.derby { "Derby" } else { "Rivalry" }.into(), origin: d.origin.label().into() })
+            .collect(),
         note: "The weights and thresholds that decide who is noticed are initial tuning held in the scenario's data, not facts about football.".into(),
     })
 }

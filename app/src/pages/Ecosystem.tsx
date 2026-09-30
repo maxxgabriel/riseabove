@@ -137,13 +137,72 @@ function Scenario() {
               <KeyVal
                 rows={[
                   { k: "Tuning and calendar", v: d.source },
-                  { k: "Clubs imported and verified", v: <span className="num">{fmtInt(d.clubs_imported)}</span> },
+                  { k: "Clubs imported from a verified, sourced record", v: <span className="num">{fmtInt(d.clubs_imported)}</span> },
                   { k: "Clubs named by the scenario (starting values are seeds)", v: <span className="num">{fmtInt(d.clubs_seeded)}</span> },
                   { k: "Clubs generated to fill places", v: <span className="num">{fmtInt(d.clubs_generated)}</span> },
                   ...(d.clubs_unknown > 0 ? [{ k: "Clubs of unknown origin (older save)", v: <span className="num">{fmtInt(d.clubs_unknown)}</span> }] : []),
                 ]}
               />
             </div>
+          </Section>
+          <Section title="Reference data" aside="Researched real-world records, read with the standing each one claims. Only a sourced, verified record makes a club Imported; everything else is a seed.">
+            {!d.reference_loaded ? (
+              <Empty title="No reference data was read">This world was built without the researched India reference data (an older save, or another builder).</Empty>
+            ) : (
+              <div className="card">
+                <KeyVal
+                  rows={[
+                    { k: "Files and records read", v: <span className="num">{fmtInt(d.reference_files)} files, {fmtInt(d.reference_records)} records</span> },
+                    ...d.reference_by_status.map((s) => ({ k: `Records: ${s.label.toLowerCase()}`, v: <span className="num">{fmtInt(s.records)}</span> })),
+                    { k: "Clubs matched to a real club (by id or exact name and state)", v: <span className="num">{fmtInt(d.clubs_matched)}</span> },
+                    { k: "Clubs given a real club's place instead of a made-up one", v: <span className="num">{fmtInt(d.clubs_from_reference)}</span> },
+                    {
+                      k: "Findings while reading",
+                      v: <Badge tone={d.reference_findings === 0 ? "pos" : "warn"}>{fmtInt(d.reference_findings)}</Badge>,
+                    },
+                  ]}
+                />
+                {d.finding_samples.length > 0 && (
+                  <ul className="muted">
+                    {d.finding_samples.map((f, i) => (
+                      <li key={i}>{f}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </Section>
+          <Section title="Known derbies" aside="Names only. A rivalry's strength comes from what happens in this world, never from the real one.">
+            {d.derbies.length === 0 ? (
+              <Empty title="No derby is named">{d.reference_loaded ? "None of the derbies in the reference data has both its clubs in this world." : "No reference data was read."}</Empty>
+            ) : (
+              <div className="card">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Clubs</th>
+                      <th>Kind</th>
+                      <th>Data origin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {d.derbies.map((r, i) => (
+                      <tr key={i}>
+                        <td>{r.name}</td>
+                        <td>
+                          {r.a} v {r.b}
+                        </td>
+                        <td>{r.kind}</td>
+                        <td>
+                          <Badge tone={r.origin === "Imported" ? "pos" : "muted"}>{r.origin}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </Section>
           <Section title="Calendar">
             <div className="card">

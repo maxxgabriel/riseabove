@@ -16,23 +16,26 @@
 //!    state, say) is done by `pw_sim::legacy::finish`, which runs once after load when [`Extensions::migrated_from`] is set, is
 //!    deterministic, and marks what it derived as legacy-derived where provenance exists.
 
+use pw_core::ClubId;
 use serde::{Deserialize, Serialize};
 
+use crate::FxHashMap;
 use crate::academy::AcademyExt;
 use crate::almanac::Almanac;
 use crate::ecosystem::Ecosystem;
 use crate::medical::MedicalExt;
 use crate::pathway::PathwayExt;
 use crate::recog::Recog;
-use crate::scenario::Scenario;
+use crate::scenario::{CalRule, DataOrigin, MarketDef, NationalRules, RecognitionTuning, Scenario, ScoutingTuning};
 use crate::ruling::DecisionMemory;
 use crate::stafflife::StaffExt;
 use crate::training::TrainingExt;
 
 /// Version of the `Extensions` layout written by this build. History: 1 = the layout at the introduction of the envelope; 2 = adds
 /// `scenario` (tuning and calendar), `recog` (what organisations know, vouches, market regard) and `pathway` (why players moved, how
-/// they were created), all appended and all empty or default in a save from layout 1.
-pub const EXT_VERSION: u32 = 2;
+/// they were created), all appended and all empty or default in a save from layout 1; 3 = `Scenario` gains `known_derbies` and
+/// `reference` at its end (named derbies and the report of loading reference data), both empty in a save from layout 2.
+pub const EXT_VERSION: u32 = 3;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -72,19 +75,103 @@ pub struct ExtStep {
 
 /// The steps that upgrade older `Extensions` bytes to [`EXT_VERSION`], in order.
 pub fn steps() -> &'static [ExtStep] {
-    &[ExtStep { from: 1, name: "add scenario tuning, organisation knowledge and pathway history", apply: v1_to_v2 }]
+    &[
+        ExtStep { from: 1, name: "add scenario tuning, organisation knowledge and pathway history", apply: v1_to_v2 },
+        ExtStep { from: 2, name: "add the scenario's known derbies and reference-data report", apply: v2_to_v3 },
+    ]
+}
+
+/// `Scenario` exactly as layout 2 wrote it. Frozen: never edit it, because old bytes are decoded with it. (Rule 3 at the top.)
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ScenarioV2 {
+    pub recognition: RecognitionTuning,
+    pub scouting: ScoutingTuning,
+    pub calendar: Vec<CalRule>,
+    pub markets: Vec<MarketDef>,
+    pub source: String,
+    pub club_origin: FxHashMap<ClubId, DataOrigin>,
+    pub national: Vec<(String, NationalRules)>,
+}
+
+impl From<&Scenario> for ScenarioV2 {
+    /// The layout-2 part of a scenario (what a layout-2 build would have written for it).
+    fn from(s: &Scenario) -> Self {
+        Self {
+            recognition: s.recognition.clone(),
+            scouting: s.scouting.clone(),
+            calendar: s.calendar.clone(),
+            markets: s.markets.clone(),
+            source: s.source.clone(),
+            club_origin: s.club_origin.clone(),
+            national: s.national.clone(),
+        }
+    }
+}
+
+impl Default for ScenarioV2 {
+    fn default() -> Self {
+        Self::from(&Scenario::default())
+    }
 }
 
 /// What layout 2 appended to layout 1, in field order.
 #[derive(Default, Serialize)]
 struct V2Tail {
-    scenario: Scenario,
+    scenario: ScenarioV2,
     recog: Recog,
     pathway: PathwayExt,
 }
 
 fn v1_to_v2(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
     append_default::<V2Tail>(bytes)
+}
+
+/// `Extensions` as layout 2 wrote it: the same fields in the same order, with the layout-2 scenario.
+#[derive(Deserialize)]
+struct ExtensionsV2 {
+    medical: MedicalExt,
+    ecosystem: Ecosystem,
+    almanac: Almanac,
+    academy: AcademyExt,
+    staff: StaffExt,
+    training: TrainingExt,
+    decisions: DecisionMemory,
+    scenario: ScenarioV2,
+    recog: Recog,
+    pathway: PathwayExt,
+}
+
+/// The scenario sits in the middle of `Extensions`, so its two new fields cannot simply be appended to the bytes: decode the whole
+/// layout-2 state, give the scenario its new fields empty ("nothing has happened yet": no derbies named, no reference data read),
+/// and encode the layout-3 state. Nothing is invented and nothing else changes.
+fn v2_to_v3(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    let old: ExtensionsV2 = bincode::deserialize(&bytes).map_err(|e| format!("layout 2 does not decode: {e}"))?;
+    let s = old.scenario;
+    let scenario = Scenario {
+        recognition: s.recognition,
+        scouting: s.scouting,
+        calendar: s.calendar,
+        markets: s.markets,
+        source: s.source,
+        club_origin: s.club_origin,
+        national: s.national,
+        known_derbies: Vec::new(),
+        reference: Default::default(),
+    };
+    let new = Extensions {
+        medical: old.medical,
+        ecosystem: old.ecosystem,
+        almanac: old.almanac,
+        academy: old.academy,
+        staff: old.staff,
+        training: old.training,
+        decisions: old.decisions,
+        scenario,
+        recog: old.recog,
+        pathway: old.pathway,
+        migrated_from: None,
+    };
+    bincode::serialize(&new).map_err(|e| e.to_string())
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
@@ -158,8 +245,61 @@ mod tests {
         b
     }
 
+    /// The bytes a layout-2 build wrote for `Extensions`: layout 1's seven fields, then the layout-2 scenario, recog and pathway.
+    fn layout_2_bytes(e: &Extensions) -> Vec<u8> {
+        let mut b = layout_1_bytes(e);
+        b.extend(bincode::serialize(&ScenarioV2::from(&e.scenario)).unwrap());
+        b.extend(bincode::serialize(&e.recog).unwrap());
+        b.extend(bincode::serialize(&e.pathway).unwrap());
+        b
+    }
+
     #[test]
-    fn layout_1_opens_at_layout_2_with_new_domains_empty_and_marked() {
+    fn layout_2_opens_at_layout_3_with_the_new_scenario_fields_empty_and_everything_else_intact() {
+        use crate::scenario::{KnownDerby, ReferenceReport};
+        let mut old = Extensions::default();
+        old.ecosystem.last_year = 2031;
+        old.scenario.source = "data/worlds/india/pack.toml".into();
+        old.scenario.club_origin.insert(ClubId(7), DataOrigin::ScenarioSeed);
+        old.scenario.club_origin.insert(ClubId(9), DataOrigin::Generated);
+        old.scenario.national.push(("IND".into(), NationalRules::default()));
+        old.scenario.markets.push(MarketDef { key: "gulf".into(), nations: vec!["UAE".into()], start: 12.5 });
+        // What a layout-3 build adds must not be in the layout-2 bytes, whatever the current value holds.
+        old.scenario.known_derbies.push(KnownDerby { source_id: "rivalry.x".into(), name: "X Derby".into(), a: ClubId(7), b: ClubId(9), derby: true, origin: DataOrigin::Imported });
+        old.scenario.reference = ReferenceReport { records: 5, ..Default::default() };
+        let e = decode(2, layout_2_bytes(&old)).expect("layout 2 upgrades");
+        assert_eq!(e.migrated_from, Some(2), "the load says it came from an older layout");
+        assert_eq!(e.ecosystem.last_year, 2031, "what layout 2 held is untouched");
+        assert_eq!(e.scenario.source, "data/worlds/india/pack.toml");
+        assert_eq!(e.scenario.club_origin.get(&ClubId(7)), Some(&DataOrigin::ScenarioSeed));
+        assert_eq!(e.scenario.club_origin.get(&ClubId(9)), Some(&DataOrigin::Generated));
+        assert_eq!(e.scenario.national.len(), 1);
+        assert_eq!(e.scenario.markets[0].key, "gulf");
+        assert_eq!(e.scenario.calendar, Scenario::default().calendar);
+        assert!(e.scenario.known_derbies.is_empty(), "no derby is invented for an old save");
+        assert_eq!(e.scenario.reference, ReferenceReport::default(), "no reference data is claimed to have been read");
+        // And the upgraded state is exactly what layout 3 would write for that value: it decodes again at the current layout.
+        let again = decode(EXT_VERSION, bincode::serialize(&e).unwrap()).expect("layout 3 round-trips");
+        assert_eq!(again.migrated_from, None);
+        assert_eq!(again.scenario, e.scenario);
+        // A layout-2 stream with bytes cut off is refused, not half-read.
+        let mut short = layout_2_bytes(&old);
+        short.truncate(short.len() - 3);
+        assert!(decode(2, short).is_err());
+    }
+
+    #[test]
+    fn layout_1_reaches_layout_3_through_both_steps() {
+        let mut old = Extensions::default();
+        old.ecosystem.export = 21.0;
+        let e = decode(1, layout_1_bytes(&old)).expect("layout 1 upgrades through 2 to 3");
+        assert_eq!(e.migrated_from, Some(1));
+        assert!((e.ecosystem.export - 21.0).abs() < 1e-6);
+        assert!(e.scenario.known_derbies.is_empty() && e.scenario.reference.records == 0);
+    }
+
+    #[test]
+    fn layout_1_opens_at_the_current_layout_with_new_domains_empty_and_marked() {
         let mut old = Extensions::default();
         old.ecosystem.last_year = 2031;
         old.ecosystem.export = 33.5;
@@ -187,7 +327,7 @@ mod tests {
     fn a_newer_or_missing_layout_is_refused_not_guessed() {
         assert!(decode(EXT_VERSION + 1, Vec::new()).err().unwrap().contains("newer"));
         assert!(decode(0, Vec::new()).is_err());
-        assert!(migrate(1, Vec::new(), &[], 2).unwrap_err().contains("no step"));
+        assert!(migrate(1, Vec::new(), &[], EXT_VERSION).unwrap_err().contains("no step"));
     }
 
     #[test]

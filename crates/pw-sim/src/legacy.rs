@@ -19,6 +19,8 @@ pub fn finish(w: &mut World) {
     if from < 2 {
         from_layout_1(w);
     }
+    // Layout 2 to 3 (the scenario's known derbies and reference report) derives nothing: both start empty, and stay empty until a
+    // world is built from reference data. There is no present baseline to compute for them.
 }
 
 /// Layout 1 had a single `sponsor` count per player instead of recommendations with causes, one `export` number instead of regard by

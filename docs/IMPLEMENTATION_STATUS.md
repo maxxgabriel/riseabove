@@ -160,15 +160,19 @@ world model changed between them without steps), so they are refused with a plai
 **IMPLEMENTED**: explicit schema version, sequential migration steps (`pw-sim::save::Step`), backup before upgrade, atomic write,
 checksum, metadata, clear too-new / unsupported errors, compatibility in the listing, `stable_seed`, post-load validation (`validate.rs`).
 **Extension envelope** (`pw-world/src/ext.rs`): `World::ext` is written as `(EXT_VERSION, bytes)` with its own isolated steps, so a new
-domain never needs a schema step. Current layout **2** adds `scenario` (tuning, calendar, markets, club data origin), `recog`
+domain never needs a schema step. Current layout **3**: layout 2 added `scenario` (tuning, calendar, markets, club data origin), `recog`
 (organisation knowledge, recommendations, referral records, market regard, watches) and `pathway` (why each step, how each player was
-created). Rules are at the top of `ext.rs`: append fields, register a step, never invent history. Anything that needs the rest of the world
+created); layout 3 adds `known_derbies` and `reference` at the end of `Scenario` (named derbies, and the report of reading the reference
+data). `Scenario` sits in the middle of `Extensions`, so the 2 to 3 step decodes the whole layout-2 state with a frozen `ScenarioV2`,
+adds the two fields empty and re-encodes (`ext.rs::v2_to_v3`); the 1 to 2 step appends the frozen layout-2 scenario too, so a layout-1
+save chains through both. Rules are at the top of `ext.rs`: append fields, register a step, never invent history. Anything that needs the rest of the world
 (a present baseline) is `pw-sim/src/legacy.rs::finish`, run once after load when the envelope reports an older layout: deterministic,
 derived from existing state only, marked legacy wherever provenance exists (a sponsor count becomes a `Legacy` recommendation, the old
 export number becomes `legacy` regard, an old story becomes an `Unrecorded` creation record with unknown age and institution).
-Tested: `ext.rs` unit tests (a real layout-1 byte stream opens at layout 2, refuses newer or missing, unbroken step chain),
+Tested: `ext.rs` unit tests (a real layout-1 byte stream opens at the current layout, a real layout-2 byte stream upgrades to layout 3 with
+the new fields empty and everything else intact, a truncated one is refused, refuses newer or missing, unbroken step chain),
 `india_ecosystem.rs::an_older_layout_gets_a_deterministic_present_baseline_and_no_invented_history`, and the golden fixture
-(`golden_micro.pws`, schema 5, ext layout 1) which now passes through the 1 to 2 step on every run.
+(`golden_micro.pws`, schema 5, ext layout 1) which now passes through the 1 to 2 and 2 to 3 steps on every run (not regenerated).
 **Trap found the hard way**: `World::data` (the whole `DataPack`, including `RuleProfile`) is part of the positional save, so adding a field to a pack
 struct (not only to `World`) changes the bytes and breaks every save. New per-scenario rules go in `Scenario` (versioned ext state), as national-side
 eligibility does (`Scenario::national`); the golden fixture test is what catches a slip.
@@ -191,6 +195,20 @@ Missing values use dated valuation and lineup evidence where available; unsuppor
 a recorded value. The real archive passes all three structural/calibration/first-month tests. FM23 binary player, contract and
 club-league schemas remain unresolved; FM name exports are source records, not a playable imported FM world.
 Coverage, estimation rules, measured index costs and verification are in [DATABASE_INTEGRATION.md](DATABASE_INTEGRATION.md).
+
+India reference data loader (`pw-import::india_ref`): reads the 57 TOML files of `data/worlds/india/**` (embedded at compile time; `load_dir`
+reads a folder) into typed rows with provenance (states, clubs, stadiums, competitions, memberships, rivalries, derby-name aliases) and
+validates every table (provenance present and consistent, duplicate and dangling ids, malformed or unknown records, stadium capacity
+without a date). Bad records are reported as findings and not loaded; absent fields stay `None`; fields no row reads are counted
+(`unread_fields`), and the tables with no typed row (media, academies, universities, schools, rules, national teams, languages ...) are only
+validated and counted (`unread_tables`). `india::build` uses it in three ways only: a pack club with an exact name and state match in the
+reference is labelled by the record (`Imported` only for a verified or imported record graded A or B that names a source; everything else
+inferred, seed or unknown is a `ScenarioSeed`; builder-made is `Generated`); a place the builder would fill with a made-up club goes to a real
+club the reference lists in that tier's competition or the state's top league for the start season (strength and everything else is the
+place's); a number (stadium capacity with its ground name, founding year, city) replaces the made-up one only when `Prov::allows_value`
+(sourced fact, or an inference graded C or better with no recorded conflict, never a seed or unknown). Real derbies become
+`Scenario::known_derbies` (labels); no rivalry is created or given intensity by the loader. Tested in `india_ref.rs` and
+`india_ecosystem.rs::reference`.
 
 ## 12. Documentation — IMPLEMENTED
 
@@ -225,7 +243,7 @@ Run `cargo test -p pw-import -p pw-sim -p pw-view -p pw-cli` for the fast suites
 
 Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,youth,legacy}.rs`, world types in
 `pw-world/src/{scenario,recog,pathway,eligibility}.rs`, tuning in `data/worlds/india/pack.toml`. Tested in `crates/pw-cli/tests/india_ecosystem.rs`
-(20 tests) plus the older `recognition.rs`.
+(28 tests, 8 of them in `mod reference` for the reference data) plus the older `recognition.rs`.
 
 * **Tuning is data** (IMPLEMENTED, tested): tier weights, sample sizes, attention, academy need, gates, vouch trust, scouting reach,
   camp sizes, foreign parameters are `Scenario::{recognition,scouting}`, read from the pack's `[recognition]` and `[scouting]`. The defaults
@@ -250,14 +268,20 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
   promotions; `created` records how every ecosystem player came to exist (age, region, provider, first environment, first finder, why drawn).
   Steps and players from an older save say `Unrecorded`, never a guess.
 * **Records** (IMPLEMENTED, tested): every stat has a provenance; top speed and distance are estimates and are never announced.
-* **Club data origin** (IMPLEMENTED, tested): `Scenario::club_origin` (Imported / ScenarioSeed / Generated). Nothing in the pack is a
-  verified import yet; no invented achievements are attached to any name.
-* **Rivalries** start empty and grow from state championship meetings, weighted by neighbourliness (IMPLEMENTED, tested).
+* **Club data origin** (IMPLEMENTED, tested): `Scenario::club_origin` (Imported / ScenarioSeed / Generated). `Imported` is now used: clubs built
+  from a verified, sourced reference record (West Bengal's Calcutta Premier Division lineup) are Imported; the rest of the named clubs are seeds.
+  `Scenario::reference` keeps the loader's report (records by status, findings, matches), and the Development > Scenario page shows it.
+  The simulation's own `prepare` still generates a labelled (Generated) thirty-year past and seeds generic derbies for clubs sharing a city;
+  the loader adds neither.
+* **Rivalries** start empty and grow from state championship meetings, weighted by neighbourliness (IMPLEMENTED, tested). Real derbies from
+  the reference data (`culture/rivalries.toml`, `derby_name` aliases) are only `Scenario::known_derbies`: names for the news and UI, no intensity.
 * **Region output** is measured by quality (top tier, internationals, senior appearances, value): `ecosystem::region_output` (tested).
 * **UI** (IMPLEMENTED, typed contract, contract test): `Development` page (regions, abroad, scenario) and a pathway panel on player pages
   (`pathway.player`, `ecosystem.regions|export|scenario`); recognition internals are omniscient-view only. Not visually reviewed in a browser.
 * **Not done**: university recruiting competition between institutions beyond offers and choice; women's football and referee
-  pathways (deliberately later); the loader does not yet read `data/worlds/india/**` reference folders (Agent B's data).
+  pathways (deliberately later); the reference data under `data/worlds/india/**` is read only in part: the loader uses states, clubs, stadiums, competitions, memberships and derbies; not yet used: associations and
+  state-association names, districts, academies, universities, schools, media outlets, broadcasters, rules, national and state teams,
+  languages and terminology, partnerships, grassroots programmes, coach and referee development, aliases other than derby names.
 * **Not validated**: long-run balance of the new discovery rates on the full India world (calibration soak pending, see the report).
 
 ## 15. Language engine (pw-lang) in the news, inbox and social text — PARTIAL (in ecosystem worlds)

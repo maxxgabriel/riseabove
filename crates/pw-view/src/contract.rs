@@ -571,6 +571,21 @@ contract! {
         pub when: String,
     }
 
+    /// How many reference records carry one provenance status.
+    pub struct ReferenceStatusRow {
+        pub label: String,
+        pub records: u32,
+    }
+
+    /// A named derby or rivalry between two clubs of the world: a label, with no strength and no history.
+    pub struct DerbyRow {
+        pub name: String,
+        pub a: String,
+        pub b: String,
+        pub kind: String,
+        pub origin: String,
+    }
+
     pub struct ScenarioView {
         pub available: bool,
         pub source: String,
@@ -579,6 +594,19 @@ contract! {
         pub clubs_seeded: u32,
         pub clubs_generated: u32,
         pub clubs_unknown: u32,
+        /// Whether reference data was read when this world was built (a world from an older save, or another builder, says no).
+        pub reference_loaded: bool,
+        pub reference_files: u32,
+        pub reference_records: u32,
+        pub reference_by_status: Vec<ReferenceStatusRow>,
+        /// Problems found reading the reference data: malformed, unknown or contradictory records, and pack clubs it does not know.
+        pub reference_findings: u32,
+        pub finding_samples: Vec<String>,
+        /// Clubs matched to a reference club by stable id or exact name and state.
+        pub clubs_matched: u32,
+        /// Clubs that took the place of a made-up one: a real name, and where the record allows it a ground and a founding year.
+        pub clubs_from_reference: u32,
+        pub derbies: Vec<DerbyRow>,
         pub note: String,
     }
 }
@@ -795,6 +823,8 @@ pub fn declarations() -> Vec<String> {
         MarketRow::declaration(),
         ExportView::declaration(),
         CalendarRow::declaration(),
+        ReferenceStatusRow::declaration(),
+        DerbyRow::declaration(),
         ScenarioView::declaration(),
     ]
 }

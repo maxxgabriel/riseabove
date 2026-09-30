@@ -364,6 +364,19 @@ export interface CalendarRow {
   when: string;
 }
 
+export interface ReferenceStatusRow {
+  label: string;
+  records: number;
+}
+
+export interface DerbyRow {
+  name: string;
+  a: string;
+  b: string;
+  kind: string;
+  origin: string;
+}
+
 export interface ScenarioView {
   available: boolean;
   source: string;
@@ -372,6 +385,15 @@ export interface ScenarioView {
   clubs_seeded: number;
   clubs_generated: number;
   clubs_unknown: number;
+  reference_loaded: boolean;
+  reference_files: number;
+  reference_records: number;
+  reference_by_status: ReferenceStatusRow[];
+  reference_findings: number;
+  finding_samples: string[];
+  clubs_matched: number;
+  clubs_from_reference: number;
+  derbies: DerbyRow[];
   note: string;
 }
 

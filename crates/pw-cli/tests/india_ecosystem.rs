@@ -415,7 +415,9 @@ fn club_data_is_labelled_by_where_it_came_from() {
     let seeded = w.ext.scenario.club_origin.values().filter(|o| **o == DataOrigin::ScenarioSeed).count();
     let generated = w.ext.scenario.club_origin.values().filter(|o| **o == DataOrigin::Generated).count();
     assert!(seeded > 0 && generated > 0, "the pack names some clubs and the builder makes up the rest: {counts:?}");
-    assert_eq!(w.ext.scenario.club_origin.values().filter(|o| **o == DataOrigin::Imported).count(), 0, "nothing in this pack is a verified import");
+    // Premise changed with the reference loader: some reference records (West Bengal's state leagues) are verified against sources, so
+    // clubs built from them are Imported. The test that every Imported club rests on a sourced record is in `mod reference`.
+    assert!(w.ext.scenario.club_origin.values().filter(|o| **o == DataOrigin::Imported).count() < w.clubs.len() / 4, "imported clubs are the exception: {counts:?}");
 }
 
 // ------------------------------------------------------------------------------------------------- 7/8. records say what kind of evidence they are
@@ -546,5 +548,224 @@ fn discovery_outcomes() {
             out.len(),
             (0..2u8).map(|m| Segment::ALL.map(|g| w.ext.recog.regard(m, g).round() as i32)).collect::<Vec<_>>()
         );
+    }
+}
+
+// ------------------------------------------------------------------------------------------------- reference data: real clubs with provenance
+
+mod reference {
+    use super::*;
+    use pw_import::india_ref::{self, ClubRow};
+    use pw_world::World;
+
+    fn reference_club(w: &World, id: ClubId) -> Option<&'static ClubRow> {
+        let reference = india_ref::builtin();
+        let region = w.ext.ecosystem.state_of(w.ext.ecosystem.region_of_club(id));
+        if region.is_none() {
+            return None; // a club abroad
+        }
+        let state = reference.states.iter().find(|s| s.name == w.ext.ecosystem.regions[region].name)?;
+        reference.club_exact(&w.clubs[id].name, &state.id)
+    }
+
+    fn origin(w: &World, id: ClubId) -> DataOrigin {
+        w.ext.scenario.club_origin[&id]
+    }
+
+    #[test]
+    fn some_clubs_are_now_imported_and_only_where_the_reference_has_a_sourced_fact() {
+        let s = world(21);
+        let w = &s.world;
+        let imported: Vec<ClubId> = w.clubs.ids().filter(|&c| origin(w, c) == DataOrigin::Imported).collect();
+        // The state premier league of West Bengal takes the six clubs (the tiny world's league size) the reference lists, verified, in
+        // the Calcutta Premier Division; no other state in the tiny world has a verified league.
+        assert_eq!(imported.len(), IndiaScale::TINY.state_league, "{:?}", imported.iter().map(|&c| &w.clubs[c].name).collect::<Vec<_>>());
+        for &c in &imported {
+            let r = reference_club(w, c).unwrap_or_else(|| panic!("{} is Imported but matches no reference club", w.clubs[c].name));
+            assert!(r.prov.is_sourced_fact(), "{}: Imported needs a verified record with a source: {:?}", r.name, r.prov);
+            assert_eq!(w.comps[w.clubs[c].league].name, "West Bengal Premier League", "{}", r.name);
+            assert_eq!(w.clubs[c].name, r.name);
+            assert_eq!(w.clubs[c].city, r.city);
+        }
+        // The converse: a club whose record is not a sourced fact is never labelled as one.
+        for c in w.clubs.ids() {
+            if let Some(r) = reference_club(w, c) {
+                assert_eq!(origin(w, c) == DataOrigin::Imported, r.prov.is_sourced_fact(), "{}", r.name);
+            }
+        }
+        // The report says so.
+        let rep = &w.ext.scenario.reference;
+        assert!(rep.records > 2000 && rep.files == 57 && rep.clubs_from_reference >= imported.len() as u32, "{rep:?}");
+        assert_eq!(rep.by_status.iter().sum::<u32>(), rep.records);
+        assert!(rep.clubs_matched >= rep.clubs_from_reference + 10, "the pack's clubs match the reference by exact name: {rep:?}");
+        assert_eq!(rep.findings as usize, india_ref::builtin().findings.len(), "the pack has no club the reference lacks, so the only findings are the loader's: {rep:?}");
+        assert!(rep.findings >= 1 && rep.finding_samples.iter().any(|f| f.contains("bidhannagar-msa")), "the one known inconsistency in the data is reported: {rep:?}");
+    }
+
+    #[test]
+    fn real_clubs_replace_made_up_ones_and_the_rest_stay_generated() {
+        let s = world(22);
+        let w = &s.world;
+        let by_name = |n: &str| w.clubs.ids().find(|&c| w.clubs[c].name == n).unwrap_or_else(|| panic!("no club {n}"));
+        // A club the pack names keeps its pack standing and is a seed (the reference knows the name, not the facts).
+        let mb = by_name("Mohun Bagan Super Giant");
+        assert_eq!(origin(w, mb), DataOrigin::ScenarioSeed);
+        assert_eq!(w.clubs[mb].reputation, 6800, "starting strength still comes from the pack");
+        // A real ground and its capacity replace the made-up ones where the club is tied to a stadium record that dates its capacity.
+        let kb = by_name("Kerala Blasters");
+        assert_eq!((w.clubs[kb].stadium.as_str(), w.clubs[kb].capacity), ("Jawaharlal Nehru International Stadium, Kochi", 41_000));
+        assert_eq!(origin(w, kb), DataOrigin::ScenarioSeed, "an inferred capacity does not make the club an import");
+        // A club the reference has no ground for keeps the made-up capacity and no stadium name: a real name never sits by an invented number.
+        assert_eq!(w.clubs[mb].stadium, "");
+        assert_eq!(w.clubs[mb].capacity, u32::from(w.clubs[mb].reputation) * 4 + 1_500);
+        // Generated clubs still exist, are labelled so, and have no reference record.
+        let generated: Vec<ClubId> = w.clubs.ids().filter(|&c| origin(w, c) == DataOrigin::Generated).collect();
+        assert!(generated.len() > 50);
+        for &c in generated.iter().filter(|&&c| w.clubs[c].nation == w.clubs[mb].nation) {
+            assert!(reference_club(w, c).is_none(), "{} is generated but matches a reference club by name", w.clubs[c].name);
+        }
+    }
+
+    #[test]
+    fn no_history_result_title_or_rivalry_from_the_real_world_is_attached_to_any_club() {
+        // The world as the builder leaves it, before the simulation prepares it (`Sim::new` generates a labelled past and seeds culture).
+        let raw = india::build(DataPack::builtin(), 23, IndiaScale::TINY);
+        assert!(raw.history.honours.is_empty() && raw.history.tables.is_empty() && raw.history.awards.is_empty(), "no honour, table or award exists");
+        assert!(raw.honours.tallies.is_empty() && raw.honours.hall.is_empty() && raw.honours.votes.is_empty() && raw.honours.comps.is_empty() && raw.honours.clubs.is_empty());
+        assert!(raw.backfill.seasons.is_empty() && raw.backfill.figures.is_empty() && !raw.backfill.done, "no past season or figure is attached to a real name");
+        assert!(raw.ext.almanac.boards.is_empty() && raw.ext.almanac.title_run.is_empty() && raw.ext.almanac.career.is_empty());
+        assert!(raw.ext.ecosystem.tournament_titles.is_empty());
+        assert!(raw.culture.rivalries.list.is_empty(), "no rivalry exists when the builder is done, however famous the derby");
+        assert!(raw.fixtures.iter().all(|(_, f)| f.score.is_none()), "no result exists");
+        // A founding year comes from a record only where the record may give a number (a sourced fact, or an inference graded C or
+        // better). Salgaocar's 1956 is "unknown, graded D" and is not taken.
+        for c in raw.clubs.ids() {
+            if let Some(r) = reference_club(&raw, c) {
+                if let Some(y) = r.founded.filter(|_| r.prov.allows_value()) {
+                    assert_eq!(i32::from(raw.clubs[c].founded), y, "{}", r.name);
+                }
+            }
+        }
+        let salgaocar = raw.clubs.ids().find(|&c| raw.clubs[c].name == "Salgaocar FC");
+        assert!(salgaocar.is_none_or(|c| reference_club(&raw, c).is_some_and(|r| !r.prov.allows_value())), "Salgaocar's record is not allowed to give a number");
+        // Once the simulation has prepared the world, the past it makes is labelled as made, and a rivalry starts with no history.
+        let s = world(23);
+        let w = &s.world;
+        assert!(w.backfill.seasons.iter().all(|x| x.provenance == pw_world::backfill::Provenance::Generated), "a past season in this world is generated, never imported");
+        assert!(w.backfill.figures.iter().all(|x| x.provenance == pw_world::backfill::Provenance::Generated));
+        for r in &w.culture.rivalries.list {
+            assert!(r.h2h == (0, 0, 0) && r.moments.is_empty() && r.last_meeting == pw_core::Date(0) && r.revenge_due.is_none(), "a rivalry starts with no history: {r:?}");
+        }
+    }
+
+    #[test]
+    fn known_derbies_are_names_between_clubs_of_this_world_and_nothing_more() {
+        let raw = india::build(DataPack::builtin(), 24, IndiaScale::TINY);
+        let d = &raw.ext.scenario.known_derbies;
+        let kolkata = d.iter().find(|x| x.name == "Kolkata Derby").expect("East Bengal and Mohun Bagan are both in the world");
+        let names = [raw.clubs[kolkata.a].name.as_str(), raw.clubs[kolkata.b].name.as_str()];
+        assert!(names.contains(&"East Bengal") && names.contains(&"Mohun Bagan Super Giant"), "{names:?}");
+        assert_eq!(kolkata.origin, DataOrigin::ScenarioSeed, "an inferred derby is a seed");
+        assert!(kolkata.derby && kolkata.source_id == "rivalry.kolkata-derby");
+        // Only pairs of which both clubs are in this world (Karnataka is not in the tiny world, so the Southern Derby is not named).
+        assert!(d.iter().all(|x| x.a != x.b && raw.clubs.ids().any(|c| c == x.a) && raw.clubs.ids().any(|c| c == x.b)));
+        assert!(!d.iter().any(|x| x.name == "Southern Derby"));
+        assert!(d.len() < india_ref::builtin().derbies().len());
+        // They are labels: building set no rivalry, and the intensities the simulation's own generic seeding gives do not depend on
+        // the named derbies: seed again with the list cleared and the same values come out.
+        assert!(raw.culture.rivalries.list.is_empty());
+        let seeded = |clear: bool| {
+            let mut w = india::build(DataPack::builtin(), 24, IndiaScale::TINY);
+            if clear {
+                w.ext.scenario.known_derbies.clear();
+            }
+            pw_sim::culture::ensure(&mut w);
+            w.culture.rivalries.list.iter().map(|r| (r.a, r.b, r.intensity, r.kinds.clone())).collect::<Vec<_>>()
+        };
+        let (with, without) = (seeded(false), seeded(true));
+        assert!(!with.is_empty());
+        assert_eq!(with, without, "the reference's derbies set no rivalry intensity");
+    }
+
+    fn fingerprint(s: &Sim) -> (Vec<(String, String, String, u32, u16, u16, DataOrigin)>, Vec<(String, String, u32)>, pw_world::scenario::ReferenceReport, usize) {
+        let w = &s.world;
+        let clubs = w.clubs.iter_enumerated().map(|(id, c)| (c.name.clone(), c.short_name.clone(), c.stadium.clone(), c.capacity, c.founded, c.reputation, w.ext.scenario.club_origin[&id])).collect();
+        let derbies = w.ext.scenario.known_derbies.iter().map(|d| (d.name.clone(), w.clubs[d.a].name.clone(), u32::from(d.origin as u8))).collect();
+        (clubs, derbies, w.ext.scenario.reference.clone(), w.players.len())
+    }
+
+    #[test]
+    fn the_same_seed_builds_the_same_world_and_the_reference_does_not_depend_on_the_seed() {
+        let (a, b) = (world(25), world(25));
+        assert_eq!(fingerprint(&a), fingerprint(&b));
+        assert_eq!(pw_sim::validate::census(&a.world), pw_sim::validate::census(&b.world));
+        // Which real clubs are in the world is the reference's doing, not the dice's: the same names in the same places for another seed.
+        let c = world(26);
+        let real = |s: &Sim| -> Vec<(String, DataOrigin)> {
+            s.world.clubs.iter_enumerated().filter(|(id, _)| reference_club(&s.world, *id).is_some()).map(|(id, c)| (c.name.clone(), s.world.ext.scenario.club_origin[&id])).collect()
+        };
+        assert_eq!(real(&a), real(&c));
+    }
+
+    #[test]
+    fn the_world_with_real_clubs_runs_120_days_and_stays_consistent() {
+        let mut s = world(27);
+        assert!(pw_sim::invariants::check(&s.world).is_empty());
+        assert_eq!(pw_sim::validate::problems(&s.world), Vec::<String>::new());
+        let start = s.world.date;
+        s.run(120);
+        assert_eq!(s.world.date, start.add_days(120));
+        let b = pw_sim::invariants::check(&s.world);
+        assert!(b.is_empty(), "{b:#?}");
+        assert_eq!(pw_sim::validate::problems(&s.world), Vec::<String>::new());
+        // Real clubs played like any other: fixtures were played in a league that holds one.
+        let imported = s.world.clubs.ids().find(|&c| s.world.ext.scenario.club_origin[&c] == DataOrigin::Imported).unwrap();
+        let team = s.world.clubs[imported].first_team();
+        assert!(s.world.fixtures.iter().any(|(_, f)| f.score.is_some() && (f.home == team || f.away == team)), "an imported club has played in 120 days");
+    }
+
+    #[test]
+    fn a_world_saved_and_loaded_keeps_its_reference_labels() {
+        let s = world(28);
+        let dir = std::env::temp_dir().join(format!("pw-india-ref-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("w.pws");
+        pw_sim::save::save_with(&s.world, &path, &pw_sim::save::Info::of_world(&s.world)).unwrap();
+        let back = pw_sim::save::load_world(&path).unwrap();
+        assert_eq!(back.ext.scenario.known_derbies, s.world.ext.scenario.known_derbies);
+        assert_eq!(back.ext.scenario.reference, s.world.ext.scenario.reference);
+        assert_eq!(back.ext.scenario.club_origin.len(), s.world.ext.scenario.club_origin.len());
+        assert_eq!(back.ext.migrated_from, None);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_full_world_gives_real_clubs_their_places_once_and_keeps_every_pack_club() {
+        let w = india::build(DataPack::builtin(), 29, IndiaScale::FULL);
+        let rep = &w.ext.scenario.reference;
+        assert_eq!(rep.findings as usize, india_ref::builtin().findings.len(), "every pack club has an exact reference record: {rep:?}");
+        assert!(rep.clubs_from_reference > 100, "{rep:?}");
+        // A real club is in the world once: its reference id is placed once, so its name is in the world once.
+        let mut real_names: Vec<&str> = w.clubs.ids().filter(|&c| reference_club(&w, c).is_some()).map(|c| w.clubs[c].name.as_str()).collect();
+        let n = real_names.len();
+        assert_eq!(n as u32, rep.clubs_matched);
+        real_names.sort_unstable();
+        real_names.dedup();
+        assert_eq!(real_names.len(), n, "a real club appears twice");
+        // No made-up club carries a real club's name in its state.
+        for c in w.clubs.ids().filter(|&c| w.ext.scenario.club_origin[&c] == DataOrigin::Generated && !w.ext.ecosystem.region_of_club(c).is_none()) {
+            assert!(reference_club(&w, c).is_none(), "{}", w.clubs[c].name);
+        }
+        let d = &w.ext.scenario.known_derbies;
+        for name in ["Kolkata Derby", "Southern Derby", "Kerala Derby"] {
+            assert!(d.iter().any(|x| x.name == name), "{name} missing from {:?}", d.iter().map(|x| &x.name).collect::<Vec<_>>());
+        }
+        assert!(w.culture.rivalries.list.is_empty());
+        // Every league is full and every club sits in a region.
+        for (id, c) in w.clubs.iter_enumerated() {
+            if w.nations[c.nation].code == "IND" {
+                assert!(!w.ext.ecosystem.region_of_club(id).is_none(), "{} has no region", c.name);
+            }
+        }
     }
 }

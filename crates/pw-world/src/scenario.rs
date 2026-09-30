@@ -218,6 +218,50 @@ pub struct Scenario {
     /// National-side eligibility by nation code; a nation not listed uses `NationalRules::default()`. A sorted list (not a map) so a
     /// saved scenario is byte-stable.
     pub national: Vec<(String, NationalRules)>,
+    // ---- layout 3 of the extension state: appended, in this order (`ext::v2_to_v3` depends on it)
+    /// Named derbies and rivalries between clubs of this world, from the reference data: labels for the news and the UI. They carry no
+    /// intensity and no history; a rivalry's strength in the simulation comes only from what has happened in it.
+    pub known_derbies: Vec<KnownDerby>,
+    /// What loading the reference data found: how much, of what standing, and what was wrong with it. Empty when none was loaded.
+    pub reference: ReferenceReport,
+}
+
+/// A named fixture between two clubs: a label, not a rivalry. See [`Scenario::known_derbies`].
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct KnownDerby {
+    /// The reference record it came from (`rivalry.kolkata-derby`).
+    pub source_id: String,
+    pub name: String,
+    pub a: ClubId,
+    pub b: ClubId,
+    /// A local derby (as against a wider rivalry).
+    pub derby: bool,
+    pub origin: DataOrigin,
+}
+
+/// Labels of [`ReferenceReport::by_status`], in order: the provenance statuses a reference record can carry.
+pub const REFERENCE_STATUS_LABELS: [&str; 6] = ["Imported", "Verified", "Inferred", "Scenario seed", "Generated", "Unknown"];
+
+/// The outcome of reading a scenario's reference data (`pw_import::india_ref`), kept so a player or a developer can see how much of
+/// the world rests on what. Counts, not content: none of the reference text is stored here.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct ReferenceReport {
+    /// Files read.
+    pub files: u32,
+    /// Records loaded with a valid provenance, all tables.
+    pub records: u32,
+    /// Of those, by status in [`REFERENCE_STATUS_LABELS`] order.
+    pub by_status: [u32; 6],
+    /// Problems found: malformed or unknown records (not loaded), duplicate or dangling ids, provenance that contradicts itself, and
+    /// the pack's clubs that have no exact reference record.
+    pub findings: u32,
+    /// The first findings, in words.
+    pub finding_samples: Vec<String>,
+    /// Clubs of the world that were matched to a reference club by stable id or exact name and state.
+    pub clubs_matched: u32,
+    /// Clubs of the world that took their name, and where known their ground and founding year, from a reference record instead of the
+    /// builder making them up.
+    pub clubs_from_reference: u32,
 }
 
 impl Scenario {
@@ -229,7 +273,17 @@ impl Scenario {
 
 impl Default for Scenario {
     fn default() -> Self {
-        Self { recognition: RecognitionTuning::default(), scouting: ScoutingTuning::default(), calendar: default_calendar(), markets: Vec::new(), source: String::new(), club_origin: FxHashMap::default(), national: Vec::new() }
+        Self {
+            recognition: RecognitionTuning::default(),
+            scouting: ScoutingTuning::default(),
+            calendar: default_calendar(),
+            markets: Vec::new(),
+            source: String::new(),
+            club_origin: FxHashMap::default(),
+            national: Vec::new(),
+            known_derbies: Vec::new(),
+            reference: ReferenceReport::default(),
+        }
     }
 }
 

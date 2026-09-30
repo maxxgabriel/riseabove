@@ -6,6 +6,14 @@
 //! attached to any real name: the world runs from its start date and results
 //! diverge freely.
 //!
+//! The researched reference data under `data/worlds/india/**` (`india_ref`) is read with its provenance and used in three ways, and
+//! only these: (1) a club the pack names that has a reference record with exactly its name in its state is labelled by that record's
+//! provenance (`Imported` only for a sourced fact, otherwise a scenario seed); (2) a place the builder would have filled with a made-up
+//! club is given to a real club the reference lists as a member of that league at the start (same tier, or the state's top league),
+//! taking the place's strength and nothing else, and labelled by the record; (3) a number in a reference record (a stadium's capacity, a
+//! founding year) replaces the made-up one only when `Prov::allows_value` says so. Real derbies become a list of names. Nothing else
+//! comes from the reference: no result, title, record, rivalry strength or reputation.
+//!
 //! What this builds, layer by layer:
 //! - regions (states and district clusters) with their standing qualities,
 //!   state associations and the national federation;
@@ -26,15 +34,17 @@ use pw_data::DataPack;
 use pw_world::contract::ContractKind;
 use pw_world::ecosystem::{Association, Climate, InstProfile, PlayerStory, Provider, Region, RegionKind, StageKind};
 use pw_world::pathway::{Creation, Draw};
-use pw_world::scenario::{CalEvent, CalRule, DataOrigin, MarketDef, RecognitionTuning, ScoutingTuning};
+use pw_world::scenario::{CalEvent, CalRule, DataOrigin, KnownDerby, MarketDef, RecognitionTuning, ReferenceReport, ScoutingTuning};
 use pw_world::minor::{InstKind, Institution};
 use pw_world::nation::Confed;
 use pw_world::youth::{LocalClub, LocalLevel};
 use pw_world::{CompKind, Contract, Format, TeamKind, World};
 use serde::Deserialize;
 use smallvec::SmallVec;
+use std::collections::{HashMap, VecDeque};
 
 use crate::builder::{self, ClubSpec};
+use crate::india_ref::{self, ClubRow as RefClub, Reference};
 
 const PACK: &str = include_str!("../../../data/worlds/india/pack.toml");
 
@@ -200,7 +210,9 @@ fn ability_target(rep: u16) -> f32 {
 
 pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
     let data: Pack = toml::from_str(PACK).expect("india pack parses");
+    let reference = india_ref::builtin();
     let start = Date::from_ymd(2026, 7, 1);
+    let year = start.year();
     let mut w = World::new(pack, seed, start);
     let mut rng = Rng::keyed(&[seed, stream::WORLDGEN, 0x1d1a]);
     let states: Vec<&StateRow> = data.state.iter().take(if scale.states == 0 { usize::MAX } else { scale.states }).collect();
@@ -294,6 +306,10 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         let ds = districts(key);
         ds.iter().find(|(n, _)| city.contains(n.as_str()) || n.contains(city)).or(ds.first()).map_or(RegionId::NONE, |x| x.1)
     };
+    // The district a real club's city names, when the pack lists that district; else the caller's choice.
+    let district_of_city = |key: &str, city: &str| -> Option<RegionId> { districts(key).iter().find(|(n, _)| city.contains(n.as_str()) || n.contains(city)).map(|x| x.1) };
+    // A reference state id (`state.wb`) as the pack's key (`WB`), for the states this world has.
+    let key_of = |state_id: &str| states.iter().find(|s| reference.state_of_key(&s.key).is_some_and(|r| r.id == state_id)).map(|s| s.key.clone());
 
     // ------------------------------------------------------------ competitions
     let tier_sizes = [13usize, 12, 16, 20];
@@ -347,8 +363,10 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         lang: u8,
     }
     let mut made: Vec<Made> = Vec::new();
-    let mut spawn = |w: &mut World, rng: &mut Rng, name: &str, city: &str, key: &str, tier: u8, rep: u16, league: CompId, extra: &[TeamKind], origin: DataOrigin| {
-        let region = district_near(key, city);
+    // `region` is where the club sits; `rr` is the reference record the club is, if it is one (a real club of the reference, matched by
+    // id or by exact name and state). The random draws inside do not depend on it, so a world built with and without reference data
+    // draws the same stream.
+    let mut spawn = |w: &mut World, rng: &mut Rng, name: &str, city: &str, key: &str, region: RegionId, tier: u8, rep: u16, league: CompId, extra: &[TeamKind], origin: DataOrigin, rr: Option<&RefClub>| -> ClubId {
         let club = builder::add_club(
             w,
             ClubSpec {
@@ -367,14 +385,22 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
                 extra_teams: extra,
             },
         );
+        if let Some(r) = rr {
+            apply_reference(w, club, r, reference);
+        }
         let lang = state_ix(key).map_or(0, |i| states[i].lang);
         w.ext.ecosystem.club_region.insert(club, region);
         w.ext.scenario.club_origin.insert(club, origin);
         made.push(Made { club, tier, key: key.to_string(), region, rep, lang });
+        club
     };
     let big: &[TeamKind] = &[TeamKind::U21, TeamKind::U18];
     let small: &[TeamKind] = &[TeamKind::U18];
     let mut counts = [0usize; 5];
+    // Reference clubs that are clubs of this world, by reference id; and the problems the builder met matching the pack to the reference.
+    let mut placed: HashMap<String, ClubId> = HashMap::new();
+    let mut build_findings: Vec<String> = Vec::new();
+    let mut from_reference = 0u32;
     for c in data.club.iter().filter(|c| state_ix(&c.state).is_some()) {
         let tier = usize::from(c.tier);
         if tier >= 1 && counts[tier] >= tier_sizes[tier - 1] {
@@ -386,9 +412,25 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
             4 => (pyramid[3], small),
             _ => (CompId::NONE, big),
         };
-        spawn(&mut w, &mut rng, &c.name, &c.city, &c.state, c.tier, c.rep, league, extra, DataOrigin::ScenarioSeed);
+        // The pack names the club; the reference confirms it only by an exact name in the same state.
+        let state_id = reference.state_of_key(&c.state).map(|s| s.id.clone()).unwrap_or_default();
+        let rr = reference.club_exact(&c.name, &state_id).filter(|r| r.prov.names_real_entity() && !placed.contains_key(&r.id));
+        if rr.is_none() {
+            build_findings.push(format!("pack club {} ({}) has no reference record with exactly that name in that state: it stays a scenario seed", c.name, c.state));
+        }
+        let origin = rr.map_or(DataOrigin::ScenarioSeed, |r| r.prov.origin());
+        let region = district_near(&c.state, &c.city);
+        let club = spawn(&mut w, &mut rng, &c.name, &c.city, &c.state, region, c.tier, c.rep, league, extra, origin, rr);
+        if let Some(r) = rr {
+            placed.insert(r.id.clone(), club);
+        }
     }
-    // Fill each tier from the states' own districts, so divisions are full and every club sits somewhere real.
+    // Fill each tier from the states' own districts, so divisions are full and every club sits somewhere real. A place the builder
+    // would make up goes instead to a real club the reference lists in that tier's competition (in the order it lists them) when its
+    // state is in this world; it takes the place's strength. What is left over is generated as before.
+    let mut pools: Vec<VecDeque<&RefClub>> = (1..=4u8)
+        .map(|t| reference.national_league(t).map(|c| reference.members(&c.id, year).into_iter().filter(|m| key_of(&m.state).is_some()).collect()).unwrap_or_default())
+        .collect();
     let suffix = ["FC", "United", "Athletic", "Sporting", "Rovers"];
     for tier in 1..=4usize {
         let mut k = 0;
@@ -396,27 +438,97 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
             let s = states[k % states.len()];
             let d = &s.districts[(k / states.len()) % s.districts.len()];
             let rep = [4200u16, 2900, 1900, 1200][tier - 1] - (k as u16 % 5) * 90;
-            let name = format!("{d} {}", suffix[(k + tier) % suffix.len()]);
+            // A made-up name is never a real club's name: take the next suffix if the reference has a club of exactly that name here.
+            let state_id = reference.state_of_key(&s.key).map_or("", |r| r.id.as_str());
+            let name = (0..suffix.len())
+                .map(|j| format!("{d} {}", suffix[(k + tier + j) % suffix.len()]))
+                .find(|n| !reference.names_club(n, state_id))
+                .unwrap_or_else(|| format!("{d} {} II", suffix[(k + tier) % suffix.len()]));
             counts[tier] += 1;
             k += 1;
             let extra = if tier <= 3 { big } else { small };
-            spawn(&mut w, &mut rng, &name, d, &s.key, tier as u8, rep, pyramid[tier - 1], extra, DataOrigin::Generated);
+            let real = loop {
+                match pools[tier - 1].pop_front() {
+                    Some(r) if placed.contains_key(&r.id) => continue,
+                    other => break other,
+                }
+            };
+            if let Some(r) = real {
+                let key = key_of(&r.state).expect("the pool holds only clubs of states in this world");
+                let in_state = districts(&key);
+                let region = district_of_city(&key, &r.city).unwrap_or_else(|| in_state.get((k + tier) % in_state.len().max(1)).map_or(RegionId::NONE, |x| x.1));
+                let club = spawn(&mut w, &mut rng, &r.name, &r.city, &key, region, tier as u8, rep, pyramid[tier - 1], extra, r.prov.origin(), Some(r));
+                placed.insert(r.id.clone(), club);
+                from_reference += 1;
+            } else {
+                let region = district_near(&s.key, d);
+                spawn(&mut w, &mut rng, &name, d, &s.key, region, tier as u8, rep, pyramid[tier - 1], extra, DataOrigin::Generated, None);
+            }
         }
     }
-    // State leagues: generated district clubs under each state's association.
+    // State leagues: a state's premier league takes the real clubs the reference lists in the state's top league, then generated
+    // district clubs under the state's association. The second division has no reference data and stays generated.
     for (key, prem, div2) in &state_prem {
         let ds = districts(key);
         if ds.is_empty() {
             continue;
         }
+        let state_id = reference.state_of_key(key).map(|s| s.id.clone()).unwrap_or_default();
+        let mut pool: VecDeque<&RefClub> = reference
+            .state_top_league(&state_id, year)
+            .map(|c| reference.members(&c.id, year).into_iter().filter(|m| m.state == state_id).collect())
+            .unwrap_or_default();
         for (league, offset, rep0) in [(*prem, 0usize, 900u16), (*div2, scale.state_league, 500u16)] {
             for k in 0..scale.state_league {
                 let (dname, _) = &ds[(k + offset) % ds.len()];
-                let name = format!("{dname} {}{}", suffix[(k + offset) % suffix.len()], if k >= ds.len() { format!(" {}", k / ds.len() + 1) } else { String::new() });
+                let number = if k >= ds.len() { format!(" {}", k / ds.len() + 1) } else { String::new() };
+                let name = (0..suffix.len())
+                    .map(|j| format!("{dname} {}{number}", suffix[(k + offset + j) % suffix.len()]))
+                    .find(|n| !reference.names_club(n, &state_id))
+                    .unwrap_or_else(|| format!("{dname} {} II{number}", suffix[(k + offset) % suffix.len()]));
                 let rep = rep0.saturating_sub(k as u16 * 25);
-                spawn(&mut w, &mut rng, &name, dname, key, 5, rep, league, if league == *prem { small } else { &[] }, DataOrigin::Generated);
+                let real = if league == *prem {
+                    loop {
+                        match pool.pop_front() {
+                            Some(r) if placed.contains_key(&r.id) => continue,
+                            other => break other,
+                        }
+                    }
+                } else {
+                    None
+                };
+                let extra: &[TeamKind] = if league == *prem { small } else { &[] };
+                if let Some(r) = real {
+                    let region = district_of_city(key, &r.city).unwrap_or_else(|| district_near(key, dname));
+                    let club = spawn(&mut w, &mut rng, &r.name, &r.city, key, region, 5, rep, league, extra, r.prov.origin(), Some(r));
+                    placed.insert(r.id.clone(), club);
+                    from_reference += 1;
+                } else {
+                    let region = district_near(key, dname);
+                    spawn(&mut w, &mut rng, &name, dname, key, region, 5, rep, league, extra, DataOrigin::Generated, None);
+                }
             }
         }
+    }
+    // What the reference says about this world, kept as labels and counts: the derbies between clubs it has, and what loading found.
+    {
+        let sc = &mut w.ext.scenario;
+        sc.known_derbies = reference
+            .derbies()
+            .into_iter()
+            .filter_map(|d| Some(KnownDerby { source_id: d.id.to_string(), name: d.name.to_string(), a: *placed.get(d.a)?, b: *placed.get(d.b)?, derby: d.is_derby, origin: d.prov.origin() }))
+            .collect();
+        let mut problems: Vec<String> = reference.findings.iter().map(ToString::to_string).collect();
+        problems.extend(build_findings);
+        sc.reference = ReferenceReport {
+            files: reference.files as u32,
+            records: reference.records(),
+            by_status: reference.by_status,
+            findings: problems.len() as u32,
+            finding_samples: problems.into_iter().take(8).collect(),
+            clubs_matched: placed.len() as u32,
+            clubs_from_reference: from_reference,
+        };
     }
 
     // ------------------------------------------------------------ players
@@ -612,6 +724,31 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         }
     }
     w
+}
+
+/// A reference record applied to the club the builder made for it. The short name is identity and always comes. Numbers replace the
+/// made-up ones only where `Prov::allows_value` says the record may give a number: the club's city and founding year from the club's
+/// own record, and a ground (its name and its capacity together, so a real name never sits beside an invented capacity) from the
+/// stadium record the club is tied to by id or exact name, only when that record dates its capacity. Absent values change nothing.
+fn apply_reference(w: &mut World, club: ClubId, r: &RefClub, reference: &Reference) {
+    let c = &mut w.clubs[club];
+    if let Some(short) = r.short.as_deref().filter(|s| !s.is_empty()) {
+        c.short_name = short.to_string();
+    }
+    if r.prov.allows_value() {
+        c.city = r.city.clone();
+        if let Some(y) = r.founded.filter(|y| (1850..=2026).contains(y)) {
+            c.founded = y as u16;
+        }
+    }
+    if let Some(st) = reference.stadium_of(r) {
+        if st.prov.names_real_entity() && st.prov.allows_value() && st.capacity_as_of.is_some() {
+            if let Some(cap) = st.capacity.filter(|cap| *cap > 0) {
+                c.stadium = st.name.clone();
+                c.capacity = cap;
+            }
+        }
+    }
 }
 
 fn assoc(rng: &mut Rng, econ: f32, strength: f32) -> Association {
