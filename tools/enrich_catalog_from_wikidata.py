@@ -41,6 +41,15 @@ def request_json(params, attempts=6):
             with urllib.request.urlopen(request, timeout=90) as response:
                 data = json.loads(response.read())
                 if "error" in data:
+                    if data["error"].get("code") == "maxlag" and attempt + 1 < attempts:
+                        lag = data["error"].get("lag")
+                        try:
+                            delay = max(5, int(lag) + 2)
+                        except (TypeError, ValueError):
+                            delay = max(5, 2 ** (attempt + 3))
+                        print(json.dumps({"api_status": "maxlag", "retry_after_seconds": delay}), flush=True)
+                        time.sleep(delay)
+                        continue
                     raise RuntimeError("Wikidata API error: " + json.dumps(data["error"], ensure_ascii=False))
                 return data
         except urllib.error.HTTPError as error:
