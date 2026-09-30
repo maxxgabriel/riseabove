@@ -1,0 +1,388 @@
+[meta]
+dataset = "broadcasters.rights_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Best-recollection media rights rows for Indian competitions (ISL, I-League, Durand Cup, Super Cup, Santosh Trophy, IWL, India national team, state leagues) and major foreign competitions shown in India, plus five broadcaster records missing from broadcasters.toml. Written from model knowledge; no source URLs. Effective dates deliberately left out throughout."
+gaps = [
+  "No row is verified. q = C means the holder is recalled with fair confidence but the exact seasons are approximate; q = D means unsure who held the rights or when.",
+  "ISL: holder for 2025-26 and 2026-27 is unknown. The 2025-26 season was disrupted by the expiry of the Master Rights Agreement between AIFF and Football Sports Development Ltd, and the media-rights arrangement afterwards is not known to me.",
+  "Season strings are ranges written as text ('2022-23 to 2024-25'); competition strings are plain text where the competition has no comp id yet (foreign leagues, national team fixtures, Kerala Premier League, Goa Pro League, Mumbai leagues, Kalinga Super Cup).",
+  "No pay or free-to-air flag, exclusive versus sublicensed flag, or match-package detail (all matches versus selected matches) is recorded, because the schema has no field for these.",
+  "Regional-language and regional-channel carriage (Asianet, DD Bangla, Bengali news channels, Malayalam channels) is not covered.",
+  "FIFA World Cup 2026, AFC Champions League Elite/Two, AFC Asian Cup 2027 and Women's football rights in India are not recorded because the holder is unknown to me.",
+]
+
+# ---------------------------------------------------------------------
+# Broadcaster records missing from broadcasters.toml
+# ---------------------------------------------------------------------
+
+[[broadcaster]]
+id = "bcast.sports18"
+name = "Sports18 (Viacom18 Sports channels)"
+owner = "Viacom18, now part of JioStar"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. TV channels (Sports18 1, Sports18 Khel and similar) of the Viacom18 sports bouquet; became part of JioStar after the late-2024 merger, so any 2026-27 use is under JioStar. Languages listed are the main feeds, not verified." }
+
+[[broadcaster]]
+id = "bcast.jiocinema"
+name = "JioCinema"
+owner = "Viacom18, now part of JioStar"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn", "lang.mr"]
+region = "national"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Streaming app which carried Viacom18 sports (including the 2022 FIFA World Cup, EPL 2022-25 and ISL in seasons after 2022-23, unverified). Folded into JioHotstar in early 2025, so it is a historical platform for rights rows in later seasons. Languages are a rough list of what the app offered for big events, not confirmed for football." }
+
+[[broadcaster]]
+id = "bcast.eurosport-india"
+name = "Eurosport India"
+owner = "Warner Bros. Discovery"
+medium = ["tv", "digital"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; unsure of current status. Carried some AIFF properties around 2022-23 with Discovery+ as the streaming partner; the Indian Eurosport channel's later status is unknown, and it may no longer operate." }
+
+[[broadcaster]]
+id = "bcast.discovery-plus"
+name = "discovery+ (India)"
+owner = "Warner Bros. Discovery"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; unsure of current status. Streaming partner of Eurosport India for some Indian football around 2022-23; whether the app still operates in India is unknown." }
+
+[[broadcaster]]
+id = "bcast.state-assoc-digital"
+name = "State football association digital channels (YouTube and similar)"
+medium = ["digital"]
+languages = ["lang.en"]
+region = "state"
+prov = { status = "scenario_seed", q = "D", src = [], note = "generic placeholder for state associations that stream or post their league matches on their own YouTube/Facebook channels rather than through a named broadcaster; not one real entity. Real per-league arrangements (if any) are not known to me." }
+
+# ---------------------------------------------------------------------
+# Indian Super League
+# ---------------------------------------------------------------------
+
+[[rights]]
+broadcaster = "bcast.jiostar"
+competition = "comp.isl"
+season = "2014-15 to 2022-23"
+platforms = ["Star Sports network", "Disney+ Hotstar"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml"]
+note = "Star India (now within JioStar) was the ISL broadcaster from the first season. Regional feeds included Bengali and Malayalam commentary; other languages unverified. Exact end season is approximate."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "comp.isl"
+season = "2023-24 to 2024-25"
+platforms = ["Sports18 channels"]
+languages = ["lang.en", "lang.hi"]
+note = "My recollection is that the Viacom18 sports bouquet took over ISL coverage after the Star period; whether Star Sports retained a share is unclear."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; unsure of the changeover season and whether coverage was sole or shared" }
+
+[[rights]]
+broadcaster = "bcast.jiocinema"
+competition = "comp.isl"
+season = "2023-24 to 2024-25"
+platforms = ["JioCinema app"]
+languages = ["lang.en", "lang.hi"]
+note = "Streaming pair of the Sports18 row above; same uncertainty. JioCinema was folded into JioHotstar in early 2025."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; unsure of the changeover season" }
+
+[[rights]]
+broadcaster = "bcast.jiostar"
+competition = "comp.isl"
+season = "2025-26"
+note = "Unknown. The Master Rights Agreement between AIFF and FSDL was expiring and the 2025-26 season was disrupted; I do not know who carried the matches or whether a rights deal was in place."
+prov = { status = "unknown", q = "D", src = [], note = "placeholder: JioStar is the most plausible carrier because it now owns both former ISL broadcasters, but this is a guess" }
+
+[[rights]]
+broadcaster = "bcast.jiostar"
+competition = "comp.isl"
+season = "2026-27"
+note = "Unknown. Placeholder for the game to fill; JioStar is a plausible carrier but nothing is known."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+# ---------------------------------------------------------------------
+# I-League (comp.ifl)
+# ---------------------------------------------------------------------
+
+[[rights]]
+broadcaster = "bcast.eurosport-india"
+competition = "comp.ifl"
+season = "2022-23"
+platforms = ["Eurosport India TV"]
+languages = ["lang.en"]
+note = "Recalled partnership with discovery+ for streaming; unsure whether it covered all matches or the whole season."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.discovery-plus"
+competition = "comp.ifl"
+season = "2022-23"
+platforms = ["discovery+ app"]
+languages = ["lang.en"]
+note = "Streaming pair of the Eurosport India row; low confidence."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.aiff-tv"
+competition = "comp.ifl"
+season = "2019-20 to 2024-25"
+platforms = ["AIFF official YouTube channel"]
+languages = ["lang.en"]
+note = "The federation has streamed a share of I-League matches on its own channels in various seasons; which seasons and how many matches are unverified."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence on seasons and coverage share" }
+
+# ---------------------------------------------------------------------
+# Durand Cup, Super Cup, Santosh Trophy, IWL
+# ---------------------------------------------------------------------
+
+[[rights]]
+broadcaster = "bcast.sony-sports"
+competition = "comp.durand-cup"
+season = "2022 to 2025"
+platforms = ["Sony Sports Ten channels", "SonyLIV"]
+languages = ["lang.en", "lang.hi"]
+note = "Durand Cup is played July to September; the tournament is run by the Indian Army with state hosting. Sony coverage in these years is recalled with fair but not full confidence."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Season boundaries are approximate." }
+
+[[rights]]
+broadcaster = "bcast.dd-sports"
+competition = "comp.durand-cup"
+season = "2019 to 2021"
+note = "Doordarshan's DD Sports carried some Durand Cup matches in earlier editions; edition-by-edition detail unknown."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "comp.super-cup"
+season = "2024"
+platforms = ["Sports18 channels"]
+note = "Recalled for the 2024 Kalinga Super Cup (Bhubaneswar) only; low confidence. The name 'Kalinga Super Cup' refers to the Odisha-hosted editions."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.eurosport-india"
+competition = "comp.super-cup"
+season = "2023"
+platforms = ["Eurosport India TV"]
+note = "Recalled for the 2023 Super Cup; low confidence, may have been paired with discovery+."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.dd-sports"
+competition = "comp.santosh-trophy"
+season = "2022-23 to 2025-26"
+platforms = ["DD Sports"]
+languages = ["lang.en", "lang.hi"]
+note = "DD Sports has carried Santosh Trophy final-round matches in recent editions; season list approximate."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.aiff-tv"
+competition = "comp.santosh-trophy"
+season = "2022-23 to 2025-26"
+platforms = ["AIFF official YouTube channel"]
+languages = ["lang.en"]
+note = "AIFF streamed final-round matches of the Santosh Trophy on its channels in recent editions; season list approximate."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.aiff-tv"
+competition = "comp.iwl"
+season = "2022-23 to 2025-26"
+platforms = ["AIFF official YouTube channel"]
+languages = ["lang.en"]
+note = "The Indian Women's League has mainly reached viewers through the AIFF's own streams; some matches may also have had other partners, unverified."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+# ---------------------------------------------------------------------
+# India national team home matches and international tournaments in India
+# ---------------------------------------------------------------------
+
+[[rights]]
+broadcaster = "bcast.jiostar"
+competition = "India men's national team home matches"
+season = "2016 to 2021"
+platforms = ["Star Sports network", "Hotstar"]
+languages = ["lang.en", "lang.hi"]
+note = "Star Sports carried India's home internationals and tournaments hosted in India (for example the 2018 Intercontinental Cup and Asian Cup and World Cup qualifiers) in this era; approximate."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "India men's national team home matches"
+season = "2022 to 2024"
+platforms = ["Sports18 channels"]
+languages = ["lang.en", "lang.hi"]
+note = "Viacom18's Sports18 is recalled as carrying some India men's matches in this period; unsure which."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.jiocinema"
+competition = "AFC Asian Cup 2023"
+season = "2023"
+platforms = ["JioCinema app"]
+languages = ["lang.en", "lang.hi"]
+note = "India qualified for the 2023 Asian Cup (played in Qatar in January 2024); Viacom18 platforms are recalled as the Indian broadcaster. Not a home tournament."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.aiff-tv"
+competition = "India national team fixtures (all)"
+season = "2026-27"
+platforms = ["AIFF official YouTube channel"]
+note = "Placeholder: federation channel used as a fallback for matches without a paid broadcaster (some friendlies and women's or age-group games)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+# ---------------------------------------------------------------------
+# State and regional leagues
+# ---------------------------------------------------------------------
+
+[[rights]]
+broadcaster = "bcast.state-assoc-digital"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+platforms = ["state association channels"]
+note = "Placeholder: Kolkata league matches are sometimes shown by local TV or the association; actual arrangement unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+[[rights]]
+broadcaster = "bcast.state-assoc-digital"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+platforms = ["state association channels"]
+note = "Placeholder: streaming partner unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+[[rights]]
+broadcaster = "bcast.state-assoc-digital"
+competition = "Kerala Premier League"
+season = "2026-27"
+platforms = ["state association channels"]
+note = "Placeholder: the league is streamed digitally in some form but the partner is unknown to me."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+[[rights]]
+broadcaster = "bcast.state-assoc-digital"
+competition = "Goa Professional League"
+season = "2026-27"
+platforms = ["state association channels"]
+note = "Placeholder: Goa Football Association streams or posts matches; partner unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+[[rights]]
+broadcaster = "bcast.state-assoc-digital"
+competition = "Mumbai leagues (Mumbai Football Association)"
+season = "2026-27"
+platforms = ["state association channels"]
+note = "Placeholder: little or no regular broadcast recalled."
+prov = { status = "scenario_seed", q = "D", src = [], note = "scenario placeholder, not a fact" }
+
+# ---------------------------------------------------------------------
+# Foreign competitions shown in India
+# ---------------------------------------------------------------------
+
+[[rights]]
+broadcaster = "bcast.jiostar"
+competition = "English Premier League"
+season = "2019-20 to 2021-22"
+platforms = ["Star Sports network", "Hotstar"]
+languages = ["lang.en", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Star held Indian EPL rights before Viacom18 took over in 2022; start season approximate." }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "English Premier League"
+season = "2022-23 to 2024-25"
+platforms = ["Sports18 channels"]
+languages = ["lang.en", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.jiocinema"
+competition = "English Premier League"
+season = "2022-23 to 2024-25"
+platforms = ["JioCinema app"]
+languages = ["lang.en", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Free-to-stream in part, unverified." }
+
+[[rights]]
+broadcaster = "bcast.jiostar"
+competition = "English Premier League"
+season = "2025-26 to 2026-27"
+platforms = ["Star Sports network", "JioHotstar"]
+languages = ["lang.en", "lang.hi"]
+note = "Recalled as a multi-year deal starting 2025-26 after the Viacom18 period; end season and package details unverified."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; moderate confidence in the holder, low in the term" }
+
+[[rights]]
+broadcaster = "bcast.sony-sports"
+competition = "UEFA Champions League"
+season = "2018-19 to 2023-24"
+platforms = ["Sony Sports Ten channels", "SonyLIV"]
+languages = ["lang.en", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.sony-sports"
+competition = "UEFA Champions League"
+season = "2024-25 to 2026-27"
+platforms = ["Sony Sports Ten channels", "SonyLIV"]
+languages = ["lang.en", "lang.hi"]
+note = "Recalled as extending the earlier Sony arrangement; also likely covers the Europa League and Conference League. Term unverified."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence on term" }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "FIFA World Cup 2022"
+season = "2022"
+platforms = ["Sports18 channels"]
+languages = ["lang.en", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.jiocinema"
+competition = "FIFA World Cup 2022"
+season = "2022"
+platforms = ["JioCinema app"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn"]
+note = "Free streaming with several Indian-language commentary options was recalled for this event; exact language list unverified."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "La Liga"
+season = "2022-23 to 2024-25"
+platforms = ["Sports18 channels"]
+note = "Low-confidence recollection that the Viacom18 bouquet carried La Liga in these seasons."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.sports18"
+competition = "Bundesliga"
+season = "2020-21 to 2023-24"
+platforms = ["Sports18 channels"]
+note = "Low-confidence recollection; the Bundesliga has moved between broadcasters in India and later seasons are unknown."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.sony-sports"
+competition = "Serie A"
+season = "2018-19 to 2020-21"
+platforms = ["Sony Sports Ten channels", "SonyLIV"]
+note = "Low-confidence recollection; Serie A has moved between broadcasters in India and later seasons are unknown."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }
+
+[[rights]]
+broadcaster = "bcast.fancode"
+competition = "Serie A"
+season = "2021-22 to 2023-24"
+platforms = ["FanCode app"]
+note = "Low-confidence recollection that FanCode streamed some European league football in these years."
+prov = { status = "unknown", q = "D", src = [], note = "model knowledge; low confidence" }

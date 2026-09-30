@@ -1,0 +1,173 @@
+[meta]
+dataset = "competitions.membership_t3_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Membership seeds for the 24 clubs in clubs/tier3_b.toml in comp.ifl2 (national tier 3) or comp.ifl3 (national tier 4)."
+gaps = [
+ "Not a verified 2026-27 participant list: assignments are based on recollection of recent editions (roughly 2022-23 to 2025-26) and are scenario seeds.",
+ "In this repo comp.ifl2 (I-League 2) is national tier 3 and comp.ifl3 (I-League 3) is tier 4; clubs recalled at I-League 3 level are seeded to comp.ifl3, clubs recalled at the 2nd Division / I-League 2 level to comp.ifl2.",
+ "IFL3 is filled by state-association nominees, so state-league promotions between editions are not modelled here.",
+]
+
+[[membership]]
+club = "club.sports-odisha"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Seed: recalled as a IFL2 (I-League 2, national tier 3) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.garhwal"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Seed: recalled as a IFL2 (I-League 2, national tier 3) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.ozone"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Seed: recalled as a IFL2 (I-League 2, national tier 3) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.chhinga-veng"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Seed: recalled as a IFL2 (I-League 2, national tier 3) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.salgaocar"
+competition = "comp.ifl2"
+season = "2026-27"
+note = "Seed: recalled as a IFL2 (I-League 2, national tier 3) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.sc-bengaluru"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.langsning"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.royal-wahingdoh"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.nangkiew-irat"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.chanmari"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.bethlehem-vengthlang"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.classic-imphal"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.gangtok-himalayan"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.lonestar-kashmir"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.vasco-sc"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.sporting-goa"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.madhya-bharat"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.kerala-united"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.fc-kerala"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.kovalam"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.corbett"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
+
+[[membership]]
+club = "club.guwahati-city"
+competition = "comp.ifl3"
+season = "2026-27"
+note = "Seed: recalled as a IFL3 (I-League 3, national tier 4) club in recent editions (roughly 2022-23 to 2025-26); NOT a verified 2026-27 participant list."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; uncertain" }
