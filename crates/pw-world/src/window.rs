@@ -11,6 +11,9 @@
 
 use std::ops::{Index, IndexMut};
 
+use std::marker::PhantomData;
+
+use pw_core::Id;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A row that knows its own id.
@@ -19,18 +22,35 @@ pub trait Keyed {
 }
 
 #[derive(Clone, Debug)]
-pub struct Window<T> {
+pub struct Window<T, I = usize> {
     base: u32,
     rows: Vec<T>,
+    _id: PhantomData<fn(I) -> I>,
 }
 
-impl<T> Default for Window<T> {
+impl<T, I> Default for Window<T, I> {
     fn default() -> Self {
-        Self { base: 0, rows: Vec::new() }
+        Self { base: 0, rows: Vec::new(), _id: PhantomData }
     }
 }
 
-impl<T> Window<T> {
+impl<T, I: Id> Window<T, I> {
+    /// The id the next pushed row gets.
+    #[inline]
+    pub fn next_id(&self) -> I {
+        I::from_index(self.len())
+    }
+
+    /// Ids of the rows held, oldest first.
+    pub fn ids(&self) -> impl DoubleEndedIterator<Item = I> + ExactSizeIterator + use<I, T> {
+        (self.base as usize..self.len()).map(I::from_index)
+    }
+
+    pub fn iter_enumerated(&self) -> impl DoubleEndedIterator<Item = (I, &T)> + ExactSizeIterator {
+        let base = self.base as usize;
+        self.rows.iter().enumerate().map(move |(i, t)| (I::from_index(base + i), t))
+    }
+
     /// Id of the oldest row still held (ids below it were forgotten).
     #[inline]
     pub fn base(&self) -> u32 {
@@ -56,23 +76,25 @@ impl<T> Window<T> {
 
     /// Was this id issued and then forgotten?
     #[inline]
-    pub fn forgotten(&self, id: usize) -> bool {
-        id < self.base as usize
+    pub fn forgotten(&self, id: I) -> bool {
+        id.index() < self.base as usize
     }
 
     #[inline]
-    pub fn push(&mut self, row: T) {
+    pub fn push(&mut self, row: T) -> I {
+        let id = self.next_id();
         self.rows.push(row);
+        id
     }
 
     #[inline]
-    pub fn get(&self, id: usize) -> Option<&T> {
-        id.checked_sub(self.base as usize).and_then(|i| self.rows.get(i))
+    pub fn get(&self, id: I) -> Option<&T> {
+        id.index().checked_sub(self.base as usize).and_then(|i| self.rows.get(i))
     }
 
     #[inline]
-    pub fn get_mut(&mut self, id: usize) -> Option<&mut T> {
-        id.checked_sub(self.base as usize).and_then(|i| self.rows.get_mut(i))
+    pub fn get_mut(&mut self, id: I) -> Option<&mut T> {
+        id.index().checked_sub(self.base as usize).and_then(|i| self.rows.get_mut(i))
     }
 
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
@@ -108,29 +130,29 @@ impl<T> Window<T> {
     }
 }
 
-impl<T> Index<usize> for Window<T> {
+impl<T, I: Id> Index<I> for Window<T, I> {
     type Output = T;
     #[inline]
-    fn index(&self, id: usize) -> &T {
+    fn index(&self, id: I) -> &T {
         match self.get(id) {
             Some(r) => r,
-            None => panic!("row {id} is not held (oldest held is {}, next id {})", self.base, self.len()),
+            None => panic!("row {} is not held (oldest held is {}, next id {})", id.index(), self.base, self.len()),
         }
     }
 }
 
-impl<T> IndexMut<usize> for Window<T> {
+impl<T, I: Id> IndexMut<I> for Window<T, I> {
     #[inline]
-    fn index_mut(&mut self, id: usize) -> &mut T {
-        let (base, len) = (self.base, self.len());
+    fn index_mut(&mut self, id: I) -> &mut T {
+        let (base, len, ix) = (self.base, self.len(), id.index());
         match self.get_mut(id) {
             Some(r) => r,
-            None => panic!("row {id} is not held (oldest held is {base}, next id {len})"),
+            None => panic!("row {ix} is not held (oldest held is {base}, next id {len})"),
         }
     }
 }
 
-impl<'a, T> IntoIterator for &'a Window<T> {
+impl<'a, T, I> IntoIterator for &'a Window<T, I> {
     type Item = &'a T;
     type IntoIter = std::slice::Iter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
@@ -138,17 +160,17 @@ impl<'a, T> IntoIterator for &'a Window<T> {
     }
 }
 
-impl<T: Serialize> Serialize for Window<T> {
+impl<T: Serialize, I> Serialize for Window<T, I> {
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         self.rows.serialize(s)
     }
 }
 
-impl<'de, T: Deserialize<'de> + Keyed> Deserialize<'de> for Window<T> {
+impl<'de, T: Deserialize<'de> + Keyed, I> Deserialize<'de> for Window<T, I> {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         let rows = Vec::<T>::deserialize(d)?;
         let base = rows.first().map_or(0, Keyed::key);
-        Ok(Self { base, rows })
+        Ok(Self { base, rows, _id: PhantomData })
     }
 }
 
@@ -177,7 +199,7 @@ mod tests {
         assert_eq!(bincode::serialize(&w).unwrap(), bincode::serialize(&w.as_slice().to_vec()).unwrap());
         w.forget_front_while(|r| r.id < 4);
         assert_eq!((w.len(), w.held(), w.base()), (10, 6, 4));
-        assert!(w.get(3).is_none() && w.forgotten(3) && !w.forgotten(4));
+        assert!(w.get(3usize).is_none() && w.forgotten(3usize) && !w.forgotten(4usize));
         assert_eq!(w[4].v, 4);
         let back: Window<Row> = bincode::deserialize(&bincode::serialize(&w).unwrap()).unwrap();
         assert_eq!((back.len(), back.base()), (10, 4));

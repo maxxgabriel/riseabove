@@ -170,7 +170,7 @@ pub fn run(o: &Opts) {
             table.push((year, s));
             if pw_sim::profile::enabled() {
                 println!("   time by system this year (PW_PROFILE):");
-                for (name, us, calls) in pw_sim::profile::take().into_iter().take(12) {
+                for (name, us, calls) in pw_sim::profile::take().into_iter().take(30) {
                     println!("     {name:<30} {:>9.1} ms {calls:>7} calls {:>8.1} us/call", us as f64 / 1000.0, us as f64 / f64::from(calls.max(1)));
                 }
             }

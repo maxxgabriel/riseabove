@@ -8,6 +8,18 @@ pub trait Id: Copy {
     fn index(self) -> usize;
 }
 
+impl Id for usize {
+    #[inline]
+    fn from_index(i: usize) -> Self {
+        i
+    }
+
+    #[inline]
+    fn index(self) -> usize {
+        self
+    }
+}
+
 /// A dense vector indexed by a typed id. Derefs to a slice so rayon and the
 /// standard slice API work directly; indexing with the wrong id type does not
 /// compile.

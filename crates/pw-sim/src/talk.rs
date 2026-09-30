@@ -75,10 +75,10 @@ pub fn request(w: &mut World, initiator: PersonId, with: PersonId, player: Playe
 /// Meetings whose date has come are held.
 pub fn daily(w: &mut World) {
     let today = w.date;
-    w.meetings.trim_open();
-    let due: Vec<MeetingId> = w.meetings.pending().filter(|(_, m)| m.date <= today && m.response.is_some()).map(|(id, _)| id).collect();
+    prof!("talk::trim", w.meetings.trim_open());
+    let due: Vec<MeetingId> = prof!("talk::due", w.meetings.pending().filter(|(_, m)| m.date <= today && m.response.is_some()).map(|(id, _)| id).collect());
     for id in due {
-        hold(w, id);
+        prof!("talk::hold", hold(w, id));
     }
 }
 
@@ -260,9 +260,10 @@ fn standing_in_squad(w: &World, p: PlayerId) -> f32 {
         return -1.0;
     }
     let team = w.players.hot[p].team;
-    let (me, _, _, _) = club_view(w, club, p);
+    let judging = w.club_manager_judging(club).0;
+    let me = crate::perception::club_ca_judged(w, club, p, judging);
     let group = w.players.cold[p].best_pos.group();
-    let mut rivals: Vec<f32> = w.teams[team].squad.iter().filter(|&&x| x != p && w.players.cold[x].best_pos.group() == group).map(|&x| club_view(w, club, x).0).collect();
+    let mut rivals: Vec<f32> = w.teams[team].squad.iter().filter(|&&x| x != p && w.players.cold[x].best_pos.group() == group).map(|&x| crate::perception::club_ca_judged(w, club, x, judging)).collect();
     rivals.sort_by(|a, b| b.total_cmp(a));
     let starters: usize = match group {
         pw_core::PosGroup::Gk => 1,

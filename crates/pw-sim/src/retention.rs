@@ -17,6 +17,8 @@ use pw_world::negotiation::{Negotiation, TalkLine};
 use pw_world::{LifeEventKind, PlayerStatus, World};
 
 const CLOSED_TALK_DETAIL_DAYS: i32 = 365;
+/// A meeting is forgotten this long after it was held (longer than the events that point at it, `EVENT_LIFE_DAYS`), unless a decision still points at it.
+const MEETING_DAYS: i32 = 3 * 365;
 /// Events keep full detail this long. The readers that look back furthest (the league rule review, the youth-graduate count) read a year.
 const EVENT_DETAIL_DAYS: i32 = 400;
 /// People-facing event detail (a meeting, a press story, a promise, most of a person's life events) is kept this long.
@@ -94,6 +96,8 @@ pub fn yearly(w: &mut World) -> usize {
         }
     }
     w.incidents.forget_before(today.add_days(-INCIDENT_DAYS));
+    let pinned: std::collections::HashSet<pw_core::MeetingId> = w.decisions.all.iter().filter_map(|d| if let pw_world::DecisionKind::Meeting { meeting } = d.kind { Some(meeting) } else { None }).collect();
+    w.meetings.forget_before(today.add_days(-MEETING_DAYS), &pinned);
     gone_players(w, today);
     compacted
 }

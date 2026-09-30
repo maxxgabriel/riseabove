@@ -225,7 +225,9 @@ fn drift(w: &mut World) {
 /// Months without football take something away from young players.
 fn stagnation(w: &mut World) {
     let today = w.date;
-    let ids: Vec<PlayerId> = w.growth.records.keys().copied().collect();
+    // Sorted: events are recorded as the players are visited, and the map holds its keys in an order that differs after a reload.
+    let mut ids: Vec<PlayerId> = w.growth.records.keys().copied().collect();
+    ids.sort();
     for p in ids {
         let age = w.age_years(p);
         let h = &w.players.hot[p];

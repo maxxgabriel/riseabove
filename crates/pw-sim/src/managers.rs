@@ -390,6 +390,9 @@ fn best_formation(w: &World, club: ClubId) -> Option<u8> {
     let team = w.clubs[club].first_team();
     let squad = &w.teams[team].squad;
     let mut best: Option<(f32, u8)> = None;
+    // How the manager reads each player does not depend on the formation or the slot: work it out once.
+    let judging = w.club_manager_judging(club).0;
+    let seen: Vec<f32> = squad.iter().map(|&p| crate::perception::club_ca_judged(w, club, p, judging)).collect();
     for (i, f) in w.data.formations.iter().enumerate() {
         let mut used: Vec<PlayerId> = Vec::new();
         let mut total = 0.0;
@@ -397,8 +400,9 @@ fn best_formation(w: &World, club: ClubId) -> Option<u8> {
             let pick = squad
                 .iter()
                 .copied()
-                .filter(|p| !used.contains(p))
-                .map(|p| (p, crate::perception::club_view(w, club, p).0 * pw_world::player::familiarity_factor(w.players.cold[p].familiarity[slot.pos.idx()])))
+                .zip(seen.iter().copied())
+                .filter(|(p, _)| !used.contains(p))
+                .map(|(p, ca)| (p, ca * pw_world::player::familiarity_factor(w.players.cold[p].familiarity[slot.pos.idx()])))
                 .max_by(|a, b| a.1.total_cmp(&b.1).then(b.0.cmp(&a.0)));
             if let Some((p, v)) = pick {
                 used.push(p);

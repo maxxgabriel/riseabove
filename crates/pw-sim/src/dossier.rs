@@ -365,10 +365,10 @@ fn reason_for(old: &Dossier, new: &Dossier, w: &World) -> Reason {
     if w.players.cold[new.player].injuries_career > 0 && new.risks.iter().any(|r| r.kind == RiskKind::Injuries) && !old.risks.iter().any(|r| r.kind == RiskKind::Injuries) {
         return Reason::Injury;
     }
-    if new.evidence.minutes_seen > old.evidence.minutes_seen + 90 {
+    if u32::from(new.evidence.minutes_seen) > u32::from(old.evidence.minutes_seen) + 90 {
         return Reason::MoreEvidence;
     }
-    if new.evidence.days_since_seen > old.evidence.days_since_seen + 45 {
+    if u32::from(new.evidence.days_since_seen) > u32::from(old.evidence.days_since_seen) + 45 {
         return Reason::Stale;
     }
     if w.age_years(new.player) < 23.0 {
@@ -448,12 +448,12 @@ pub fn monthly(w: &mut World) {
     let today = w.date;
     let wanted = wanted(w);
 
-    let mut fresh: Vec<Dossier> = Vec::with_capacity(wanted.len());
-    for &(club, p) in &wanted {
-        if let Some(d) = build(w, club, p) {
-            fresh.push(revised(w, w.dossiers.get(club, p), d));
-        }
-    }
+    // Each dossier reads the world and nothing else, so they are built in parallel; `collect` keeps the order of `wanted`.
+    let fresh: Vec<Dossier> = {
+        use rayon::prelude::*;
+        let w: &World = w;
+        wanted.par_iter().filter_map(|&(club, p)| build(w, club, p).map(|d| revised(w, w.dossiers.get(club, p), d))).collect()
+    };
     let keep: rustc_hash::FxHashSet<(ClubId, PlayerId)> = wanted.iter().copied().collect();
     w.dossiers.map.retain(|k, d| keep.contains(k) || (d.date.days_until(today) < KEEP_AFTER_LEAVING_DAYS && w.players.hot[k.1].status != PlayerStatus::Retired));
     // A year-old reading of a young player is worth checking later; log one per evaluator per player.

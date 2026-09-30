@@ -276,6 +276,26 @@ fn subject_person(w: &World, kind: &InfoKind) -> PersonId {
     }
 }
 
+/// The most `inclination` can return for this role and kind of item: its base for the role (the highest it takes for the kind), times
+/// the most every other factor can be (discretion 0, closeness at its cap), clamped as `inclination` clamps. A journalist's base depends
+/// on grudges and strategies, so it has no cheap ceiling.
+fn ceiling(role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32) -> f32 {
+    let base = match role {
+        Role::Partner => 0.22,
+        Role::OwnAgent => 0.35,
+        Role::Client => 0.45,
+        Role::Teammate => 0.05,
+        Role::Colleague => 0.04,
+        Role::Superior => match kind {
+            InfoKind::Incident { .. } | InfoKind::DressingRoom { .. } | InfoKind::Discipline { .. } | InfoKind::InjuryWorse { .. } => 0.3,
+            _ => 0.03,
+        },
+        Role::Board => 0.15,
+        Role::Journalist => return f32::INFINITY,
+    };
+    (base * (0.5 + f32::from(sensitivity) / 100.0) * freshness * 1.25 * 1.2 * 1.0001).clamp(0.0, 0.9)
+}
+
 /// How likely `teller` is to tell `to` today, and why.
 fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32, agent_by_person: &FxHashMap<PersonId, AgentId>) -> (f32, Motive) {
     let prof = consider::hid(w, teller, pw_core::Hidden::Professionalism) / 20.0;
@@ -349,13 +369,16 @@ fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &Inf
 fn spread(w: &mut World) {
     let today = w.date;
     // Who counts whom as a source; which people are agents.
-    let mut sources_of: FxHashMap<PersonId, SmallVec<[PersonId; 2]>> = FxHashMap::default();
-    for j in w.media.journalists.values() {
-        for &s in &j.sources {
-            sources_of.entry(s).or_default().push(j.person);
+    let (sources_of, agent_by_person) = prof!("grapevine::setup", {
+        let mut sources_of: FxHashMap<PersonId, SmallVec<[PersonId; 2]>> = FxHashMap::default();
+        for j in w.media.journalists.values() {
+            for &s in &j.sources {
+                sources_of.entry(s).or_default().push(j.person);
+            }
         }
-    }
-    let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+        let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+        (sources_of, agent_by_person)
+    });
     let active = w.grapevine.active.clone();
     // Who someone talks to is a daily fact; work it out once per person.
     let mut contacts_of: FxHashMap<PersonId, SmallVec<[(PersonId, Role); 16]>> = FxHashMap::default();
@@ -373,6 +396,10 @@ fn spread(w: &mut World) {
             continue;
         }
         let holders: Vec<pw_world::info::Knower> = w.grapevine.get(info).holders.to_vec();
+        let tells = |k: &pw_world::info::Knower| k.told < 6 && k.person.is_some() && k.date.days_until(today) <= TELLING_DAYS;
+        if !holders.iter().any(tells) {
+            continue;
+        }
         let mut knowers: FxHashSet<PersonId> = holders.iter().map(|k| k.person).collect();
         for k in holders {
             // People pass on what they have just heard; after a week it is
@@ -381,13 +408,18 @@ fn spread(w: &mut World) {
                 continue;
             }
             let teller = k.person;
-            let mine = contacts_of.entry(teller).or_insert_with(|| contacts(w, teller, &sources_of, &agent_by_person)).clone();
+            let mine = contacts_of.entry(teller).or_insert_with(|| prof!("grapevine::contacts", contacts(w, teller, &sources_of, &agent_by_person))).clone();
             for (to, role) in mine {
                 if to.is_none() || knowers.contains(&to) {
                     continue;
                 }
-                let (p, motive) = inclination(w, teller, to, role, &kind, sensitivity, freshness, &agent_by_person);
+                // The roll is a pure function of who, whom and the day, so it is drawn first: most contacts are far from telling, and
+                // `inclination` (a dozen lookups) is only worth computing when the roll is below the largest value it could return.
                 let roll = w.roll(stream::GRAPEVINE, &[u64::from(info), u64::from(teller.0), u64::from(to.0), period::day(today)]);
+                if roll >= ceiling(role, &kind, sensitivity, freshness) {
+                    continue;
+                }
+                let (p, motive) = inclination(w, teller, to, role, &kind, sensitivity, freshness, &agent_by_person);
                 if roll >= p {
                     continue;
                 }
