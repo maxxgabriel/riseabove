@@ -176,16 +176,11 @@ pub struct Finance {
     pub operating_share: f32,
     /// Cash a club keeps in reserve, in years of revenue; owners take, or put back into the club, what lies above it.
     pub reserve_years: f32,
-    /// How many times a year owners take their share of the cash above the reserve (a quarterly distribution is 4). The club's cash
-    /// settles where the surplus it earns equals what leaves: at the reserve plus the yearly surplus divided by this times the owners'
-    /// share. Too slow, and cash piles up for years above where a world starts (a world endowed at the reserve then "grows" its
-    /// balances, and every transfer budget read from them, for its first seasons).
-    pub distributions_per_year: f32,
 }
 
 impl Default for Finance {
     fn default() -> Self {
-        Self { revenue_top: 650_000_000.0, wage_share: 0.62, ticket_price_top: 75.0, prize_pool_share: 0.25, operating_share: 0.17, reserve_years: 0.75, distributions_per_year: 4.0 }
+        Self { revenue_top: 650_000_000.0, wage_share: 0.62, ticket_price_top: 75.0, prize_pool_share: 0.25, operating_share: 0.17, reserve_years: 0.75 }
     }
 }
 

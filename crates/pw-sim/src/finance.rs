@@ -28,6 +28,12 @@ pub fn season_budgets(w: &mut World, n: NationId) {
     }
 }
 
+/// How many times a year owners take their share of the cash above the reserve: quarterly. A club's cash settles where the surplus it
+/// earns equals what leaves, at the reserve plus the yearly surplus over (this times the owners' share). Taken once a year instead,
+/// cash piled up for seasons above where a world starts, and every transfer budget read from it with it. (A constant, not tuning: the
+/// tuning table is part of the save layout.)
+const DISTRIBUTIONS_PER_YEAR: f64 = 4.0;
+
 pub fn weekly(w: &mut World) {
     let today = w.date;
     let mut wages = vec![0 as Money; w.clubs.len()];
@@ -75,7 +81,7 @@ pub fn weekly(w: &mut World) {
         let bill = wages[club.0 as usize];
         f.wage_bill = bill;
         let excess = (f.balance - reserve).max(0);
-        let out = (excess as f64 * (payout * f64::from(t.distributions_per_year) / 52.0).min(1.0)) as Money;
+        let out = (excess as f64 * payout * DISTRIBUTIONS_PER_YEAR / 52.0) as Money;
         f.balance += income - bill - running - out;
         f.season_income += income;
         f.season_spend += bill + running;
