@@ -69,7 +69,7 @@ fn a_world_that_has_forgotten_things_reloads_and_continues_identically() {
     let mut b = pw_sim::Sim::new(back);
     a.run(200);
     b.run(200);
-    assert_eq!(digest(&a.world), digest(&b.world), "a reloaded world diverged from the uninterrupted one after forgetting");
+    assert_eq!(digest(&a.world), digest(&b.world), "a reloaded world diverged from the uninterrupted one after forgetting: {}", explain_divergence(&a.world, &b.world));
 }
 
 /// A world reloaded at any age continues exactly like the one that was never stopped, day by day for a hundred days. This is the check

@@ -349,26 +349,26 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
             }
             _ => None,
         },
-        StoryKind::TransferNews | StoryKind::ManagerChange | StoryKind::Injury | StoryKind::Season | StoryKind::Contract => underlying(w, s),
+        // These two are told from what the story itself carries (who, which clubs, what fee, when), not from the event it was written
+        // about: the event log forgets old events, and a story must read the same a year later as the day it ran.
+        StoryKind::Injury if s.player.is_some() => {
+            let mut ev = LEvent::new("injury.suffered", s.date).ent("player", player_ref(w, s.player, s.date));
+            if s.club.is_some() {
+                ev = ev.ent("club", club_ref(w, s.club));
+            }
+            Some(ev)
+        }
+        StoryKind::TransferNews if s.player.is_some() && s.club.is_some() && s.other_club.is_some() => {
+            let mut ev = LEvent::new("transfer.completed", s.date).ent("player", player_ref(w, s.player, s.date)).ent("from", club_ref(w, s.other_club)).ent("to", club_ref(w, s.club));
+            if s.fee > 0 {
+                ev = ev.money("fee", s.fee);
+            }
+            Some(ev)
+        }
+        // Manager changes, seasons and contracts rest on the event log, which forgets: they keep the older text rather than change wording later.
+        StoryKind::TransferNews | StoryKind::ManagerChange | StoryKind::Injury | StoryKind::Season | StoryKind::Contract => None,
         _ => None,
     }
-}
-
-/// The world event a story is about: the story's own publication event points at it through its causes (looking a couple of steps back).
-fn underlying(w: &World, s: &Story) -> Option<LEvent> {
-    let mut frontier = vec![s.event];
-    for _ in 0..3 {
-        let mut next = Vec::new();
-        for id in frontier {
-            let Some(e) = w.events.get(id) else { continue };
-            if let Some(ev) = event(w, &e.kind, e.date) {
-                return Some(ev);
-            }
-            next.extend(e.causes.iter().filter_map(|c| if let pw_world::event::Cause::Event(x) = c { Some(*x) } else { None }));
-        }
-        frontier = next;
-    }
-    None
 }
 
 // ------------------------------------------------------------------------------------------------- inbox

@@ -158,6 +158,8 @@ pub fn post(w: &World, p: &Post) -> String {
             }
         }
     };
+    // A post with no subject to name would otherwise start with the space that joined it.
+    let s = s.trim().to_string();
     let positive = matches!(p.concept, Concept::Praise | Concept::Celebrate | Concept::ConcedeWrong | Concept::Defend | Concept::ReluctantPraise);
     let s = if matches!(p.concept, Concept::Celebrate | Concept::Mock) && v.register == Register::Terrace { loud(&Voice { register: Register::Tabloid, ..v }, &s) } else { s };
     // A post whose subject has been forgotten says nothing, and an emoji alone would be a post of nothing.

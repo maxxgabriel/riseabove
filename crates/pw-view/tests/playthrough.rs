@@ -157,8 +157,11 @@ impl Bot {
             }
             Value::Object(o) => {
                 self.reference(at, o);
+                // A payload that says it has nothing to show (`available: false`, with a reason) has nothing to put in its names either.
+                let nothing = o.get("available") == Some(&Value::Bool(false));
                 for (k, x) in o {
                     if let Value::String(t) = x
+                        && !nothing
                         && t.trim().is_empty()
                         && TEXT_KEYS.contains(&k.as_str())
                         && at != "world.status"

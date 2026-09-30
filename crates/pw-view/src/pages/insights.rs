@@ -1679,9 +1679,9 @@ pub fn matchup(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let w3 = run_of(f, |r| r == 'W');
         let l3 = run_of(f, |r| r == 'L');
         if w3 >= 3 {
-            n.add("form", Tone::Pos, 58, format!("{who} on a run"), format!("{} wins in a row going in.", count_word(w3)), "Results before this match");
+            n.add("form", Tone::Pos, 58, format!("{who} on a run"), format!("{who} come in on {} wins in a row.", count_word(w3).to_lowercase()), "Results before this match");
         } else if l3 >= 3 {
-            n.add("form", Tone::Warn, 58, format!("{who} struggling"), format!("{} defeats in a row going in.", count_word(l3)), "Results before this match");
+            n.add("form", Tone::Warn, 58, format!("{who} struggling"), format!("{who} come in on {} defeats in a row.", count_word(l3).to_lowercase()), "Results before this match");
         }
     }
     // Home against away records.

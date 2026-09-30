@@ -269,7 +269,13 @@ fn an_old_story_reads_the_same_as_the_world_ages() {
     let mut changed = Vec::new();
     for (id, h, b) in &before {
         let st = s.world.media.stories.get(pw_core::StoryId(*id)).expect("stories are kept");
-        let now = lang::story(&s.world, st).expect("still writable");
+        let now = match lang::try_story(&s.world, st) {
+            Ok(t) => t,
+            Err(why) => {
+                changed.push(format!("{id} ({:?}, published {:?}): no longer writable: {why}", st.kind, st.date));
+                continue;
+            }
+        };
         if (&now.headline, &now.body) != (h, b) {
             changed.push(format!("{id}: {h} / {b}\n   now: {} / {}", now.headline, now.body));
         }

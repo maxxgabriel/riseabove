@@ -90,3 +90,37 @@ pub fn digest(w: &World) -> u64 {
     parts.push(ability);
     pw_core::rng::hash_key(&parts)
 }
+
+/// Where two worlds that should be identical first differ: the first event that is not the same in both, and the counts that differ.
+/// A hash says that two worlds diverged; this says where to look.
+pub fn explain_divergence(a: &World, b: &World) -> String {
+    let ea: Vec<_> = a.events.since(pw_core::Date(0)).into_iter().collect();
+    let eb: Vec<_> = b.events.since(pw_core::Date(0)).into_iter().collect();
+    let mut out = format!("events {} vs {}", ea.len(), eb.len());
+    if let Some((x, y)) = ea.iter().zip(eb.iter()).find(|(x, y)| format!("{:?}|{:?}|{:?}", x.date, x.kind, x.causes) != format!("{:?}|{:?}|{:?}", y.date, y.kind, y.causes)) {
+        out += &format!("; first difference at event {}: {:?} {:?} / {:?} {:?}", x.id.0, x.date, x.kind, y.date, y.kind);
+    }
+    let counts = |w: &World| {
+        vec![
+            ("posts", w.net.posts.len()),
+            ("stories", w.media.stories.len()),
+            ("incidents", w.incidents.list.len()),
+            ("records", w.records.records.len()),
+            ("talks", w.talks.len()),
+            ("cases", w.boardroom.cases.len()),
+            ("dossiers", w.dossiers.map.len()),
+            ("attention", w.net.attention.len()),
+            ("contracts", w.boardroom.contracts.len()),
+        ]
+    };
+    for ((name, x), (_, y)) in counts(a).into_iter().zip(counts(b)) {
+        if x != y {
+            out += &format!("; {name} {x} vs {y}");
+        }
+    }
+    let money = |w: &World| w.clubs.iter().fold(0i64, |m, c| m.wrapping_add(c.finance.balance).wrapping_add(c.finance.wage_bill));
+    if money(a) != money(b) {
+        out += &format!("; money {} vs {}", money(a), money(b));
+    }
+    out
+}
