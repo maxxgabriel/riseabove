@@ -196,6 +196,25 @@ fn typed_responses_carry_exactly_the_declared_fields() {
     for r in rum["rumours"].as_array().unwrap() {
         check_against(&ts, "RumourRow", r);
     }
+    // Notes about people, clubs, competitions and matches share one declared shape, visuals included.
+    let mut visuals = std::collections::BTreeSet::new();
+    let fx = api.call("table.query", json!({"table": "fixtures", "filters": {"comp": 0, "played": true}, "limit": 3})).unwrap();
+    let mut asks: Vec<(&str, Value)> = (0..30).map(|id| ("insight.person", json!({"id": id}))).collect();
+    asks.extend((0..8).map(|id| ("insight.club", json!({"id": id}))));
+    asks.extend((0..3).map(|id| ("insight.comp", json!({"id": id}))));
+    asks.extend(fx["rows"].as_array().unwrap().iter().map(|r| ("insight.match", json!({"uid": r["open"]["id"]}))));
+    for (m, a) in asks {
+        let v = api.call(m, a).unwrap();
+        check_against(&ts, "InsightsView", &v);
+        for it in v["items"].as_array().unwrap() {
+            check_against(&ts, "InsightItem", it);
+            if let Some(k) = it["visual"]["kind"].as_str() {
+                visuals.insert(k.to_string());
+                assert!(ts.contains(&format!("kind: \"{k}\"")), "visual {k} is not declared");
+            }
+        }
+    }
+    assert!(!visuals.is_empty(), "no note carried a visual");
     // Pages of one's own life, typed through the contract.
     let promises = api.call("me.promises", json!({})).unwrap();
     check_against(&ts, "PromisesView", &promises);

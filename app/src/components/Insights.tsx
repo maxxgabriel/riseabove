@@ -1,27 +1,13 @@
 import { useState } from "react";
 import { useApi } from "../store";
-import type { Named, Tone } from "../types";
+import type { InsightItem, InsightsView } from "../contract.generated";
+import type { Named } from "../types";
 import { Icon, type IconName } from "../ui/Icon";
 import { Section, Skeleton } from "../ui/ui";
 import { EntityLink } from "./links";
 
-export interface InsightItem {
-  kind: string;
-  tone: Tone;
-  title: string;
-  text: string;
-  basis: string;
-  link: Named | null;
-  visual?: { kind: "sparkline"; label: string; unit: string; values: number[] }
-    | { kind: "sequence"; label: string; unit: string; values: string[] }
-    | { kind: "comparison"; label: string; unit: string; names: string[]; values: number[] }
-    | null;
-}
-interface InsightsResp {
-  items: InsightItem[];
-  total: number;
-  held: number;
-}
+export type { InsightItem };
+type InsightsResp = InsightsView;
 
 // One icon per kind of note, so a list reads at a glance.
 const ICONS: Record<string, IconName> = {

@@ -107,6 +107,10 @@ export type PerspectiveView =
   | { mode: "observer"; omniscient: boolean }
   | { mode: "public"; omniscient: boolean }
   | { mode: "inhabit"; person: number; name: string; club: string | null };
+export type InsightVisual =
+  | { kind: "sparkline"; label: string; unit: string; values: number[] }
+  | { kind: "sequence"; label: string; unit: string; values: string[] }
+  | { kind: "comparison"; label: string; unit: string; names: string[]; values: number[] };
 
 export interface ErrorBody {
   kind: ErrorKind;
@@ -710,6 +714,22 @@ export interface OwnStoryView {
   body: string;
 }
 
+export interface InsightItem {
+  kind: string;
+  tone: Tone;
+  title: string;
+  text: string;
+  basis: string;
+  link: Named | null;
+  visual: InsightVisual | null;
+}
+
+export interface InsightsView {
+  items: InsightItem[];
+  total: number;
+  held: number;
+}
+
 export interface ActDone {
   ok: boolean;
   text: string;
@@ -748,10 +768,10 @@ export interface ApiMethods {
   "person.attributes": { kind: "query"; req: PersonReq; res: AttributesView };
   "crest.colors": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "comp.overview": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "insight.club": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "insight.comp": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "insight.match": { kind: "query"; req: Record<string, unknown>; res: unknown };
-  "insight.person": { kind: "query"; req: Record<string, unknown>; res: unknown };
+  "insight.club": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
+  "insight.comp": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
+  "insight.match": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
+  "insight.person": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
   "club": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "club.systems": { kind: "query"; req: Record<string, unknown>; res: unknown };
   "club.follow": { kind: "command"; req: FollowReq; res: Followed };
@@ -820,6 +840,10 @@ export type TypedMethod =
   | "route.begin"
   | "table.query"
   | "person.attributes"
+  | "insight.club"
+  | "insight.comp"
+  | "insight.match"
+  | "insight.person"
   | "club.follow"
   | "match.reveal"
   | "match.reveal_all"

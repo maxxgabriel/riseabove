@@ -1027,6 +1027,44 @@ contract! {
     }
 }
 
+/// A small picture beside a note: a run of numbers, a run of results, or two things side by side.
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum InsightVisual {
+    Sparkline { label: String, unit: String, values: Vec<f32> },
+    Sequence { label: String, unit: String, values: Vec<String> },
+    Comparison { label: String, unit: String, names: Vec<String>, values: Vec<i32> },
+}
+
+impl Ts for InsightVisual {
+    fn ts() -> String {
+        "InsightVisual".into()
+    }
+}
+
+pub const INSIGHT_VISUAL_TS: &str = "export type InsightVisual =\n  | { kind: \"sparkline\"; label: string; unit: string; values: number[] }\n  | { kind: \"sequence\"; label: string; unit: string; values: string[] }\n  | { kind: \"comparison\"; label: string; unit: string; names: string[]; values: number[] };\n";
+
+contract! {
+    /// One note about a person, club, competition or match: what it says, and what it rests on (`basis`).
+    pub struct InsightItem {
+        pub kind: String,
+        pub tone: Tone,
+        pub title: String,
+        pub text: String,
+        pub basis: String,
+        pub link: Option<Named>,
+        pub visual: Option<InsightVisual>,
+    }
+
+    pub struct InsightsView {
+        pub items: Vec<InsightItem>,
+        /// Notes there were before `limit` cut the list.
+        pub total: u32,
+        /// Results the viewer has not revealed, which the notes leave out.
+        pub held: u32,
+    }
+}
+
 /// A declared payload as it goes on the wire.
 pub fn wire<T: Serialize>(v: T) -> Value {
     serde_json::to_value(v).unwrap_or(Value::Null)
@@ -1123,10 +1161,10 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("person.attributes"), Some("PersonReq"), "AttributesView"),
         q("crest.colors"),
         q("comp.overview"),
-        q("insight.club"),
-        q("insight.comp"),
-        q("insight.match"),
-        q("insight.person"),
+        typed(q("insight.club"), None, "InsightsView"),
+        typed(q("insight.comp"), None, "InsightsView"),
+        typed(q("insight.match"), None, "InsightsView"),
+        typed(q("insight.person"), None, "InsightsView"),
         q("club"),
         q("club.systems"),
         typed(c("club.follow"), Some("FollowReq"), "Followed"),
@@ -1199,6 +1237,7 @@ pub fn typescript() -> String {
     out.push_str(KNOWLEDGE_TS);
     out.push_str(ATTR_ROW_TS);
     out.push_str(PERSPECTIVE_TS);
+    out.push_str(INSIGHT_VISUAL_TS);
     out.push('\n');
     for d in declarations() {
         out.push_str(&d);
@@ -1310,6 +1349,8 @@ pub fn declarations() -> Vec<String> {
         AgentRow::declaration(),
         AgentView::declaration(),
         OwnStoryView::declaration(),
+        InsightItem::declaration(),
+        InsightsView::declaration(),
         ActDone::declaration(),
     ]
 }

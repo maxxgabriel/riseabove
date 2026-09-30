@@ -14,9 +14,10 @@ use pw_sim::{consider, health};
 use pw_world::medical::Chronic;
 use pw_world::perf::{App, Label, Lens, SeasonLine};
 use pw_world::{Fixture, PlayerStatus, Score, StaffRole, TeamKind};
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use crate::ctx::Ctx;
+use crate::contract::{InsightItem, InsightVisual, InsightsView};
 use crate::model::{ApiError, ApiResult, Named, Ref, Tone};
 use crate::pages::person::person_id;
 
@@ -30,7 +31,7 @@ struct Item {
     text: String,
     basis: String,
     link: Option<Named>,
-    visual: Option<Value>,
+    visual: Option<InsightVisual>,
 }
 
 #[derive(Default)]
@@ -45,7 +46,7 @@ impl Notes {
         self.items.push(Item { kind, tone, weight, title: cap(title.into()), text: cap(crate::fmt::singulars(text.into())), basis: crate::fmt::singulars(basis.into()), link: None, visual: None });
     }
 
-    fn visual(&mut self, visual: Value) {
+    fn visual(&mut self, visual: InsightVisual) {
         if let Some(last) = self.items.last_mut() {
             last.visual = Some(visual);
         }
@@ -62,24 +63,18 @@ impl Notes {
         let limit = args.get("limit").and_then(Value::as_u64).map_or(usize::MAX, |n| n as usize);
         let total = self.items.len();
         self.items.truncate(limit);
-        json!({
-            "items": self.items.iter().map(|i| json!({
-                "kind": i.kind, "tone": tone_str(i.tone), "title": i.title, "text": i.text, "basis": i.basis, "link": i.link, "visual": i.visual,
-            })).collect::<Vec<_>>(),
-            "total": total, "held": self.held,
+        crate::contract::wire(InsightsView {
+            items: self
+                .items
+                .into_iter()
+                .map(|i| InsightItem { kind: i.kind.into(), tone: i.tone, title: i.title, text: i.text, basis: i.basis, link: i.link, visual: i.visual })
+                .collect(),
+            total: total as u32,
+            held: self.held as u32,
         })
     }
 }
 
-fn tone_str(t: Tone) -> &'static str {
-    match t {
-        Tone::Pos => "pos",
-        Tone::Neg => "neg",
-        Tone::Warn => "warn",
-        Tone::Muted => "muted",
-        Tone::Info => "info",
-    }
-}
 
 // ---- small helpers -----------------------------------------------------------------------
 
@@ -315,7 +310,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
                     format!("{who} {has} averaged {recent:.1} over the last {} appearances, {d:.1} above the {base:.1} for {year}.", last.len()),
                     format!("Last {} match ratings against {} appearances in {year}", last.len(), line.map_or(0, |l| l.apps)),
                 );
-                n.visual(json!({"kind": "sparkline", "label": "Last five match ratings", "unit": "rating", "values": last}));
+                n.visual(InsightVisual::Sparkline { label: "Last five match ratings".into(), unit: "rating".into(), values: last.to_vec() });
             } else if d <= -0.5 {
                 n.add(
                     "form",
@@ -325,7 +320,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
                     format!("{who} {has} averaged {recent:.1} over the last {} appearances, {:.1} below the {base:.1} for {year}.", last.len(), -d),
                     format!("Last {} match ratings against {} appearances in {year}", last.len(), line.map_or(0, |l| l.apps)),
                 );
-                n.visual(json!({"kind": "sparkline", "label": "Last five match ratings", "unit": "rating", "values": last}));
+                n.visual(InsightVisual::Sparkline { label: "Last five match ratings".into(), unit: "rating".into(), values: last.to_vec() });
             }
         }
         let best = shown.iter().filter(|a| a.rating > 0).max_by_key(|a| a.rating);
@@ -928,7 +923,7 @@ fn streaks(n: &mut Notes, who: &str, form: &[char], scope: &str, weight: u8) {
     }
     if n.items.len() > count_before {
         let sequence: String = form.iter().rev().take(6).rev().collect();
-        n.visual(json!({"kind": "sequence", "label": "Last league results", "unit": "result", "values": sequence.chars().map(|x| x.to_string()).collect::<Vec<_>>() }));
+        n.visual(InsightVisual::Sequence { label: "Last league results".into(), unit: "result".into(), values: sequence.chars().map(|x| x.to_string()).collect() });
     }
 }
 
@@ -1391,7 +1386,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
             basis.clone(),
         );
     }
-    n.visual(json!({"kind": "comparison", "label": "Top two teams on points", "unit": "points", "names": [name(0), name(1)], "values": [pts(0), pts(1)]}));
+    n.visual(InsightVisual::Comparison { label: "Top two teams on points".into(), unit: "points".into(), names: vec![name(0), name(1)], values: vec![pts(0), pts(1)] });
     n.link(tr(0), name(0));
     if co.promote > 0 {
         let k = usize::from(co.promote);
