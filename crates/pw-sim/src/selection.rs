@@ -476,17 +476,17 @@ pub fn select_ctx(w: &World, team: TeamId, comp: CompId, date: Date, ctx: &Conte
 /// Probability the player starts / makes the squad, from repeated selections
 /// under the manager's uncertainty (07 §3 selection forecast).
 pub fn forecast(w: &World, team: TeamId, player: PlayerId, date: Date, samples: u32) -> (f32, f32) {
-    let (mut start, mut squad) = (0u32, 0u32);
-    for k in 0..samples {
-        if let Some(s) = select(w, team, date, 0.6, w.data.tuning.matches.bench_size, 1000 + u64::from(k)) {
-            if s.xi.contains(&player) {
-                start += 1;
-                squad += 1;
-            } else if s.bench.contains(&player) {
-                squad += 1;
-            }
-        }
-    }
+    use rayon::prelude::*;
+    // The samples differ only in the seed they are drawn with and read the world without changing it: they run side by side, and
+    // the counts are added up (whole numbers, so the order makes no difference).
+    let (start, squad) = (0..samples)
+        .into_par_iter()
+        .map(|k| match select(w, team, date, 0.6, w.data.tuning.matches.bench_size, 1000 + u64::from(k)) {
+            Some(s) if s.xi.contains(&player) => (1u32, 1u32),
+            Some(s) if s.bench.contains(&player) => (0, 1),
+            _ => (0, 0),
+        })
+        .reduce(|| (0, 0), |a, b| (a.0 + b.0, a.1 + b.1));
     let n = samples.max(1) as f32;
     (start as f32 / n, squad as f32 / n)
 }

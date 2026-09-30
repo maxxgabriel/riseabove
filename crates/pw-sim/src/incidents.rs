@@ -290,6 +290,19 @@ fn hazard_under(w: &World, d: &IncidentDef, c: &Ctx, roll: f32) -> Option<(f32, 
     Some(((d.hazard * pw_core::math::exp(sum)).min(0.5), top))
 }
 
+/// For tests: does the bounded reading agree with the plain one? `Ok` when [`hazard_under`] either returns exactly what [`hazard`]
+/// returns, or gives up only for a roll the plain hazard would also have refused.
+pub fn hazard_agrees(w: &World, kind: IncidentKind, c: &Ctx, roll: f32) -> Result<(), String> {
+    let d = def(kind);
+    let (p, top) = hazard(w, &d, c);
+    match hazard_under(w, &d, c, roll) {
+        Some((q, top2)) if q == p && top == top2 => Ok(()),
+        Some((q, _)) => Err(format!("{kind:?}: hazard {p} but bounded reading {q}")),
+        None if roll >= p => Ok(()),
+        None => Err(format!("{kind:?}: gave up on roll {roll} although the hazard is {p}")),
+    }
+}
+
 /// Roll for an incident; trigger it if it happens.
 fn consider_incident(w: &mut World, kind: IncidentKind, c: Ctx, keys: &[u64]) -> Option<u32> {
     let d = def(kind);
@@ -520,7 +533,7 @@ pub fn weekly(w: &mut World) {
         let mut pairs: Vec<(usize, usize)> = Vec::new();
         let index: pw_world::FxHashMap<PersonId, usize> = people.iter().enumerate().map(|(i, &p)| (p, i)).collect();
         let mut grievance = vec![0.0f32; squad.len()];
-        for i in 0..squad.len() {
+        prof!("incidents::pairs", for i in 0..squad.len() {
             let mut best: Option<(usize, f32)> = None;
             // Everything `a` holds against each squad-mate, gathered in one pass over `a`'s memories (the sum for each mate is taken in
             // the same order as `consider::grievance` would, so the values are identical).
@@ -553,7 +566,7 @@ pub fn weekly(w: &mut World) {
                     pairs.push(pair);
                 }
             }
-        }
+        });
         for (i, j) in pairs {
             // The instigator is the one with the shorter fuse.
             let (x, y) = if consider::hid(w, people[i], Hidden::Temperament) <= consider::hid(w, people[j], Hidden::Temperament) { (i, j) } else { (j, i) };

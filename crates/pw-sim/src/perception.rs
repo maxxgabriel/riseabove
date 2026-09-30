@@ -34,13 +34,15 @@ pub fn club_ca_judged(w: &World, club: ClubId, p: PlayerId, judging_ability: f32
 pub fn weekly(w: &mut World) {
     let today = w.date;
     // Coaches see their own players every week in training.
-    for t in w.teams.ids() {
-        let club = w.teams[t].club;
-        for i in 0..w.teams[t].squad.len() {
-            let p = w.teams[t].squad[i];
-            w.knowledge.observe(club, p, 120, today);
+    prof!("perception::observe", {
+        for t in w.teams.ids() {
+            let club = w.teams[t].club;
+            for i in 0..w.teams[t].squad.len() {
+                let p = w.teams[t].squad[i];
+                w.knowledge.observe(club, p, 120, today);
+            }
         }
-    }
+    });
 
     // Everything beyond a club's own squad now comes through its scouting
     // network, analysts, agents, recommendations and matches it plays in.

@@ -296,6 +296,35 @@ fn ceiling(role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32) -> f32 
     (base * (0.5 + f32::from(sensitivity) / 100.0) * freshness * 1.25 * 1.2 * 1.0001).clamp(0.0, 0.9)
 }
 
+/// For tests: `inclination` never exceeds `ceiling` (the value `spread` uses to skip a contact without computing it). Checked for every
+/// contact of every holder of the newest `items` information items, at each of their ages. Returns how many were checked.
+pub fn check_ceiling(w: &World, items: usize) -> Result<usize, String> {
+    let mut sources_of: FxHashMap<PersonId, SmallVec<[PersonId; 2]>> = FxHashMap::default();
+    for j in w.media.journalists.values() {
+        for &s in &j.sources {
+            sources_of.entry(s).or_default().push(j.person);
+        }
+    }
+    let agent_by_person: FxHashMap<PersonId, AgentId> = w.agents.list.iter_enumerated().filter(|(_, a)| a.active).map(|(id, a)| (a.person, id)).collect();
+    let mut checked = 0;
+    for it in w.grapevine.items.iter().rev().take(items) {
+        for age in [0, 3, 10, 20] {
+            let freshness = (1.0 - age as f32 / SHELF_LIFE as f32).max(0.0);
+            for k in &it.holders {
+                for (to, role) in contacts(w, k.person, &sources_of, &agent_by_person) {
+                    let (p, _) = inclination(w, k.person, to, role, &it.kind, it.sensitivity, freshness, &agent_by_person);
+                    let c = ceiling(role, &it.kind, it.sensitivity, freshness);
+                    if p > c {
+                        return Err(format!("{role:?} contact, {:?}: inclination {p} exceeds ceiling {c}", it.kind));
+                    }
+                    checked += 1;
+                }
+            }
+        }
+    }
+    Ok(checked)
+}
+
 /// How likely `teller` is to tell `to` today, and why.
 fn inclination(w: &World, teller: PersonId, to: PersonId, role: Role, kind: &InfoKind, sensitivity: u8, freshness: f32, agent_by_person: &FxHashMap<PersonId, AgentId>) -> (f32, Motive) {
     let prof = consider::hid(w, teller, pw_core::Hidden::Professionalism) / 20.0;
@@ -400,7 +429,8 @@ fn spread(w: &mut World) {
         if !holders.iter().any(tells) {
             continue;
         }
-        let mut knowers: FxHashSet<PersonId> = holders.iter().map(|k| k.person).collect();
+        // Few people know an item (forty at most): a scan of a short list beats hashing.
+        let mut knowers: SmallVec<[PersonId; 16]> = holders.iter().map(|k| k.person).collect();
         for k in holders {
             // People pass on what they have just heard; after a week it is
             // old news to them (and they have told whom they were going to).
@@ -435,7 +465,7 @@ fn spread(w: &mut World) {
                     fidelity = Fidelity::Planted;
                 }
                 prof!("grapevine::tell", tell(w, info, teller, to, fidelity, motive, k.confidence));
-                knowers.insert(to);
+                knowers.push(to);
             }
         }
     }

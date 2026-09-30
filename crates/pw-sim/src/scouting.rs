@@ -264,7 +264,7 @@ pub fn weekly(w: &mut World) {
                 pp.based = target_nation;
             }
         }
-        let mut matches = covered(w, &a.brief, a.club);
+        let mut matches = prof!("scouting::covered", covered(w, &a.brief, a.club));
         rng.shuffle(&mut matches);
         for (team, date, comp) in matches.into_iter().take(capacity) {
             let context = w.comps[comp].reputation;
@@ -279,8 +279,8 @@ pub fn weekly(w: &mut World) {
                 };
                 w.knowledge.observe(a.club, p, if interesting { 90 } else { 45 }, today);
                 if interesting {
-                    let r = judge(w, a.scout, a.club, p, context);
-                    w.scouting.file(a.club, p, r);
+                    let r = prof!("scouting::judge", judge(w, a.scout, a.club, p, context));
+                    prof!("scouting::file", w.scouting.file(a.club, p, r));
                 }
             }
         }
@@ -294,11 +294,11 @@ pub fn weekly(w: &mut World) {
             }
         }
     }
-    analysts(w);
+    prof!("scouting::analysts", analysts(w));
     if today.day() <= 7 {
-        recommendations(w);
+        prof!("scouting::recommendations", recommendations(w));
     }
-    w.scouting.forget(today.add_days(-730));
+    prof!("scouting::forget", w.scouting.forget(today.add_days(-730)));
 }
 
 /// Analysts read the numbers from leagues the club follows: broad, shallow evidence.

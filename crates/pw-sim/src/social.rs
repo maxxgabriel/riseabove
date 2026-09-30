@@ -270,7 +270,7 @@ fn promises(w: &mut World, teams: &[TeamId], team_mins: &[u32]) {
             continue;
         }
         let pr = w.social.promises[i].clone();
-        let kept = match pr.kind {
+        let kept = prof!("social::kept", match pr.kind {
             PromiseKind::Minutes { share } => pr.team_minutes > 0 && pr.player_minutes as f32 >= share * pr.team_minutes as f32 * 0.9,
             PromiseKind::Status(s) => promisee_player.is_some() && w.players.cold[promisee_player].status <= s,
             PromiseKind::NewContract => {
@@ -291,8 +291,8 @@ fn promises(w: &mut World, teams: &[TeamId], team_mins: &[u32]) {
                 let p = w.people[pr.from].player;
                 p.is_some() && (consider::training_delta(w, p) > 0.2 || w.lives[pr.from].train_high_weeks >= 2)
             }
-        };
-        settle(w, i, kept);
+        });
+        prof!("social::settle", settle(w, i, kept));
     }
 }
 
