@@ -104,15 +104,19 @@ pub fn wage_demand(w: &World, p: PlayerId, club: ClubId) -> Money {
     // The wage a player and his agent ask for follows how the market reads him, not his hidden ability.
     let ca = public_view(w, p).0;
     let fame = 1.0 + 0.5 * f32::from(c.rep.world) / 10_000.0;
-    let wage = if club.is_some() {
+    // The least a professional is paid follows the means of the club (a fixed minimum would be more than a whole small club earns: in
+    // a poor economy the floor alone put the wage bill of every lower-division club above its revenue), and so does the rounding.
+    let (wage, floor) = if club.is_some() {
         let cached = w.clubs[club].finance.wage_scale;
         let scale = if cached > 0.0 { cached } else { wage_pool_scale(w, club) };
-        wage_curve(ca) * scale * fame
+        (wage_curve(ca) * scale * fame, (150.0 * scale.min(1.0)).max(5.0))
     } else {
         // Nobody is paying yet: the ask of a player between clubs.
-        wage_curve(ca) * 0.3 * fame * w.economy.global()
+        (wage_curve(ca) * 0.3 * fame * w.economy.global(), 150.0)
     };
-    (wage.max(150.0) as Money / 50) * 50
+    let wage = wage.max(floor);
+    let step: Money = if wage >= 5_000.0 { 50 } else if wage >= 500.0 { 10 } else { 1 };
+    ((wage as Money / step) * step).max(1)
 }
 
 pub fn contract_years(age: u32) -> u8 {
