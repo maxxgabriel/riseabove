@@ -286,7 +286,7 @@ fn invest(w: &mut World, club: ClubId, revenue: Money, rng: &mut Rng) {
     if willing <= 0.05 || !rng.chance(willing) {
         return;
     }
-    let amount = ((o.wealth as f32 * rng.range_f32(0.03, 0.12)) as Money).min(revenue * 2);
+    let amount = ((o.wealth as f32 * rng.range_f32(0.03, 0.12)) as Money).min(revenue / 2);
     if amount <= 0 {
         return;
     }
