@@ -47,6 +47,9 @@ Your design choices (2026-09-28):
 | 2026-09-28 | Our own zone/possession-chain engine kept in-tree as `backend = "native"` | Richer per-action events; not yet calibrated (was producing too many shots). Can replace OFM later without touching anything else. |
 | 2026-09-28 | Saves = bincode + lz4 (pure Rust), crash-safe temp-file + rename | No C toolchain needed. History lives in the save; an SQLite history DB can be added behind the same API later. |
 | 2026-09-28 | Relationships, promises, conversations and contract negotiations live in the **world** (for everyone), not only the protagonist layer | Fairness (P1) and depth: a manager's trust in any AI midfielder evolves by the same rules as his trust in you. |
+| 2026-09-30 | A world opens in the **public view**; the omniscient observer is a debug view the client asks for by name | Locked design 8.8: debug omniscience is separate from normal code paths. The app's perspective chip switches between public and observer (debug). |
+| 2026-09-30 | Every command reads a **declared request type** that refuses fields it does not name (`me.act` = `ActReq`) | Locked design 9.9: a client cannot slip world state (a wage, a score) into a command, and a malformed call is an `InvalidRequest` naming the field. |
+| 2026-09-30 | Economy: clubs start at the reserve they keep and owners take the excess quarterly; builders price wages with the broadcast pools in place; graduates step up into planned squad room | Three causes of the early "inflation" found in the soaks and the archive run (`docs/IMPLEMENTATION_STATUS.md` §16). Transfer-fee growth in the synthetic world is a change of mix and of lower-tier ability, still open. |
 
 **License note (important):** the vendored OFM engine is GPL-3. For personal/local use this is fine. If Pathway
 is ever distributed, GPL-3 would apply to the whole program — or the native engine must replace it first.
