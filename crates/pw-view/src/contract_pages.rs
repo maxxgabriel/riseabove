@@ -2473,7 +2473,7 @@ mod tests {
         // An interface with a nested link, a list and a nullable object.
         let club = json!({"academy": null, "also_known": [], "board": null, "capacity": 0, "channels": [], "city": "", "colors": ["#fff"], "facilities": null,
             "fan_mood": 50, "finance": null, "followed": false, "founded": 1900, "id": 1, "league": null, "manager": null, "name": "A", "nation": {"k": "nation", "id": 0, "name": "N"},
-            "needs": null, "ownership": "", "partners": [], "relation": "", "reputation": 1, "short": "A", "stadium": "", "staff_counts": [], "teams": []});
+            "needs": null, "ownership": "", "partners": [], "place": null, "relation": "", "reputation": 1, "short": "A", "stadium": "", "staff_counts": [], "teams": []});
         assert_eq!(conforms("ClubView", &club, "club"), Ok(()));
         let mut extra = club.clone();
         extra["secret"] = json!(1);
