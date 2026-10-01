@@ -42,7 +42,11 @@ readings (beliefs, marked `truth-ok`).
 ### Verified
 `cargo xtask smoke`; `cargo test -p pw-cli --test chronicle_moments --test returns`; `cargo test -p pw-view --test chronicle --test contract
 --test firewall`; `pw-sim` `qa_truth_scan`; `cargo xtask quick -p pw-sim chronicle`, `-p pw-world ext`; `npx tsc --noEmit`, `npx vitest run`.
-`cargo xtask full` was started at the end of this pass: see the line below for its result.
+**`cargo xtask full` passes** on `781fdd6` (all workspace tests 1727 s, type-check of every target, 3 seeds x 3 seasons tiny). Its balance step
+prints findings without failing, by design: a population PROBLEM (everyone not retired +14-15% a year) on a 3-season run is the amateur pool
+still filling. On a 10-year tiny run the same measure slows from +70-100 a year to +13-28 from year 8, as the small world plateaus at ~10.5k.
+Also flagged there and still open: fee over value (+12% a year in the tiny world's second half, few deals), mean ability drift (-4 to -6),
+clubs at the reputation ceiling (12-38%), save size (+35-38% a year over three seasons).
 
 ### What is left
 - **2 (rest)**: autograph requests and airport photos driven by `renown` standing.
