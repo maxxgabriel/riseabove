@@ -31,7 +31,13 @@ pub fn enabled(w: &World) -> bool {
 pub fn club_ref(w: &World, c: ClubId) -> LRef {
     let club = &w.clubs[c];
     let short = if club.short_name.is_empty() { club.name.clone() } else { club.short_name.clone() };
-    LRef::new(&format!("club.{}", c.0), &club.name, &short)
+    let r = LRef::new(&format!("club.{}", c.0), &club.name, &short);
+    // The name supporters use, from the reference data (identity only), for voices that use it. One written in the Latin alphabet,
+    // since that is what this text is written in.
+    match w.ext.lore.nicknames(c).find(|a| a.text.is_ascii() && !a.text.is_empty()) {
+        Some(a) => r.with_desc("nickname", &a.text),
+        None => r,
+    }
 }
 
 fn role_word(g: PosGroup) -> &'static str {

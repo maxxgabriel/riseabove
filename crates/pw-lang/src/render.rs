@@ -496,8 +496,19 @@ impl Engine {
                 }
                 _ => {
                     let first = cx.mentioned.insert(r.id.clone());
+                    // A club's nickname: a local or slangy voice uses it on later mentions; a supporter posting uses it from the start
+                    // about half the time (by the request's seed, so the same post reads the same).
+                    let v = &cx.req.speaker.voice;
+                    let local = (v.local >= 0.6 || v.slang >= 0.5) && v.formality < 0.7;
+                    let fan_first = cx.req.speaker.role == "fan" && cx.req.channel == "social" && cx.req.seed.rotate_left(17) % 2 == 0;
+                    let nickname = r.descriptors.iter().find(|d| d.kind == "nickname").map(|d| format!("the {}", d.text));
                     if !first {
-                        r.short_name().to_string()
+                        match nickname {
+                            Some(n) if local => n,
+                            _ => r.short_name().to_string(),
+                        }
+                    } else if let Some(n) = nickname.filter(|_| fan_first && mode != "desc") {
+                        n
                     } else if mode == "desc" {
                         let pref = ["age_role", "club_role", "role", "title", "origin"];
                         match pref.iter().find_map(|k| r.descriptors.iter().find(|d| d.kind == *k)) {
