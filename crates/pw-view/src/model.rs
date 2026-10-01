@@ -138,6 +138,10 @@ impl Cell {
         let r = (r.id != u32::MAX).then_some(r);
         Self { s: Some(s.into()), r, ..Default::default() }
     }
+    /// A value that exists and that the viewer may not see: not a blank and not a zero.
+    pub fn hidden() -> Self {
+        Self { k: Some(CellKnow::Hidden), ..Self::default() }
+    }
     pub fn empty() -> Self {
         Self::default()
     }
@@ -230,13 +234,16 @@ impl Col {
 }
 
 #[derive(Clone, Debug, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct SortSpec {
     pub key: String,
     #[serde(default)]
     pub desc: bool,
 }
 
+/// What the app sends to `table.query`; a field it does not name is refused (`contract::request`).
 #[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TableReq {
     pub table: String,
     #[serde(default)]

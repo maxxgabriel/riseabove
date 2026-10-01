@@ -391,7 +391,7 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
     need_me(c).map(|_| ()).or_else(|e| if c.me().is_some() { Ok(()) } else { Err(e) })?;
     let me = c.me().expect("inhabiting");
     let w = c.w;
-    let limit = args.get("limit").and_then(Value::as_u64).map_or(300, |n| n.clamp(20, 1000) as usize);
+    let limit = crate::contract::request::<crate::contract::LimitReq>(args.clone())?.limit.map_or(300, |n| n.clamp(20, 1000) as usize);
     let mut out: Vec<Value> = Vec::new();
 
     for (id, d) in w.decisions.all.iter_enumerated().rev().filter(|(_, d)| d.person == me).take(200) {
@@ -597,7 +597,8 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
 
 pub fn message(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to read their messages.".into()))?;
-    let id = args.get("id").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing message id".into()))?;
+    let req: crate::contract::MessageReq = crate::contract::request(args.clone())?;
+    let id = req.id.as_str();
     let w = c.w;
     if let Some(n) = id.strip_prefix('d').and_then(|s| s.parse::<u32>().ok()) {
         let did = DecisionId(n);

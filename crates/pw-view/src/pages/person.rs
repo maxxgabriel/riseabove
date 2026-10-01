@@ -1,15 +1,15 @@
 use pw_core::attr::AttrGroup;
-use pw_core::{Attr, Hidden, PersonId, PlayerId, Pos};
-use pw_sim::health;
+use pw_core::{Attr, PersonId, Pos};
 use pw_world::player::familiarity_label;
 use pw_world::{PlayerStatus, StaffRole};
 use serde_json::{Value, json};
 
 use crate::ctx::{AttrView, Ctx};
+use crate::visible::Assessment;
 use crate::model::{ApiError, ApiResult, Named, Ref, Tone};
 
 pub fn person_id(args: &Value) -> ApiResult<PersonId> {
-    args.get("id").and_then(Value::as_u64).map(|v| PersonId(v as u32)).ok_or_else(|| ApiError::Bad("missing person id".into()))
+    Ok(PersonId(crate::contract::request::<crate::contract::PersonReq>(args.clone())?.id))
 }
 
 fn tone_str(t: Tone) -> &'static str {
@@ -49,6 +49,8 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
     if let Some(p) = person.player.get() {
         let h = &w.players.hot[p];
         let cold = &w.players.cold[p];
+        // What the viewer may know of him comes from the view type; everything below that is private is read from `seen` alone.
+        let seen = c.visible_player(p);
         status = c.status_label(p).to_string();
         can_inhabit = h.status == PlayerStatus::Active && h.club.is_some() && !c.is_me(p);
         if h.status == PlayerStatus::Active {
@@ -80,8 +82,12 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         };
         let (avail_label, avail_tone, avail_detail) = if h.status == PlayerStatus::Retired {
             ("Retired".to_string(), Tone::Muted, String::new())
-        } else if h.injury != 0 {
-            (crate::fmt::singulars(format!("Injured, about {} days", h.injury_days)), Tone::Neg, health::injury_name(w, h.injury).to_string())
+        } else if let Some(injury) = &seen.injured {
+            // Anyone can see he is out; the days and the diagnosis are the club's business (`Injury::medical`).
+            match &injury.medical {
+                Some(m) => (crate::fmt::singulars(format!("Injured, about {} days", m.days)), Tone::Neg, m.diagnosis.clone()),
+                None => ("Injured".to_string(), Tone::Neg, String::new()),
+            }
         } else if h.ban > 0 {
             (format!("Suspended for {} {}", h.ban, if h.ban == 1 { "match" } else { "matches" }), Tone::Warn, String::new())
         } else if h.status == PlayerStatus::FreeAgent {
@@ -89,12 +95,12 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         } else {
             ("Available".to_string(), Tone::Pos, String::new())
         };
-        let contract = if c.sees_contract(p) && h.club.is_some() {
-            let k = &cold.contract;
+        let contract = if let Some(terms) = seen.terms.as_ref().filter(|_| h.club.is_some()) {
+            let k = &terms.contract;
             json!({
                 "club": Named::new(Ref::club(k.club), c.club_name(k.club)),
-                "wage": k.current_wage(w.date),
-                "start": k.start.0, "end": k.end.0, "days_left": k.days_left(w.date),
+                "wage": terms.wage_now,
+                "start": k.start.0, "end": k.end.0, "days_left": terms.days_left,
                 "release_clause": k.release_clause, "promised_status": k.promised_status.map(|s| s.label()),
                 "appearance_bonus": k.appearance_bonus, "goal_bonus": k.goal_bonus,
                 "assist_bonus": k.assist_bonus, "clean_sheet_bonus": k.clean_sheet_bonus, "loyalty_bonus": k.loyalty_bonus,
@@ -108,7 +114,6 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
             Value::Null
         };
         let loan = cold.loan.as_ref().map(|l| json!({"parent": Named::new(Ref::club(l.parent), c.club_name(l.parent)), "club": Named::new(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0}));
-        let visible_state = c.sees_condition(p);
         let held = c.unrevealed_apps(p);
         let career_unknown = w.origins.person(id).is_some_and(|o| o.get(pw_world::origin::Facet::Career) == pw_world::origin::Origin::Unknown);
         player_json = json!({
@@ -121,12 +126,12 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
             "loan": loan,
             "availability": {"label": avail_label, "tone": tone_str(avail_tone), "detail": avail_detail},
             "contract": contract,
-            "squad_status": if c.sees_contract(p) && h.club.is_some() { Value::String(cold.status.label().into()) } else { Value::Null },
-            "value": if c.sees_value(p) { json!(cold.value) } else { Value::Null },
-            "condition": if visible_state { json!({
-                "condition": h.condition, "sharpness": h.sharpness, "fitness": h.fitness, "fatigue": h.fatigue,
-                "morale": h.morale, "confidence": h.confidence, "wellbeing": h.wellbeing,
-            }) } else { Value::Null },
+            "squad_status": match &seen.terms { Some(t) if h.club.is_some() => Value::String(t.squad_status.label().into()), _ => Value::Null },
+            "value": match seen.value { Some(v) => json!(v), None => Value::Null },
+            "condition": match &seen.body { Some(b) => json!({
+                "condition": b.condition, "sharpness": b.sharpness, "fitness": b.fitness, "fatigue": b.fatigue,
+                "morale": b.morale, "confidence": b.confidence, "wellbeing": b.wellbeing,
+            }), None => Value::Null },
             "form": c.visible_form(p),
             "caps": cold.caps, "intl_goals": cold.intl_goals,
             "senior_apps": if career_unknown { Value::Null } else { json!(cold.senior_apps.saturating_sub(held.len() as u16)) },
@@ -134,11 +139,11 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
             "career_coverage": if career_unknown { "unknown" } else if w.origins.person(id).is_some() { "source records" } else { "complete" },
             "joined": if h.club.is_some() { json!(cold.joined.0) } else { Value::Null },
             "youth_club": if cold.youth_club.is_some() { serde_json::to_value(Named::new(Ref::club(cold.youth_club), c.club_name(cold.youth_club))).unwrap() } else { Value::Null },
-            "internal": if c.sees_internal_state() { json!({
-                "ca": cold.ca, "pa": cold.pa, "reputation": {"current": cold.rep.current, "home": cold.rep.home, "world": cold.rep.world},
-                "personality": person.hidden.personality_label(), "bio_offset": cold.bio_offset,
-                "plan": {"focus": format!("{:?}", cold.plan.focus), "intensity": format!("{:?}", cold.plan.intensity)},
-            }) } else { Value::Null },
+            "internal": match &seen.engine { Some(e) => json!({
+                "ca": e.ability, "pa": e.potential, "reputation": {"current": e.reputation.current, "home": e.reputation.home, "world": e.reputation.world},
+                "personality": e.personality, "bio_offset": e.bio_offset,
+                "plan": {"focus": format!("{:?}", e.focus), "intensity": format!("{:?}", e.intensity)},
+            }), None => Value::Null },
         });
     }
 
@@ -203,8 +208,8 @@ fn provenance(c: &Ctx, id: PersonId) -> Value {
     })
 }
 
-fn attr_json(c: &Ctx, p: PlayerId, a: Attr) -> Value {
-    match c.attr_view(p, a) {
+fn attr_json(a: Attr, v: AttrView) -> Value {
+    match v {
         AttrView::Exact(v) => json!({"key": a.key(), "label": a.label(), "kind": "exact", "v": v}),
         AttrView::Range { lo, hi, mid } => json!({"key": a.key(), "label": a.label(), "kind": "range", "lo": lo, "hi": hi, "v": mid.round()}),
         AttrView::Unknown => json!({"key": a.key(), "label": a.label(), "kind": "unknown"}),
@@ -220,12 +225,11 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
             "hidden": null, "internal": null, "personality": null,
         }));
     };
-    let w = c.w;
-    let cold = &w.players.cold[p];
-    let keeper = cold.best_pos == Pos::GK;
+    // The readout is built from what this viewer may know of him and from nothing else.
+    let ability = c.visible_ability(p);
     let groups: Vec<Value> = [AttrGroup::Technical, AttrGroup::Mental, AttrGroup::Physical, AttrGroup::Goalkeeping]
         .into_iter()
-        .filter(|g| *g != AttrGroup::Goalkeeping || keeper || c.observer())
+        .filter(|g| *g != AttrGroup::Goalkeeping || ability.shows_goalkeeping)
         .map(|g| {
             let name = match g {
                 AttrGroup::Technical => "Technical",
@@ -233,29 +237,27 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
                 AttrGroup::Physical => "Physical",
                 AttrGroup::Goalkeeping => "Goalkeeping",
             };
-            let attrs: Vec<Value> = Attr::ALL.iter().filter(|a| a.group() == g).map(|a| attr_json(c, p, *a)).collect();
+            let attrs: Vec<Value> = ability.attrs.iter().filter(|(a, _)| a.group() == g).map(|&(a, v)| attr_json(a, v)).collect();
             json!({"name": name, "attrs": attrs})
         })
         .collect();
 
-    let (source, known) = if c.observer() {
-        ("Exact values, as the simulation holds them (observer view).".to_string(), true)
-    } else {
-        let club = c.my_club();
-        let seen = if club.is_some() { w.knowledge.seen(club, p) } else { None };
-        match seen {
-            Some(s) => (format!("Assessed by the coaching staff at {}. Last watched {}; about {} minutes of evidence.", c.club_name(club), crate::fmt::date(s.last), s.minutes), true),
-            None if c.is_me(p) => ("Your own assessment of yourself.".to_string(), true),
-            None => ("Nobody at your club has watched this player enough to assess them.".to_string(), false),
-        }
+    let (source, known) = match ability.assessment {
+        Assessment::Omniscient => ("Exact values, as the simulation holds them (observer view).".to_string(), true),
+        Assessment::Staff { club, last, minutes } => (format!("Assessed by the coaching staff at {}. Last watched {}; about {minutes} minutes of evidence.", c.club_name(club), crate::fmt::date(last)), true),
+        Assessment::Own => ("Your own assessment of yourself.".to_string(), true),
+        Assessment::Nobody => ("Nobody at your club has watched this player enough to assess them.".to_string(), false),
     };
-    let hidden = if c.sees_internal_state() { json!(Hidden::ALL.iter().map(|h| json!({"label": h.label(), "v": person.hidden.get(*h)})).collect::<Vec<_>>()) } else { Value::Null };
-    let positions: Vec<Value> = Pos::ALL.iter().map(|ps| json!({"code": ps.code(), "fam": cold.familiarity[ps.idx()], "level": familiarity_label(cold.familiarity[ps.idx()])})).collect();
+    let hidden = match &ability.hidden {
+        Some(h) => json!(h.iter().map(|(label, v)| json!({"label": label, "v": v})).collect::<Vec<_>>()),
+        None => Value::Null,
+    };
+    let positions: Vec<Value> = ability.positions.iter().map(|(ps, fam)| json!({"code": ps.code(), "fam": fam, "level": familiarity_label(*fam)})).collect();
     Ok(json!({
         "available": true, "reason": null, "source": source, "known": known, "groups": groups, "positions": positions,
         "hidden": hidden,
-        "internal": if c.sees_internal_state() { json!({"ca": cold.ca, "pa": cold.pa}) } else { Value::Null },
-        "personality": if c.sees_internal_state() { json!(person.hidden.personality_label()) } else { Value::Null },
+        "internal": match &ability.engine { Some(e) => json!({"ca": e.ability, "pa": e.potential}), None => Value::Null },
+        "personality": match &ability.engine { Some(e) => json!(e.personality), None => Value::Null },
     }))
 }
 

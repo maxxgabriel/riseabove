@@ -257,8 +257,9 @@ pub fn mark_viewed(s: &mut Session) -> ApiResult<Value> {
 pub fn calendar(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let p = need_me(c)?;
     let w = c.w;
-    let from = Date(args.get("from").and_then(Value::as_i64).map_or(w.date.0, |v| v as i32));
-    let to = Date(args.get("to").and_then(Value::as_i64).map_or(from.0 + 34, |v| v as i32).min(from.0 + 120));
+    let req: crate::contract::CalendarReq = crate::contract::request(args.clone())?;
+    let from = Date(req.from.map_or(w.date.0, |v| v as i32));
+    let to = Date(req.to.map_or(from.0 + 34, |v| v as i32).min(from.0 + 120));
     let team = c.my_team();
     let cold = &w.players.cold[p];
     let h = &w.players.hot[p];

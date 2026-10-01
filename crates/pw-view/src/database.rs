@@ -75,7 +75,8 @@ impl Api {
     }
 
     pub(super) fn database_attach(&self, args: Value) -> ApiResult<Value> {
-        let dir = args.get("dir").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("Choose a database folder.".into()))?;
+        let dir = crate::contract::request::<crate::contract::DirReq>(args)?.dir;
+        let dir = dir.as_str();
         let mut db = self.sh.database.lock().unwrap_or_else(|e| e.into_inner());
         let id = db.attach(Path::new(dir)).map_err(|e| ApiError::Bad(e.to_string()))?;
         let paths: Vec<_> = db.catalogs.iter().map(|c| c.root().to_path_buf()).collect();
@@ -91,14 +92,15 @@ impl Api {
                 return Err(ApiError::Unauthorized("Source records are available in the observer view. They are separate from what your character knows.".into()));
             }
         }
-        let source = args.get("source").and_then(Value::as_u64).unwrap_or(0) as usize;
-        let table = args.get("table").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("Choose a database table.".into()))?;
-        let column = args.get("column").and_then(Value::as_str).filter(|s| !s.is_empty());
-        let value = args.get("value").and_then(Value::as_str).unwrap_or("");
-        let search = args.get("search").and_then(Value::as_str).unwrap_or("");
+        let req: crate::contract::DatabaseQueryReq = crate::contract::request(args)?;
+        let source = req.source.unwrap_or(0) as usize;
+        let table = req.table.as_str();
+        let column = req.column.as_deref().filter(|s| !s.is_empty());
+        let value = req.value.as_deref().unwrap_or("");
+        let search = req.search.as_deref().unwrap_or("");
         if search.len() > 500 || value.len() > 500 { return Err(ApiError::Bad("The query is too long.".into())); }
-        let offset = args.get("offset").and_then(Value::as_u64).unwrap_or(0) as usize;
-        let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(50).min(100) as usize;
+        let offset = req.offset.unwrap_or(0) as usize;
+        let limit = req.limit.unwrap_or(50).min(100) as usize;
         let mut db = self.sh.database.lock().unwrap_or_else(|e| e.into_inner());
         let cat = db.catalogs.get_mut(source).ok_or_else(|| ApiError::Bad("Connect this database folder first.".into()))?;
         let tm = cat.tables().iter().any(|t| t.name == table && t.source == "Transfermarkt");

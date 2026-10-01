@@ -171,7 +171,8 @@ fn round_of(fx: &Fixture) -> u8 {
 }
 
 pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = CompId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing competition id".into()))? as u32);
+    let req: crate::contract::CompOverviewReq = crate::contract::request(args.clone())?;
+    let id = CompId(req.id);
     if id.0 as usize >= c.w.comps.len() {
         return Err(ApiError::NotFound(format!("competition {}", id.0)));
     }
@@ -214,7 +215,7 @@ pub fn overview(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "teams": st.entrants.len(), "season": c.season_label(id, if st.season > 0 { st.season } else { w.date.year() }), "stage": stage_label,
         "prev": prev, "next": next, "meta": meta,
     });
-    if args.get("light").and_then(Value::as_bool).unwrap_or(false) {
+    if req.light.unwrap_or(false) {
         return Ok(head);
     }
 

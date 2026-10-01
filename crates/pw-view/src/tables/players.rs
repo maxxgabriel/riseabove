@@ -1,7 +1,6 @@
 use std::cell::OnceCell;
 
 use pw_core::{ClubId, PlayerId, Pos, PosGroup, TeamId};
-use pw_sim::health;
 use pw_world::{PlayerStatus, TeamKind};
 use rustc_hash::FxHashMap;
 use serde_json::Value;
@@ -65,22 +64,21 @@ const DEV: &str = "development";
 const INH: &str = "inhabit";
 
 pub fn avail_cell(c: &Ctx, p: PlayerId) -> (Cell, Key) {
-    let h = &c.w.players.hot[p];
-    match h.status {
+    let v = c.visible_player(p);
+    match v.status {
         PlayerStatus::Retired => (Cell::text("Retired").tone(Tone::Muted), Key::Num(-1.0)),
         PlayerStatus::FreeAgent => (Cell::text("Free agent").tone(Tone::Muted), Key::Num(0.5)),
         PlayerStatus::Amateur => (Cell::text("Amateur").tone(Tone::Muted), Key::Num(0.25)),
         PlayerStatus::Active => {
-            if h.injury != 0 {
-                // That a man is injured is plain to see; the diagnosis and the days are the club's business.
-                if c.sees_medical(p) {
-                    let name = health::injury_name(c.w, h.injury);
-                    (Cell::text(format!("Injured · {} d", h.injury_days)).tone(Tone::Neg).with_sub(name.to_string()).with_num(f64::from(h.injury_days)), Key::Num(100.0 + f64::from(h.injury_days)))
+            if let Some(injury) = &v.injured {
+                // That a man is injured is plain to see; the diagnosis and the days are the club's business (`Injury::medical`).
+                if let Some(m) = &injury.medical {
+                    (Cell::text(format!("Injured · {} d", m.days)).tone(Tone::Neg).with_sub(m.diagnosis.clone()).with_num(f64::from(m.days)), Key::Num(100.0 + f64::from(m.days)))
                 } else {
                     (Cell::text("Injured").tone(Tone::Neg), Key::Num(100.0))
                 }
-            } else if h.ban > 0 {
-                (Cell::text(format!("Suspended · {}", h.ban)).tone(Tone::Warn).with_num(f64::from(h.ban)), Key::Num(50.0 + f64::from(h.ban)))
+            } else if v.ban > 0 {
+                (Cell::text(format!("Suspended · {}", v.ban)).tone(Tone::Warn).with_num(f64::from(v.ban)), Key::Num(50.0 + f64::from(v.ban)))
             } else {
                 (Cell::text("Available"), Key::Num(0.0))
             }
@@ -260,15 +258,19 @@ impl Source for Players {
             {
                 continue;
             }
-            if let Some(days) = expiring
-                && (h.club.is_none() || cold.contract.days_left(w.date) > days)
-            {
-                continue;
-            }
-            if let Some(m) = min_ca
-                && i32::from(cold.ca) < m
-            {
-                continue;
+            // Both filters are for the omniscient view alone (`expiring` and `min_ca` are `None` for everyone else), so they ask the view.
+            if expiring.is_some() || min_ca.is_some() {
+                let seen = c.visible_player(p);
+                if let Some(days) = expiring
+                    && (h.club.is_none() || seen.terms.as_ref().is_none_or(|t| t.days_left > days))
+                {
+                    continue;
+                }
+                if let Some(m) = min_ca
+                    && seen.engine.as_ref().is_none_or(|e| i32::from(e.ability) < m)
+                {
+                    continue;
+                }
             }
             if let Some(q) = &q
                 && !person.display_name(&w.names).to_lowercase().contains(q.as_str())
@@ -409,41 +411,39 @@ impl Players {
                     num(f64::from(cold.joined.0))
                 }
             }
-            // ---- observer-only columns (the column list omits them for other viewers) ----
-            "ca" => num(f64::from(cold.ca)),
-            "pa" => num(f64::from(cold.pa)),
-            "status" => {
-                let l = cold.status.label();
-                (Cell::text(l), Key::Num(cold.status as u8 as f64))
-            }
-            "wage" => {
-                if h.club.is_none() {
-                    (Cell::empty(), Key::None)
-                } else {
-                    num(cold.contract.current_wage(w.date) as f64)
-                }
-            }
-            "contract_end" => {
-                if h.club.is_none() {
-                    (Cell::empty(), Key::None)
-                } else {
-                    let left = cold.contract.days_left(w.date);
-                    let mut cell = Cell::num(f64::from(cold.contract.end.0));
-                    if left < 180 {
-                        cell = cell.tone(Tone::Warn);
-                    }
-                    (cell, Key::Num(f64::from(cold.contract.end.0)))
-                }
-            }
-            "value" => num(cold.value as f64),
-            "condition" => num(f64::from(h.condition)),
-            "sharpness" => num(f64::from(h.sharpness)),
-            "morale" => num(f64::from(h.morale)),
-            "clause" => {
-                if cold.contract.release_clause > 0 {
-                    num(cold.contract.release_clause as f64)
-                } else {
-                    (Cell::empty(), Key::None)
+            // ---- observer-only columns (the column list omits them for other viewers; if one is asked for anyway, it is hidden) ----
+            "ca" | "pa" | "status" | "wage" | "contract_end" | "value" | "condition" | "sharpness" | "morale" | "clause" => {
+                let seen = c.visible_player(p);
+                let hidden = || (Cell::hidden(), Key::None);
+                match col {
+                    "ca" => seen.engine.as_ref().map_or_else(hidden, |e| num(f64::from(e.ability))),
+                    "pa" => seen.engine.as_ref().map_or_else(hidden, |e| num(f64::from(e.potential))),
+                    "status" => seen.terms.as_ref().map_or_else(hidden, |t| (Cell::text(t.squad_status.label()), Key::Num(t.squad_status as u8 as f64))),
+                    "wage" => match (&seen.terms, h.club.is_none()) {
+                        (None, _) => hidden(),
+                        (Some(_), true) => (Cell::empty(), Key::None),
+                        (Some(t), false) => num(t.wage_now as f64),
+                    },
+                    "contract_end" => match (&seen.terms, h.club.is_none()) {
+                        (None, _) => hidden(),
+                        (Some(_), true) => (Cell::empty(), Key::None),
+                        (Some(t), false) => {
+                            let mut cell = Cell::num(f64::from(t.contract.end.0));
+                            if t.days_left < 180 {
+                                cell = cell.tone(Tone::Warn);
+                            }
+                            (cell, Key::Num(f64::from(t.contract.end.0)))
+                        }
+                    },
+                    "value" => seen.value.map_or_else(hidden, |v| num(v as f64)),
+                    "condition" => seen.body.map_or_else(hidden, |b| num(f64::from(b.condition))),
+                    "sharpness" => seen.body.map_or_else(hidden, |b| num(f64::from(b.sharpness))),
+                    "morale" => seen.body.map_or_else(hidden, |b| num(f64::from(b.morale))),
+                    _ => match &seen.terms {
+                        None => hidden(),
+                        Some(t) if t.contract.release_clause > 0 => num(t.contract.release_clause as f64),
+                        Some(_) => (Cell::empty(), Key::None),
+                    },
                 }
             }
             _ => (Cell::empty(), Key::None),

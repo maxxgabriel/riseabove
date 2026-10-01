@@ -72,11 +72,12 @@ fn translated_from(c: &Ctx, s: &Story) -> Option<String> {
 
 /// Ranked public stories; no hidden-result story enters the response at all.
 pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let filter = args.get("filter").and_then(Value::as_str).unwrap_or("for_you");
+    let req: crate::contract::NewsFeedReq = crate::contract::request(args.clone())?;
+    let filter = req.filter.as_deref().unwrap_or("for_you");
     if !matches!(filter, "for_you" | "following" | "world") {
         return Err(ApiError::Bad("unknown news filter".into()));
     }
-    let limit = args.get("limit").and_then(Value::as_u64).map_or(30, |n| n.clamp(5, 60) as usize);
+    let limit = req.limit.map_or(30, |n| n.clamp(5, 60) as usize);
     let cutoff = c.w.date.add_days(-60);
     let mut stories: Vec<(&Story, i32)> = c.w.media.stories.iter().rev().take_while(|s| s.date >= cutoff)
         .filter(|s| !c.story_spoils(s))
@@ -139,7 +140,7 @@ pub fn story(c: &Ctx, args: &Value) -> ApiResult<Value> {
 
 /// A compact chronology of visible events and articles for the portal and chrome.
 pub fn pulse(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let limit = args.get("limit").and_then(Value::as_u64).map_or(12, |n| n.clamp(3, 30) as usize);
+    let limit = crate::contract::request::<crate::contract::LimitReq>(args.clone())?.limit.map_or(12, |n| n.clamp(3, 30) as usize);
     let cutoff = Date(c.w.date.0 - 21);
     let mut items = Vec::new();
     for e in c.w.events.since(cutoff).iter().rev() {

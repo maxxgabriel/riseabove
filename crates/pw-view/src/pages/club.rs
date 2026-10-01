@@ -14,7 +14,7 @@ fn named(r: Ref, n: String) -> Value {
 }
 
 pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = ClubId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing club id".into()))? as u32);
+    let id = ClubId(crate::contract::request::<crate::contract::IdReq>(args.clone())?.id);
     if id.0 as usize >= c.w.clubs.len() {
         return Err(ApiError::NotFound(format!("club {}", id.0)));
     }
@@ -140,7 +140,7 @@ fn day(d: pw_core::Date) -> Value {
 }
 
 pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = CompId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing competition id".into()))? as u32);
+    let id = CompId(crate::contract::request::<crate::contract::IdReq>(args.clone())?.id);
     if id.0 as usize >= c.w.comps.len() {
         return Err(ApiError::NotFound(format!("competition {}", id.0)));
     }
@@ -206,7 +206,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
 }
 
 pub fn nation(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = NationId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing nation id".into()))? as u32);
+    let id = NationId(crate::contract::request::<crate::contract::IdReq>(args.clone())?.id);
     if id.0 as usize >= c.w.nations.len() {
         return Err(ApiError::NotFound(format!("nation {}", id.0)));
     }
@@ -300,7 +300,7 @@ pub(crate) fn group_word(k: pw_world::socialnet::GroupKind) -> &'static str {
 /// announced projects, sponsors) are shown to everyone; boardroom numbers, the squad plan, scouting and
 /// the dressing room only to the observer.
 pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = ClubId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing club id".into()))? as u32);
+    let id = ClubId(crate::contract::request::<crate::contract::IdReq>(args.clone())?.id);
     if id.0 as usize >= c.w.clubs.len() {
         return Err(ApiError::NotFound(format!("club {}", id.0)));
     }
