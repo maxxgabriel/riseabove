@@ -602,3 +602,36 @@ type = "person"
 [[event.fact]]
 key = "occasion"
 type = "text"
+
+[[event]]
+kind = "match.moment"
+summary = "Something in a match that supporters talk about: `kind` is late_winner, hat_trick or red_card. `club` is the player's side that day and `opponent` the other. Says nothing about the rest of the match."
+[[event.fact]]
+key = "kind"
+type = "text"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "opponent"
+type = "club"
+
+[[event]]
+kind = "player.transfer_request"
+summary = "A player has asked to leave his club, openly. Says nothing of why or where he wants to go."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "social.reaction"
+summary = "A supporter answers someone else's post. It carries no fact of its own beyond the club the answer is about (when it is about one); what is said comes from the speaker's stance, which is the request's behaviour (agree, disagree, jibe, sarcasm, cheer, ask)."
+[[event.fact]]
+key = "club"
+type = "club"

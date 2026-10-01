@@ -28,7 +28,7 @@ text = "It is understood that {clause}, according to {cert:source}"
 [[wrapper]]
 id = "verified.headline"
 certainty = "verified_report"
-slot = ["headline", "heading"]
+slot = ["headline", "heading", "bulletin"]
 text = "{clause}, {lex:report.third} {cert:source}"
 
 # --- SOURCE CLAIM ---------------------------------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ text = "{cert:source} {lex:claim.past} that {clause}"
 [[wrapper]]
 id = "claim.headline"
 certainty = "source_claim"
-slot = ["headline", "heading"]
+slot = ["headline", "heading", "bulletin"]
 text = "{clause}, {lex:claim.third} {cert:source}"
 
 # --- RUMOUR ---------------------------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ text = "{cert:source} {lex:hear.agr} that {clause}"
 [[wrapper]]
 id = "rumour.headline"
 certainty = "rumour"
-slot = ["headline", "heading"]
+slot = ["headline", "heading", "bulletin"]
 text = "Rumour: {clause}"
 
 # --- SPECULATION ----------------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ text = "{~It may be that|Perhaps|One reading is that} {clause}"
 [[wrapper]]
 id = "spec.headline"
 certainty = "speculation"
-slot = ["headline", "heading"]
+slot = ["headline", "heading", "bulletin"]
 text = "Speculation: {clause}"
 
 # --- DENIAL ---------------------------------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ text = "{cert:source} {lex:dismiss_claim.past} the claim that {clause}"
 [[wrapper]]
 id = "denial.headline"
 certainty = "denial"
-slot = ["headline", "heading"]
+slot = ["headline", "heading", "bulletin"]
 text = "{cert:source} {lex:deny.agr}: {clause}"
 
 # --- CORRECTION -----------------------------------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ text = "Also corrected: {clause}"
 [[wrapper]]
 id = "correction.headline"
 certainty = "correction"
-slot = ["headline", "heading"]
+slot = ["headline", "heading", "bulletin"]
 text = "Correction: {clause}"
 
 # --- UNKNOWN (used by clause frames that explicitly list `unknown`) -----------------------------------------------------------

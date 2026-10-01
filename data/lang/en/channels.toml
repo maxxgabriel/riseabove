@@ -35,6 +35,10 @@ slot = "post"
 style = "sentence"
 max_chars = 280
 [[channel.slot]]
+slot = "bulletin"
+style = "sentence"
+max_chars = 280
+[[channel.slot]]
 slot = "tail"
 style = "sentence"
 max_chars = 120
