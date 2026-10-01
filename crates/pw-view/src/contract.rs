@@ -293,6 +293,11 @@ impl Ts for crate::model::Named {
         "Named".into()
     }
 }
+impl Ts for crate::model::Part {
+    fn ts() -> String {
+        "Part".into()
+    }
+}
 impl Ts for crate::model::Tone {
     fn ts() -> String {
         "Tone".into()
@@ -1109,6 +1114,50 @@ contract! {
         pub history: Vec<InhabitedRow>,
     }
 
+    /// One line of the career chronicle: a sentence with links, and what it points at.
+    pub struct ChronicleEntry {
+        pub date: i32,
+        /// moves, football, international, honours, recognition, injury, life or people.
+        pub cat: String,
+        pub parts: Vec<crate::model::Part>,
+        /// The match, when the line is about one.
+        pub uid: Option<u64>,
+        /// The story, when the line is about coverage.
+        pub story: Option<u32>,
+        /// When you learned of it, if later than it happened.
+        pub learned: Option<i32>,
+        /// The keepsake it left, for the scrapbook: contract, scholarship, trial, call_up, cap, medal, clipping, team_sheet,
+        /// certificate or transfer.
+        pub keepsake: Option<String>,
+    }
+
+    /// Someone whose path crossed yours.
+    pub struct ChronicleTie {
+        pub who: Named,
+        pub how: Vec<crate::model::Part>,
+        pub from: i32,
+        pub to: i32,
+        /// Where they are now, in words.
+        pub now: Option<String>,
+    }
+
+    /// How far your name has travelled: the first piece at each reach and how many pieces there have been.
+    pub struct ChronicleReach {
+        /// local, national or abroad.
+        pub layer: String,
+        pub first: Option<i32>,
+        pub outlet: Option<String>,
+        pub stories: u32,
+    }
+
+    pub struct ChronicleView {
+        pub person: Named,
+        pub since: i32,
+        pub entries: Vec<ChronicleEntry>,
+        pub people: Vec<ChronicleTie>,
+        pub reach: Vec<ChronicleReach>,
+    }
+
     pub struct AgentRow {
         pub id: u32,
         pub who: Named,
@@ -1377,6 +1426,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.story"), Some("IdReq"), "OwnStoryView"),
         typed(q("me.agent"), None, "AgentView"),
         typed(q("me.journal"), None, "JournalView"),
+        typed(q("me.chronicle"), None, "ChronicleView"),
         typed(c("me.goal"), Some("GoalReq"), "Done"),
         typed(c("me.goal_done"), Some("GoalDoneReq"), "Done"),
         typed(c("me.note"), Some("NoteReq"), "Done"),
@@ -1541,6 +1591,10 @@ pub fn declarations() -> Vec<String> {
         NoteRow::declaration(),
         InhabitedRow::declaration(),
         JournalView::declaration(),
+        ChronicleEntry::declaration(),
+        ChronicleTie::declaration(),
+        ChronicleReach::declaration(),
+        ChronicleView::declaration(),
         AgentRow::declaration(),
         AgentView::declaration(),
         OwnStoryView::declaration(),

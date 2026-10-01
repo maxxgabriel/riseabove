@@ -266,6 +266,7 @@ impl Api {
             "me.story" => self.with(|c| pages::life::story(c, &args)),
             "me.agent" => self.with(pages::life::agent),
             "me.journal" => self.with(pages::life::journal),
+            "me.chronicle" => self.with(pages::chronicle::chronicle),
             "me.goal" => self.with_mut(|s| pages::life::add_goal(s, &args)),
             "me.goal_done" => self.with_mut(|s| pages::life::goal_done(s, &args)),
             "me.note" => self.with_mut(|s| pages::life::add_note(s, &args)),

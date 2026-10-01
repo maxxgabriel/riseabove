@@ -116,7 +116,12 @@ impl Game {
 
     pub fn load(path: &std::path::Path) -> Result<Self, pw_sim::save::SaveError> {
         let f: SaveFile = pw_sim::save::load_checked(path, &|f: &SaveFile| pw_sim::validate::check(&f.world))?;
-        Ok(Self { sim: Sim::new(f.world), session: f.session })
+        let mut sim = Sim::new(f.world);
+        // A save from before chronicles existed: the person being lived starts theirs now, from what the world kept.
+        if let Some(p) = f.session.controlled {
+            pw_sim::chronicle::begin(&mut sim.world, p);
+        }
+        Ok(Self { sim, session: f.session })
     }
 
     /// Inhabit `person`. The first time in a playthrough, the world's future
@@ -138,6 +143,7 @@ impl Game {
             self.session.controlled = Some(person);
             self.session.history.push((person, today, None));
             self.session.seen = self.sim.world.events.last_id();
+            pw_sim::chronicle::begin(&mut self.sim.world, person);
         }
         ok
     }

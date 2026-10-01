@@ -55,7 +55,7 @@ fn source_words(c: &Ctx, s: Source) -> String {
     }
 }
 
-fn org_words(c: &Ctx, o: Org) -> String {
+pub(crate) fn org_words(c: &Ctx, o: Org) -> String {
     match o {
         Org::Club(k) => c.club_name(k),
         Org::Institution(i) => c.w.minor.institutions.get(i as usize).map_or_else(|| "an institution".into(), |x| x.name.clone()),

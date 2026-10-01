@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 use crate::FxHashMap;
 use crate::academy::AcademyExt;
 use crate::almanac::Almanac;
+use crate::chronicle::Chronicles;
 use crate::ecosystem::Ecosystem;
 use crate::lore::Lore;
 use crate::medical::MedicalExt;
@@ -36,8 +37,9 @@ use crate::training::TrainingExt;
 /// `scenario` (tuning and calendar), `recog` (what organisations know, vouches, market regard) and `pathway` (why players moved, how
 /// they were created), all appended and all empty or default in a save from layout 1; 3 = `Scenario` gains `known_derbies` and
 /// `reference` at its end (named derbies and the report of loading reference data), both empty in a save from layout 2; 4 = adds
-/// `lore` (names and labels from reference data), appended and empty in a save from layout 3.
-pub const EXT_VERSION: u32 = 4;
+/// `lore` (names and labels from reference data), appended and empty in a save from layout 3; 5 = adds `chronicle` (the lives humans
+/// inhabit, as they were lived), appended and empty in a save from layout 4: a chronicle begins when someone is inhabited.
+pub const EXT_VERSION: u32 = 5;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -65,6 +67,9 @@ pub struct Extensions {
     // ---- layout 4: appended
     /// Owner: the world builder. Names, labels and descriptions from the scenario's reference data (`crate::lore`).
     pub lore: Lore,
+    // ---- layout 5: appended
+    /// Owner: `pw_sim::chronicle`. The career chronicle of each person a human has inhabited.
+    pub chronicle: Chronicles,
     /// Set (never saved) when this value was upgraded from an older layout: the version it came from. `pw_sim::legacy::finish`
     /// consumes it after load.
     #[serde(skip)]
@@ -84,6 +89,7 @@ pub fn steps() -> &'static [ExtStep] {
         ExtStep { from: 1, name: "add scenario tuning, organisation knowledge and pathway history", apply: v1_to_v2 },
         ExtStep { from: 2, name: "add the scenario's known derbies and reference-data report", apply: v2_to_v3 },
         ExtStep { from: 3, name: "add names and labels from reference data", apply: v3_to_v4 },
+        ExtStep { from: 4, name: "add career chronicles", apply: v4_to_v5 },
     ]
 }
 
@@ -198,6 +204,11 @@ struct ExtensionsV3 {
 /// Layout 4 appends `lore` at the end: a save from layout 3 took nothing from reference data beyond what `scenario` already holds.
 fn v3_to_v4(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
     append_default::<Lore>(bytes)
+}
+
+/// Layout 5 appends `chronicle` at the end: no life was chronicled before it existed (the next inhabiting begins one).
+fn v4_to_v5(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    append_default::<Chronicles>(bytes)
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
@@ -345,6 +356,37 @@ mod tests {
         assert!(e2.lore.is_empty());
         let again = decode(EXT_VERSION, bincode::serialize(&e).unwrap()).expect("layout 4 round-trips");
         assert_eq!(again.lore, e.lore);
+    }
+
+    #[test]
+    fn layout_4_opens_at_layout_5_with_no_chronicle_and_everything_else_intact() {
+        use crate::chronicle::Life;
+        let mut old = Extensions::default();
+        old.ecosystem.last_year = 2032;
+        old.lore.competitions.insert(pw_core::CompId(2), crate::lore::Source { id: "comp.ifl".into(), origin: DataOrigin::Imported });
+        // What layout 5 adds must not be claimed for a save that predates it.
+        old.chronicle.lives.insert(pw_core::PersonId(4), Life::default());
+        let v3 = ExtensionsV3 {
+            medical: old.medical.clone(),
+            ecosystem: old.ecosystem.clone(),
+            almanac: old.almanac.clone(),
+            academy: old.academy.clone(),
+            staff: old.staff.clone(),
+            training: old.training.clone(),
+            decisions: old.decisions.clone(),
+            scenario: old.scenario.clone(),
+            recog: old.recog.clone(),
+            pathway: old.pathway.clone(),
+        };
+        let mut v4 = bincode::serialize(&v3).unwrap();
+        v4.extend(bincode::serialize(&old.lore).unwrap());
+        let e = decode(4, v4).expect("layout 4 upgrades");
+        assert_eq!(e.migrated_from, Some(4));
+        assert_eq!(e.ecosystem.last_year, 2032);
+        assert_eq!(e.lore.competitions.len(), 1, "what layout 4 held is untouched");
+        assert!(e.chronicle.lives.is_empty(), "no life is chronicled for an old save");
+        let again = decode(EXT_VERSION, bincode::serialize(&e).unwrap()).expect("layout 5 round-trips");
+        assert!(again.chronicle.lives.is_empty());
     }
 
     #[test]

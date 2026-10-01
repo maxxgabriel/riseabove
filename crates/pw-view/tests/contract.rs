@@ -568,10 +568,17 @@ fn a_story_from_a_paper_in_another_language_says_it_is_translated() {
     let api = api();
     api.call("world.new", json!({"kind": "india", "scale": "tiny", "seed": 5})).unwrap();
     wait(&api, "task");
-    api.call("advance.start", json!({"mode": "days", "n": 90})).unwrap();
-    wait(&api, "job");
+    // A regional-language paper writes about the world within a year; how soon depends on what happens first, so look month by month.
+    let mut feed = Value::Null;
+    for _ in 0..12 {
+        api.call("advance.start", json!({"mode": "days", "n": 30})).unwrap();
+        wait(&api, "job");
+        feed = api.call("news.feed", json!({"filter": "world", "limit": 200})).unwrap();
+        if feed["stories"].as_array().unwrap().iter().any(|s| s["translated_from"].is_string()) {
+            break;
+        }
+    }
     let ts = contract::typescript();
-    let feed = api.call("news.feed", json!({"filter": "world", "limit": 200})).unwrap();
     let stories = feed["stories"].as_array().unwrap();
     let translated: Vec<&Value> = stories.iter().filter(|s| s["translated_from"].is_string()).collect();
     assert!(!translated.is_empty(), "no translated story among {}", stories.len());

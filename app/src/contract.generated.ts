@@ -776,6 +776,39 @@ export interface JournalView {
   history: InhabitedRow[];
 }
 
+export interface ChronicleEntry {
+  date: number;
+  cat: string;
+  parts: Part[];
+  uid: number | null;
+  story: number | null;
+  learned: number | null;
+  keepsake: string | null;
+}
+
+export interface ChronicleTie {
+  who: Named;
+  how: Part[];
+  from: number;
+  to: number;
+  now: string | null;
+}
+
+export interface ChronicleReach {
+  layer: string;
+  first: number | null;
+  outlet: string | null;
+  stories: number;
+}
+
+export interface ChronicleView {
+  person: Named;
+  since: number;
+  entries: ChronicleEntry[];
+  people: ChronicleTie[];
+  reach: ChronicleReach[];
+}
+
 export interface AgentRow {
   id: number;
   who: Named;
@@ -2835,6 +2868,7 @@ export interface ApiMethods {
   "me.story": { kind: "query"; req: IdReq; res: OwnStoryView };
   "me.agent": { kind: "query"; req: Record<string, unknown>; res: AgentView };
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: JournalView };
+  "me.chronicle": { kind: "query"; req: Record<string, unknown>; res: ChronicleView };
   "me.goal": { kind: "command"; req: GoalReq; res: Done };
   "me.goal_done": { kind: "command"; req: GoalDoneReq; res: Done };
   "me.note": { kind: "command"; req: NoteReq; res: Done };
@@ -2921,6 +2955,7 @@ export type TypedMethod =
   | "me.story"
   | "me.agent"
   | "me.journal"
+  | "me.chronicle"
   | "me.goal"
   | "me.goal_done"
   | "me.note"

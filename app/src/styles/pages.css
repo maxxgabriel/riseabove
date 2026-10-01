@@ -308,3 +308,33 @@ textarea { height: auto; padding: 0.5rem 0.6rem; resize: vertical; width: 100%; 
 hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width: 100%; }
 .hint.block { display: block; }
 .minitable td .meter { min-width: 4.5rem; }
+
+/* ---- career chronicle ---- */
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.chip .faint { margin-left: 0.15rem; font-size: 0.85rem; }
+.chron-year + .chron-year { margin-top: 0.4rem; }
+.chron-year-head { font-size: 1.15rem; font-weight: 700; color: var(--text); padding: 0.4rem 0 0.1rem; border-bottom: 1px solid var(--line); }
+.chron-month { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 0.6rem; padding: 0.35rem 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.chron-month-head { color: var(--accent-strong); font-weight: 600; padding-top: 0.15rem; }
+.chron-lines { display: grid; gap: 0.15rem; }
+.chron-line { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 0.5rem; padding: 0.15rem 0 0.15rem 0.5rem; border-left: 2px solid var(--line-2); }
+.chron-day { color: var(--text-3); font-size: 0.88rem; padding-top: 0.05rem; }
+.chron-text { line-height: 1.4; }
+.chron-line.c-football { border-left-color: var(--accent); }
+.chron-line.c-honours { border-left-color: var(--warn); }
+.chron-line.c-moves { border-left-color: var(--info); }
+.chron-line.c-international { border-left-color: var(--pos); }
+.chron-line.c-recognition { border-left-color: var(--accent-strong); }
+.chron-line.c-injury { border-left-color: var(--neg); }
+.chron-line.c-people { border-left-color: var(--text-3); }
+@media (max-width: 700px) { .chron-month { grid-template-columns: minmax(0, 1fr); } }
+.scrapbook { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.6rem; }
+.keepsake { display: grid; gap: 0.35rem; align-content: start; padding: 0.7rem 0.8rem; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--line-2); border-radius: var(--radius-lg); }
+.keepsake header { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
+.keepsake-kind { color: var(--accent-strong); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.keepsake p { margin: 0; line-height: 1.4; }
+.keepsake.k-contract, .keepsake.k-transfer { border-top-color: var(--info); }
+.keepsake.k-medal, .keepsake.k-cap { border-top-color: var(--warn); }
+.keepsake.k-clipping { border-top-color: var(--accent); font-family: Georgia, "Times New Roman", serif; }
+.keepsake.k-clipping .keepsake-kind { font-family: var(--font); }
+.keepsake.k-call_up { border-top-color: var(--pos); }

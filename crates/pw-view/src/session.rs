@@ -101,6 +101,10 @@ impl Session {
 
     fn assemble(world: World, session: pw_career::Session, meta: Meta) -> Self {
         let mut game = Game::new(world);
+        // A save from before chronicles existed: the person being lived starts theirs now, from what the world kept.
+        if let Some(p) = session.controlled {
+            pw_sim::chronicle::begin(&mut game.sim.world, p);
+        }
         game.session = session;
         Self { game, meta, revision: 1, timings: Vec::new(), public_view: true }
     }

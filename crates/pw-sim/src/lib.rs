@@ -23,6 +23,7 @@ pub mod audit;
 pub mod awards;
 pub mod backfill;
 pub mod bargaining;
+pub mod chronicle;
 pub mod clauses;
 pub mod coach;
 pub mod board;
@@ -342,6 +343,9 @@ impl Sim {
             prof!("finance::weekly", finance::weekly(w));
             prof!("clauses::weekly", clauses::weekly(w));
         }
+
+        // 11b. The chronicles of inhabited lives: after everything else today, so today's matches and stories are in them.
+        prof!("chronicle::daily", chronicle::daily(w));
 
         // 12. Archive.
         if first_of_month && today.month() == 8 {

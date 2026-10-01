@@ -46,6 +46,7 @@ function useNav(): { top: NavItem[]; groups: { label: string; items: NavItem[] }
         { label: "Messages", to: "/messages", icon: "mail" as IconName, badge: st.awaiting ?? 0 },
         { label: "News", to: "/news", icon: "star" as IconName },
         { label: "Calendar", to: "/calendar", icon: "clock" as IconName },
+        { label: "Your story", to: "/story", icon: "list" as IconName },
         { label: "Me", to: "/me", icon: "person" as IconName, match: [`/person/${st.perspective && st.perspective.mode === "inhabit" ? st.perspective.person : -1}`] },
         { label: "Football", to: "/football", icon: "training" as IconName },
         { label: "Contract", to: "/contract", icon: "contract" as IconName },

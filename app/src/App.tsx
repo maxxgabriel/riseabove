@@ -9,6 +9,7 @@ import { Calendar } from "./pages/Calendar";
 import { Contract } from "./pages/Contract";
 import { Football } from "./pages/Football";
 import { Journal } from "./pages/Journal";
+import { Chronicle } from "./pages/Chronicle";
 import { Society } from "./pages/Society";
 import { Life } from "./pages/Life";
 import { Messages } from "./pages/Messages";
@@ -90,6 +91,8 @@ function Page() {
       return <Society />;
     case "journal":
       return <Journal />;
+    case "story":
+      return <Chronicle />;
     case "me":
       return <Me />;
     case "compare":
