@@ -42,7 +42,7 @@ function Regions() {
         ) : (
           <Section title="What each region has produced" aside={d.note}>
             <div className="card">
-              <table className="table">
+              <table className="minitable">
                 <thead>
                   <tr>
                     <th>Region</th>
@@ -89,7 +89,7 @@ function Abroad() {
             {d.markets.map((m) => (
               <Section key={m.name} title={m.name} aside={m.nations.join(", ")}>
                 <div className="card">
-                  <table className="table">
+                  <table className="minitable">
                     <thead>
                       <tr>
                         <th>Kind of football</th>
@@ -177,7 +177,7 @@ function Scenario() {
               <Empty title="No derby is named">{d.reference_loaded ? "None of the derbies in the reference data has both its clubs in this world." : "No reference data was read."}</Empty>
             ) : (
               <div className="card">
-                <table className="table">
+                <table className="minitable">
                   <thead>
                     <tr>
                       <th>Name</th>
@@ -237,24 +237,27 @@ function Scenario() {
 /** A named list from the reference data: three columns and the record's standing. Nothing is shown when the reference has none. */
 function LabelTable({ title, aside, rows, cols }: { title: string; aside?: string; rows: LabelRow[]; cols: [string, string, string] }) {
   if (rows.length === 0) return null;
+  // A column the reference leaves empty for every row is not shown.
+  const showDetail = rows.some((r) => r.detail.trim() !== "");
+  const showNote = rows.some((r) => r.note.trim() !== "");
   return (
     <Section title={title} aside={aside}>
       <div className="card">
-        <table className="table">
+        <table className="minitable">
           <thead>
             <tr>
-              {cols.map((c) => (
-                <th key={c}>{c}</th>
-              ))}
+              <th>{cols[0]}</th>
+              {showDetail && <th>{cols[1]}</th>}
+              {showNote && <th>{cols[2]}</th>}
               <th>Data origin</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={i}>
-                <td>{r.name}</td>
-                <td>{r.detail}</td>
-                <td className="muted">{r.note}</td>
+                <td className="wrap">{r.name}</td>
+                {showDetail && <td className="wrap">{r.detail}</td>}
+                {showNote && <td className="wrap muted">{r.note}</td>}
                 <td>
                   <Badge tone={r.origin === "Imported" ? "pos" : "muted"}>{r.origin}</Badge>
                 </td>

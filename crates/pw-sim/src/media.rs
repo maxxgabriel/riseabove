@@ -41,14 +41,17 @@ pub fn ensure_media(w: &mut World) {
         let fresh: Vec<OutletId> = if have.contains(&n) {
             w.media.outlets.iter_enumerated().filter(|(id, o)| o.nation == n && !staffed.contains(id)).map(|(id, _)| id).collect()
         } else {
-            let code = w.nations[n].code.clone();
+            // A nation with a real name ("Spain") lends it to its papers; a numbered one ("Nation 3") its code.
+            let (code, name) = (w.nations[n].code.clone(), w.nations[n].name.clone());
+            let real = name != code && !name.chars().any(|c| c.is_ascii_digit());
+            let label = if real { name } else { code };
             let rep = f32::from(w.nations[n].reputation) / 10_000.0;
             let reach = |base: f32| (base + rep * 8.0).clamp(1.0, 20.0) as u8;
             let mut outlets = vec![
-                (format!("{code} Sport"), OutletKind::National, reach(8.0), 15u8, 6u8, ClubId::NONE),
-                (format!("The {code} Sun"), OutletKind::Tabloid, reach(9.0), 6, 17, ClubId::NONE),
-                (format!("{code} TV Football"), OutletKind::Broadcaster, reach(10.0), 13, 9, ClubId::NONE),
-                (format!("{code} Numbers"), OutletKind::DataSite, reach(3.0), 18, 3, ClubId::NONE),
+                (format!("{label} Sport"), OutletKind::National, reach(8.0), 15u8, 6u8, ClubId::NONE),
+                (if real { format!("{label} Sun") } else { format!("The {label} Sun") }, OutletKind::Tabloid, reach(9.0), 6, 17, ClubId::NONE),
+                (format!("{label} TV Football"), OutletKind::Broadcaster, reach(10.0), 13, 9, ClubId::NONE),
+                (format!("{label} Numbers"), OutletKind::DataSite, reach(3.0), 18, 3, ClubId::NONE),
             ];
             for &c in big.iter().take(6) {
                 let city = if w.clubs[c].city.is_empty() { w.clubs[c].short_name.clone() } else { w.clubs[c].city.clone() };

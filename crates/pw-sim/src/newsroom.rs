@@ -742,6 +742,17 @@ pub fn fan_reaction(w: &mut World, club: ClubId, about: PersonId, post: u32) {
     }
 }
 
+/// Is this outlet a paper of one state (a real regional or local outlet) and the club from another?
+fn regional_elsewhere(w: &World, outlet: pw_core::OutletId, club: ClubId) -> bool {
+    let Some(o) = w.ext.lore.outlets.get(&outlet) else { return false };
+    if o.home.is_none() || club.is_none() || !matches!(o.reach.as_str(), "state" | "local") {
+        return false;
+    }
+    let eco = &w.ext.ecosystem;
+    let r = eco.region_of_club(club);
+    r.is_none() || eco.state_of(r) != o.home
+}
+
 /// Journalists who would cover a club (beat first), up to `n`.
 fn covering(w: &World, nation: NationId, club: ClubId, n: usize) -> Vec<PersonId> {
     let mut v: Vec<(u8, PersonId)> = w
@@ -755,6 +766,9 @@ fn covering(w: &World, nation: NationId, club: ClubId, n: usize) -> Vec<PersonId
                     0
                 } else if w.media.outlets[j.outlet].leaning == club {
                     1
+                } else if regional_elsewhere(w, j.outlet, club) {
+                    // A state paper covers its own state's football; another state's club is the last thing it writes about.
+                    3
                 } else {
                     2
                 },

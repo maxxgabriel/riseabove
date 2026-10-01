@@ -94,7 +94,7 @@
   --top-h: 42px;
   --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", var(--font-fallback);
   --font-fallback: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Nirmala UI", "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
   font-size: calc(13px * var(--text-scale));
 }

@@ -219,7 +219,10 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
 
     let india = builder::add_nation(&mut w, "IND", "India", Confed::Afc, 3000, "autumn_spring", 0.35, 9);
     // Foreign recruits come from a few other nations.
-    let foreign: Vec<NationId> = ["BRA", "ESP", "AUS", "JPN", "KOR", "UZB"].iter().map(|c| builder::add_nation(&mut w, c, c, Confed::Afc, 5000, "autumn_spring", 0.5, 10)).collect();
+    let foreign: Vec<NationId> = [("BRA", "Brazil"), ("ESP", "Spain"), ("AUS", "Australia"), ("JPN", "Japan"), ("KOR", "South Korea"), ("UZB", "Uzbekistan")]
+        .iter()
+        .map(|(c, name)| builder::add_nation(&mut w, c, name, Confed::Afc, 5000, "autumn_spring", 0.5, 10))
+        .collect();
 
     let eco = &mut w.ext.ecosystem;
     eco.zones = data.zones.clone();
@@ -587,17 +590,18 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
     // A few clubs abroad, so that being seen can lead somewhere: their scouts come to Indian events when the
     // country's export reputation is high enough, and Indian players who go there are what raises it.
     for (n, (nat, code)) in [(foreign[1], "ESP"), (foreign[3], "JPN"), (foreign[4], "KOR")].into_iter().enumerate() {
-        let league = builder::add_comp(&mut w, &format!("{code} Premier Division"), &format!("{code} PD"), nat, None, CompKind::League, 1, TeamKind::First, 6, 0, 0, 6000, Format::League { rounds: 2 }, 20_000_000);
+        let country = w.nations[nat].name.clone();
+        let league = builder::add_comp(&mut w, &format!("{country} Premier Division"), &format!("{code} PD"), nat, None, CompKind::League, 1, TeamKind::First, 6, 0, 0, 6000, Format::League { rounds: 2 }, 20_000_000);
         for k in 0..6usize {
             let rep = 6800u16 - (k as u16) * 380 - (n as u16) * 200;
-            let name = format!("{code} {} {}", ["Athletic", "United", "Sporting", "Real", "City", "Albion"][k], ["Norte", "Sur", "Este", "Oeste", "Centro", "Puerto"][(k + n) % 6]);
+            let (name, city) = foreign_club_name(code, k, n);
             let club = builder::add_club(
                 &mut w,
                 ClubSpec {
                     name: &name,
                     short: "",
                     nation: nat,
-                    city: &code,
+                    city: &city,
                     league,
                     reputation: rep,
                     balance: i64::from(rep) * 9_000,
@@ -738,6 +742,30 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         }
     }
     w
+}
+
+/// What a made-up club abroad is called, in the way clubs of its country are, and the made-up place it is from. Invented names, never
+/// real clubs; their origin is Generated.
+fn foreign_club_name(code: &str, k: usize, n: usize) -> (String, String) {
+    let i = (k + n) % 6;
+    match code {
+        "ESP" => {
+            let place = ["Norte", "Sur", "Este", "Oeste", "Centro", "Puerto"][i];
+            (format!("{} {place}", ["Atlético", "Unión", "Deportivo", "Real", "Racing", "Sporting"][k]), place.to_string())
+        }
+        "JPN" => {
+            let place = ["Kita", "Minami", "Higashi", "Nishi", "Chuo", "Minato"][i];
+            (format!("{place} {}", ["FC", "United", "SC", "Athletic", "City", "Rovers"][k]), place.to_string())
+        }
+        "KOR" => {
+            let place = ["Bukbu", "Nambu", "Dongbu", "Seobu", "Jungang", "Hanggu"][i];
+            (format!("{place} {}", ["FC", "United", "Citizen", "Athletic", "City", "Dragons"][k]), place.to_string())
+        }
+        _ => {
+            let place = ["North", "South", "East", "West", "Central", "Harbour"][i];
+            (format!("{place} {}", ["United", "City", "Athletic", "Rovers", "Wanderers", "Albion"][k]), place.to_string())
+        }
+    }
 }
 
 /// A reference record applied to the club the builder made for it. The short name is identity and always comes. Numbers replace the

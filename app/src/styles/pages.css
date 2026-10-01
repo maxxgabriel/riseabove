@@ -87,6 +87,7 @@
 .minitable th { text-align: left; font-size: 0.82rem; color: var(--text-3); font-weight: 580; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line); }
 .minitable td { padding: 0.28rem 0.5rem; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); white-space: nowrap; }
 .minitable .r { text-align: right; }
+.minitable td.wrap { white-space: normal; vertical-align: top; }
 .minitable tr.sub td { color: var(--text-2); }
 .minitable tr.sub:first-of-type td, .minitable tr.sub + tr.sub td { }
 .motm { color: var(--warn); }

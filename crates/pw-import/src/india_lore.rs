@@ -366,10 +366,27 @@ fn words(w: &mut World, reference: &Reference, b: &Built<'_>) {
             })
         })
         .collect();
+    // A state's side only for a state of this world; one record of each national side (two files describe the same teams).
+    let in_world = |assoc: &str| {
+        reference.associations.iter().find(|a| a.id == assoc).and_then(|a| a.state.as_deref()).is_some_and(|st| b.states.iter().any(|s| reference.state_of_key(&s.key).is_some_and(|r| r.id == st)))
+    };
+    let mut seen: Vec<(String, String, String)> = Vec::new();
     lore.teams = reference
         .teams
         .iter()
         .filter(|t| t.prov.names_real_entity() && t.gender != "women")
+        .filter(|t| t.kind != "state_representative" || t.association.as_deref().is_none_or(in_world))
+        .filter(|t| {
+            if t.kind == "state_representative" {
+                return true;
+            }
+            let key = (t.kind.clone(), t.gender.clone(), t.age.clone());
+            if seen.contains(&key) {
+                return false;
+            }
+            seen.push(key);
+            true
+        })
         .map(|t| LoreTeam {
             source: src(&t.id, &t.prov),
             name: t.name.clone(),
@@ -415,6 +432,7 @@ pub fn prose(text: &str) -> String {
     let for_keepers = |c: &str| {
         let l = c.to_ascii_lowercase();
         l.contains(".toml") || l.contains("simulation") || l.contains("not verified") || l.contains("unverified") || l.contains("re-checked") || l.contains("model knowledge") || l.contains("scenario setting")
+            || l.contains("placeholder") || l.contains("not confirmed")
     };
     let mut out: Vec<String> = Vec::new();
     for sentence in text.split(". ") {
@@ -439,6 +457,10 @@ mod tests {
         assert_eq!(
             prose("Each state or UT association fields a team. Which registration or residence basis qualifies a player is NOT verified; the simulation's current default is in pack.toml [eligibility] and is a scenario setting."),
             "Each state or UT association fields a team."
+        );
+        assert_eq!(
+            prose("Football-for-development NGOs coach children in many states. Placeholder for NGOs of the kind; specific organisations are not confirmed here."),
+            "Football-for-development NGOs coach children in many states."
         );
         assert_eq!(prose("A plain sentence."), "A plain sentence.");
         assert_eq!(prose(""), "");

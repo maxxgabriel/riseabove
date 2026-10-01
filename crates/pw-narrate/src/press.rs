@@ -252,6 +252,19 @@ pub fn body(w: &World, s: &Story) -> String {
             _ => headline(w, s),
         },
         StoryKind::Praise => format!("{who} continues to impress, {outlet} reports."),
+        // An incident the engine does not write (a private matter): said plainly, with where it came from, not the headline again.
+        StoryKind::IncidentNews => match w.grapevine.items.get(s.info as usize).map(|it| it.kind) {
+            Some(pw_world::info::InfoKind::Incident { incident }) => {
+                let what = crate::incidents::summary(w, incident, false, false);
+                let what = what.strip_prefix("that ").unwrap_or(&what).to_string();
+                if s.leaker.is_some() {
+                    format!("{outlet} has learned from {source} that {what}. Those involved have not spoken publicly.")
+                } else {
+                    format!("{}, {outlet} reports.", crate::incidents::capitalise(&what))
+                }
+            }
+            _ => headline(w, s),
+        },
         _ => headline(w, s),
     }
 }
