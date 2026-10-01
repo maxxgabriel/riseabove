@@ -90,6 +90,7 @@ fn a_lived_career_becomes_a_linked_dated_story() {
                 "club" => api.call("club", json!({"id": id})).is_ok(),
                 "comp" => api.call("comp", json!({"id": id})).is_ok(),
                 "nation" => api.call("nation", json!({"id": id})).is_ok(),
+                "inst" => api.call("institution", json!({"id": id})).is_ok(),
                 other => panic!("unexpected link kind {other}"),
             };
             assert!(opened, "the link in \"{t}\" opens: {r}");
@@ -366,4 +367,189 @@ fn the_published_calendar_is_something_to_wait_for() {
     assert_eq!(sel[0]["date"].as_i64(), Some(day(2027, 2, 1)));
     let t = sel[0]["text"].as_str().unwrap();
     assert!(t.contains("state championship") && t.contains("1 February") && t.contains("in about 2 months"), "{t}");
+}
+
+/// Opens a link of any kind the story uses.
+fn opens(api: &Api, r: &Value) -> bool {
+    let id = r["id"].as_u64().unwrap();
+    let m = match r["k"].as_str().unwrap() {
+        "inst" => "institution",
+        k => k,
+    };
+    api.call(m, json!({"id": id})).is_ok()
+}
+
+/// A table row's cell by column key.
+fn cell<'a>(t: &Value, row: &'a Value, key: &str) -> &'a Value {
+    let i = t["columns"].as_array().unwrap().iter().position(|c| c == key).unwrap_or_else(|| panic!("no column {key}"));
+    &row["cells"][i]
+}
+
+#[test]
+fn what_became_of_them_is_public_record_furthest_risen_first() {
+    let api = lived(23, 420);
+    let today = api.call("world.status", json!({})).unwrap()["date"].as_i64().unwrap();
+    let ch = api.call("me.chronicle", json!({})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.chronicle", &ch) {
+        panic!("the chronicle is not its declared type: {e}");
+    }
+    let became = ch["became"].as_array().unwrap();
+    assert!(!became.is_empty(), "fourteen months on, someone from the start of the story has moved on: {}", ch["people"]);
+    let me = ch["person"]["id"].clone();
+    let mut keys = Vec::new();
+    for b in became {
+        assert_ne!(b["who"]["id"], me, "you are not among the people from your past");
+        assert!(today - b["from"].as_i64().unwrap() >= 365, "only paths that crossed more than a year ago: {b}");
+        for k in ["role", "summary"] {
+            let s = b[k].as_str().unwrap();
+            assert!(!s.trim().is_empty() && !s.contains("  "), "{k} says something: {b}");
+        }
+        assert!(opens(&api, &b["who"]), "{b}");
+        for k in ["club", "league", "caps_for"] {
+            if !b[k].is_null() {
+                assert!(opens(&api, &b[k]), "{k} opens: {b}");
+            }
+        }
+        // Missing is not zero: no caps is null, not 0.
+        assert!(b["caps"].is_null() || b["caps"].as_u64().unwrap() > 0, "{b}");
+        assert_eq!(b["caps"].is_null(), b["caps_for"].is_null(), "{b}");
+        // How far they rose, from what anyone can see: the club's standing, a manager above a player, caps above both.
+        let rep = if b["club"].is_null() { 0 } else { api.call("club", json!({"id": b["club"]["id"]})).unwrap()["reputation"].as_i64().unwrap() };
+        let role = b["role"].as_str().unwrap();
+        let mut key = rep;
+        if !b["club"].is_null() && role != "Player" {
+            key += if role == "Manager" { 2_500 } else { 500 };
+        }
+        if let Some(caps) = b["caps"].as_i64() {
+            key += 3_000 + caps.min(100) * 40;
+        }
+        key += b["managed"].as_i64().unwrap() * 300;
+        keys.push(key);
+    }
+    assert!(keys.windows(2).all(|k| k[0] >= k[1]), "furthest risen first: {keys:?}");
+}
+
+#[test]
+fn keepsakes_are_documents_with_what_the_line_kept() {
+    // This life signs a contract, wins medals and is written about in its first fourteen months.
+    let api = lived(4, 420);
+    let ch = api.call("me.chronicle", json!({})).unwrap();
+    assert!(papers(&api, &ch) >= 3, "the contract, the medals and the clipping are documents: {}", ch["entries"]);
+}
+
+/// Checks the documents of a chronicle; returns how many there were.
+fn papers(api: &Api, ch: &Value) -> usize {
+    let mut n = 0;
+    for e in ch["entries"].as_array().unwrap() {
+        // The four keepsakes that are papers are documents of their own kind; no other line is one.
+        let paper = e["keepsake"].as_str().filter(|k| ["contract", "call_up", "medal", "clipping"].contains(k));
+        let d = &e["doc"];
+        assert_eq!(paper, d["kind"].as_str(), "a contract, call-up, medal or clipping is a document of that kind, and nothing else is: {e}");
+        if d.is_null() {
+            continue;
+        }
+        n += 1;
+        let kind = d["kind"].as_str().unwrap();
+        match kind {
+            "contract" => {
+                assert_eq!(e["keepsake"], "contract");
+                assert!(d["until"].as_i64().unwrap() > e["date"].as_i64().unwrap(), "a contract runs past the day it was signed: {e}");
+                assert!(d["wage"].is_null() || d["wage"].as_i64().unwrap() > 0, "a wage is kept or not, never zero: {e}");
+                assert!(d["years"].is_null() || d["years"].as_f64().unwrap() >= 0.5, "{e}");
+            }
+            "call_up" => {
+                assert!(d["squad"].as_str().is_some_and(|s| !s.is_empty()), "a call-up names the squad: {e}");
+                if let (Some(a), Some(b)) = (d["from"].as_i64(), d["to"].as_i64()) {
+                    assert!(a <= b && b >= e["date"].as_i64().unwrap(), "the window is the one called up for: {e}");
+                }
+            }
+            "medal" => {
+                assert!(!d["comp"].is_null() || d["comp_name"].is_string(), "a medal names its competition: {e}");
+                assert!(d["season"].is_string(), "and its season: {e}");
+            }
+            "clipping" => {
+                assert!(d["headline"].as_str().is_some_and(|s| !s.is_empty()) && d["outlet"].as_str().is_some_and(|s| !s.is_empty()), "a clipping has its headline and outlet: {e}");
+            }
+            other => panic!("unexpected document kind {other}"),
+        }
+        for k in ["club", "nation", "comp"] {
+            if !d[k].is_null() {
+                assert!(opens(api, &d[k]), "{k} opens: {e}");
+            }
+        }
+    }
+    n
+}
+
+#[test]
+fn an_institution_has_a_page_and_the_story_links_to_it() {
+    let api = lived(21, 120);
+    // The institutions list opens each one on its own page.
+    let t = api.call("table.query", json!({"table": "institutions", "limit": 5})).unwrap();
+    let rows = t["rows"].as_array().unwrap();
+    assert!(!rows.is_empty(), "an India world has schools and universities");
+    for row in rows {
+        let name = cell(&t, row, "name");
+        let r = &name["r"];
+        assert_eq!(r["k"], "inst", "an institution's name links to its page: {row}");
+        assert_eq!(row["open"], *r, "and the row opens it");
+        let page = api.call("institution", json!({"id": r["id"]})).unwrap();
+        if let Some(Err(e)) = pw_view::contract_pages::check_response("institution", &page) {
+            panic!("institution is not its declared type: {e}");
+        }
+        assert_eq!(page["name"], name["s"]);
+        for k in ["kind", "standing", "origin"] {
+            assert!(page[k].as_str().is_some_and(|s| !s.is_empty()), "{k}: {page}");
+        }
+        assert!(page["founded"].is_null() || page["founded"].as_i64().unwrap() > 0, "an unknown founding year is not year zero");
+        for p in page["players"].as_array().unwrap().iter().chain(page["alumni"].as_array().unwrap()) {
+            assert!(opens(&api, &p["who"]), "{p}");
+        }
+        for x in page["titles"].as_array().unwrap() {
+            assert!(x["finish"] == "won" || x["finish"] == "runner_up", "{x}");
+        }
+    }
+    assert!(api.call("institution", json!({"id": 9_999_999})).is_err(), "an institution that does not exist is not found");
+    // The universities near your club link to their pages.
+    let today = api.call("me.today", json!({})).unwrap();
+    let club = api.call("club", json!({"id": today["me"]["club"]["id"]})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("club", &club) {
+        panic!("club is not its declared type: {e}");
+    }
+    for u in club["place"]["universities"].as_array().unwrap() {
+        assert_eq!(u["k"], "inst");
+        assert!(opens(&api, u), "{u}");
+    }
+    assert!(club["place"]["media"].is_array(), "a place has its local media, even if none: {}", club["place"]);
+}
+
+#[test]
+fn a_club_abroad_is_a_country_to_live_in() {
+    let api = lived(4, 30);
+    let today = api.call("me.today", json!({})).unwrap();
+    let mine = api.call("club", json!({"id": today["me"]["club"]["id"]})).unwrap();
+    assert!(mine["country"].is_null(), "your own country is home, not abroad");
+    let home = mine["nation"]["id"].clone();
+    let mut abroad = None;
+    let mut offset = 0;
+    while abroad.is_none() {
+        let t = api.call("table.query", json!({"table": "clubs", "limit": 500, "offset": offset})).unwrap();
+        let rows = t["rows"].as_array().unwrap();
+        assert!(!rows.is_empty(), "an India world has clubs abroad");
+        abroad = rows.iter().find(|r| {
+            let n = &cell(&t, r, "nation")["r"];
+            !n.is_null() && n["id"] != home
+        }).map(|r| r["id"].clone());
+        offset += rows.len();
+    }
+    let club = api.call("club", json!({"id": abroad.unwrap()})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("club", &club) {
+        panic!("club is not its declared type: {e}");
+    }
+    let k = &club["country"];
+    assert_eq!(k["nation"]["id"], club["nation"]["id"], "{k}");
+    for f in ["climate", "language", "clock", "from_home", "football", "living"] {
+        assert!(k[f].as_str().is_some_and(|s| !s.is_empty()), "a move abroad says {f}: {k}");
+    }
+    assert!(k["origin"] == "Imported" || k["origin"] == "Inferred", "{k}");
 }

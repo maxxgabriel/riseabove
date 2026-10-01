@@ -24,6 +24,10 @@ impl Ref {
     pub fn nation(id: NationId) -> Self {
         Self { k: "nation", id: id.0 }
     }
+    /// A school or university (`minor::Institution` index), opened by `institution`.
+    pub fn inst(id: u32) -> Self {
+        Self { k: "inst", id }
+    }
     pub fn fixture(uid: u64) -> Self {
         Self { k: "match", id: uid as u32 }
     }
