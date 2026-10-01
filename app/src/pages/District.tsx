@@ -1,3 +1,4 @@
+import type { RouteOptionsView } from "../contract.generated";
 import { useMemo } from "react";
 import { EntityLink } from "../components/links";
 import type { DistrictView } from "../contract.generated";
@@ -6,10 +7,7 @@ import { useApi } from "../store";
 import { Badge, Empty, Field, Section } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
-interface Options {
-  available: boolean;
-  states: { id: number; name: string; districts: { id: number; name: string }[] }[];
-}
+type Options = RouteOptionsView;
 
 const TONE: Record<string, "pos" | "neg" | "warn" | "muted"> = { "very low": "neg", low: "warn", middling: "muted", high: "pos", "very high": "pos" };
 

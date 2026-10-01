@@ -7,6 +7,7 @@
 
 mod advance;
 pub mod contract;
+pub mod contract_pages;
 mod ctx;
 mod debug;
 mod database;

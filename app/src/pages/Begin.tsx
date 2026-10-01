@@ -1,30 +1,11 @@
+import type { RouteOptionsView } from "../contract.generated";
 import { useMemo, useState } from "react";
 import { navigate } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
 import { Badge, Button, Empty, Field, Section } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
-interface Start {
-  key: string;
-  label: string;
-  age: number;
-  blurb: string;
-}
-interface District {
-  id: number;
-  name: string;
-  population_k: number;
-}
-interface StateRow {
-  id: number;
-  name: string;
-  districts: District[];
-}
-interface Options {
-  available: boolean;
-  starts: Start[];
-  states: StateRow[];
-}
+type Options = RouteOptionsView;
 
 /** What each start means for the first few years, in plain words, so the choice is an informed one. */
 const WHAT_NEXT: Record<string, string> = {

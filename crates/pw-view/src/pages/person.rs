@@ -215,7 +215,10 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let id = person_id(args)?;
     let person = c.w.people.get(id).ok_or_else(|| ApiError::NotFound(format!("person {}", id.0)))?;
     let Some(p) = person.player.get() else {
-        return Ok(json!({"available": false, "reason": "This person is not a player."}));
+        return Ok(json!({
+            "available": false, "reason": "This person is not a player.", "source": "", "known": false, "groups": [], "positions": [],
+            "hidden": null, "internal": null, "personality": null,
+        }));
     };
     let w = c.w;
     let cold = &w.players.cold[p];
@@ -249,7 +252,7 @@ pub fn attributes(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let hidden = if c.sees_internal_state() { json!(Hidden::ALL.iter().map(|h| json!({"label": h.label(), "v": person.hidden.get(*h)})).collect::<Vec<_>>()) } else { Value::Null };
     let positions: Vec<Value> = Pos::ALL.iter().map(|ps| json!({"code": ps.code(), "fam": cold.familiarity[ps.idx()], "level": familiarity_label(cold.familiarity[ps.idx()])})).collect();
     Ok(json!({
-        "available": true, "source": source, "known": known, "groups": groups, "positions": positions,
+        "available": true, "reason": null, "source": source, "known": known, "groups": groups, "positions": positions,
         "hidden": hidden,
         "internal": if c.sees_internal_state() { json!({"ca": cold.ca, "pa": cold.pa}) } else { Value::Null },
         "personality": if c.sees_internal_state() { json!(person.hidden.personality_label()) } else { Value::Null },

@@ -126,6 +126,10 @@ impl Bot {
     fn read(&mut self, method: &str, v: &Value) {
         self.walk(method, "", v);
         self.duplicates(method, v);
+        // A page payload is read as its declared type, all the way down: a field missing, renamed, of another kind or undeclared is a defect.
+        if let Some(Err(e)) = pw_view::contract_pages::check_response(method, v) {
+            self.problem(format!("{method}: the response does not match its declared type: {e}"));
+        }
     }
 
     fn walk(&mut self, at: &str, key: &str, v: &Value) {
@@ -1026,3 +1030,4 @@ fn the_text_checks_catch_what_they_should() {
         assert_eq!(text_defect(good), None, "wrongly flagged: {good:?}");
     }
 }
+

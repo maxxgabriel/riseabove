@@ -470,3 +470,94 @@ fn what_the_viewer_cannot_have_is_unavailable_not_missing() {
     let body = serde_json::to_value(ErrorBody::of(&api.call("match", json!({"uid": uid})).unwrap_err())).unwrap();
     assert_eq!((body["kind"].as_str(), body["retryable"].as_bool()), (Some("unavailable_information"), Some(false)));
 }
+
+/// Every method's response is a declared type: none is left `unknown`.
+#[test]
+fn every_method_answers_with_a_declared_type() {
+    let untyped: Vec<&str> = contract::manifest().iter().filter(|m| m.response.is_none()).map(|m| m.name).collect();
+    assert!(untyped.is_empty(), "methods without a declared response: {untyped:?}");
+    let ts = contract::typescript();
+    for m in contract::manifest() {
+        let res = m.response.unwrap().trim_end_matches("[]");
+        assert!(ts.contains(&format!("export interface {res} ")) || ts.contains(&format!("export type {res} ")), "{}: {res} is not declared", m.name);
+    }
+}
+
+/// The page payloads of a synthetic world, observed and lived as, read as their declared types all the way down. (The playthrough does
+/// the same for the India world at every stop.)
+#[test]
+fn page_payloads_match_their_declarations_in_a_synthetic_world() {
+    let api = world();
+    let mut checked = std::collections::BTreeMap::<String, usize>::new();
+    // Every distinct mismatch (indices folded), not only the first.
+    let mut wrong = std::collections::BTreeSet::<String>::new();
+    let mut check = |api: &Api, m: &str, args: Value| {
+        if let Ok(v) = api.call(m, args.clone()) {
+            match pw_view::contract_pages::check_response(m, &v) {
+                Some(Err(e)) => {
+                    wrong.insert(e.split(|c: char| c.is_ascii_digit()).collect::<Vec<_>>().join("#"));
+                }
+                Some(Ok(())) => *checked.entry(m.to_string()).or_default() += 1,
+                None => {}
+            }
+        }
+    };
+    for round in 0..2 {
+        for m in ["overview", "world.pulse", "diagnostics", "capabilities", "crest.colors", "world.saves", "route.options", "world.datasets", "database.sources"] {
+            check(&api, m, json!({}));
+        }
+        for q in ["a", "united"] {
+            check(&api, "search", json!({"q": q}));
+        }
+        for id in 0..12 {
+            check(&api, "club", json!({"id": id}));
+            check(&api, "club.systems", json!({"id": id}));
+        }
+        for id in 0..4 {
+            check(&api, "comp", json!({"id": id}));
+            check(&api, "comp.overview", json!({"id": id}));
+            check(&api, "nation", json!({"id": id}));
+        }
+        for id in (0..400).step_by(13) {
+            check(&api, "person", json!({"id": id}));
+            check(&api, "person.life", json!({"id": id}));
+        }
+        let fx = api.call("table.query", json!({"table": "fixtures", "filters": {"played": true}, "limit": 8})).unwrap();
+        for r in fx["rows"].as_array().unwrap() {
+            check(&api, "match", json!({"uid": r["open"]["id"]}));
+            check(&api, "match.watch", json!({"uid": r["open"]["id"]}));
+        }
+        {
+            if round == 0 {
+                inhabit(&api);
+            }
+            for m in ["me.today", "me.self", "me.life", "me.press", "me.football", "me.options", "me.contract", "me.calendar"] {
+                check(&api, m, json!({}));
+            }
+            check(&api, "me.feed", json!({"limit": 60}));
+            check(&api, "me.messages", json!({"limit": 100}));
+            let inbox = api.call("me.inbox", json!({"limit": 50})).unwrap();
+            check(&api, "me.inbox", json!({"limit": 50}));
+            for t in inbox["threads"].as_array().unwrap().iter().take(8) {
+                check(&api, "me.thread", json!({"id": t["id"]}));
+            }
+            let msgs = api.call("me.messages", json!({"limit": 50})).unwrap();
+            for x in msgs["messages"].as_array().unwrap().iter().take(8) {
+                check(&api, "me.message", json!({"id": x["id"]}));
+            }
+            let feed = api.call("me.feed", json!({"limit": 30})).unwrap();
+            for p in feed["posts"].as_array().unwrap().iter().take(5) {
+                check(&api, "social.thread", json!({"id": p["id"]}));
+            }
+            if round == 0 {
+                api.call("advance.start", json!({"mode": "days", "n": 60})).unwrap();
+                wait(&api, "job");
+            }
+        }
+    }
+    assert!(wrong.is_empty(), "responses that do not match their declared types:\n{}", wrong.iter().cloned().collect::<Vec<_>>().join("\n"));
+    // (A synthetic player's inbox may still hold no threads by now; threads are read at every stop of the India playthrough.)
+    for m in ["overview", "club", "club.systems", "comp", "person", "match", "me.today", "me.inbox", "me.life", "social.thread"] {
+        assert!(checked.get(m).copied().unwrap_or(0) > 0, "{m} was never checked: {checked:?}");
+    }
+}

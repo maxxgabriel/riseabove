@@ -1,3 +1,4 @@
+import type { MeCalendarView } from "../contract.generated";
 import { useState } from "react";
 import { href } from "../router";
 import { monthName, toDate } from "../format";
@@ -5,22 +6,7 @@ import { useApi, useStatus } from "../store";
 import { Button, Section } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
-interface Entry {
-  kind: string;
-  label: string;
-  sub?: string;
-  source: string;
-  state: string;
-  ref?: { k: string; id: number };
-  result?: string;
-  required?: boolean;
-}
-interface CalResp {
-  from: number;
-  to: number;
-  today: number;
-  days: { date: number; entries: Entry[] }[];
-}
+type CalResp = MeCalendarView;
 
 const mondayIndex = (d: number) => (d + 3) % 7; // 1970-01-01 was a Thursday
 

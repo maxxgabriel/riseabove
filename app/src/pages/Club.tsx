@@ -6,7 +6,7 @@ import { toggleBookmark, useIsBookmarked } from "../bookmarks";
 import { cap, fmtInt, ordinal, plural } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
-import type { Named } from "../types";
+import type { ClubView } from "../contract.generated";
 import { Badge, Button, ErrorState, IconButton, KeyVal, Meter, Metric, Section, SideCard, Skeleton, StatStrip } from "../ui/ui";
 import { Insights } from "../components/Insights";
 import { Async, usePageTitle } from "./common";
@@ -15,34 +15,7 @@ import { Crest } from "../components/Crest";
 import { DEFAULT_TINT, Stage, StageHeader, StageTabs, type MetaBit } from "../components/Stage";
 import { BoardTab, FansTab, RoomTab, type Systems } from "./ClubInside";
 
-interface ClubResp {
-  id: number;
-  name: string;
-  short: string;
-  city: string;
-  nation: Named;
-  colors: [string, string];
-  stadium: string;
-  capacity: number;
-  founded: number;
-  reputation: number;
-  ownership: string;
-  fan_mood: number;
-  relation: string;
-  followed: boolean;
-  league: null | { comp: Named; position: number | null; teams: number; points: number | null; played: number | null };
-  manager: null | { person: Named; since: number; record: { games: number; wins: number; draws: number; losses: number } };
-  teams: { team: number; kind: string; kind_key: string; squad: number; comp: Named | null; captain: Named | null }[];
-  staff_counts: { role: string; count: number }[];
-  finance: null | { balance: number; transfer_budget: number; wage_budget: number; wage_bill: number; season_income: number; season_spend: number; debt: number };
-  facilities: null | { training: number; youth: number; academy: number; medical: number };
-  board: null | { satisfaction: number; patience: number; target_position: number; warnings: number };
-  needs: null | { pos: string; min_ability: number; max_age: number; urgency: number }[];
-  also_known: { text: string; kind: string; origin: string }[];
-  academy: null | { name: string; kind: string; residential: boolean | null; age_groups: string[]; origin: string };
-  partners: { with: string; what: string; purpose: string; active: boolean; origin: string }[];
-  channels: { name: string; real: boolean }[];
-}
+type ClubResp = ClubView;
 
 type Tab = "overview" | "squad" | "staff" | "fixtures" | "finances" | "board" | "fans" | "room" | "history";
 

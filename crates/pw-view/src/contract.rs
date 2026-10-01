@@ -19,6 +19,16 @@ use crate::model::{Named, Tone};
 /// How a Rust payload type is written in TypeScript.
 pub trait Ts {
     fn ts() -> String;
+    /// A field of this type may be left out of a response altogether (`name?:`), not only be null.
+    fn absent() -> bool {
+        false
+    }
+}
+
+impl<T: Ts> Ts for std::collections::BTreeMap<String, T> {
+    fn ts() -> String {
+        format!("Record<string, {}>", T::ts())
+    }
 }
 
 macro_rules! ts_prim {
@@ -1222,9 +1232,9 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("app.info"), None, "AppInfo"),
         typed(q("world.status"), None, "StatusView"),
         typed(c("world.new"), None, "Started"),
-        q("world.inspect_import"),
-        q("world.datasets"),
-        q("world.saves"),
+        typed(q("world.inspect_import"), None, "InspectImportView"),
+        typed(q("world.datasets"), None, "DatasetsView"),
+        typed(q("world.saves"), None, "WorldSavesView"),
         typed(c("world.save"), Some("SaveReq"), "Saved"),
         typed(c("world.load"), Some("LoadReq"), "Started"),
         typed(c("world.close"), None, "Closed"),
@@ -1235,53 +1245,53 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(c("persp.observe"), Some("ObserveReq"), "Done"),
         typed(c("persp.inhabit"), Some("InhabitReq"), "Done"),
         typed(c("person.create"), Some("CreatePersonReq"), "Created"),
-        q("route.options"),
+        typed(q("route.options"), None, "RouteOptionsView"),
         typed(c("route.begin"), Some("RouteReq"), "Created"),
         typed(q("table.query"), Some("TableReq"), "TableResp"),
-        q("search"),
-        q("overview"),
-        q("world.pulse"),
+        typed(q("search"), None, "SearchView"),
+        typed(q("overview"), None, "OverviewView"),
+        typed(q("world.pulse"), None, "WorldPulseView"),
         typed(q("news.feed"), None, "NewsFeedView"),
         typed(q("news.story"), Some("IdReq"), "StoryFull"),
-        q("diagnostics"),
-        q("capabilities"),
-        q("person"),
+        typed(q("diagnostics"), None, "DiagnosticsView"),
+        typed(q("capabilities"), None, "Capability[]"),
+        typed(q("person"), None, "PersonView"),
         typed(q("person.attributes"), Some("PersonReq"), "AttributesView"),
-        q("crest.colors"),
-        q("comp.overview"),
+        typed(q("crest.colors"), None, "CrestColorsView"),
+        typed(q("comp.overview"), None, "CompOverviewView"),
         typed(q("insight.club"), None, "InsightsView"),
         typed(q("insight.comp"), None, "InsightsView"),
         typed(q("insight.match"), None, "InsightsView"),
         typed(q("insight.person"), None, "InsightsView"),
-        q("club"),
-        q("club.systems"),
+        typed(q("club"), None, "ClubView"),
+        typed(q("club.systems"), None, "ClubSystemsView"),
         typed(c("club.follow"), Some("FollowReq"), "Followed"),
-        q("comp"),
-        q("nation"),
-        q("match"),
-        q("match.watch"),
+        typed(q("comp"), None, "CompView"),
+        typed(q("nation"), None, "NationView"),
+        typed(q("match"), None, "MatchView"),
+        typed(q("match.watch"), None, "MatchView"),
         typed(c("match.reveal"), Some("RevealReq"), "Revealed"),
         typed(c("match.reveal_all"), None, "RevealedAll"),
-        q("me.today"),
+        typed(q("me.today"), None, "MeTodayView"),
         typed(c("me.viewed"), None, "Done"),
-        q("me.messages"),
-        q("me.inbox"),
-        q("me.thread"),
+        typed(q("me.messages"), None, "MeMessagesView"),
+        typed(q("me.inbox"), None, "MeInboxView"),
+        typed(q("me.thread"), None, "MeThreadView"),
         typed(c("me.thread_read"), Some("IdReq"), "Done"),
         typed(c("me.reply"), Some("ReplyReq"), "ActDone"),
-        q("me.message"),
+        typed(q("me.message"), None, "MeMessageView"),
         typed(c("me.answer"), Some("AnswerReq"), "Done"),
         typed(c("me.act"), Some("ActReq"), "ActDone"),
-        q("me.options"),
-        q("me.self"),
-        q("me.life"),
-        q("person.life"),
+        typed(q("me.options"), None, "MeOptionsView"),
+        typed(q("me.self"), None, "MeSelfView"),
+        typed(q("me.life"), None, "MeLifeView"),
+        typed(q("person.life"), None, "MeLifeView"),
         typed(q("me.people"), None, "PeopleView"),
         typed(q("me.promises"), None, "PromisesView"),
         typed(q("me.rumours"), None, "RumoursView"),
-        q("me.press"),
-        q("me.feed"),
-        q("social.thread"),
+        typed(q("me.press"), None, "MePressView"),
+        typed(q("me.feed"), None, "MeFeedView"),
+        typed(q("social.thread"), None, "SocialThreadView"),
         typed(q("me.story"), Some("IdReq"), "OwnStoryView"),
         typed(q("me.agent"), None, "AgentView"),
         typed(q("me.journal"), None, "JournalView"),
@@ -1289,18 +1299,18 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(c("me.goal_done"), Some("GoalDoneReq"), "Done"),
         typed(c("me.note"), Some("NoteReq"), "Done"),
         typed(c("me.note_remove"), Some("IndexReq"), "Done"),
-        q("me.calendar"),
-        q("me.football"),
+        typed(q("me.calendar"), None, "MeCalendarView"),
+        typed(q("me.football"), None, "MeFootballView"),
         typed(c("me.plan"), Some("PlanReq"), "PlanSet"),
-        q("me.contract"),
+        typed(q("me.contract"), None, "MeContractView"),
         typed(q("pathway.player"), Some("PersonReq"), "PathwayView"),
         typed(q("ecosystem.regions"), None, "RegionOutputView"),
         typed(q("ecosystem.export"), None, "ExportView"),
         typed(q("ecosystem.scenario"), None, "ScenarioView"),
         typed(q("ecosystem.district"), None, "DistrictView"),
-        q("database.sources"),
-        c("database.attach"),
-        q("database.query"),
+        typed(q("database.sources"), None, "DatabaseSourcesView"),
+        typed(c("database.attach"), None, "DatabaseAttached"),
+        typed(q("database.query"), None, "DatabaseQueryView"),
     ]
 }
 
@@ -1328,7 +1338,7 @@ pub fn typescript() -> String {
     out.push_str(INSIGHT_VISUAL_TS);
     out.push_str(STORY_GRAPHIC_TS);
     out.push('\n');
-    for d in declarations() {
+    for d in declarations().into_iter().chain(crate::contract_pages::declarations()) {
         out.push_str(&d);
         out.push('\n');
     }

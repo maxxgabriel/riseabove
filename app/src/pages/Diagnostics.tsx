@@ -1,15 +1,10 @@
+import type { DiagnosticsView } from "../contract.generated";
 import { fmtInt } from "../format";
 import { useApi } from "../store";
 import { KeyVal, Section } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
-interface Diag {
-  version: string;
-  revision: number;
-  perspective: string;
-  timings: { avg_ms: number; worst_ms: number; samples: number; recent: [number, number][] };
-  world: Record<string, number | string>;
-}
+type Diag = DiagnosticsView;
 
 export function Diagnostics() {
   usePageTitle("Diagnostics");
