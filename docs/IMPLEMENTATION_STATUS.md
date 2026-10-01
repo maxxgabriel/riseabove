@@ -383,3 +383,31 @@ world, seed 1, ten years; the real archive is not in this container, so its numb
 
 A reloaded world diverged from an uninterrupted one after the change (`qa_retention`): `growth::drift` pushed `CharacterChanged` events in
 hash-map order, which differs after a reload. Fixed by visiting players in id order, as `stagnation` already did.
+
+## 17. The lived career: making what the world knows felt — PARTIAL (core implemented)
+
+What the world already simulates, surfaced for the person a human inhabits. Everything below is a record of what happened or a
+reading of recorded state; nothing here feeds a decision (`pw-sim/tests/qa_truth_scan.rs` pins `chronicle.rs`, `chat.rs` and
+`trainlog.rs` as clean). New state lives in the extension envelope (`pw-world/src/ext.rs`): layout 5 `chronicle`, 6 `chats`, 7
+`ledger`, 8 `trainlog`, each appended and empty in an older save; new enum variants are appended so saved data stays readable.
+Recording starts when someone is inhabited (`pw_career::Game::take_control`, and on load for a save that predates it) and keeps
+going for everyone ever inhabited. Tests: `crates/pw-view/tests/chronicle.rs` (8), ext layout tests in `pw-world/src/ext.rs`.
+
+| Idea | Status | Evidence |
+| --- | --- | --- |
+| Career chronicle: a dated story, every line linked | **IMPLEMENTED** | `pw-world/src/chronicle.rs`, `pw-sim/src/chronicle.rs`, `me.chronicle`, Your story page (timeline, filters, scrapbook, people). Backfilled from creation, pathway reasons, scholarships, the event log and finished season lines; written daily from events, appearances (occasions only), university and school seasons, coverage (first at each reach, features, the first time each club is linked with you), club news. A club's first look is told when the club tells you (trial, signing), dated when it happened |
+| History callbacks and background careers | **IMPLEMENTED** | ties (teammates, classmates, coaches, scouts, the managers who let you go, mentors, the first person who took you seriously); their public moves (appointments, staff jobs, transfers, first caps, awards, retirement) become chronicle lines; facing someone from your past; arriving at a club managed by someone from your past; Today lists the people you know at your next opponent |
+| Recognition in layers | **PARTIAL** | coverage by reach (local, national, abroad) with the first piece at each, on the story page. Social accounts' geography (state fans, foreign fan accounts) is not yet read |
+| Meaningful waiting | **IMPLEMENTED** | Today's "Waiting to hear": a trial with no verdict, clubs the press links you with (in the outlet's own strength of claim), an agent sounding out a move, the diagnosis as a range. Scouts' private watching is not told (organisation knowledge stays private) |
+| Memory-rich relationships | **IMPLEMENTED** | People around you: what you shared (from the chronicle) and the remembered episodes, worded from your side; trust and respect underneath |
+| Group chats and private messages | **IMPLEMENTED** | `pw-world/src/chat.rs`, `pw-sim/src/chat.rs`, `me.chats` / `me.chat`: the squad group after matches, birthdays, arrivals and departures, club news; teammates, family, partner, captain and agent react to call-ups, debuts, injuries, release, contracts, moves. Who writes follows relationships; messages store who and why, never prose |
+| Match day as an occasion | **IMPLEMENTED** | `me.matchday`: the trip measured on the regions' map, the venue's climate in its season, selection, the captain, half-time, your minutes and goals, the treatment room, the squad chat that night, the papers, the next morning. A hidden result stops the day at kick-off |
+| Injury as an experience | **PARTIAL** | Today's "Your recovery": diagnosis and sureness, setbacks, recurrence, a rushed clearance, the six steps back, the physio, the matches watched from the stands. Not yet: the manager asking whether you are ready as its own moment, the first game back as its own moment |
+| Money feeling real | **IMPLEMENTED** | `pw-world/src/ledger.rs`, `me.money`: payslips (wage, other income, tax, take-home, living, money sent home) and bonuses as paid (net of tax and the agent), plain sentences; the client shows the world's own money (rupees with lakh and crore in an India world) |
+| Club atmosphere | **IMPLEMENTED** | Today's "Around the club": a run of results, the table, supporters, dressing-room harmony and faith in the manager, journalists, a manager under pressure |
+| Living competitions | **IMPLEMENTED** | Today's build-up for a match that means something: the derby's name, the record, the last memorable meeting, revenge, title race, promotion or relegation, returns, the papers |
+| Sense of place | **PARTIAL** | the club page's "The place" (district and state, climate, language, people, how much football matters, neighbours, universities, distance from home) for clubs in a world of regions; none for clubs elsewhere rather than a guess. Training-ground and stadium pages, local media per place and travel burden across a season are not built |
+| Training-ground life | **IMPLEMENTED** | `pw-world/src/trainlog.rs`, `me.training`: the group you trained with, your week, the coach who worked with you, the manager's word, teammates flying or off the pace, extra work, fines, returns, arrivals |
+| Travel and relocation | **PARTIAL** | match-day trips; Today's "Settling in" after a move (the plan, each hard part of the new life in words). Housing and family decisions after a transfer are only what `affairs` and life events already do |
+| Career artifacts | **IMPLEMENTED** (as keepsakes) | the story page's scrapbook (contracts, scholarships, trial invitations, call-ups, caps, medals, clippings, team sheets, certificates, transfers). No document rendering beyond a card |
+| Ambient world news, tiny imperfections, time visibly passing | **PARTIAL** | the existing world pulse and news; club changes, birthdays, weddings and children in the chats and the chronicle. No new system for misremembering or for visible ageing |
