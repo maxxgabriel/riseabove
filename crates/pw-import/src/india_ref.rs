@@ -89,7 +89,31 @@ pub const BUILTIN_FILES: &[(&str, &str)] = &[
 ];
 
 /// The tables whose records are read into typed rows. All other tables are only validated and counted.
-pub const READ_TABLES: [&str; 7] = ["state", "club", "stadium", "competition", "membership", "rivalry", "alias"];
+pub const READ_TABLES: [&str; 23] = [
+    "state",
+    "club",
+    "stadium",
+    "competition",
+    "membership",
+    "rivalry",
+    "alias",
+    "association",
+    "university",
+    "school",
+    "academy",
+    "outlet",
+    "broadcaster",
+    "rights",
+    "programme",
+    "partnership",
+    "team",
+    "licence",
+    "grade",
+    "rule",
+    "language",
+    "term",
+    "district",
+];
 
 /// Every table name the schema defines (`data/worlds/india/SCHEMA.md`). A table not in this list is reported.
 const SCHEMA_TABLES: &[&str] = &[
@@ -454,6 +478,322 @@ pub struct AliasRow {
     extra: BTreeMap<String, Value>,
 }
 
+// ------------------------------------------------------------------------------------------------- identity tables
+// Rows of the tables that give the world names and labels (institutions, the press, programmes, ladders). Enumerated fields are kept
+// as the text the file writes: a value the schema does not list is carried through as words, not rejected.
+
+/// `[[association]]`: a federation, a state or district association, or another organiser.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AssociationRow {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub abbr: Option<String>,
+    /// `national`, `state`, `institutional`, `district`; absent when the file does not say.
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub parent: Option<String>,
+    #[serde(default)]
+    pub hq_city: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[university]]`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct UniversityRow {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub short: Option<String>,
+    pub city: String,
+    pub state: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub zone: Option<String>,
+    #[serde(default)]
+    pub residential: Option<bool>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[school]]`: a school, sports school, sports hostel or SAI centre.
+#[derive(Clone, Debug, Deserialize)]
+pub struct SchoolRow {
+    pub id: String,
+    pub name: String,
+    pub city: String,
+    pub state: String,
+    /// `school`, `sports_school`, `sports_hostel`, `sai_centre`, `military`, `academy_school`.
+    pub kind: String,
+    #[serde(default)]
+    pub residential: Option<bool>,
+    #[serde(default)]
+    pub operator: Option<String>,
+    #[serde(default)]
+    pub programme: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[academy]]`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AcademyRow {
+    pub id: String,
+    pub name: String,
+    /// Absent for a programme without one home (a national elite academy that moves between centres).
+    #[serde(default)]
+    pub city: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
+    /// A club id, when the academy belongs to a club.
+    #[serde(default)]
+    pub parent: Option<String>,
+    #[serde(default)]
+    pub parent_name: Option<String>,
+    pub kind: String,
+    #[serde(default)]
+    pub residential: Option<bool>,
+    #[serde(default)]
+    pub age_groups: Vec<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[outlet]]`: a newspaper, channel or site. The file carries no credibility or quality: the simulation grows its own.
+#[derive(Clone, Debug, Deserialize)]
+pub struct OutletRow {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+    #[serde(default)]
+    pub medium: Vec<String>,
+    #[serde(default)]
+    pub languages: Vec<String>,
+    /// `national`, `multi_state`, `state`, `local`.
+    pub reach: String,
+    #[serde(default)]
+    pub home_state: Option<String>,
+    #[serde(default)]
+    pub home_city: Option<String>,
+    #[serde(default)]
+    pub focus: Vec<String>,
+    /// `specialist`, `strong`, `general`.
+    #[serde(default)]
+    pub football_emphasis: Option<String>,
+    #[serde(default)]
+    pub active: Option<bool>,
+    /// The club an official club channel belongs to.
+    #[serde(default)]
+    pub club: Option<String>,
+    /// `large`, `medium`, `small`, `niche`: only where the researcher found it defensible.
+    #[serde(default)]
+    pub audience: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[broadcaster]]`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct BroadcasterRow {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub medium: Vec<String>,
+    #[serde(default)]
+    pub languages: Vec<String>,
+    #[serde(default)]
+    pub region: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[rights]]`: who shows a competition in a season.
+#[derive(Clone, Debug, Deserialize)]
+pub struct RightsRow {
+    pub broadcaster: String,
+    /// A competition id, or words for a foreign competition.
+    pub competition: String,
+    pub season: String,
+    #[serde(default)]
+    pub languages: Vec<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[programme]]`: a grassroots, talent-identification or development programme.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ProgrammeRow {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub operator: Option<String>,
+    pub kind: String,
+    #[serde(default)]
+    pub ages: Option<String>,
+    /// `national`, or state ids (one or several).
+    #[serde(default)]
+    pub region: Option<Value>,
+    #[serde(default)]
+    pub description: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// A party abroad in a partnership, written inline.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ForeignParty {
+    pub name: String,
+    pub nation: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+}
+
+/// `[[partnership]]`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct PartnershipRow {
+    pub id: String,
+    #[serde(default)]
+    pub indian: Vec<String>,
+    #[serde(default)]
+    pub foreign: Vec<ForeignParty>,
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub purpose: Option<String>,
+    #[serde(default)]
+    pub components: Vec<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[team]]`: a national or representative side.
+#[derive(Clone, Debug, Deserialize)]
+pub struct TeamRow {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+    pub gender: String,
+    pub age: String,
+    #[serde(default)]
+    pub association: Option<String>,
+    #[serde(default)]
+    pub competitions: Vec<String>,
+    #[serde(default)]
+    pub eligibility: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[licence]]`: one step of the coaching ladder.
+#[derive(Clone, Debug, Deserialize)]
+pub struct LicenceRow {
+    pub id: String,
+    pub name: String,
+    pub body: String,
+    pub order: u8,
+    #[serde(default)]
+    pub prerequisite: Option<String>,
+    #[serde(default)]
+    pub requirement: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[grade]]`: one step of the referees' ladder.
+#[derive(Clone, Debug, Deserialize)]
+pub struct GradeRow {
+    pub id: String,
+    pub name: String,
+    pub body: String,
+    pub order: u8,
+    /// `district`, `state`, `national`, `international`.
+    pub scope: String,
+    #[serde(default)]
+    pub requirement: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[rule]]`: a rule in words (and its numbers, when the file gives them).
+#[derive(Clone, Debug, Deserialize)]
+pub struct RuleRow {
+    pub id: String,
+    pub topic: String,
+    pub statement: String,
+    /// The competitions or bodies it applies to.
+    #[serde(default)]
+    pub applies_to: Vec<String>,
+    #[serde(default)]
+    pub competition: Option<String>,
+    #[serde(default)]
+    pub season: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[language]]`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct LanguageRow {
+    pub id: String,
+    pub code: String,
+    pub name: String,
+    #[serde(default)]
+    pub script: Option<String>,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[term]]`: a football word in one language and register.
+#[derive(Clone, Debug, Deserialize)]
+pub struct TermRow {
+    pub id: String,
+    pub concept: String,
+    pub canonical: String,
+    #[serde(default)]
+    pub synonyms: Vec<String>,
+    pub register: String,
+    #[serde(default)]
+    pub region: Option<Value>,
+    pub lang: String,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
+/// `[[district]]`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct DistrictRow {
+    pub id: String,
+    pub state: String,
+    pub name: String,
+    pub prov: Prov,
+    #[serde(flatten)]
+    extra: BTreeMap<String, Value>,
+}
+
 /// A table with no typed row: only its id and provenance are read.
 #[derive(Deserialize)]
 struct Stub {
@@ -507,6 +847,22 @@ pub struct Reference {
     pub memberships: Vec<MembershipRow>,
     pub rivalries: Vec<RivalryRow>,
     pub aliases: Vec<AliasRow>,
+    pub associations: Vec<AssociationRow>,
+    pub universities: Vec<UniversityRow>,
+    pub schools: Vec<SchoolRow>,
+    pub academies: Vec<AcademyRow>,
+    pub outlets: Vec<OutletRow>,
+    pub broadcasters: Vec<BroadcasterRow>,
+    pub rights: Vec<RightsRow>,
+    pub programmes: Vec<ProgrammeRow>,
+    pub partnerships: Vec<PartnershipRow>,
+    pub teams: Vec<TeamRow>,
+    pub licences: Vec<LicenceRow>,
+    pub grades: Vec<GradeRow>,
+    pub rules: Vec<RuleRow>,
+    pub languages: Vec<LanguageRow>,
+    pub terms: Vec<TermRow>,
+    pub districts: Vec<DistrictRow>,
     /// Records loaded (with a valid provenance), by table, including tables this loader does not read into rows.
     pub by_table: BTreeMap<String, u32>,
     /// Records loaded, by provenance status, in [`ProvStatus::ALL`] order.
@@ -653,6 +1009,17 @@ impl Reference {
     }
 }
 
+/// Does a season label cover the season that begins in `year`: `2026-27`, `2026`, or a range `2023-24 to 2027-28`?
+pub fn season_covers(season: &str, year: i32) -> bool {
+    match season.split_once(" to ") {
+        Some((a, b)) => {
+            let first = |s: &str| s.trim().get(..4).and_then(|y| y.parse::<i32>().ok());
+            matches!((first(a), first(b)), (Some(x), Some(y)) if x <= year && year <= y)
+        }
+        None => season_starts(season, year),
+    }
+}
+
 /// Does a season label (`2026-27`, `2026`) begin in this year?
 pub fn season_starts(season: &str, year: i32) -> bool {
     let y = year.to_string();
@@ -749,6 +1116,9 @@ const COMP: &[&str] = &["comp."];
 const CLUB_OR_ASSOC: &[&str] = &["club.", "assoc."];
 const CLUB_OR_STATE: &[&str] = &["club.", "state."];
 const ANY: &[&str] = &[""];
+const LANG: &[&str] = &["lang."];
+const BCAST: &[&str] = &["bcast."];
+const LICENCE: &[&str] = &["licence."];
 
 /// What to check about a record once every id is known.
 struct Check {
@@ -869,6 +1239,150 @@ fn read_record(r: &mut Reference, ids: &mut HashMap<String, (String, String)>, c
             }
             None => return,
         },
+        "association" => match typed!(AssociationRow) {
+            Some(row) => {
+                let mut refs: Vec<(&'static str, String, &'static [&'static str])> = Vec::new();
+                refs.extend(row.state.iter().map(|x| ("state", x.clone(), STATE)));
+                refs.extend(row.parent.iter().map(|x| ("parent", x.clone(), ASSOC)));
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.associations.push(row);
+                out
+            }
+            None => return,
+        },
+        "university" => match typed!(UniversityRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![("state", row.state.clone(), STATE)]);
+                r.universities.push(row);
+                out
+            }
+            None => return,
+        },
+        "school" => match typed!(SchoolRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![("state", row.state.clone(), STATE)]);
+                r.schools.push(row);
+                out
+            }
+            None => return,
+        },
+        "academy" => match typed!(AcademyRow) {
+            Some(row) => {
+                let mut refs: Vec<(&'static str, String, &'static [&'static str])> = row.state.iter().map(|x| ("state", x.clone(), STATE)).collect();
+                refs.extend(row.parent.iter().map(|x| ("parent", x.clone(), CLUB)));
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.academies.push(row);
+                out
+            }
+            None => return,
+        },
+        "outlet" => match typed!(OutletRow) {
+            Some(row) => {
+                let mut refs: Vec<(&'static str, String, &'static [&'static str])> = row.home_state.iter().map(|x| ("home_state", x.clone(), STATE)).collect();
+                refs.extend(row.languages.iter().map(|x| ("languages", x.clone(), LANG)));
+                refs.extend(row.club.iter().map(|x| ("club", x.clone(), CLUB)));
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.outlets.push(row);
+                out
+            }
+            None => return,
+        },
+        "broadcaster" => match typed!(BroadcasterRow) {
+            Some(row) => {
+                let refs = row.languages.iter().map(|x| ("languages", x.clone(), LANG)).collect();
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.broadcasters.push(row);
+                out
+            }
+            None => return,
+        },
+        "rights" => match typed!(RightsRow) {
+            Some(row) => {
+                let mut refs = vec![("broadcaster", row.broadcaster.clone(), BCAST)];
+                if row.competition.starts_with("comp.") {
+                    refs.push(("competition", row.competition.clone(), COMP));
+                }
+                let out = (row.prov.clone(), None, refs);
+                r.rights.push(row);
+                out
+            }
+            None => return,
+        },
+        "programme" => match typed!(ProgrammeRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![]);
+                r.programmes.push(row);
+                out
+            }
+            None => return,
+        },
+        "partnership" => match typed!(PartnershipRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![]);
+                r.partnerships.push(row);
+                out
+            }
+            None => return,
+        },
+        "team" => match typed!(TeamRow) {
+            Some(row) => {
+                let refs = row.association.iter().map(|x| ("association", x.clone(), ASSOC)).collect();
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.teams.push(row);
+                out
+            }
+            None => return,
+        },
+        "licence" => match typed!(LicenceRow) {
+            Some(row) => {
+                let refs = row.prerequisite.iter().map(|x| ("prerequisite", x.clone(), LICENCE)).collect();
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.licences.push(row);
+                out
+            }
+            None => return,
+        },
+        "grade" => match typed!(GradeRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![]);
+                r.grades.push(row);
+                out
+            }
+            None => return,
+        },
+        "rule" => match typed!(RuleRow) {
+            Some(row) => {
+                let refs = row.competition.iter().map(|x| ("competition", x.clone(), COMP)).collect();
+                let out = (row.prov.clone(), Some(row.id.clone()), refs);
+                r.rules.push(row);
+                out
+            }
+            None => return,
+        },
+        "language" => match typed!(LanguageRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![]);
+                r.languages.push(row);
+                out
+            }
+            None => return,
+        },
+        "term" => match typed!(TermRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![("lang", row.lang.clone(), LANG)]);
+                r.terms.push(row);
+                out
+            }
+            None => return,
+        },
+        "district" => match typed!(DistrictRow) {
+            Some(row) => {
+                let out = (row.prov.clone(), Some(row.id.clone()), vec![("state", row.state.clone(), STATE)]);
+                r.districts.push(row);
+                out
+            }
+            None => return,
+        },
         _ => match parse::<Stub>(rec) {
             Ok(s) => (s.prov, s.id, vec![]),
             Err(e) => {
@@ -957,6 +1471,12 @@ prov = { status = "inferred", q = "C", src = [] }
 [[association]]
 id = "assoc.ifa"
 name = "IFA"
+prov = { status = "inferred", q = "C", src = [] }
+
+[[ownership]]
+club = "club.a"
+owner = "A holding company"
+kind = "corporate"
 prov = { status = "inferred", q = "C", src = [] }
 
 [[stadium]]
@@ -1073,8 +1593,9 @@ prov = { status = "inferred", q = "C", src = [] }
         let r = load(GOOD);
         assert_eq!(problems(&r), Vec::<String>::new());
         assert_eq!((r.states.len(), r.clubs.len(), r.stadiums.len(), r.competitions.len(), r.memberships.len()), (2, 3, 2, 1, 4));
-        assert_eq!(r.by_table["association"], 1, "a table with no typed row is counted");
-        assert_eq!(r.unread_tables(), vec![("association", 1)]);
+        assert_eq!((r.by_table["association"], r.associations.len()), (1, 1), "the association is read into a row");
+        assert_eq!(r.by_table["ownership"], 1, "a table with no typed row is counted");
+        assert_eq!(r.unread_tables(), vec![("ownership", 1)]);
         assert_eq!(r.club("club.a").unwrap().founded, Some(1921));
         assert_eq!(r.club("club.b").unwrap().founded, None, "absent is None, never zero");
         assert_eq!(r.stadium("stadium.nocap").unwrap().capacity, None);

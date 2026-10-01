@@ -583,7 +583,8 @@ mod reference {
         for &c in &imported {
             let r = reference_club(w, c).unwrap_or_else(|| panic!("{} is Imported but matches no reference club", w.clubs[c].name));
             assert!(r.prov.is_sourced_fact(), "{}: Imported needs a verified record with a source: {:?}", r.name, r.prov);
-            assert_eq!(w.comps[w.clubs[c].league].name, "West Bengal Premier League", "{}", r.name);
+            // West Bengal's state premier league, under the name the reference gives it.
+            assert_eq!(w.comps[w.clubs[c].league].name, "Calcutta Football League Premier Division", "{}", r.name);
             assert_eq!(w.clubs[c].name, r.name);
             assert_eq!(w.clubs[c].city, r.city);
         }
@@ -770,4 +771,47 @@ mod reference {
             }
         }
     }
+}
+
+#[test]
+fn the_reference_gives_the_world_its_names_press_and_institutions_and_nothing_else() {
+    use pw_world::media::OutletKind;
+    let s = world(5);
+    let w = &s.world;
+    let lore = &w.ext.lore;
+    // The press is real outlets, every one staffed, and no made-up national title or tabloid is added beside them.
+    assert!(lore.outlets.len() >= 10, "{} real outlets", lore.outlets.len());
+    let india = w.nations.iter_enumerated().find(|(_, n)| n.code == "IND").unwrap().0;
+    for (id, o) in w.media.outlets.iter_enumerated().filter(|(_, o)| o.nation == india) {
+        assert!(lore.outlets.contains_key(&id), "outlet {} of India is not a real one", o.name);
+        assert!(w.media.journalists.values().any(|j| j.outlet == id), "nobody works for {}", o.name);
+    }
+    assert!(!w.media.outlets.iter().any(|o| o.name == "The IND Sun" || o.name == "IND Sport"));
+    assert!(w.media.outlets.iter().any(|o| o.kind == OutletKind::Broadcaster), "the broadcaster holding rights this season");
+    // Each state's association and top league go by their real names where the reference has exactly one.
+    let wb = w.ext.ecosystem.regions.iter_enumerated().find(|(_, r)| r.name == "West Bengal").map(|x| x.0);
+    if let Some(wb) = wb {
+        let a = lore.associations.get(&wb).expect("West Bengal's association");
+        assert_eq!(w.ext.ecosystem.assoc_name.get(&wb), Some(&a.name));
+    }
+    assert!(!lore.competitions.is_empty());
+    for (c, src) in &lore.competitions {
+        assert!(src.id.starts_with("comp."), "{}", src.id);
+        assert!(!w.comps[*c].name.is_empty());
+    }
+    // Real schools and universities join the made-up ones, each labelled with its record; a label never gives a strength.
+    let real: Vec<u32> = lore.institutions.keys().copied().collect();
+    assert!(real.len() > 10, "{} real institutions", real.len());
+    for id in &real {
+        assert!(w.ext.ecosystem.inst.get(id).is_some_and(|p| p.real), "institution {id} carries a record but is not marked real");
+    }
+    // Words for the views and the narration.
+    assert!(lore.licences.windows(2).all(|x| x[0].order <= x[1].order) && !lore.licences.is_empty());
+    assert!(lore.terms.iter().any(|t| t.concept == "match.goal" && t.lang == "bn"));
+    assert!(lore.language_code("Bengali") == Some("bn"));
+    assert!(lore.teams.iter().all(|t| t.gender != "women"), "no women's football in this world yet");
+    // The same seed builds the same world, reference and all.
+    let again = world(5);
+    assert_eq!(again.world.media.outlets.len(), w.media.outlets.len());
+    assert_eq!(again.world.ext.lore, w.ext.lore);
 }

@@ -704,7 +704,28 @@ contract! {
         /// Clubs that took the place of a made-up one: a real name, and where the record allows it a ground and a founding year.
         pub clubs_from_reference: u32,
         pub derbies: Vec<DerbyRow>,
+        /// What else the world took from the reference data: names and words, each with the standing of its record.
+        pub associations: Vec<LabelRow>,
+        pub press: Vec<LabelRow>,
+        pub broadcasters: Vec<LabelRow>,
+        pub institutions_real: u32,
+        pub programmes: Vec<LabelRow>,
+        pub partnerships: Vec<LabelRow>,
+        pub coaching_ladder: Vec<LabelRow>,
+        pub referee_ladder: Vec<LabelRow>,
+        pub representative_sides: Vec<LabelRow>,
+        pub rules: Vec<LabelRow>,
+        /// Languages the world's football is talked about in, with an example word (how "goal" is written).
+        pub languages: Vec<LabelRow>,
         pub note: String,
+    }
+
+    /// One named thing from the reference data: its name, a line of detail, a longer note, and the standing of its record.
+    pub struct LabelRow {
+        pub name: String,
+        pub detail: String,
+        pub note: String,
+        pub origin: String,
     }
 }
 
@@ -1369,6 +1390,7 @@ pub fn declarations() -> Vec<String> {
         CalendarRow::declaration(),
         ReferenceStatusRow::declaration(),
         DerbyRow::declaration(),
+        LabelRow::declaration(),
         ScenarioView::declaration(),
         ObserveReq::declaration(),
         InhabitReq::declaration(),

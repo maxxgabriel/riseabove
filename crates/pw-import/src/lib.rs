@@ -18,6 +18,7 @@ pub mod geo;
 pub mod infer;
 pub mod model;
 pub mod india;
+pub mod india_lore;
 pub mod india_ref;
 mod positions;
 mod resolve;

@@ -28,29 +28,43 @@ use crate::generate as gen_;
 /// cities and shared title races.
 pub fn ensure_media(w: &mut World) {
     let have: Vec<NationId> = w.media.outlets.iter().map(|o| o.nation).collect();
+    let staffed: pw_world::FxHashSet<OutletId> = w.media.journalists.values().map(|j| j.outlet).collect();
     for n in w.nations.ids() {
-        if w.nations[n].leagues.is_empty() || have.contains(&n) {
+        if w.nations[n].leagues.is_empty() {
             continue;
         }
         let mut rng = Rng::keyed(&[w.seed, stream::MEDIA, u64::from(n.0)]);
-        let code = w.nations[n].code.clone();
-        let rep = f32::from(w.nations[n].reputation) / 10_000.0;
-        let reach = |base: f32| (base + rep * 8.0).clamp(1.0, 20.0) as u8;
-        let mut outlets = vec![
-            (format!("{code} Sport"), OutletKind::National, reach(8.0), 15u8, 6u8, ClubId::NONE),
-            (format!("The {code} Sun"), OutletKind::Tabloid, reach(9.0), 6, 17, ClubId::NONE),
-            (format!("{code} TV Football"), OutletKind::Broadcaster, reach(10.0), 13, 9, ClubId::NONE),
-            (format!("{code} Numbers"), OutletKind::DataSite, reach(3.0), 18, 3, ClubId::NONE),
-        ];
         let mut big: Vec<ClubId> = w.clubs.iter_enumerated().filter(|(_, c)| c.nation == n).map(|(id, _)| id).collect();
         big.sort_by_key(|&c| std::cmp::Reverse(w.clubs[c].reputation));
-        for &c in big.iter().take(6) {
-            let city = if w.clubs[c].city.is_empty() { w.clubs[c].short_name.clone() } else { w.clubs[c].city.clone() };
-            outlets.push((format!("{city} Evening Post"), OutletKind::Local, reach(4.0), 11, 9, c));
-            outlets.push((format!("{} Fan Channel", w.clubs[c].short_name), OutletKind::FanChannel, reach(2.0), 5, 14, c));
+        // A nation's press: generated when nobody has given it one; outlets a world builder made (real ones from reference data) are
+        // staffed here like any other, the first time the world is prepared.
+        let fresh: Vec<OutletId> = if have.contains(&n) {
+            w.media.outlets.iter_enumerated().filter(|(id, o)| o.nation == n && !staffed.contains(id)).map(|(id, _)| id).collect()
+        } else {
+            let code = w.nations[n].code.clone();
+            let rep = f32::from(w.nations[n].reputation) / 10_000.0;
+            let reach = |base: f32| (base + rep * 8.0).clamp(1.0, 20.0) as u8;
+            let mut outlets = vec![
+                (format!("{code} Sport"), OutletKind::National, reach(8.0), 15u8, 6u8, ClubId::NONE),
+                (format!("The {code} Sun"), OutletKind::Tabloid, reach(9.0), 6, 17, ClubId::NONE),
+                (format!("{code} TV Football"), OutletKind::Broadcaster, reach(10.0), 13, 9, ClubId::NONE),
+                (format!("{code} Numbers"), OutletKind::DataSite, reach(3.0), 18, 3, ClubId::NONE),
+            ];
+            for &c in big.iter().take(6) {
+                let city = if w.clubs[c].city.is_empty() { w.clubs[c].short_name.clone() } else { w.clubs[c].city.clone() };
+                outlets.push((format!("{city} Evening Post"), OutletKind::Local, reach(4.0), 11, 9, c));
+                outlets.push((format!("{} Fan Channel", w.clubs[c].short_name), OutletKind::FanChannel, reach(2.0), 5, 14, c));
+            }
+            outlets
+                .into_iter()
+                .map(|(name, kind, reach, accuracy, sensationalism, leaning)| w.media.outlets.push(Outlet { name, nation: n, kind, reach, accuracy, sensationalism, leaning, credibility: 55 }))
+                .collect()
+        };
+        if fresh.is_empty() {
+            continue;
         }
-        for (name, kind, reach, accuracy, sensationalism, leaning) in outlets {
-            let oid = w.media.outlets.push(Outlet { name, nation: n, kind, reach, accuracy, sensationalism, leaning, credibility: 55 });
+        for oid in fresh {
+            let (kind, leaning) = (w.media.outlets[oid].kind, w.media.outlets[oid].leaning);
             let staff = if kind == OutletKind::FanChannel { 1 } else { 1 + rng.below(3) as usize };
             for _ in 0..staff {
                 let (first, last) = crate::people::random_name(w, n, &mut rng);
@@ -97,8 +111,8 @@ pub fn ensure_media(w: &mut World) {
                     0
                 };
                 if intensity > 0 {
-                    w.media.rivals.insert((a, b), intensity);
-                    w.media.rivals.insert((b, a), intensity);
+                    w.media.rivals.entry((a, b)).or_insert(intensity);
+                    w.media.rivals.entry((b, a)).or_insert(intensity);
                 }
             }
         }

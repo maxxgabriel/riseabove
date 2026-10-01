@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { EligibilityRow, ExportView, PathwayView, RegionOutputView, ScenarioView } from "../contract.generated";
+import type { EligibilityRow, ExportView, LabelRow, PathwayView, RegionOutputView, ScenarioView } from "../contract.generated";
 import { date as fmtDate, fmtInt, money } from "../format";
 import { EntityLink } from "../components/links";
 import { useApi } from "../store";
@@ -204,6 +204,25 @@ function Scenario() {
               </div>
             )}
           </Section>
+          {d.reference_loaded && (
+            <>
+              <LabelTable title="Football associations" aside="The body each state's football answers to." rows={d.associations} cols={["Association", "State", "Based in"]} />
+              <LabelTable
+                title="Press"
+                aside={`Real outlets this world's newsrooms are. What they write comes from what happens here. ${fmtInt(d.institutions_real)} schools, hostels and universities in this world are real places too.`}
+                rows={d.press}
+                cols={["Outlet", "Kind and base", "Languages"]}
+              />
+              <LabelTable title="Broadcasters" aside="Who holds the rights in the starting season." rows={d.broadcasters} cols={["Broadcaster", "Competitions", "Languages"]} />
+              <LabelTable title="Development programmes" aside="Described, not simulated: names and what they are for." rows={d.programmes} cols={["Programme", "Run by, kind and where", "What it is"]} />
+              <LabelTable title="Partnerships" rows={d.partnerships} cols={["Parties", "What it covers", "Purpose"]} />
+              <LabelTable title="Coaching ladder" rows={d.coaching_ladder} cols={["Licence", "Step and body", "Requirement"]} />
+              <LabelTable title="Referees' ladder" rows={d.referee_ladder} cols={["Grade", "Step and body", "Scope"]} />
+              <LabelTable title="Representative sides" rows={d.representative_sides} cols={["Side", "Kind and age", "Who may play"]} />
+              <LabelTable title="Rules in words" aside="Rules as the reference words them. Numbers in a rule are not applied from here." rows={d.rules} cols={["Topic", "Applies to", "Rule"]} />
+              <LabelTable title="Languages" rows={d.languages} cols={["Language", "Football words known", "Example"]} />
+            </>
+          )}
           <Section title="Calendar">
             <div className="card">
               <KeyVal rows={d.calendar.map((c) => ({ k: c.event.replace(/([A-Z])/g, " $1").trim(), v: c.when }))} />
@@ -212,6 +231,39 @@ function Scenario() {
         </>
       )}
     </Async>
+  );
+}
+
+/** A named list from the reference data: three columns and the record's standing. Nothing is shown when the reference has none. */
+function LabelTable({ title, aside, rows, cols }: { title: string; aside?: string; rows: LabelRow[]; cols: [string, string, string] }) {
+  if (rows.length === 0) return null;
+  return (
+    <Section title={title} aside={aside}>
+      <div className="card">
+        <table className="table">
+          <thead>
+            <tr>
+              {cols.map((c) => (
+                <th key={c}>{c}</th>
+              ))}
+              <th>Data origin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td>{r.name}</td>
+                <td>{r.detail}</td>
+                <td className="muted">{r.note}</td>
+                <td>
+                  <Badge tone={r.origin === "Imported" ? "pos" : "muted"}>{r.origin}</Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
   );
 }
 

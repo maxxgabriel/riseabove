@@ -38,6 +38,10 @@ interface ClubResp {
   facilities: null | { training: number; youth: number; academy: number; medical: number };
   board: null | { satisfaction: number; patience: number; target_position: number; warnings: number };
   needs: null | { pos: string; min_ability: number; max_age: number; urgency: number }[];
+  also_known: { text: string; kind: string; origin: string }[];
+  academy: null | { name: string; kind: string; residential: boolean | null; age_groups: string[]; origin: string };
+  partners: { with: string; what: string; purpose: string; active: boolean; origin: string }[];
+  channels: { name: string; real: boolean }[];
 }
 
 type Tab = "overview" | "squad" | "staff" | "fixtures" | "finances" | "board" | "fans" | "room" | "history";
@@ -207,6 +211,7 @@ function Overview({ c }: { c: ClubResp }) {
               ]}
             />
         </SideCard>
+        <Identity c={c} />
         <Section title="Squads">
           <div className="card">
             <ul className="rows compact">
@@ -251,6 +256,58 @@ function Overview({ c }: { c: ClubResp }) {
       </aside>
       </div>
     </>
+  );
+}
+
+/** What the club is called and known by, its academy, partners and media, as the reference data has them. Nothing for a club the
+ * reference does not describe. */
+function Identity({ c }: { c: ClubResp }) {
+  const a = c.academy;
+  if (c.also_known.length === 0 && !a && c.partners.length === 0 && c.channels.length === 0) return null;
+  const origin = (o: string) => <Badge tone={o === "Imported" ? "pos" : "muted"}>{o}</Badge>;
+  return (
+    <Section title="Known as">
+      <div className="card">
+        {c.also_known.length > 0 && (
+          <ul className="rows compact">
+            {c.also_known.map((n, i) => (
+              <li key={i}>
+                <span>
+                  {n.text} <span className="faint">· {n.kind}</span>
+                </span>
+                {origin(n.origin)}
+              </li>
+            ))}
+          </ul>
+        )}
+        <KeyVal
+          rows={[
+            ...(a
+              ? [
+                  {
+                    k: "Academy",
+                    v: (
+                      <span>
+                        {a.name} <span className="faint">· {[a.kind, a.residential ? "residential" : null, a.age_groups.length > 0 ? a.age_groups.join(", ") : null].filter(Boolean).join(" · ")}</span>
+                      </span>
+                    ),
+                  },
+                ]
+              : []),
+            ...c.partners.map((p) => ({
+              k: p.active ? "Partner" : "Former partner",
+              v: (
+                <span title={p.purpose}>
+                  {p.with}
+                  {p.what && <span className="faint"> · {p.what}</span>}
+                </span>
+              ),
+            })),
+            ...(c.channels.length > 0 ? [{ k: "Club media", v: c.channels.map((m) => m.name).join(", ") }] : []),
+          ]}
+        />
+      </div>
+    </Section>
   );
 }
 

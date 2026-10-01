@@ -73,6 +73,25 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
     .collect();
     let internals = c.sees_club_internals(id);
     let followed = club.teams.iter().any(|t| w.followed.contains(t));
+    // What the club is called and known by, and its academy and partners abroad, from reference records (public identity).
+    let lore = &w.ext.lore;
+    let words = |s: &str| s.replace('_', " ");
+    let also_known: Vec<Value> = lore
+        .aliases
+        .get(&id)
+        .into_iter()
+        .flatten()
+        .filter(|a| matches!(a.kind.as_str(), "nickname" | "supporter_group" | "former_name" | "native_script" | "short_form"))
+        .map(|a| json!({"text": a.text, "kind": words(&a.kind), "origin": a.origin.label()}))
+        .collect();
+    let academy = lore.academies.get(&id).map(|a| json!({"name": a.name, "kind": words(&a.kind), "residential": a.residential, "age_groups": a.age_groups, "origin": a.source.origin.label()}));
+    let partners: Vec<Value> = lore
+        .partnerships
+        .iter()
+        .filter(|p| p.clubs.contains(&id))
+        .map(|p| json!({"with": p.foreign.iter().map(|(n, nat)| format!("{n} ({nat})")).collect::<Vec<_>>().join(", "), "what": p.components.iter().map(|x| words(x)).collect::<Vec<_>>().join(", "), "purpose": p.purpose, "active": p.active, "origin": p.source.origin.label()}))
+        .collect();
+    let channels: Vec<Value> = w.media.outlets.iter_enumerated().filter(|(_, o)| o.leaning == id).map(|(oid, o)| json!({"name": o.name, "real": lore.outlets.contains_key(&oid)})).collect();
     Ok(json!({
         "id": id.0, "name": club.name, "short": club.short_name, "city": club.city,
         "nation": named(Ref::nation(club.nation), c.nation_name(club.nation)),
@@ -82,6 +101,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "fan_mood": club.fan_mood,
         "league": league_json, "manager": manager, "teams": teams, "relation": relation, "followed": followed,
         "staff_counts": staff_counts,
+        "also_known": also_known, "academy": academy, "partners": partners, "channels": channels,
         "finance": if internals { json!({
             "balance": club.finance.balance, "transfer_budget": club.finance.transfer_budget,
             "wage_budget": club.finance.wage_budget, "wage_bill": club.finance.wage_bill,

@@ -15,7 +15,7 @@ use pw_world::recog::{Learned, Org, Segment, Source, VouchBasis};
 use pw_world::scenario::DataOrigin;
 use serde_json::Value;
 
-use crate::contract::{AspectRow, DistrictView, 
+use crate::contract::{AspectRow, DistrictView, LabelRow,
     CreationView, DerbyRow, EligibilityRow, EvidenceRow, ExportView, KnownBy, MarketRow, PathwayView, RecognitionView, ReferenceStatusRow, RegionOutputRow, RegionOutputView, ScenarioView, SegmentRegard, StepRow, TierRow, VouchView, WatchRow,
 };
 use crate::ctx::Ctx;
@@ -258,6 +258,7 @@ pub fn scenario(c: &Ctx, _args: &Value) -> ApiResult<Value> {
             crate::contract::CalendarRow { event: format!("{:?}", r.event), when }
         })
         .collect();
+    let lr = lore_rows(c);
     to_json(&ScenarioView {
         available: c.w.ext.ecosystem.is_configured(),
         source: if sc.source.is_empty() { "built-in defaults".into() } else { sc.source.clone() },
@@ -279,8 +280,98 @@ pub fn scenario(c: &Ctx, _args: &Value) -> ApiResult<Value> {
             .iter()
             .map(|d| DerbyRow { name: d.name.clone(), a: c.w.clubs[d.a].name.clone(), b: c.w.clubs[d.b].name.clone(), kind: if d.derby { "Derby" } else { "Rivalry" }.into(), origin: d.origin.label().into() })
             .collect(),
-        note: "The weights and thresholds that decide who is noticed are initial tuning held in the scenario's data, not facts about football.".into(),
+        associations: lr.associations,
+        press: lr.press,
+        broadcasters: lr.broadcasters,
+        institutions_real: c.w.ext.lore.institutions.len() as u32,
+        programmes: lr.programmes,
+        partnerships: lr.partnerships,
+        coaching_ladder: lr.licences,
+        referee_ladder: lr.grades,
+        representative_sides: lr.teams,
+        rules: lr.rules,
+        languages: lr.languages,
+        note: "The weights and thresholds that decide who is noticed are initial tuning held in the scenario's data, not facts about football. Names, programmes and rules come from reference records of the standing shown; none of them sets a strength or a result.".into(),
     })
+}
+
+#[derive(Default)]
+struct LoreRows {
+    associations: Vec<LabelRow>,
+    press: Vec<LabelRow>,
+    broadcasters: Vec<LabelRow>,
+    programmes: Vec<LabelRow>,
+    partnerships: Vec<LabelRow>,
+    licences: Vec<LabelRow>,
+    grades: Vec<LabelRow>,
+    teams: Vec<LabelRow>,
+    rules: Vec<LabelRow>,
+    languages: Vec<LabelRow>,
+}
+
+fn row(name: impl Into<String>, detail: impl Into<String>, note: impl Into<String>, origin: DataOrigin) -> LabelRow {
+    LabelRow { name: name.into(), detail: detail.into(), note: note.into(), origin: origin.label().into() }
+}
+
+/// What the world took from reference data, as rows for the scenario page (see `pw_world::lore`).
+fn lore_rows(c: &Ctx) -> LoreRows {
+    let w = c.w;
+    let lore = &w.ext.lore;
+    let lang_name = |code: &str| lore.languages.iter().find(|l| l.code == code).map_or(code.to_string(), |l| l.name.clone());
+    let langs = |v: &[String]| v.iter().map(|l| lang_name(l)).collect::<Vec<_>>().join(", ");
+    let words = |s: &str| s.replace('_', " ");
+    let mut out = LoreRows::default();
+    let mut assoc: Vec<_> = lore.associations.iter().collect();
+    assoc.sort_by_key(|(r, _)| w.ext.ecosystem.regions[**r].name.clone());
+    out.associations = assoc.into_iter().map(|(r, a)| row(a.name.clone(), w.ext.ecosystem.regions[*r].name.clone(), a.hq.clone(), a.source.origin)).collect();
+    let mut press: Vec<_> = lore.outlets.iter().filter(|(_, o)| o.kind != "broadcaster").collect();
+    press.sort_by_key(|(id, _)| **id);
+    out.press = press
+        .into_iter()
+        .map(|(id, o)| {
+            let home = if o.home.is_some() { w.ext.ecosystem.regions[o.home].name.clone() } else { words(&o.reach) };
+            row(w.media.outlets[*id].name.clone(), format!("{} · {}", words(&o.kind), home), langs(&o.languages), o.source.origin)
+        })
+        .collect();
+    out.broadcasters =
+        lore.broadcasters.iter().map(|b| row(b.name.clone(), b.comps.iter().map(|&x| w.comps[x].name.clone()).collect::<Vec<_>>().join(", "), langs(&b.languages), b.source.origin)).collect();
+    out.programmes = lore
+        .programmes
+        .iter()
+        .map(|p| {
+            let wh = if p.regions.is_empty() { "national".to_string() } else { p.regions.iter().map(|&r| w.ext.ecosystem.regions[r].name.clone()).collect::<Vec<_>>().join(", ") };
+            let ages = if p.ages.is_empty() { String::new() } else { format!(" · ages {}", p.ages) };
+            row(p.name.clone(), format!("{} · {}{ages} · {wh}", p.operator, words(&p.kind)), p.description.clone(), p.source.origin)
+        })
+        .collect();
+    out.partnerships = lore
+        .partnerships
+        .iter()
+        .map(|p| {
+            let ours: Vec<String> = p.clubs.iter().map(|&x| w.clubs[x].name.clone()).collect();
+            let theirs: Vec<String> = p.foreign.iter().map(|(n, nat)| format!("{n} ({nat})")).collect();
+            let parties = if ours.is_empty() { "All India Football Federation".to_string() } else { ours.join(", ") };
+            let status = if p.active { "" } else { " (ended)" };
+            row(format!("{parties} with {}{status}", theirs.join(", ")), p.components.iter().map(|x| words(x)).collect::<Vec<_>>().join(", "), p.purpose.clone(), p.source.origin)
+        })
+        .collect();
+    out.licences = lore.licences.iter().map(|l| row(l.name.clone(), format!("step {} · {}", l.order, l.body), l.requirement.clone(), l.source.origin)).collect();
+    out.grades = lore.grades.iter().map(|g| row(g.name.clone(), format!("step {} · {}", g.order, g.body), words(&g.scope), g.source.origin)).collect();
+    out.teams = lore.teams.iter().map(|t| row(t.name.clone(), format!("{} · {}", words(&t.kind), t.age), t.eligibility.clone(), t.source.origin)).collect();
+    out.rules = lore.rules.iter().map(|r| row(words(&r.topic), r.comps.iter().map(|&x| w.comps[x].short_name.clone()).collect::<Vec<_>>().join(", "), r.statement.clone(), r.source.origin)).collect();
+    let mut codes: Vec<&str> = lore.terms.iter().map(|t| t.lang.as_str()).collect();
+    codes.sort_unstable();
+    codes.dedup();
+    out.languages = codes
+        .into_iter()
+        .map(|code| {
+            let goal = lore.terms("match.goal", code).next();
+            let example =
+                goal.map_or(String::new(), |t| if t.romanised.is_empty() || t.romanised == t.text { format!("\"goal\": {}", t.text) } else { format!("\"goal\": {} ({})", t.text, t.romanised) });
+            row(lang_name(code), format!("{} words", lore.terms.iter().filter(|t| t.lang == code).count()), example, DataOrigin::ScenarioSeed)
+        })
+        .collect();
+    out
 }
 
 fn word(x: f32) -> &'static str {

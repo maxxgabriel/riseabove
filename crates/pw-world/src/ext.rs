@@ -23,6 +23,7 @@ use crate::FxHashMap;
 use crate::academy::AcademyExt;
 use crate::almanac::Almanac;
 use crate::ecosystem::Ecosystem;
+use crate::lore::Lore;
 use crate::medical::MedicalExt;
 use crate::pathway::PathwayExt;
 use crate::recog::Recog;
@@ -34,8 +35,9 @@ use crate::training::TrainingExt;
 /// Version of the `Extensions` layout written by this build. History: 1 = the layout at the introduction of the envelope; 2 = adds
 /// `scenario` (tuning and calendar), `recog` (what organisations know, vouches, market regard) and `pathway` (why players moved, how
 /// they were created), all appended and all empty or default in a save from layout 1; 3 = `Scenario` gains `known_derbies` and
-/// `reference` at its end (named derbies and the report of loading reference data), both empty in a save from layout 2.
-pub const EXT_VERSION: u32 = 3;
+/// `reference` at its end (named derbies and the report of loading reference data), both empty in a save from layout 2; 4 = adds
+/// `lore` (names and labels from reference data), appended and empty in a save from layout 3.
+pub const EXT_VERSION: u32 = 4;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -60,6 +62,9 @@ pub struct Extensions {
     pub recog: Recog,
     /// Owner: `pw_sim::pathway`. Why players went where they went, and how each was created.
     pub pathway: PathwayExt,
+    // ---- layout 4: appended
+    /// Owner: the world builder. Names, labels and descriptions from the scenario's reference data (`crate::lore`).
+    pub lore: Lore,
     /// Set (never saved) when this value was upgraded from an older layout: the version it came from. `pw_sim::legacy::finish`
     /// consumes it after load.
     #[serde(skip)]
@@ -78,6 +83,7 @@ pub fn steps() -> &'static [ExtStep] {
     &[
         ExtStep { from: 1, name: "add scenario tuning, organisation knowledge and pathway history", apply: v1_to_v2 },
         ExtStep { from: 2, name: "add the scenario's known derbies and reference-data report", apply: v2_to_v3 },
+        ExtStep { from: 3, name: "add names and labels from reference data", apply: v3_to_v4 },
     ]
 }
 
@@ -158,7 +164,7 @@ fn v2_to_v3(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
         known_derbies: Vec::new(),
         reference: Default::default(),
     };
-    let new = Extensions {
+    let new = ExtensionsV3 {
         medical: old.medical,
         ecosystem: old.ecosystem,
         almanac: old.almanac,
@@ -169,9 +175,29 @@ fn v2_to_v3(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
         scenario,
         recog: old.recog,
         pathway: old.pathway,
-        migrated_from: None,
     };
     bincode::serialize(&new).map_err(|e| e.to_string())
+}
+
+/// `Extensions` exactly as layout 3 wrote it. A step writes the layout it steps TO, never the current one: encoding the current
+/// `Extensions` here would put later layouts' fields into layout-3 bytes, and the later steps would add them a second time.
+#[derive(Serialize)]
+struct ExtensionsV3 {
+    medical: MedicalExt,
+    ecosystem: Ecosystem,
+    almanac: Almanac,
+    academy: AcademyExt,
+    staff: StaffExt,
+    training: TrainingExt,
+    decisions: DecisionMemory,
+    scenario: Scenario,
+    recog: Recog,
+    pathway: PathwayExt,
+}
+
+/// Layout 4 appends `lore` at the end: a save from layout 3 took nothing from reference data beyond what `scenario` already holds.
+fn v3_to_v4(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    append_default::<Lore>(bytes)
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
@@ -286,6 +312,39 @@ mod tests {
         let mut short = layout_2_bytes(&old);
         short.truncate(short.len() - 3);
         assert!(decode(2, short).is_err());
+    }
+
+    #[test]
+    fn layout_3_opens_at_layout_4_with_no_lore_and_everything_else_intact() {
+        use crate::lore::{LoreTerm, Source};
+        let mut old = Extensions::default();
+        old.ecosystem.last_year = 2030;
+        old.scenario.club_origin.insert(ClubId(3), DataOrigin::Imported);
+        // What layout 4 adds must not be claimed for a save that predates it, whatever the current value holds.
+        old.lore.terms.push(LoreTerm { concept: "match.goal".into(), lang: "bn".into(), text: "x".into(), romanised: "gol".into(), register: "neutral".into() });
+        old.lore.competitions.insert(pw_core::CompId(1), Source { id: "comp.isl".into(), origin: DataOrigin::ScenarioSeed });
+        let v3 = ExtensionsV3 {
+            medical: old.medical.clone(),
+            ecosystem: old.ecosystem.clone(),
+            almanac: old.almanac.clone(),
+            academy: old.academy.clone(),
+            staff: old.staff.clone(),
+            training: old.training.clone(),
+            decisions: old.decisions.clone(),
+            scenario: old.scenario.clone(),
+            recog: old.recog.clone(),
+            pathway: old.pathway.clone(),
+        };
+        let e = decode(3, bincode::serialize(&v3).unwrap()).expect("layout 3 upgrades");
+        assert_eq!(e.migrated_from, Some(3));
+        assert_eq!(e.ecosystem.last_year, 2030);
+        assert_eq!(e.scenario.club_origin.get(&ClubId(3)), Some(&DataOrigin::Imported));
+        assert!(e.lore.is_empty() && e.lore.competitions.is_empty(), "no reference name is claimed for an old save");
+        // Layout 2 reaches layout 4 through both steps, each writing the layout it steps to.
+        let e2 = decode(2, layout_2_bytes(&old)).expect("layout 2 upgrades through 3 to 4");
+        assert!(e2.lore.is_empty());
+        let again = decode(EXT_VERSION, bincode::serialize(&e).unwrap()).expect("layout 4 round-trips");
+        assert_eq!(again.lore, e.lore);
     }
 
     #[test]

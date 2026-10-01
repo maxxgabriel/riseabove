@@ -652,7 +652,11 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
                 add(&mut w, &mut rng, InstKind::School, format!("{d} {label}"), d, *rid, prestige, coaching, res, 0, false, false);
             }
         }
-        if let Some((d, rid)) = ds.first() {
+        // A state whose reference lists a real sports school, hostel or SAI centre gets that one (`india_lore`), not a made-up hostel.
+        let real_hostel = reference
+            .state_of_key(&s.key)
+            .is_some_and(|sr| reference.schools.iter().any(|x| x.state == sr.id && x.prov.names_real_entity() && matches!(x.kind.as_str(), "sports_school" | "sports_hostel" | "sai_centre")));
+        if let (Some((d, rid)), false) = (ds.first(), real_hostel) {
             add(&mut w, &mut rng, InstKind::School, format!("{} State Sports Hostel", s.name), d, *rid, 400, 7, 45.0, 6, true, false);
         }
         let _ = region;
@@ -692,6 +696,16 @@ pub fn build(pack: DataPack, seed: u64, scale: IndiaScale) -> World {
         }
     }
 
+    // Names, institutions, press and words from the reference data (see `india_lore`). Its draws come from a stream of their own, so
+    // the rest of the world is drawn exactly as it was without them.
+    {
+        let lore_states: Vec<crate::india_lore::StateOf> =
+            states.iter().filter_map(|s| Some(crate::india_lore::StateOf { key: s.key.clone(), region: region_of_state(&s.key)?, districts: districts(&s.key) })).collect();
+        let premier: Vec<(String, CompId)> = state_prem.iter().map(|(k, p, _)| (k.clone(), *p)).collect();
+        let built = crate::india_lore::Built { nation: india, year, states: &lore_states, placed: &placed, pyramid: &pyramid, state_premier: &premier };
+        let mut lore_rng = Rng::keyed(&[seed, stream::WORLDGEN, 0x10e5]);
+        crate::india_lore::apply(&mut w, reference, &built, &mut lore_rng);
+    }
     builder::finalize(&mut w);
     // The pyramid is exactly the four national tiers; state leagues run alongside and feed the fourth.
     w.nations[india].leagues = pyramid.clone();

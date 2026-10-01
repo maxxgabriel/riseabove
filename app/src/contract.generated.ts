@@ -411,6 +411,13 @@ export interface DerbyRow {
   origin: string;
 }
 
+export interface LabelRow {
+  name: string;
+  detail: string;
+  note: string;
+  origin: string;
+}
+
 export interface ScenarioView {
   available: boolean;
   source: string;
@@ -428,6 +435,17 @@ export interface ScenarioView {
   clubs_matched: number;
   clubs_from_reference: number;
   derbies: DerbyRow[];
+  associations: LabelRow[];
+  press: LabelRow[];
+  broadcasters: LabelRow[];
+  institutions_real: number;
+  programmes: LabelRow[];
+  partnerships: LabelRow[];
+  coaching_ladder: LabelRow[];
+  referee_ladder: LabelRow[];
+  representative_sides: LabelRow[];
+  rules: LabelRow[];
+  languages: LabelRow[];
   note: string;
 }
 

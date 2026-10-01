@@ -41,6 +41,7 @@ pub mod intl;
 pub mod knowledge;
 pub mod life;
 pub mod lifestate;
+pub mod lore;
 pub mod matchfacts;
 pub mod media;
 pub mod medical;
