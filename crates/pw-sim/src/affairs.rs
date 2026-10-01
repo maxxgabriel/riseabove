@@ -72,7 +72,13 @@ pub fn money(w: &World, who: PersonId) -> (Money, Money) {
 // ---------------------------------------------------------------------------
 
 pub fn monthly(w: &mut World) {
-    let people: Vec<PersonId> = w.people.iter_enumerated().filter(|(id, p)| (p.player.is_some() || p.staff.is_some()) && consider::age(w, *id) >= 16.0).map(|(id, _)| id).collect();
+    let today = w.date;
+    let people: Vec<PersonId> = w
+        .people
+        .iter_enumerated()
+        .filter(|(id, p)| (p.player.is_some() || p.staff.is_some()) && consider::age(w, *id) >= 16.0 && !crate::retention::left_the_game(w, *id, today))
+        .map(|(id, _)| id)
+        .collect();
     for who in people {
         if w.people[who].mind == MindKind::Ai {
             ai_choices(w, who);

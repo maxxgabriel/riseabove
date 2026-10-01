@@ -125,7 +125,7 @@ pub fn weekly(w: &mut World) {
     }
     // Unattached and retired people consider their options too.
     for (who, person) in w.people.iter_enumerated() {
-        if person.mind != MindKind::Ai || person.player.is_none() {
+        if person.mind != MindKind::Ai || person.player.is_none() || crate::retention::left_the_game(w, who, today) {
             continue;
         }
         let p = person.player;

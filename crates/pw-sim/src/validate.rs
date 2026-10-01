@@ -38,8 +38,12 @@ pub fn problems(w: &World) -> Vec<String> {
                 _ => bad(format!("person {id:?} names player {:?} who does not name them back", p.player)),
             }
         }
-        if p.staff.is_some() && p.staff.0 as usize >= n_staff {
-            bad(format!("person {id:?} names an unknown staff record"));
+        if p.staff.is_some() {
+            match w.staff.get(p.staff) {
+                Some(st) if st.person == id => {}
+                Some(_) => bad(format!("person {id:?} names staff record {:?} that names someone else", p.staff)),
+                None => bad(format!("person {id:?} names an unknown staff record")),
+            }
         }
         if p.dob.0 > w.date.0 {
             bad(format!("person {id:?} is born after today"));
@@ -60,6 +64,8 @@ pub fn problems(w: &World) -> Vec<String> {
                 bad(format!("team {tid:?} lists unknown player {p:?}"));
             } else if let Some(other) = listed.insert(p, tid) {
                 bad(format!("player {p:?} is in two squads: {other:?} and {tid:?}"));
+            } else if w.players.hot[p].status == PlayerStatus::Retired {
+                bad(format!("retired player {p:?} is still in the squad of {tid:?}"));
             }
         }
         if t.captain.is_some() && t.captain.0 as usize >= w.players.hot.len() {
@@ -76,6 +82,11 @@ pub fn problems(w: &World) -> Vec<String> {
             if h.club.0 as usize >= n_clubs {
                 bad(format!("active player {id:?} is registered to an unknown club"));
                 continue;
+            }
+            // A loan player is registered to his parent club and plays in the borrower's team.
+            let on_loan_to = c.loan.as_ref().map(|l| l.club);
+            if h.team.is_some() && (h.team.0 as usize >= n_teams || (w.teams[h.team].club != h.club && Some(w.teams[h.team].club) != on_loan_to)) {
+                bad(format!("active player {id:?} plays for team {:?}, which is not his club {:?}'s", h.team, h.club));
             }
             match listed.get(&id) {
                 Some(&t) if t == h.team => {}
@@ -99,6 +110,8 @@ pub fn problems(w: &World) -> Vec<String> {
     for (id, s) in w.staff.iter_enumerated() {
         if s.person.0 as usize >= n_people {
             bad(format!("staff {id:?} names an unknown person"));
+        } else if w.people[s.person].staff != id {
+            bad(format!("staff {id:?} and their person {:?} do not name each other", s.person));
         }
         if s.club.is_some() && s.club.0 as usize >= n_clubs {
             bad(format!("staff {id:?} works for an unknown club"));
@@ -106,6 +119,7 @@ pub fn problems(w: &World) -> Vec<String> {
     }
 
     let mut chairs = pw_world::FxHashMap::<pw_core::StaffId, pw_core::ClubId>::default();
+    let mut employer = pw_world::FxHashMap::<pw_core::StaffId, pw_core::ClubId>::default();
     for (id, c) in w.clubs.iter_enumerated() {
         // A club's manager works for that club, is not retired, and runs no other club.
         if c.manager.is_some() && (c.manager.0 as usize) < n_staff {
@@ -118,6 +132,21 @@ pub fn problems(w: &World) -> Vec<String> {
             }
             if let Some(other) = chairs.insert(c.manager, id) {
                 bad(format!("manager {:?} runs both {other:?} and {id:?}", c.manager));
+            }
+        }
+        // Rosters: each team and each staff member is listed once, by the club they belong to.
+        for (i, &t) in c.teams.iter().enumerate() {
+            if t.0 as usize >= n_teams || w.teams[t].club != id {
+                bad(format!("club {id:?} lists team {t:?}, which belongs to another club or does not exist"));
+            } else if c.teams[..i].contains(&t) {
+                bad(format!("club {id:?} lists team {t:?} twice"));
+            }
+        }
+        for &st in &c.staff {
+            if st.0 as usize >= n_staff {
+                bad(format!("club {id:?} lists unknown staff {st:?}"));
+            } else if let Some(other) = employer.insert(st, id) {
+                bad(format!("staff {st:?} is on the books of both {other:?} and {id:?}"));
             }
         }
         if c.nation.is_some() && c.nation.0 as usize >= n_nations {
@@ -136,9 +165,11 @@ pub fn problems(w: &World) -> Vec<String> {
     }
 
     for (id, comp) in w.comps.iter_enumerated() {
-        for &t in &comp.state.entrants {
+        for (i, &t) in comp.state.entrants.iter().enumerate() {
             if t.0 as usize >= n_teams {
                 bad(format!("competition {id:?} has an unknown entrant {t:?}"));
+            } else if comp.state.entrants[..i].contains(&t) {
+                bad(format!("competition {id:?} has entrant {t:?} twice"));
             }
         }
     }

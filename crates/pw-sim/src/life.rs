@@ -205,7 +205,8 @@ fn create_partner(w: &mut World, who: PersonId, since: Date, status: PartnerStat
 /// well-being. Deterministic per (seed, person, month).
 pub fn monthly(w: &mut World) {
     let month = u64::from(w.date.month()) + w.date.year() as u64 * 12;
-    let people: Vec<PersonId> = w.people.iter_enumerated().filter(|(_, p)| p.player.is_some() || p.staff.is_some()).map(|(id, _)| id).collect();
+    let today = w.date;
+    let people: Vec<PersonId> = w.people.iter_enumerated().filter(|(_, p)| p.player.is_some() || p.staff.is_some()).map(|(id, _)| id).filter(|&id| !crate::retention::left_the_game(w, id, today)).collect();
     for who in people {
         if !w.lives[who].ready {
             init(w, who);
