@@ -1,0 +1,1902 @@
+# Frames for posts, written for the account's voice (`pw-narrate/src/lang.rs` builds the speaker from the account's kind and personality).
+# A post is a report line (what happened, from the public facts) and a tail (the speaker's attitude, `tail:$behaviour`); an answer to someone else's post is its
+# attitude alone (`social.reaction`). Tails state no fact: they take the certainty of the report line and never read as firmer than it. Behaviours:
+# cheer, groan, praise, grumble, jibe, sarcasm, worry, ask, defend, concede, reluctant, hold, overrated (and the older reaction, hype, antihype ...).
+
+# Social posts for events whose news headlines are the right size for a post. A post that relays a story, or that gives an opinion about one of these,
+# states what the headline states, no more firmly than the speaker holds it (the certainty wrappers apply as they do in the press).
+
+[[frame]]
+id = "incident.reported.social.post.report.training_clash.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'training_clash'"
+time = "past"
+text = "Bust-up at {club} training"
+
+[[frame]]
+id = "incident.reported.social.post.report.training_clash.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'training_clash'"
+time = "past"
+text = "Training-ground row at {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.tactics_row.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'tactics_row'"
+time = "past"
+text = "Tactics row at {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.tactics_row.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'tactics_row'"
+time = "past"
+text = "{who} at odds with {club} staff"
+
+[[frame]]
+id = "incident.reported.social.post.report.stormed_out.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'stormed_out'"
+time = "past"
+text = "{who} storms out of {club} training"
+
+[[frame]]
+id = "incident.reported.social.post.report.stormed_out.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'stormed_out'"
+time = "past"
+text = "Walk-out at {club} training"
+
+[[frame]]
+id = "incident.reported.social.post.report.late.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'late'"
+time = "past"
+text = "{who} late for {club} duty"
+
+[[frame]]
+id = "incident.reported.social.post.report.late.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'late'"
+time = "past"
+text = "Timekeeping trouble at {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.postponed.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'postponed'"
+time = "past"
+text = "{club} match postponed"
+
+[[frame]]
+id = "incident.reported.social.post.report.postponed.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'postponed'"
+time = "past"
+text = "Postponement for {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.travel_delay.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'travel_delay'"
+time = "past"
+text = "Travel chaos for {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.travel_delay.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'travel_delay'"
+time = "past"
+text = "{club} held up on the road"
+
+[[frame]]
+id = "incident.reported.social.post.report.pitch_damage.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'pitch_damage'"
+time = "past"
+text = "Pitch trouble at {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.pitch_damage.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'pitch_damage'"
+time = "past"
+text = "{club} ground damaged"
+
+[[frame]]
+id = "incident.reported.social.post.report.facility_damage.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'facility_damage'"
+time = "past"
+text = "Damage to {club} facilities"
+
+[[frame]]
+id = "incident.reported.social.post.report.facility_damage.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'facility_damage'"
+time = "past"
+text = "{club} facilities hit"
+
+[[frame]]
+id = "incident.reported.social.post.report.equipment.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'equipment'"
+time = "past"
+text = "Equipment failure costs {club} a session"
+
+[[frame]]
+id = "incident.reported.social.post.report.equipment.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'equipment'"
+time = "past"
+text = "Training disrupted at {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.visa.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who"]
+when = "kind == 'visa'"
+time = "past"
+text = "Visa delay for {who}"
+
+[[frame]]
+id = "incident.reported.social.post.report.visa.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who"]
+when = "kind == 'visa'"
+time = "past"
+text = "{who} held up by paperwork"
+
+[[frame]]
+id = "incident.reported.social.post.report.registration.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'registration'"
+time = "past"
+text = "Registration blunder at {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.registration.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'registration'"
+time = "past"
+text = "{club} in registration mix-up"
+
+[[frame]]
+id = "incident.reported.social.post.report.coach_walked_out.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'coach_walked_out'"
+time = "past"
+text = "{who} walks out on {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.coach_walked_out.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'coach_walked_out'"
+time = "past"
+text = "{club} lose {who}"
+
+[[frame]]
+id = "incident.reported.social.post.report.staff_poached.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'staff_poached'"
+time = "past"
+text = "{club} lose {who} to a rival"
+
+[[frame]]
+id = "incident.reported.social.post.report.staff_poached.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who", "club"]
+when = "kind == 'staff_poached'"
+time = "past"
+text = "{who} lured away from {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.ownership.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'ownership'"
+time = "past"
+text = "Controversy over {club} ownership"
+
+[[frame]]
+id = "incident.reported.social.post.report.ownership.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'ownership'"
+time = "past"
+text = "Questions for {club} owners"
+
+[[frame]]
+id = "incident.reported.social.post.report.sponsor_collapse.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'sponsor_collapse'"
+time = "past"
+text = "{club} sponsor collapses"
+
+[[frame]]
+id = "incident.reported.social.post.report.sponsor_collapse.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'sponsor_collapse'"
+time = "past"
+text = "Blow for {club} as sponsor goes under"
+
+[[frame]]
+id = "incident.reported.social.post.report.investigation.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'investigation'"
+time = "past"
+text = "{club} under investigation"
+
+[[frame]]
+id = "incident.reported.social.post.report.investigation.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'investigation'"
+time = "past"
+text = "Investigation opened into {club}"
+
+[[frame]]
+id = "incident.reported.social.post.report.burglary.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who"]
+when = "kind == 'burglary'"
+time = "past"
+text = "Burglary at the home of {who}"
+
+[[frame]]
+id = "incident.reported.social.post.report.burglary.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["who"]
+when = "kind == 'burglary'"
+time = "past"
+text = "{who} burgled"
+
+[[frame]]
+id = "incident.reported.social.post.report.supporter_unrest.1"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'supporter_unrest'"
+time = "past"
+text = "{club} supporters protest"
+
+[[frame]]
+id = "incident.reported.social.post.report.supporter_unrest.2"
+event = "incident.reported"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["club"]
+when = "kind == 'supporter_unrest'"
+time = "past"
+text = "Unrest among {club} fans"
+
+[[frame]]
+id = "interview.quote.social.post.report.praise.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'praise'"
+time = "past"
+text = "{speaker} hails {about}"
+
+[[frame]]
+id = "interview.quote.social.post.report.praise.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'praise'"
+time = "past"
+text = "{speaker} full of praise for {about}"
+
+[[frame]]
+id = "interview.quote.social.post.report.praise.3"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'praise'"
+time = "past"
+text = "{about} earns praise from {speaker}"
+
+[[frame]]
+id = "interview.quote.social.post.report.praise.4"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker} full of praise"
+
+[[frame]]
+id = "interview.quote.social.post.report.praise.5"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker} delighted"
+
+[[frame]]
+id = "interview.quote.social.post.report.praise.6"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker} all smiles"
+
+[[frame]]
+id = "interview.quote.social.post.report.criticise.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'criticise'"
+time = "past"
+text = "{speaker} criticises {about}"
+
+[[frame]]
+id = "interview.quote.social.post.report.criticise.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'criticise'"
+time = "past"
+text = "{speaker} takes aim at {about}"
+
+[[frame]]
+id = "interview.quote.social.post.report.criticise.3"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'criticise' && !about"
+time = "past"
+text = "{speaker} does not hold back"
+
+[[frame]]
+id = "interview.quote.social.post.report.criticise.4"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'criticise' && !about"
+time = "past"
+text = "{speaker} in critical mood"
+
+[[frame]]
+id = "interview.quote.social.post.report.deflect.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker} gives little away"
+
+[[frame]]
+id = "interview.quote.social.post.report.deflect.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker} keeps counsel"
+
+[[frame]]
+id = "interview.quote.social.post.report.deflect.3"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker} says little"
+
+[[frame]]
+id = "interview.quote.social.post.report.ambition.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'ambition'"
+time = "past"
+text = "{speaker} talks up their ambitions"
+
+[[frame]]
+id = "interview.quote.social.post.report.ambition.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'ambition'"
+time = "past"
+text = "{speaker} sets sights high"
+
+[[frame]]
+id = "interview.quote.social.post.report.loyalty.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "club"]
+when = "stance == 'loyalty'"
+time = "past"
+text = "{speaker} says they are happy at {club}"
+
+[[frame]]
+id = "interview.quote.social.post.report.loyalty.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "club"]
+when = "stance == 'loyalty'"
+time = "past"
+text = "{speaker} committed to {club}"
+
+[[frame]]
+id = "interview.quote.social.post.report.loyalty.3"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'loyalty' && !about"
+time = "past"
+text = "{speaker} speaks of commitment"
+
+[[frame]]
+id = "interview.quote.social.post.report.complain.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'complain'"
+time = "past"
+text = "{speaker} speaks out over role"
+
+[[frame]]
+id = "interview.quote.social.post.report.complain.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'complain'"
+time = "past"
+text = "{speaker} unhappy with situation"
+
+[[frame]]
+id = "interview.quote.social.post.report.support.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'support'"
+time = "past"
+text = "{speaker} backs {about}"
+
+[[frame]]
+id = "interview.quote.social.post.report.support.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker", "about"]
+when = "stance == 'support'"
+time = "past"
+text = "{speaker} stands by {about}"
+
+[[frame]]
+id = "interview.quote.social.post.report.support.3"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'support' && !about"
+time = "past"
+text = "{speaker} stands by the squad"
+
+[[frame]]
+id = "interview.quote.social.post.report.deny.1"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'deny'"
+time = "past"
+text = "{speaker} denies the reports"
+
+[[frame]]
+id = "interview.quote.social.post.report.deny.2"
+event = "interview.quote"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["speaker"]
+when = "stance == 'deny'"
+time = "past"
+text = "{speaker} rejects the talk"
+
+[[frame]]
+id = "player.unhappy.social.post.report.any.1"
+event = "player.unhappy"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "{player} unsettled at {club}"
+
+[[frame]]
+id = "player.unhappy.social.post.report.any.2"
+event = "player.unhappy"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "{player} frustrated at {club}"
+
+[[frame]]
+id = "player.unhappy.social.post.report.any.4"
+event = "player.unhappy"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} unsettled"
+
+[[frame]]
+id = "player.praise.social.post.report.any.1"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} earns plaudits"
+
+[[frame]]
+id = "player.praise.social.post.report.any.2"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} catches the eye"
+
+[[frame]]
+id = "player.praise.social.post.report.any.3"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "Praise for {player}"
+
+[[frame]]
+id = "player.discipline.social.post.report.any.1"
+event = "player.discipline"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "{player} disciplined by {club}"
+
+[[frame]]
+id = "player.discipline.social.post.report.any.2"
+event = "player.discipline"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "{player} in trouble at {club}"
+
+[[frame]]
+id = "player.discipline.social.post.report.any.3"
+event = "player.discipline"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "{club} take action over {player}"
+
+[[frame]]
+id = "player.criticism.social.post.report.any.1"
+event = "player.criticism"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} under fire"
+
+[[frame]]
+id = "player.criticism.social.post.report.any.2"
+event = "player.criticism"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} must improve"
+
+[[frame]]
+id = "player.criticism.social.post.report.any.3"
+event = "player.criticism"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "Critics turn on {player}"
+
+[[frame]]
+id = "transfer.interest.social.post.report.1"
+event = "transfer.interest"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["buyer", "player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} are keeping tabs on {player}"
+
+[[frame]]
+id = "transfer.interest.social.post.report.2"
+event = "transfer.interest"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["buyer", "player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{player} on the radar of {buyer}"
+
+[[frame]]
+id = "transfer.interest.social.post.report.3"
+event = "transfer.interest"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["buyer", "player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are keen on {player}"
+
+[[frame]]
+id = "transfer.interest.social.post.report.4"
+event = "transfer.interest"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["buyer", "player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are tracking {player}"
+
+[[frame]]
+id = "transfer.interest.social.post.report.5"
+event = "transfer.interest"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["buyer", "player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are preparing a move for {player}"
+
+[[frame]]
+id = "transfer.interest.social.post.report.6"
+event = "transfer.interest"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["buyer", "player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are lining up an offer for {player}"
+
+[[frame]]
+id = "player.praise.social.post.report.more.1"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} making a name"
+
+[[frame]]
+id = "player.praise.social.post.report.more.2"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} impresses"
+
+[[frame]]
+id = "player.praise.social.post.report.more.3"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "Plaudits for {player}"
+
+[[frame]]
+id = "player.praise.social.post.report.more.4"
+event = "player.praise"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} on the rise"
+
+[[frame]]
+id = "player.unhappy.social.post.report.more.1"
+event = "player.unhappy"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "{player} not happy at {club}"
+
+[[frame]]
+id = "player.unhappy.social.post.report.more.2"
+event = "player.unhappy"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player", "club"]
+time = "present"
+text = "Unrest for {player} at {club}"
+
+[[frame]]
+id = "player.unhappy.social.post.report.more.3"
+event = "player.unhappy"
+channel = "social"
+slot = "bulletin"
+topic = "report"
+needs = ["player"]
+time = "present"
+text = "{player} has issues"
+
+[[frame]]
+id = "match.moment.social.post.report.s1"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+when = "kind == 'late_winner'"
+time = "past"
+certainty = ["fact"]
+text = "Late winner from {player}"
+
+[[frame]]
+id = "match.moment.social.post.report.s2"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "club"]
+when = "kind == 'late_winner'"
+time = "past"
+text = "{player} wins it late for {club}"
+
+[[frame]]
+id = "match.moment.social.post.report.s3"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "opponent"]
+when = "kind == 'late_winner'"
+time = "past"
+text = "{player} scores late to beat {opponent}"
+
+[[frame]]
+id = "match.moment.social.post.report.s4"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club", "player"]
+when = "kind == 'late_winner'"
+time = "past"
+text = "{club} win it late through {player}"
+
+[[frame]]
+id = "match.moment.social.post.report.s5"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+when = "kind == 'late_winner'"
+time = "past"
+certainty = ["fact"]
+register = "informal"
+text = "{player} with the late winner"
+
+[[frame]]
+id = "match.moment.social.post.report.s6"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "club"]
+when = "kind == 'hat_trick'"
+time = "past"
+text = "{player} scores a hat-trick for {club}"
+
+[[frame]]
+id = "match.moment.social.post.report.s7"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+when = "kind == 'hat_trick'"
+time = "past"
+certainty = ["fact"]
+text = "Hat-trick for {player}"
+
+[[frame]]
+id = "match.moment.social.post.report.s8"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "opponent"]
+when = "kind == 'hat_trick'"
+time = "past"
+text = "{player} has a hat-trick against {opponent}"
+
+[[frame]]
+id = "match.moment.social.post.report.s9"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+when = "kind == 'hat_trick'"
+time = "past"
+certainty = ["fact"]
+register = "informal"
+text = "{player} with a hat-trick"
+
+[[frame]]
+id = "match.moment.social.post.report.s10"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "opponent"]
+when = "kind == 'red_card'"
+time = "past"
+text = "{player} is sent off against {opponent}"
+
+[[frame]]
+id = "match.moment.social.post.report.s11"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+when = "kind == 'red_card'"
+time = "past"
+certainty = ["fact"]
+text = "Red card for {player}"
+
+[[frame]]
+id = "match.moment.social.post.report.s12"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "club"]
+when = "kind == 'red_card'"
+time = "past"
+text = "{player} sent off for {club}"
+
+[[frame]]
+id = "match.moment.social.post.report.s13"
+event = "match.moment"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+when = "kind == 'red_card'"
+time = "past"
+certainty = ["fact"]
+register = "informal"
+text = "{player} sees red"
+
+[[frame]]
+id = "player.transfer_request.social.post.report.s14"
+event = "player.transfer_request"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "club"]
+time = "past"
+text = "{player} has asked to leave {club}"
+
+[[frame]]
+id = "player.transfer_request.social.post.report.s15"
+event = "player.transfer_request"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+time = "past"
+text = "{player} has handed in a transfer request"
+
+[[frame]]
+id = "player.transfer_request.social.post.report.s16"
+event = "player.transfer_request"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player"]
+time = "past"
+certainty = ["fact"]
+register = "informal"
+text = "Transfer request in from {player}"
+
+[[frame]]
+id = "player.transfer_request.social.post.report.s17"
+event = "player.transfer_request"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "club"]
+time = "past"
+certainty = ["fact"]
+register = "informal"
+text = "{player} wants out at {club}"
+
+[[frame]]
+id = "match.result.social.post.report.s18"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["star", "winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+weight = 0.15
+text = "{star} stood out as {winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}"
+
+[[frame]]
+id = "match.result.social.post.report.s19"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["star", "home", "away", "home_goals", "away_goals"]
+when = "result_kind == 'draw'"
+time = "past"
+weight = 0.15
+text = "{star} stood out in the {home_goals}-{away_goals} draw between {home} and {away}"
+
+[[frame]]
+id = "match.result.social.post.report.s20"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["occasion", "winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+weight = 0.2
+text = "{occasion}: {winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}"
+
+[[frame]]
+id = "match.result.social.post.report.s21"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["occasion", "home", "away", "home_goals", "away_goals"]
+when = "result_kind == 'draw'"
+time = "past"
+weight = 0.2
+text = "{occasion} ends level: {home} {home_goals}-{away_goals} {away}"
+
+[[frame]]
+id = "tail.s.cheer.1"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.8 }
+text = "{lex:cheer.base}!"
+
+[[frame]]
+id = "tail.s.cheer.2"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.2, formality = 0.8 }
+text = "{lex:cheer.base}."
+
+[[frame]]
+id = "tail.s.cheer.3"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.8 }
+text = "Love to see it!"
+
+[[frame]]
+id = "tail.s.cheer.4"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { formality = 0.7, emotion = 0.3 }
+text = "Great to see."
+
+[[frame]]
+id = "tail.s.cheer.5"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.8, optimism = 0.9 }
+text = "This is what it is all about!"
+
+[[frame]]
+id = "tail.s.cheer.6"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+voice = { emotion = 0.8, optimism = 0.9 }
+text = "Please let this be true!"
+
+[[frame]]
+id = "tail.s.cheer.7"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+voice = { slang = 0.5 }
+text = "Fingers crossed!"
+
+[[frame]]
+id = "tail.s.cheer.8"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+voice = { emotion = 0.7 }
+text = "It would be huge if true!"
+
+[[frame]]
+id = "tail.s.cheer.9"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "cheer"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+voice = { formality = 0.7 }
+text = "Hoping this is right."
+
+[[frame]]
+id = "tail.s.groan.10"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:groan.base}."
+
+[[frame]]
+id = "tail.s.groan.11"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.7 }
+text = "Not good enough."
+
+[[frame]]
+id = "tail.s.groan.12"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.6 }
+text = "Hard to take."
+
+[[frame]]
+id = "tail.s.groan.13"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { formality = 0.6 }
+text = "Not what we needed."
+
+[[frame]]
+id = "tail.s.groan.14"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.7, optimism = 0.1 }
+text = "Not again."
+
+[[frame]]
+id = "tail.s.groan.15"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+text = "Hope this is not true."
+
+[[frame]]
+id = "tail.s.groan.16"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+voice = { slang = 0.4 }
+text = "Let's hope that's wrong."
+
+[[frame]]
+id = "tail.s.groan.17"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "groan"
+form = "full"
+certainty = ["source_claim", "rumour", "speculation"]
+voice = { emotion = 0.7 }
+text = "Please be wrong."
+
+[[frame]]
+id = "tail.s.praise.18"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:praise_adj.base}."
+
+[[frame]]
+id = "tail.s.praise.19"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.7 }
+text = "{~Absolutely|Simply|Just} {lex:praise_adj.base}."
+
+[[frame]]
+id = "tail.s.praise.20"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.6 }
+text = "Take a bow."
+
+[[frame]]
+id = "tail.s.praise.21"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { formality = 0.5 }
+text = "Deserved."
+
+[[frame]]
+id = "tail.s.praise.22"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "praise"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { slang = 0.4 }
+text = "{~Really|Properly} {lex:praise_adj.base}."
+
+[[frame]]
+id = "tail.s.reluctant.23"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "reluctant"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:concede.base} — {lex:praise_adj.base}."
+
+[[frame]]
+id = "tail.s.concede.24"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "concede"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:concede.base}."
+
+[[frame]]
+id = "tail.s.hold.25"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "hold"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:hold_line.base}."
+
+[[frame]]
+id = "tail.s.hold.26"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "hold"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { formality = 0.5, skepticism = 0.6 }
+text = "Credit to them, but I want it every week."
+
+[[frame]]
+id = "tail.s.grumble.27"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "grumble"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:criticism_adj.base}."
+
+[[frame]]
+id = "tail.s.grumble.28"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "grumble"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.6 }
+text = "{~That was|Just} {lex:criticism_adj.base}."
+
+[[frame]]
+id = "tail.s.grumble.29"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "grumble"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { emotion = 0.8, optimism = 0.1 }
+text = "Enough is enough."
+
+[[frame]]
+id = "tail.s.grumble.30"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "grumble"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { formality = 0.5, skepticism = 0.8 }
+text = "Time for some answers."
+
+[[frame]]
+id = "tail.s.grumble.31"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "grumble"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { slang = 0.4 }
+text = "{~Really|Properly} {lex:criticism_adj.base}."
+
+[[frame]]
+id = "tail.s.jibe.32"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "jibe"
+form = "full"
+text = "{lex:jibe.base}."
+
+[[frame]]
+id = "tail.s.jibe.33"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "jibe"
+form = "full"
+voice = { humour = 0.8, slang = 0.5 }
+text = "{~Oh dear|Ouch}, {lex:jibe.base}."
+
+[[frame]]
+id = "tail.s.sarcasm.34"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "sarcasm"
+form = "full"
+text = "{lex:sarcasm.base}."
+
+[[frame]]
+id = "tail.s.sarcasm.35"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "sarcasm"
+form = "full"
+voice = { humour = 0.7 }
+text = "Well, {lex:sarcasm.base}."
+
+[[frame]]
+id = "tail.s.worry.36"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "worry"
+form = "full"
+text = "{lex:worry.base}."
+
+[[frame]]
+id = "tail.s.worry.37"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "worry"
+form = "full"
+voice = { optimism = 0.2, slang = 0.4 }
+text = "Bit {~worried|nervous|concerned} about this."
+
+[[frame]]
+id = "tail.s.worry.38"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "worry"
+form = "full"
+voice = { optimism = 0.2, emotion = 0.5 }
+text = "{~Hmm|Oh dear}, {lex:worry.base}."
+
+[[frame]]
+id = "tail.s.ask.39"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "ask"
+form = "full"
+text = "{lex:ask.base}?"
+
+[[frame]]
+id = "tail.s.ask.40"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "ask"
+form = "full"
+voice = { sentence_length = 0.2 }
+text = "Thoughts?"
+
+[[frame]]
+id = "tail.s.ask.41"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "ask"
+form = "full"
+voice = { slang = 0.6, optimism = 0.2 }
+text = "Is it just me?"
+
+[[frame]]
+id = "tail.s.defend.42"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "defend"
+form = "full"
+text = "{lex:loyal.base} — {lex:patience.base}."
+
+[[frame]]
+id = "tail.s.defend.43"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "defend"
+form = "full"
+voice = { emotion = 0.6, local = 0.7 }
+text = "Back him."
+
+[[frame]]
+id = "tail.s.defend.44"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "defend"
+form = "full"
+voice = { local = 0.6 }
+text = "Stick with him."
+
+[[frame]]
+id = "tail.s.overrated.45"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "overrated"
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "{lex:hype_doubt.base}."
+
+[[frame]]
+id = "tail.s.overrated.46"
+event = "*"
+channel = "social"
+slot = "tail"
+topic = "overrated"
+form = "full"
+certainty = ["fact", "verified_report"]
+voice = { skepticism = 0.7, optimism = 0.3 }
+text = "Not getting carried away."
+
+[[frame]]
+id = "social.reaction.social.post.agree.1"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { sentence_length = 0.1 }
+text = "This."
+
+[[frame]]
+id = "social.reaction.social.post.agree.2"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+text = "Exactly."
+
+[[frame]]
+id = "social.reaction.social.post.agree.3"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { sentence_length = 0.7, formality = 0.4 }
+text = "Said it better than I could."
+
+[[frame]]
+id = "social.reaction.social.post.agree.4"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { slang = 0.6 }
+text = "100%."
+
+[[frame]]
+id = "social.reaction.social.post.agree.5"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { formality = 0.4 }
+text = "Absolutely right."
+
+[[frame]]
+id = "social.reaction.social.post.agree.6"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { formality = 0.9, slang = 0.0 }
+text = "I agree entirely."
+
+[[frame]]
+id = "social.reaction.social.post.agree.7"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { formality = 0.9, slang = 0.0 }
+text = "Quite right."
+
+[[frame]]
+id = "social.reaction.social.post.agree.8"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { slang = 0.9, formality = 0.0 }
+text = "Facts."
+
+[[frame]]
+id = "social.reaction.social.post.agree.9"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { slang = 0.95, humour = 0.5, formality = 0.0 }
+text = "No notes."
+
+[[frame]]
+id = "social.reaction.social.post.agree.10"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "agree"
+form = "full"
+voice = { formality = 0.7 }
+text = "Well said."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.11"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+voice = { emotion = 0.7 }
+text = "Not having it."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.12"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+text = "Completely wrong."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.13"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+voice = { formality = 0.6 }
+text = "Strongly disagree."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.14"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+voice = { slang = 0.5, emotion = 0.6 }
+text = "No chance."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.15"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+voice = { formality = 0.9, slang = 0.0 }
+text = "I do not see it that way."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.16"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+voice = { formality = 0.9, slang = 0.0 }
+text = "I would disagree."
+
+[[frame]]
+id = "social.reaction.social.post.disagree.17"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "disagree"
+form = "full"
+voice = { slang = 0.9, formality = 0.0 }
+text = "Nope."
+
+[[frame]]
+id = "social.reaction.social.post.jibe.18"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "jibe"
+form = "full"
+text = "{lex:jibe.base}."
+
+[[frame]]
+id = "social.reaction.social.post.jibe.19"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "jibe"
+form = "full"
+needs = ["club"]
+text = "{club:short} — {lex:jibe.base}."
+
+[[frame]]
+id = "social.reaction.social.post.sarcasm.20"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "sarcasm"
+form = "full"
+text = "{lex:sarcasm.base}."
+
+[[frame]]
+id = "social.reaction.social.post.sarcasm.21"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "sarcasm"
+form = "full"
+needs = ["club"]
+text = "{club:short} — {lex:sarcasm.base}."
+
+[[frame]]
+id = "social.reaction.social.post.cheer.22"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "cheer"
+form = "full"
+text = "{lex:cheer.base}!"
+
+[[frame]]
+id = "social.reaction.social.post.cheer.23"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "cheer"
+form = "full"
+needs = ["club"]
+text = "{club:short} — {lex:cheer.base}!"
+
+[[frame]]
+id = "social.reaction.social.post.ask.24"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "ask"
+form = "full"
+text = "{lex:ask.base}?"
+
+[[frame]]
+id = "social.reaction.social.post.ask.25"
+event = "social.reaction"
+channel = "social"
+slot = "post"
+topic = "ask"
+form = "full"
+needs = ["club"]
+text = "{club:short} — {lex:ask.base}?"

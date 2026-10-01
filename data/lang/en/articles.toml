@@ -150,3 +150,52 @@ event = "match.analysis"
 channel = "news"
 structure = ["headline:report", "lede:report"]
 required = ["headline:report", "lede:report"]
+
+# An answer to someone else's post is its stance alone (the request's behaviour): there is no report line.
+[[article]]
+event = "social.reaction"
+channel = "social"
+structure = ["post:$behaviour"]
+required = ["post:$behaviour"]
+
+[[article]]
+event = "interview.quote"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.unhappy"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.praise"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.discipline"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.criticism"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "incident.reported"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "transfer.interest"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]

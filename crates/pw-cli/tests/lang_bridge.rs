@@ -217,16 +217,19 @@ fn the_engines_options_are_the_decisions_own_choices_with_what_each_does() {
         }
         assert!(lang::decision(w, &d).is_some(), "{:?} is worded", d.kind);
     }
-    // An effect no decision can carry out is never offered.
-    assert!(lang::effect_choice("transfer.open_bid").is_none() && lang::effect_choice("inbox.dismiss").is_none());
+    // An effect no decision can carry out is never offered: nobody here bids or keeps a shortlist, and there is no reply that only asks for a fuller medical
+    // report (see `docs/LANGUAGE.md`), so these would promise what the world does not do.
+    for effect in ["transfer.open_bid", "transfer.drop_target", "medical.request_report", "inbox.dismiss"] {
+        assert!(lang::effect_choice(effect).is_none(), "{effect} must stay unoffered until something does what it says");
+    }
+    // The injury decision is worded by the older text, so its options are the simulation's own (surgery, rehabilitation).
+    let treatment = with_choices(decision_for(w, pro, DecisionKind::Treatment { surgery_days: 40, rehab_days: 80 }));
+    assert!(lang::decision_options(w, &treatment).is_empty());
 }
 
 #[test]
 fn a_post_that_relays_a_story_is_no_firmer_than_the_story_or_the_post() {
-    use pw_world::media::ClaimType;
-    use pw_world::socialnet::{Concept, Frame};
-    let s = india_world(56, 500);
-    let w = &s.world;
+    let w = &shared().world;
     let (mut engine_posts, mut relays) = (0, 0);
     for p in w.net.posts.iter() {
         if p.concept != Concept::Relay {
@@ -245,6 +248,8 @@ fn a_post_that_relays_a_story_is_no_firmer_than_the_story_or_the_post() {
         assert_eq!(text, lang::post(w, p).unwrap(), "posts read the same way each time");
     }
     eprintln!("relay posts {relays}, written by the engine {engine_posts}");
+    // Not vacuous: most relays are the engine's (the rest are of stories it has no event for).
+    assert!(engine_posts * 10 >= relays * 8, "{engine_posts} of {relays} relays are the engine's");
 }
 
 #[test]
@@ -455,4 +460,278 @@ fn supporters_celebrate_in_their_own_language_and_reports_name_the_derby() {
         }
     }
     assert!(derby_reports > 0 && named > 0, "{derby_reports} derby reports, {named} named the derby");
+}
+
+#[test]
+#[ignore = "debug"]
+fn post_mix() {
+    let s = india_world(56, 500);
+    let w = &s.world;
+    let mut by = std::collections::BTreeMap::<String, usize>::new();
+    let mut shown = std::collections::BTreeMap::<String, usize>::new();
+    for p in w.net.posts.iter() {
+        let f = format!("{:?}", p.frame);
+        let f = f.split(|c: char| !c.is_alphanumeric()).next().unwrap_or("").to_string();
+        let t = lang::post(w, p);
+        *by.entry(format!("{:?} / {f} / engine={}", p.concept, t.is_some())).or_default() += 1;
+        if let Some(t) = t {
+            let n = shown.entry(format!("{:?}/{f}", p.concept)).or_default();
+            if *n < 3 {
+                *n += 1;
+                eprintln!("SAMPLE {:?}/{f}: {t}", p.concept);
+            }
+        }
+    }
+    for (k, n) in by {
+        eprintln!("MIX {n:5} {k}");
+    }
+    eprintln!("posts {}", w.net.posts.len());
+}
+
+// ---------------------------------------------------------------------------------------------------- social posts: opinion, banter, answers
+
+use pw_world::media::ClaimType;
+use pw_world::socialnet::{Concept, Frame, Knew, NO_POST, Post};
+
+/// One India world for every test of the posts (seed 56, 500 days): building it is most of what they cost.
+fn shared() -> &'static Sim {
+    static W: std::sync::OnceLock<Sim> = std::sync::OnceLock::new();
+    W.get_or_init(|| india_world(56, 500))
+}
+
+/// A post the world did not make, about something real in it: for the checks that should not depend on what the seed happened to produce.
+fn made_up(w: &pw_world::World, id: u32, author: u32, frame: Frame, concept: Concept, about: pw_core::PersonId, club: pw_core::ClubId) -> Post {
+    Post {
+        id,
+        author,
+        date: w.date,
+        minute: 600,
+        frame,
+        concept,
+        about,
+        about2: pw_core::PersonId::NONE,
+        club,
+        extra: 0,
+        intensity: 50,
+        claim: ClaimType::Opinion,
+        reply_to: NO_POST,
+        quote_of: NO_POST,
+        refs: Default::default(),
+        likes: 0,
+        reposts: 0,
+        replies: 0,
+        depth: 0,
+        knew: Knew::Watched,
+        prior: 0,
+    }
+}
+
+/// The concepts whose wording the engine owns (the rest keep the older, personality-driven text: see `the_posts_the_engine_does_not_write_keep_their_text`).
+fn engine_concept(c: Concept) -> bool {
+    !matches!(c, Concept::Relay | Concept::CompareLegend | Concept::CallOut | Concept::Recall | Concept::Chant | Concept::Meme | Concept::Statement | Concept::Looks | Concept::Folklore)
+}
+
+#[test]
+fn opinion_banter_and_answers_are_written_by_the_engine_clean_and_the_same_each_time() {
+    let w = &shared().world;
+    let (mut by_engine, mut opinions, mut agree, mut agree_engine) = (0usize, 0usize, 0usize, 0usize);
+    let mut seen: std::collections::BTreeMap<String, usize> = Default::default();
+    let mut texts = std::collections::BTreeSet::new();
+    for p in &w.net.posts {
+        if !engine_concept(p.concept) {
+            continue;
+        }
+        opinions += 1;
+        if matches!(p.concept, Concept::Agree | Concept::Disagree) {
+            agree += 1;
+        }
+        let Some(text) = lang::post(w, p) else { continue };
+        by_engine += 1;
+        if matches!(p.concept, Concept::Agree | Concept::Disagree) {
+            agree_engine += 1;
+        }
+        *seen.entry(format!("{:?}", p.concept)).or_default() += 1;
+        let issues = pw_lang::check::check_text(&text);
+        assert!(issues.is_empty(), "{:?} on {:?}: {issues:?}: {text}", p.concept, p.frame);
+        assert_eq!(text, lang::post(w, p).unwrap(), "the same post reads the same way each time");
+        assert_eq!(text, pw_narrate::social::post(w, p), "the page shows the engine's words, not older ones");
+        texts.insert(text);
+    }
+    eprintln!("opinion posts {opinions}, by the engine {by_engine}: {seen:?}");
+    // Answers to other posts carry no facts: all of them are the engine's, and so is most of what is said about real events.
+    assert_eq!(agree, agree_engine, "every answer is written by the engine");
+    assert!(by_engine * 10 >= opinions * 7, "{by_engine} of {opinions} opinion posts are the engine's");
+    for c in ["Celebrate", "Lament", "Criticise", "Question", "Mock", "Sarcasm", "Worry"] {
+        assert!(seen.get(c).is_some_and(|n| *n > 0), "no {c} post written by the engine in {seen:?}");
+    }
+    assert!(texts.len() > 100, "{} distinct texts: the words should vary", texts.len());
+}
+
+#[test]
+fn a_post_about_a_rumour_or_a_claim_is_no_firmer_than_the_story() {
+    use pw_world::media::StoryKind;
+    let w = &shared().world;
+    let hedges = [
+        "rumour", "speculation", "sources", "claim", "insist", "word is", "whispers", "talk", "according", "per ", "perhaps", "may be", "one reading", "understood", "reports", "reported", "hear", "reading",
+    ];
+    let firm = ["confirmed", "officially", "announced", "it is official", "completed", "agreed", "done deal"];
+    let mut weak = 0;
+    for p in &w.net.posts {
+        let Frame::Story { story } = p.frame else { continue };
+        let st = &w.media.stories[story];
+        let Some(text) = lang::post(w, p) else { continue };
+        let lower = text.to_lowercase();
+        // Only the stories that rest on someone's word: a leak, a rumour, a guess about a manager's future.
+        let rests_on_word = matches!(st.kind, StoryKind::TransferRumour | StoryKind::Leak | StoryKind::ManagerPressure) || st.leaker.is_some() || p.concept == Concept::Relay;
+        if !rests_on_word {
+            continue;
+        }
+        weak += 1;
+        assert!(firm.iter().all(|f| !lower.contains(f)), "{:?} post about a {:?} story reads firmly: {text}", p.concept, st.kind);
+        assert!(hedges.iter().any(|h| lower.contains(h)), "{:?} post about a {:?} story carries no attribution: {text}", p.concept, st.kind);
+        if st.kind == StoryKind::TransferRumour && st.claim < 75 {
+            assert!(!lower.contains(" bid") && !lower.contains("signs"), "a claim of {} was posted as a deal: {text}", st.claim);
+        }
+    }
+    assert!(weak > 10, "only {weak} posts rest on someone's word");
+}
+
+#[test]
+fn public_posts_carry_what_the_public_holds_and_nothing_private() {
+    let w = &shared().world;
+    let authors: Vec<u32> = w.net.accounts.iter().filter(|a| a.kind != pw_world::socialnet::AccountKind::Person && a.club.is_some()).map(|a| a.id).take(40).collect();
+    assert!(authors.len() > 10);
+    let player = w.players.hot.iter_enumerated().find(|(_, h)| h.club.is_some() && h.status == pw_world::PlayerStatus::Active).map(|x| x.0).unwrap();
+    let person = w.players.cold[player].person;
+    let club = w.players.hot[player].club;
+    let other = w.clubs.ids().find(|&c| c != club).unwrap();
+    let concepts = [Concept::Praise, Concept::Criticise, Concept::Lament, Concept::Worry, Concept::Question, Concept::Mock, Concept::Sarcasm, Concept::Celebrate];
+    let mut id = 1_000_000;
+    let mut written = 0;
+    let digits_or_money = |t: &str| -> Option<String> {
+        if t.chars().any(|c| c.is_ascii_digit() || c == '₹' || c == '£') {
+            return Some("a number or an amount".into());
+        }
+        ["crore", "lakh", "rs "].iter().find(|m| t.contains(**m)).map(|m| (*m).to_string())
+    };
+    // Whole words: "what a day" is a cheer, "out for two days" is a diagnosis.
+    let words = |t: &str, list: &[&str]| -> Option<String> {
+        let ws: Vec<&str> = t.split(|c: char| !c.is_alphanumeric()).collect();
+        list.iter().find(|m| ws.contains(m)).map(|m| (*m).to_string())
+    };
+    // An injury, a signing, a transfer request: said, never how long, what with, for how much, on what wage or why.
+    let cases: Vec<(Frame, &str, Vec<&str>)> = vec![
+        (Frame::Injury { player }, "injury", vec!["week", "weeks", "month", "months", "days", "ligament", "hamstring", "fracture", "acl", "surgery", "diagnosis"]),
+        (Frame::Signing { player, club }, "signing", vec!["wage", "salary", "contract", "years", "clause", "agent"]),
+        (Frame::Departure { player, from: club, to: other }, "departure", vec!["wage", "salary", "contract", "clause", "agent"]),
+        (Frame::TransferRequest { player }, "request", vec!["wage", "salary", "contract", "clause", "agent", "because"]),
+    ];
+    for (frame, what, banned) in cases {
+        for &a in &authors {
+            for c in concepts {
+                id += 1;
+                let p = made_up(w, id, a, frame, c, person, club);
+                let Some(text) = lang::post(w, &p) else { continue };
+                written += 1;
+                assert!(pw_lang::check::check_text(&text).is_empty(), "{what}: {text}");
+                let lower = text.to_lowercase();
+                if let Some(bad) = digits_or_money(&lower).or_else(|| words(&lower, &banned)) {
+                    panic!("{what}: {bad} in {text:?}");
+                }
+            }
+        }
+    }
+    assert!(written > 100, "only {written} made-up posts were written");
+    // Incidents: the first two people and the club, and only the kinds the press may report; private matters keep to the older text, which has its own rules.
+    let personal = ["FamilyEmergency", "RelationshipConflict", "Pregnancy", "MovingProblem", "ExamClash", "ChildcareClash", "UnexpectedBill", "PaperworkProblem", "EconomicDownturn", "TransportDisruption", "SevereWeather", "FederationDispute"];
+    let (mut public, mut private) = (0, 0);
+    for i in w.incidents.list.iter().take(300) {
+        let kind = format!("{:?}", i.kind);
+        let about = i.parties.first().copied().unwrap_or(pw_core::PersonId::NONE);
+        let p = made_up(w, 2_000_000 + i.id, authors[0], Frame::Incident { incident: i.id }, Concept::Lament, about, i.club);
+        match lang::post(w, &p) {
+            Some(text) => {
+                public += 1;
+                assert!(!personal.contains(&kind.as_str()), "a private matter ({kind}) was posted: {text}");
+                for &third in i.parties.iter().skip(2) {
+                    let name = w.people[third].display_name(&w.names).into_owned();
+                    assert!(!text.contains(&name), "{name}, a third party, named in {text}");
+                }
+            }
+            None if personal.contains(&kind.as_str()) => private += 1,
+            None => {}
+        }
+    }
+    eprintln!("incidents: {public} public posts written, {private} private ones left to the older text");
+}
+
+#[test]
+fn the_posts_the_engine_does_not_write_keep_their_text() {
+    let w = &shared().world;
+    let (mut chants, mut memes) = (0, 0);
+    for p in &w.net.posts {
+        if matches!(p.concept, Concept::Chant | Concept::Meme | Concept::CallOut | Concept::Statement | Concept::Looks | Concept::Folklore | Concept::Recall | Concept::CompareLegend) {
+            assert!(lang::post(w, p).is_none(), "{:?} is not the engine's to write", p.concept);
+            let text = pw_narrate::social::post(w, p);
+            assert!(!text.trim().is_empty() || p.concept == Concept::Statement, "{:?} lost its text", p.concept);
+            match p.concept {
+                Concept::Chant => chants += 1,
+                Concept::Meme => memes += 1,
+                _ => {}
+            }
+        }
+        // A post about a manager's football uses the manager's philosophy, which only the older text has.
+        if matches!(p.concept, Concept::Praise | Concept::Criticise) && p.about.is_some() && w.people[p.about].staff.get().is_some_and(|s| w.staff[s].role == pw_world::StaffRole::Manager) {
+            assert!(lang::post(w, p).is_none());
+        }
+    }
+    eprintln!("chants {chants}, memes {memes}");
+}
+
+#[test]
+fn the_account_s_personality_moves_the_words_and_the_same_account_always_sounds_the_same() {
+    use pw_world::socialnet::Age;
+    let mut w = shared().world.clone();
+    let posts: Vec<Post> = w.net.posts.iter().filter(|p| engine_concept(p.concept)).take(600).cloned().collect();
+    let say = |w: &pw_world::World| -> Vec<Option<String>> { posts.iter().map(|p| lang::post(w, p)).collect() };
+    let set = |w: &mut pw_world::World, joker: bool| {
+        for a in w.net.accounts.iter_mut() {
+            a.age = if joker { Age::Teen } else { Age::Older };
+            a.intensity = if joker { 95 } else { 10 };
+            let p = &mut a.persona;
+            (p.humour, p.hostility, p.optimism, p.knowledge, p.stats, p.credulity) = if joker { (95, 90, 5, 20, 5, 90) } else { (5, 5, 95, 90, 90, 10) };
+        }
+    };
+    set(&mut w, true);
+    let loud = say(&w);
+    assert_eq!(loud, say(&w), "the same account sounds the same");
+    set(&mut w, false);
+    let quiet = say(&w);
+    let (mut both, mut differ) = (0, 0);
+    for (a, b) in loud.iter().zip(&quiet) {
+        if let (Some(a), Some(b)) = (a, b) {
+            both += 1;
+            differ += usize::from(a != b);
+            assert!(pw_lang::check::check_text(a).is_empty() && pw_lang::check::check_text(b).is_empty(), "{a} / {b}");
+        }
+    }
+    eprintln!("{differ} of {both} posts are worded differently by a teenage joker and a formal older account");
+    assert!(both > 200 && differ * 3 > both, "personality barely moves the words: {differ} of {both}");
+}
+
+#[test]
+fn a_reloaded_world_reads_every_post_the_same_way() {
+    let w = &shared().world;
+    let dir = std::env::temp_dir().join(format!("pw-lang-posts-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("w.sav");
+    pw_sim::save::save(w, &path).unwrap();
+    let back: pw_world::World = pw_sim::save::load(&path).unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+    let mut n = 0;
+    for (a, b) in w.net.posts.iter().zip(&back.net.posts) {
+        assert_eq!(pw_narrate::social::post(w, a), pw_narrate::social::post(&back, b), "{:?} on {:?} reads differently after a reload", a.concept, a.frame);
+        n += 1;
+    }
+    assert!(n > 500, "{n} posts compared");
 }

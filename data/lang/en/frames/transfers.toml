@@ -78,6 +78,7 @@ slot = "post"
 topic = "report"
 needs = ["player", "buyer"]
 time = "past"
+certainty = ["fact"]
 register = "informal"
 text = "Bid in for {player} from {buyer}"
 

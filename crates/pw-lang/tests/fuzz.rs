@@ -103,7 +103,8 @@ fn facts_for(eng: &Engine, kind: &str, rng: &mut Rng) -> BTreeMap<String, Value>
     let def = &eng.lang.events[kind];
     let mut out = BTreeMap::new();
     for (i, f) in def.facts.iter().enumerate() {
-        let alts = alternatives(&f.key);
+        // A match moment's `kind` picks which of its frames can be used, so the fuzz tries each.
+        let alts = if kind == "match.moment" && f.key == "kind" { vec![Value::Text("late_winner".into()), Value::Text("hat_trick".into()), Value::Text("red_card".into())] } else { alternatives(&f.key) };
         let v = if alts.is_empty() { sample(&f.ty, &f.key, i + rng.below(3)) } else { alts[rng.below(alts.len())].clone() };
         out.insert(f.key.clone(), v);
     }
@@ -153,7 +154,10 @@ fn every_state_renders_clean() {
     let kinds: Vec<String> = eng.lang.events.keys().cloned().collect();
     let voices: Vec<String> = eng.lang.voices.keys().cloned().collect();
     let channels: Vec<String> = eng.lang.channels.keys().cloned().collect();
-    let behaviours = ["reaction", "hype", "antihype", "skepticism", "analysis", "joke", "anger", "praise", "nostalgia", "correction", "quote"];
+    let behaviours = [
+        "reaction", "hype", "antihype", "skepticism", "analysis", "joke", "anger", "praise", "nostalgia", "correction", "quote", "cheer", "groan", "grumble", "jibe", "sarcasm", "worry", "ask", "defend", "concede", "reluctant", "hold", "overrated",
+        "agree", "disagree",
+    ];
     let mut rng = Rng(0x5eed);
     let (mut renders, mut nonempty) = (0usize, 0usize);
     let mut bad: Vec<String> = Vec::new();
