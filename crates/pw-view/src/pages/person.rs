@@ -116,7 +116,20 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         let loan = cold.loan.as_ref().map(|l| json!({"parent": Named::new(Ref::club(l.parent), c.club_name(l.parent)), "club": Named::new(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0}));
         let held = c.unrevealed_apps(p);
         let career_unknown = w.origins.person(id).is_some_and(|o| o.get(pw_world::origin::Facet::Career) == pw_world::origin::Origin::Unknown);
+        // (`contract` covers the squad status that goes with it.) A `null` above is one of three things; the first two are named here so a client does not have to guess: the viewer may not see it
+        // (`hidden`), nobody has a record of it (`unknown`), or it does not apply (a free agent has no contract: in neither list).
+        let hidden: Vec<&str> = [
+            (seen.terms.is_none(), "contract"),
+            (seen.value.is_none(), "value"),
+            (seen.body.is_none(), "condition"),
+            (seen.engine.is_none(), "internal"),
+        ]
+        .into_iter()
+        .filter_map(|(is, name)| is.then_some(name))
+        .collect();
+        let unknown: Vec<&str> = if career_unknown { vec!["senior_apps", "senior_goals"] } else { Vec::new() };
         player_json = json!({
+            "hidden": hidden, "unknown": unknown,
             "player_id": p.0,
             "best_pos": cold.best_pos.code(),
             "positions": positions,

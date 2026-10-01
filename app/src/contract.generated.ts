@@ -1242,6 +1242,7 @@ export interface PersonViewPlayer {
   contract: PersonViewPlayerContract | null;
   foot: string;
   form: number[];
+  hidden: string[];
   height: number;
   internal: PersonViewPlayerInternal | null;
   intl_goals: number;
@@ -1249,12 +1250,13 @@ export interface PersonViewPlayer {
   loan: PersonViewPlayerLoan | null;
   player_id: number;
   positions: PersonViewPlayerPosition[];
-  senior_apps: number;
-  senior_goals: number;
+  senior_apps: number | null;
+  senior_goals: number | null;
   shirt: number;
   squad_status: string | null;
   team: string | null;
   traits: string[];
+  unknown: string[];
   value: number | null;
   weight: number;
   youth_club: Named | null;

@@ -325,6 +325,8 @@ response! {
         pub contract: Option<PersonViewPlayerContract>,
         pub foot: String,
         pub form: Vec<f64>,
+        /// Fields that are `null` because this viewer may not see them (a hidden value, not a missing one).
+        pub hidden: Vec<String>,
         pub height: f64,
         pub internal: Option<PersonViewPlayerInternal>,
         pub intl_goals: f64,
@@ -332,12 +334,15 @@ response! {
         pub loan: Option<PersonViewPlayerLoan>,
         pub player_id: f64,
         pub positions: Vec<PersonViewPlayerPosition>,
-        pub senior_apps: f64,
-        pub senior_goals: f64,
+        /// `None` when no record of the career before this world exists (`career_coverage` is "unknown" and `unknown` lists it).
+        pub senior_apps: Option<f64>,
+        pub senior_goals: Option<f64>,
         pub shirt: f64,
         pub squad_status: Option<String>,
         pub team: Option<String>,
         pub traits: Vec<String>,
+        /// Fields that are `null` because nobody has a record of them (not hidden from the viewer: not known to anyone).
+        pub unknown: Vec<String>,
         pub value: Option<f64>,
         pub weight: f64,
         pub youth_club: Option<NamedIn>,

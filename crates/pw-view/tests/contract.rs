@@ -660,3 +660,36 @@ fn queries_are_read_through_declared_requests_that_refuse_what_they_do_not_name(
     assert_eq!(kind(api.call("table.query", json!({"table": "players", "sort": {"key": "name", "desc": false, "zz": 1}}))), Err(ErrorKind::InvalidRequest));
     assert_eq!(kind(api.call("table.query", json!({"table": "players", "filters": {"kind": "first"}, "sort": {"key": "name"}, "offset": 0, "limit": 5, "columns": null, "preset": null}))), Ok(()));
 }
+
+/// A `null` on the person page is not left to be guessed: what the viewer may not see is named in `hidden`, what nobody has a record of
+/// in `unknown`; a null that is in neither simply does not apply (a free agent has no contract).
+#[test]
+fn a_null_on_the_person_page_says_whether_it_is_hidden_or_unknown() {
+    let api = world();
+    let t = api.call("table.query", json!({"table": "players", "filters": {"kind": "first", "status": "active"}, "limit": 60})).unwrap();
+    let people: Vec<u64> = t["rows"].as_array().unwrap().iter().map(|r| r["open"]["id"].as_u64().unwrap()).collect();
+    let all = ["contract", "value", "condition", "internal"];
+    let page = |api: &Api, id: u64| api.call("person", json!({"id": id})).unwrap()["player"].clone();
+    // The omniscient view hides nothing.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
+    for &id in &people {
+        let p = page(&api, id);
+        assert_eq!(p["hidden"], json!([]), "the omniscient view hides something from {id}");
+        assert!(all.iter().all(|f| !p[f].is_null()) && !p["squad_status"].is_null(), "{id}: {p}");
+    }
+    // The public view is told it, and what it is told is true: every hidden field is null.
+    api.call("persp.observe", json!({"public": true})).unwrap();
+    for &id in &people {
+        let p = page(&api, id);
+        let hidden: Vec<&str> = p["hidden"].as_array().unwrap().iter().map(|v| v.as_str().unwrap()).collect();
+        assert_eq!(hidden, all, "a stranger is told what is withheld ({id})");
+        assert!(hidden.iter().all(|f| p[*f].is_null()) && p["squad_status"].is_null(), "{id}: a field listed as hidden is not null: {p}");
+        assert_eq!(p["unknown"], json!([]), "nothing about a made-up career is unknown ({id})");
+    }
+    // The man himself is not hidden from himself: his own terms, worth and body are his; the engine's numbers are not.
+    let me = people[people.len() / 2];
+    api.call("persp.inhabit", json!({"person": me})).unwrap();
+    assert_eq!(page(&api, me)["hidden"], json!(["internal"]));
+    let stranger = page(&api, people[0]);
+    assert_eq!(stranger["hidden"].as_array().unwrap().len(), 4);
+}
