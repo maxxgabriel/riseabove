@@ -454,6 +454,15 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             (s.t(format!("{outlet} wrote \u{201c}{head}\u{201d}{tail}")).done(), "recognition", None)
         }
         Line::Terms { .. } => return None,
+        Line::Language { nation, level } => {
+            // Nations carry a language family, not a name for it: say what it is to live in it.
+            let how = match level {
+                1 => "Getting by in the language in ",
+                2 => "Comfortable in the language in ",
+                _ => "Fluent in the language in ",
+            };
+            (s.t(how).nation(nation).done(), "life", None)
+        }
         Line::Talked { reach, club, nation, region } => {
             use pw_world::chronicle::FanReach as R;
             let s = match reach {
@@ -589,6 +598,7 @@ pub fn chronicle(c: &Ctx) -> ApiResult<Value> {
         entries,
         people: people.into_iter().map(|(_, t)| t).collect(),
         reach,
+        born: w.people[me].dob.0,
     };
     serde_json::to_value(view).map_err(|e| ApiError::Internal(e.to_string()))
 }

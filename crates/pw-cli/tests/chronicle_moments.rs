@@ -147,3 +147,29 @@ fn away_trips_are_counted_by_year_and_club_when_the_clubs_are_on_the_map() {
         assert!(t.km / u32::from(t.trips) < 4_000, "a trip inside the country: {t:?}");
     }
 }
+
+#[test]
+fn playing_abroad_the_language_comes_in_steps_each_told_once() {
+    let (mut sim, p, who) = chronicled(44);
+    let w = &mut sim.world;
+    let club = w.players.hot[p].club;
+    let here = w.clubs[club].nation;
+    let elsewhere = w.nations.ids().find(|&n| n != here && w.nations[n].env.language != w.nations[here].env.language);
+    let elsewhere = elsewhere.expect("the small world has nations of different languages");
+    // He is from somewhere else, arrived three weeks ago, and gets by.
+    w.people[who].nation = elsewhere;
+    let today = w.date;
+    w.ext.chronicle.lives.get_mut(&who).unwrap().push(today.add_days(-21), Line::Joined { club, how: pw_world::chronicle::Join::Transfer }, EventId::NONE);
+    w.lives[who].languages.retain(|(n, _)| *n != here);
+    w.lives[who].languages.push((here, 40));
+    let told = |w: &World| lines(w, who).into_iter().filter_map(|l| if let Line::Language { level, .. } = l { Some(level) } else { None }).collect::<Vec<u8>>();
+    sim.run(8);
+    assert_eq!(told(&sim.world), vec![1], "getting by, told on a Monday");
+    sim.run(14);
+    assert_eq!(told(&sim.world), vec![1], "not again");
+    if let Some(l) = sim.world.lives[who].languages.iter_mut().find(|(n, _)| *n == here) {
+        l.1 = 90;
+    }
+    sim.run(8);
+    assert_eq!(told(&sim.world), vec![1, 3], "fluent, told once");
+}

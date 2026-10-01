@@ -126,6 +126,7 @@ pub fn daily(w: &mut World) {
             }
             if today.weekday() == pw_core::Weekday::Mon {
                 refresh_ties(w, &mut life, p, today);
+                language(w, &mut life, id, p, today);
             }
         }
         w.ext.chronicle.lives.insert(id, life);
@@ -191,6 +192,35 @@ fn talked_about(w: &World, life: &mut Life, who: PersonId, p: PlayerId, today: D
         }
         let region = their_state.unwrap_or(pw_core::RegionId::NONE);
         life.push(today, Line::Talked { reach, club: acc.club, nation: acc.nation, region }, EventId::NONE);
+    }
+}
+
+/// Weekly, while playing in another country: the language of that country reaching a new level, each level once.
+fn language(w: &World, life: &mut Life, who: PersonId, p: PlayerId, today: Date) {
+    let club = w.players.hot[p].club;
+    let Some(k) = w.clubs.get(club) else { return };
+    let (here, home) = (k.nation, w.people[who].nation);
+    if here == home || here.is_none() || w.nations.get(here).is_none() {
+        return;
+    }
+    let target = w.nations[here].env.language;
+    let Some(life_state) = w.lives.get(who) else { return };
+    let best = life_state.languages.iter().map(|&(n, f)| if n == here || w.nations.get(n).is_some_and(|x| x.env.language == target) { f } else { 0 }).max().unwrap_or(0);
+    let level = match best {
+        85.. => 3,
+        55..=84 => 2,
+        25..=54 => 1,
+        _ => 0,
+    };
+    let told = life.entries.iter().filter_map(|x| match x.line {
+        Line::Language { nation, level } if nation == here => Some(level),
+        _ => None,
+    });
+    let max_told = told.max().unwrap_or(0);
+    // Someone who already spoke it when he arrived has nothing to tell.
+    let arrived = life.entries.iter().rev().find(|x| matches!(x.line, Line::Joined { club: c, .. } if c == club)).map(|x| x.date);
+    if level > max_told && arrived.is_some_and(|d| d.days_until(today) >= 14) {
+        life.push(today, Line::Language { nation: here, level }, EventId::NONE);
     }
 }
 

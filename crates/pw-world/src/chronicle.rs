@@ -175,6 +175,8 @@ pub enum Line {
     /// The terms of a contract written in the same event as its `Contract` line (weekly wage): kept for the scrapbook, since the
     /// contract on the player's record is replaced by the next one. Not a line of its own in the timeline.
     Terms { club: ClubId, until: Date, wage: i64 },
+    /// Playing abroad, the language of `nation` reached a new level: 1 getting by, 2 comfortable, 3 fluent.
+    Language { nation: NationId, level: u8 },
 }
 
 /// How far from home the people talking about you are.

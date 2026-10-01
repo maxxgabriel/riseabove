@@ -56,7 +56,7 @@ function Line({ e }: { e: ChronicleEntry }) {
   );
 }
 
-function Timeline({ entries }: { entries: ChronicleEntry[] }) {
+function Timeline({ entries, born }: { entries: ChronicleEntry[]; born: number }) {
   const [cat, setCat] = useState("all");
   const shown = entries.filter((e) => cat === "all" || e.cat === cat);
   // Newest year first; within a year, the months in order, as a life is remembered.
@@ -84,7 +84,7 @@ function Timeline({ entries }: { entries: ChronicleEntry[] }) {
       ) : (
         [...years.entries()].sort((a, b) => b[0] - a[0]).map(([y, months]) => (
           <div key={y} className="chron-year">
-            <h3 className="chron-year-head">{y}</h3>
+            <h3 className="chron-year-head">{y}<span className="hint"> · turned {y - ym(born)[0]} that year</span></h3>
             {[...months.entries()].sort((a, b) => a[0] - b[0]).map(([m, list]) => (
               <div key={m} className="chron-month">
                 <div className="chron-month-head">{monthName(m, true)}</div>
@@ -182,7 +182,7 @@ export function Chronicle() {
             />
             {tab === "timeline" && (
               <div className="split">
-                <Timeline entries={d.entries} />
+                <Timeline entries={d.entries} born={d.born} />
                 <aside className="stack"><Reach d={d} /></aside>
               </div>
             )}

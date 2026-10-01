@@ -1251,6 +1251,8 @@ contract! {
         pub entries: Vec<ChronicleEntry>,
         pub people: Vec<ChronicleTie>,
         pub reach: Vec<ChronicleReach>,
+        /// Date of birth (days), so each year of the story can say how old you were.
+        pub born: i32,
     }
 
     pub struct AgentRow {

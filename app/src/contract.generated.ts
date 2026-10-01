@@ -809,6 +809,7 @@ export interface ChronicleView {
   entries: ChronicleEntry[];
   people: ChronicleTie[];
   reach: ChronicleReach[];
+  born: number;
 }
 
 export interface TrainingWeekRow {
