@@ -280,9 +280,24 @@ pub fn daily(w: &mut World) {
     }
 }
 
+/// The nation whose states play the championship.
+fn home_nation(w: &World) -> Option<NationId> {
+    w.nations.iter_enumerated().find(|(id, n)| !n.leagues.is_empty() && w.ext.ecosystem.regions.iter().any(|r| r.nation == *id) && n.code == "IND").map(|x| x.0).or_else(|| w.ext.ecosystem.regions.iter().next().map(|r| r.nation))
+}
+
+/// The next day the state selectors name their squads (the championship opens on the scenario's calendar), and the state that may
+/// pick this player then, if any. Built only from the published calendar and the eligibility rules as they apply to the player.
+pub fn selection_ahead(w: &World, p: PlayerId) -> Option<(RegionId, Date)> {
+    if !w.ext.ecosystem.is_configured() || Some(w.person_of(p).nation) != home_nation(w) {
+        return None;
+    }
+    let day = w.ext.scenario.next_day(CalEvent::StateChampionship, w.date)?;
+    Some((crate::eligibility::own_state_on(w, p, day)?, day))
+}
+
 fn open(w: &mut World) {
     let year = w.date.year();
-    let Some(india) = w.nations.iter_enumerated().find(|(id, n)| !n.leagues.is_empty() && w.ext.ecosystem.regions.iter().any(|r| r.nation == *id) && n.code == "IND").map(|x| x.0).or_else(|| w.ext.ecosystem.regions.iter().next().map(|r| r.nation)) else { return };
+    let Some(india) = home_nation(w) else { return };
     let mut states: Vec<RegionId> = w.ext.ecosystem.assoc.keys().copied().collect();
     states.sort();
     let mut squads: Vec<(RegionId, Vec<PlayerId>)> = Vec::new();
@@ -320,6 +335,24 @@ fn open(w: &mut World) {
     }
     if squads.len() < 4 {
         return;
+    }
+    // A chronicled player the selectors already knew (a district side this season, or the state side before) who is eligible for
+    // their own state and is not in its squad hears it as a squad named without them.
+    let mut left_out: Vec<(PlayerId, RegionId)> = Vec::new();
+    for who in w.ext.chronicle.lives.keys() {
+        let p = w.people[*who].player;
+        if p.is_none() || taken.contains(&p) || w.people[*who].nation != india {
+            continue;
+        }
+        let known = w.ext.ecosystem.route(p).iter().any(|x| (x.kind == StageKind::District && x.date.days_until(w.date) <= 200) || x.kind == StageKind::StateTeam);
+        let own = crate::eligibility::state_grounds(w, p).first().map(|x| x.0);
+        if let Some(state) = own.filter(|&s| known && squads.iter().any(|x| x.0 == s) && crate::eligibility::judge_state(w, p, s, year, false).eligible) {
+            left_out.push((p, state));
+        }
+    }
+    left_out.sort();
+    for (p, state) in left_out {
+        crate::chronicle::left_out(w, p, StageKind::StateTeam, state);
     }
     // The chosen are away from their clubs and universities for the tournament, and it goes on their route.
     for (s, sq) in &squads {

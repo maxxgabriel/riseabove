@@ -463,13 +463,27 @@ pub fn monthly(w: &mut World) {
     }
 }
 
+/// Who may turn up at a district's open trials: amateurs of these ages, in the district where they are developing.
+pub const DISTRICT_AGES: std::ops::RangeInclusive<u32> = 12..=17;
+
+/// The next open trials for a district side that this player may go to, from the published calendar: the district and the day.
+/// The selectors pick the side on the day (`district_selection`).
+pub fn trials_ahead(w: &World, p: PlayerId) -> Option<(RegionId, pw_core::Date)> {
+    if !w.ext.ecosystem.is_configured() || w.players.hot[p].status != PlayerStatus::Amateur {
+        return None;
+    }
+    let dev = w.ext.ecosystem.story.get(&p).map(|s| s.dev).filter(|d| d.is_some())?;
+    let day = w.ext.scenario.next_day(CalEvent::DistrictSelection, w.date)?;
+    DISTRICT_AGES.contains(&w.person_of(p).age(day)).then_some((dev, day))
+}
+
 /// October: each district picks its best young players for a district side, on what its selectors have seen.
 fn district_selection(w: &mut World) {
     let year = w.date.year();
     let mut by_district: pw_world::FxHashMap<RegionId, Vec<PlayerId>> = Default::default();
     for (&p, s) in &w.ext.ecosystem.story {
         let age = w.age(p);
-        if (12..=17).contains(&age) && w.players.hot[p].status == PlayerStatus::Amateur && s.dev.is_some() {
+        if DISTRICT_AGES.contains(&age) && w.players.hot[p].status == PlayerStatus::Amateur && s.dev.is_some() {
             by_district.entry(s.dev).or_default().push(p);
         }
     }
@@ -507,6 +521,10 @@ fn district_selection(w: &mut World) {
         cands.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
         let side = usize::from(w.ext.scenario.scouting.district_side);
         let picked: Vec<PlayerId> = cands.iter().take(side).map(|&(_, p)| p).collect();
+        // Those who went and were not picked: a line of their story, for the people someone lives as.
+        for &(_, p) in cands.iter().skip(side) {
+            crate::chronicle::left_out(w, p, StageKind::District, r);
+        }
         let mean = if picked.is_empty() { 0.0 } else { picked.iter().map(|&p| f32::from(w.players.cold[p].ca)).sum::<f32>() / picked.len() as f32 }; // truth-ok: match performance simulates reality
         let cov = w.ext.ecosystem.regions[r].scouting_coverage / 100.0;
         for &p in &picked {

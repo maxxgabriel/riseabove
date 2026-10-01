@@ -304,3 +304,66 @@ fn today_brings_back_this_day_in_earlier_years_and_the_week_around_the_country()
     // A year on, the story has a line on this day only if something happened on it: the field is there either way.
     assert!(t["on_this_day"].is_array() && t["around"].is_array());
 }
+
+/// The `waiting_on` items of a kind on Today.
+fn waits(api: &Api, kind: &str) -> Vec<Value> {
+    let t = api.call("me.today", json!({})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.today", &t) {
+        panic!("today is not its declared type: {e}");
+    }
+    t["waiting_on"].as_array().unwrap().iter().filter(|x| x["kind"] == kind).cloned().collect()
+}
+
+fn day(y: i32, m: u32, d: u32) -> i64 {
+    i64::from(pw_core::Date::from_ymd(y, m, d).0)
+}
+
+#[test]
+fn the_published_calendar_is_something_to_wait_for() {
+    // The India world starts on 1 July 2026.
+    let api = api();
+    api.call("world.new", json!({"kind": "india", "scale": "tiny", "seed": 29})).unwrap();
+    wait(&api, "task");
+    let o = api.call("route.options", json!({})).unwrap();
+    let district = o["states"][0]["districts"][0]["id"].clone();
+    let begin = |start: &str| api.call("route.begin", json!({"start": start, "district": district})).unwrap();
+
+    // Eighteen, released, free: the universities' recruiting week (the first Monday of September) is ahead, without an offer yet.
+    begin("released_academy");
+    let uni = waits(&api, "university");
+    assert_eq!(uni.len(), 1, "{uni:?}");
+    assert_eq!(uni[0]["date"].as_i64(), Some(day(2026, 9, 7)));
+    assert!(uni[0]["since"].is_null(), "a calendar date was not set in motion by anyone: {}", uni[0]);
+    let t = uni[0]["text"].as_str().unwrap();
+    assert!(t.contains("7 September") && t.contains("in 10 weeks"), "{t}");
+    assert!(waits(&api, "selection").is_empty(), "eighteen is past the district trials and the state squad is months away");
+
+    // Sixteen at school: the district's open trials on 1 October, once they are near.
+    begin("school_standout");
+    assert!(waits(&api, "selection").is_empty(), "three months ahead is not yet worth a line");
+    assert!(waits(&api, "university").is_empty(), "sixteen is too young for the universities");
+    advance(&api, 40);
+    let sel = waits(&api, "selection");
+    assert_eq!(sel.len(), 1, "{sel:?}");
+    assert_eq!(sel[0]["date"].as_i64(), Some(day(2026, 10, 1)));
+    let t = sel[0]["text"].as_str().unwrap();
+    assert!(t.contains("district side") && t.contains("1 October") && t.contains("in 7 weeks"), "{t}");
+
+    // After the trials the item is gone; if the person went, the story says how it went.
+    advance(&api, 60);
+    assert!(waits(&api, "selection").iter().all(|x| x["date"].as_i64() != Some(day(2026, 10, 1))));
+    let ch = api.call("me.chronicle", json!({})).unwrap();
+    for e in ch["entries"].as_array().unwrap().iter().filter(|e| e["date"].as_i64() == Some(day(2026, 10, 1)) && e["cat"] == "international") {
+        let t = text(e);
+        assert!(t.starts_with("Went to the open trials for the ") || t.starts_with("Picked by the selectors of "), "{t}");
+    }
+
+    // Twenty, in the state league: the day the state selectors name their squad (1 February), within ten weeks of it.
+    advance(&api, 45);
+    begin("state_league");
+    let sel = waits(&api, "selection");
+    assert_eq!(sel.len(), 1, "{sel:?}");
+    assert_eq!(sel[0]["date"].as_i64(), Some(day(2027, 2, 1)));
+    let t = sel[0]["text"].as_str().unwrap();
+    assert!(t.contains("state championship") && t.contains("1 February") && t.contains("in about 2 months"), "{t}");
+}

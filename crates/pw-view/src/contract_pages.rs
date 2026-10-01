@@ -1140,11 +1140,13 @@ response! {
         pub uid: f64,
         pub venue: Value,
     }
+    /// Something the person is waiting on (`kind`: intent, meeting, trial, rumour, agent, injury, talks, selection, university). `since`
+    /// is when it was set in motion; a date on the published calendar (`selection`, a university's recruiting) has none, only `date`.
     pub struct MeTodayViewWaitingOn {
         pub date: Opt<f64>,
         pub kind: String,
         pub r#ref: Opt<RefIn>,
-        pub since: f64,
+        pub since: Opt<f64>,
         pub text: String,
     }
     /// A line of your own story from this day in an earlier year.

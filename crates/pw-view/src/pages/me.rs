@@ -33,6 +33,69 @@ fn condition_words(h: &pw_world::PlayerHot) -> Value {
     })
 }
 
+/// How far ahead a published date is worth mentioning, by kind.
+const TRIALS_AHEAD: i32 = 60;
+const SQUAD_AHEAD: i32 = 75;
+const RECRUITING_AHEAD: i32 = 90;
+
+/// What the calendar holds for you (`waiting_on` items): district trials, state squad naming, university recruiting, an offer held for
+/// you. Only published dates, the eligibility rules as they apply to you, and your own offers.
+fn calendar_waits(c: &Ctx, me: pw_core::PersonId, p: PlayerId, today: Date) -> Vec<Value> {
+    let w = c.w;
+    let mut out: Vec<Value> = Vec::new();
+    if p.is_none() || !w.ext.ecosystem.is_configured() {
+        return out;
+    }
+    if let Some((district, day)) = pw_sim::ecosystem::trials_ahead(w, p).filter(|x| today.days_until(x.1) <= TRIALS_AHEAD) {
+        let left = today.days_until(day);
+        let text = format!(
+            "Open trials for the {} district side on {}, {}. Anyone of the age may turn up; the selectors pick the side on the day",
+            super::chronicle::region_name(c, district),
+            crate::fmt::day_month(day),
+            crate::fmt::in_days(left)
+        );
+        out.push(json!({"kind": "selection", "text": text, "date": day.0}));
+    }
+    if let Some((state, day)) = pw_sim::statepath::selection_ahead(w, p).filter(|x| today.days_until(x.1) <= SQUAD_AHEAD) {
+        let left = today.days_until(day);
+        let text = format!(
+            "The {} selectors name their squad for the state championship on {}, {}. Nobody applies: they pick from the players they have seen",
+            super::chronicle::region_name(c, state),
+            crate::fmt::day_month(day),
+            crate::fmt::in_days(left)
+        );
+        out.push(json!({"kind": "selection", "text": text, "date": day.0}));
+    }
+    // A place a university is holding for you: until when, and what happens if the day comes without an answer.
+    let mut offered = false;
+    for (_, d) in w.decisions.pending_for(me).filter(|(_, d)| d.answer.is_none()) {
+        let pw_world::DecisionKind::Scholarship { institution, tier } = d.kind else { continue };
+        offered = true;
+        let then = match d.options.get(usize::from(d.default)) {
+            Some(pw_world::Choice::Accept) => "your own judgement takes it up",
+            _ => "your own judgement turns it down and the place goes to the next name on their list",
+        };
+        let text = format!(
+            "{} are holding a place for you on {} until {}, {}. If you have not answered by then, {then}",
+            pw_narrate::history::institution(w, institution),
+            super::chronicle::tier_words(tier),
+            crate::fmt::day_month(d.deadline),
+            crate::fmt::in_days(today.days_until(d.deadline))
+        );
+        out.push(json!({"kind": "university", "text": text, "since": d.created.0, "date": d.deadline.0}));
+    }
+    let day = pw_sim::university::next_recruiting_day(today, w.minor.season);
+    if !offered && today.days_until(day) <= RECRUITING_AHEAD && pw_sim::university::prospect_on(w, p, day) {
+        let text = format!(
+            "Universities make their scholarship offers in the week of {}, {}. Only a programme that has seen you play can offer you a place",
+            crate::fmt::day_month(day),
+            crate::fmt::in_days(today.days_until(day))
+        );
+        out.push(json!({"kind": "university", "text": text, "date": day.0}));
+    }
+    out
+}
+
 fn day_kind_text(k: DayKind) -> (&'static str, &'static str) {
     match k {
         DayKind::Match => ("Match day", "match"),
@@ -237,6 +300,9 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         let text = format!("{} have your answer on the contract and have not replied yet. Talks close by {}", c.club_name(t.club), crate::fmt::day_month(t.deadline));
         waiting_on.push(json!({"kind": "talks", "text": text, "since": t.opened.0, "date": t.deadline.0, "ref": Ref::club(t.club)}));
     }
+    // The published calendar, as it applies to you: open trials for a district side and the day the state selectors name their squad,
+    // when you are of the age and the place; and the universities' recruiting, or the offer one of them is holding for you.
+    waiting_on.extend(calendar_waits(c, me, p, date));
     let on_this_day = on_this_day(c, me);
     let around = around_the_country(c, me);
     let known_faces: Vec<Value> = next

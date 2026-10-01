@@ -200,3 +200,40 @@ fn at_a_trial_verdict_the_club_says_when_its_coach_and_its_scout_saw_you_differe
     assert_eq!(keen, sim.world.staff[coach].person, "the coach rated him higher");
     assert_eq!(doubtful, sim.world.staff[scout].person);
 }
+
+#[test]
+fn the_district_trials_tell_who_went_and_was_not_picked() {
+    use pw_import::india::{self, IndiaScale};
+    use pw_world::ecosystem::StageKind;
+    let mut sim = Sim::new(india::build(DataPack::builtin(), 47, IndiaScale::TINY));
+    // The day before the trials (1 October), everyone who may go is chronicled.
+    let eve = Date::from_ymd(sim.world.date.year(), 9, 30);
+    sim.run(sim.world.date.days_until(eve) as u32);
+    let w = &sim.world;
+    let day = w.ext.scenario.next_day(pw_world::scenario::CalEvent::DistrictSelection, w.date).unwrap();
+    assert_eq!(day, eve.add_days(1));
+    let mut may: Vec<(PlayerId, pw_core::RegionId)> = w.players.ids().filter_map(|p| pw_sim::ecosystem::trials_ahead(w, p).filter(|x| x.1 == day).map(|x| (p, x.0))).collect();
+    may.sort();
+    assert!(may.len() >= 30, "a world of children who may go: {}", may.len());
+    for &(p, _) in &may {
+        let who = sim.world.players.cold[p].person;
+        pw_sim::chronicle::begin(&mut sim.world, who);
+    }
+    sim.run(2);
+    let w = &sim.world;
+    let (mut picked, mut left) = (0, 0);
+    for &(p, district) in &may {
+        let l = lines(w, w.players.cold[p].person);
+        let out: Vec<&Line> = l.iter().filter(|x| matches!(x, Line::LeftOut { .. })).collect();
+        let step = w.ext.ecosystem.route(p).iter().any(|s| s.kind == StageKind::District && s.date == day);
+        assert!(out.len() <= 1, "told once: {out:?}");
+        if let Some(&&Line::LeftOut { stage, region }) = out.first() {
+            assert_eq!((stage, region), (StageKind::District, district), "the trials of their own district");
+            assert!(!step, "not picked and picked at once");
+            left += 1;
+        }
+        picked += usize::from(step);
+    }
+    assert!(left > 0 && picked > 0, "some went and were not picked ({left}), some were picked ({picked}) among {}", may.len());
+    assert!(left + picked < may.len(), "most children never go to the trials");
+}

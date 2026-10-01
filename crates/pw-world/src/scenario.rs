@@ -5,7 +5,7 @@
 //! as it always did. The values are **initial tuning**, not football truths: they are read from the pack at world start and
 //! any of them may be recalibrated without touching code.
 
-use pw_core::ClubId;
+use pw_core::{ClubId, Date};
 use serde::{Deserialize, Serialize};
 
 use crate::FxHashMap;
@@ -305,6 +305,16 @@ impl Scenario {
         self.calendar.iter().filter(|r| r.event == event).any(|r| r.months.contains(&(month as u8)) && (r.day == 0 || u32::from(r.day) == day))
     }
 
+    /// The next day, from `from` on (inclusive), on which `event` happens: what a published calendar tells anyone who looks. A rule
+    /// without a day falls on the first of its months, the day the monthly pass runs it. `None` when the calendar has no such event.
+    pub fn next_day(&self, event: CalEvent, from: Date) -> Option<Date> {
+        let rules: Vec<&CalRule> = self.calendar.iter().filter(|r| r.event == event && !r.months.is_empty()).collect();
+        if rules.is_empty() {
+            return None;
+        }
+        (0..=400).map(|i| from.add_days(i)).find(|d| rules.iter().any(|r| r.months.contains(&(d.month() as u8)) && d.day() == u32::from(r.day.max(1))))
+    }
+
     /// The events due in a month, in the order the calendar lists them: what a monthly pass runs.
     pub fn due_in_month(&self, month: u32) -> Vec<CalEvent> {
         let mut out: Vec<CalEvent> = Vec::new();
@@ -314,5 +324,29 @@ impl Scenario {
             }
         }
         out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_next_day_of_an_event_reads_the_published_calendar() {
+        let sc = Scenario::default();
+        // District trials run on the first of October; the state championship opens on 1 February.
+        let d = sc.next_day(CalEvent::DistrictSelection, Date::from_ymd(2026, 8, 15)).unwrap();
+        assert_eq!(d.ymd(), (2026, 10, 1));
+        assert_eq!(sc.next_day(CalEvent::DistrictSelection, Date::from_ymd(2026, 10, 1)).unwrap().ymd(), (2026, 10, 1), "the day itself counts");
+        assert_eq!(sc.next_day(CalEvent::DistrictSelection, Date::from_ymd(2026, 10, 2)).unwrap().ymd(), (2027, 10, 1), "a day late waits a year");
+        assert_eq!(sc.next_day(CalEvent::StateChampionship, Date::from_ymd(2026, 10, 2)).unwrap().ymd(), (2027, 2, 1));
+        // A pack that moves an event moves the date; one that drops it has none.
+        let mut moved = sc.clone();
+        moved.calendar.retain(|r| r.event != CalEvent::StateChampionship);
+        assert!(moved.next_day(CalEvent::StateChampionship, Date::from_ymd(2026, 10, 2)).is_none());
+        moved.calendar.push(CalRule { event: CalEvent::StateChampionship, months: vec![3], day: 15 });
+        assert_eq!(moved.next_day(CalEvent::StateChampionship, Date::from_ymd(2026, 10, 2)).unwrap().ymd(), (2027, 3, 15));
+        // Each listed month is a date: school scouting runs through the term.
+        assert_eq!(sc.next_day(CalEvent::SchoolScouting, Date::from_ymd(2026, 9, 2)).unwrap().ymd(), (2026, 11, 1));
     }
 }

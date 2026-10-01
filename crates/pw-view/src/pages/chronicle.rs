@@ -4,6 +4,7 @@
 
 use pw_core::{ClubId, CompId, Date, NationId, PersonId, RegionId};
 use pw_world::chronicle::{Big, Join, Layer, Line, Then, Tie, TieKind};
+use pw_world::ecosystem::StageKind;
 use pw_world::event::{AwardKind, LifeEventKind, MilestoneKind, RecordKind};
 use pw_world::pathway::Why;
 use pw_world::recog::Learned;
@@ -88,11 +89,11 @@ fn inst_name(c: &Ctx, i: u32) -> String {
     c.w.minor.institutions.get(i as usize).map_or_else(|| "a university".into(), |x| x.name.clone())
 }
 
-fn region_name(c: &Ctx, r: RegionId) -> String {
+pub(crate) fn region_name(c: &Ctx, r: RegionId) -> String {
     c.w.ext.ecosystem.regions.get(r).map_or_else(|| "home".into(), |x| x.name.clone())
 }
 
-fn tier_words(tier: u8) -> &'static str {
+pub(crate) fn tier_words(tier: u8) -> &'static str {
     match tier {
         3 => "a full football scholarship",
         2 => "a scholarship covering tuition and hostel",
@@ -454,6 +455,8 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             (s.t(format!("{outlet} wrote \u{201c}{head}\u{201d}{tail}")).done(), "recognition", None)
         }
         Line::Terms { .. } => return None,
+        Line::LeftOut { stage: StageKind::District, region } => (s.t("Went to the open trials for the ").region(region).t(" district side. The selectors did not pick you").done(), "international", None),
+        Line::LeftOut { region, .. } => (s.t("The ").region(region).t(" selectors named their squad for the state championship without you").done(), "international", None),
         Line::TrialViews { club, keen, doubtful } => {
             let role = |q: PersonId| w.people.get(q).filter(|x| x.staff.is_some()).map(|x| w.staff[x.staff].role.label().to_lowercase()).unwrap_or_else(|| "staff".into());
             let s = s.club(club).t(" told you their people had not seen you the same way: ").person(keen).t(format!(", their {}, rated you higher than ", role(keen))).person(doubtful).t(format!(", their {}", role(doubtful)));

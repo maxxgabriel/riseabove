@@ -179,6 +179,9 @@ pub enum Line {
     Language { nation: NationId, level: u8 },
     /// At a trial's verdict, the club told you its people had not seen you the same way: `keen` rated you higher than `doubtful`.
     TrialViews { club: ClubId, keen: PersonId, doubtful: PersonId },
+    /// Not picked: went to the open trials for the `region` district side (`stage` District), or the selectors of the `region` state
+    /// who knew you named their squad for the championship without you (`stage` StateTeam).
+    LeftOut { stage: StageKind, region: RegionId },
 }
 
 /// How far from home the people talking about you are.

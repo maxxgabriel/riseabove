@@ -144,6 +144,18 @@ pub fn daily(w: &mut World) {
     }
 }
 
+/// A selection the person was part of and not picked in (`Line::LeftOut`), written the day it happens. Only for people being
+/// chronicled; everyone else is skipped at the cost of one lookup.
+pub fn left_out(w: &mut World, p: PlayerId, stage: StageKind, region: pw_core::RegionId) {
+    let (today, who) = (w.date, w.players.cold[p].person);
+    if let Some(life) = w.ext.chronicle.lives.get_mut(&who) {
+        let line = Line::LeftOut { stage, region };
+        if !life.entries.iter().any(|e| e.line == line && e.date == today) {
+            life.push(today, line, EventId::NONE);
+        }
+    }
+}
+
 /// Map units of the regions' map in km (`ecosystem::Region::x`, `y`).
 pub const KM_PER_UNIT: f32 = 30.0;
 

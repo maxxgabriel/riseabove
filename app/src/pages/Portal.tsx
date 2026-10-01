@@ -61,7 +61,7 @@ export function Portal() {
                   {t.waiting_on.map((x, i) => (
                     <li key={i}>
                       <span>{x.ref && (x.ref.k === "club" || x.ref.k === "person") ? <a className="elink" href={href(`/${x.ref.k}/${x.ref.id}`)}>{x.text}</a> : x.text}</span>
-                      <small className="hint">since <Dt d={x.since} year={false} /></small>
+                      <small className="hint">{x.since != null ? <>since <Dt d={x.since} year={false} /></> : x.date != null ? <>on <Dt d={x.date} year={false} /></> : null}</small>
                     </li>
                   ))}
                 </ul>

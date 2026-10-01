@@ -68,6 +68,29 @@ pub fn state_grounds(w: &World, p: PlayerId) -> Vec<(RegionId, Basis)> {
     out
 }
 
+/// The state whose selectors may pick this player for the championship that opens on `on`, if any: their own state (the first ground
+/// that applies), judged on the age they will be that day and the rest of the rules as they stand now. What a player can work out
+/// for themselves from the published rules: nothing here says whether the selectors will.
+pub fn own_state_on(w: &World, p: PlayerId, on: pw_core::Date) -> Option<RegionId> {
+    let rules = &w.ext.ecosystem.eligibility;
+    if !matches!(w.players.hot[p].status, PlayerStatus::Active | PlayerStatus::Amateur | PlayerStatus::FreeAgent) {
+        return None;
+    }
+    let age = w.person_of(p).age(on) as i32;
+    if age < i32::from(rules.min_age) || age > i32::from(rules.max_age) {
+        return None;
+    }
+    let (state, _) = *state_grounds(w, p).first()?;
+    if rules.one_state_per_year && w.ext.ecosystem.represented.get(&p).is_some_and(|&(y, r)| y == on.year() && r != state) {
+        return None;
+    }
+    let club = w.players.hot[p].club;
+    if rules.exclude_top_division && club.is_some() && tier_of(w, club) == 1 {
+        return None;
+    }
+    Some(state)
+}
+
 /// May this player play for this state's side in `year`, and why or why not. `fill`: the state is short of players and may call anyone who
 /// qualifies for it; otherwise only players for whom it is their own (first) state.
 pub fn judge_state(w: &World, p: PlayerId, state: RegionId, year: i32, fill: bool) -> Judgement {

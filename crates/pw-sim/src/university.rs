@@ -13,7 +13,7 @@
 
 use pw_core::rng::stream;
 use pw_core::{PlayerId, RegionId};
-use pw_core::{ClubId, PersonId};
+use pw_core::{ClubId, Date, PersonId};
 use pw_world::ecosystem::{Scholarship, StageKind};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::recog::{Learned, Org};
@@ -153,6 +153,30 @@ pub fn recruit(w: &mut World) {
 
 /// Recruiting rounds in a September: offers, answers, and places turned down offered again.
 const ROUNDS: usize = 3;
+
+/// The day the recruiting rounds of `year` run: the first Monday of September, when the weekly pass opens the minor season
+/// (`minor::weekly` → `season_start` → `assign` → `recruit`).
+pub fn recruiting_day(year: i32) -> Date {
+    Date::from_ymd(year, 9, 1).next_weekday(pw_core::Weekday::Mon)
+}
+
+/// The next recruiting day on or after `today`; `season` is the minor season already under way (`World::minor.season`), whose
+/// rounds are over.
+pub fn next_recruiting_day(today: Date, season: i32) -> Date {
+    let this = recruiting_day(today.year());
+    if today <= this && season != today.year() { this } else { recruiting_day(today.year() + 1) }
+}
+
+/// Whether universities may offer this player a place on `on`: free of a professional club, of the age they recruit, not already
+/// studying, and developing somewhere their scouts can reach. What a player knows of their own situation; whether any programme
+/// has seen them is the programmes' business.
+pub fn prospect_on(w: &World, p: PlayerId, on: Date) -> bool {
+    w.ext.ecosystem.is_configured()
+        && matches!(w.players.hot[p].status, PlayerStatus::Amateur | PlayerStatus::FreeAgent)
+        && AGES.contains(&w.person_of(p).age(on))
+        && !w.minor.member_of.get(&p).is_some_and(|&i| w.minor.institutions[i as usize].kind == InstKind::University)
+        && w.ext.ecosystem.story.get(&p).is_some_and(|s| s.dev.is_some())
+}
 
 /// A programme's view of its recruiting: what it holds itself to, what it can spend, whom it has seen (best first) and how many places
 /// are still open.
@@ -380,5 +404,21 @@ pub(crate) fn watched_by_clubs(w: &mut World, p: PlayerId, minutes: u8) {
     let state = w.ext.ecosystem.state_of(zone);
     if state.is_some() {
         crate::recognition::sighted_by(w, Org::State(state), PersonId::NONE, p, Learned::Watched);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recruiting_runs_on_the_first_monday_of_september_and_waits_a_year_once_it_has() {
+        // 1 September 2026 is a Tuesday: the rounds run on Monday 7 September.
+        assert_eq!(recruiting_day(2026).ymd(), (2026, 9, 7));
+        assert_eq!(recruiting_day(2026).weekday(), pw_core::Weekday::Mon);
+        assert_eq!(next_recruiting_day(Date::from_ymd(2026, 3, 10), 2025).ymd(), (2026, 9, 7));
+        assert_eq!(next_recruiting_day(Date::from_ymd(2026, 9, 7), 2025).ymd(), (2026, 9, 7), "the day itself, before it has run");
+        assert_eq!(next_recruiting_day(Date::from_ymd(2026, 9, 7), 2026).ymd(), recruiting_day(2027).ymd(), "the season under way has had its rounds");
+        assert_eq!(next_recruiting_day(Date::from_ymd(2026, 10, 1), 2026).ymd(), recruiting_day(2027).ymd());
     }
 }

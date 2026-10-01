@@ -2263,7 +2263,7 @@ export interface MeTodayViewWaitingOn {
   date?: number;
   kind: string;
   ref?: Ref;
-  since: number;
+  since?: number;
   text: string;
 }
 

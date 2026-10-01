@@ -26,6 +26,16 @@ pub fn days_words(n: i32) -> String {
     }
 }
 
+/// How far off a day is, as a person would say it: "today", "tomorrow", "in 5 days", "in 3 weeks", "in about 4 months".
+pub fn in_days(n: i32) -> String {
+    match n {
+        ..=0 => "today".into(),
+        1 => "tomorrow".into(),
+        2..=69 => format!("in {}", days_words(n)),
+        _ => format!("in about {} months", (n + 15) / 30),
+    }
+}
+
 /// "Climate and surroundings" from "climate and surroundings".
 pub fn capitalise(s: &str) -> String {
     let mut c = s.chars();
