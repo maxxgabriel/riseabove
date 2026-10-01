@@ -241,6 +241,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         .map(|(who, how, role)| json!({"who": named(Ref::person(who), c.person_name(who)), "how": how, "role": role}))
         .collect();
     let recovery = recovery(c, p, team);
+    let buildup = next.map_or(Value::Null, |f| buildup(c, f, team));
     let open_promises = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).count();
     let next_due = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).map(|pr| pr.due.0).min();
 
@@ -270,7 +271,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery, "buildup": buildup,
         "promises": {"open": open_promises, "next_due": next_due},
         "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,
@@ -572,4 +573,86 @@ fn recovery(c: &Ctx, p: pw_core::PlayerId, team: pw_core::TeamId) -> Value {
         "sureness": sureness, "stages": STAGES.iter().map(|(_, l)| *l).collect::<Vec<_>>(), "stage": stage, "setbacks": case.setbacks,
         "recurrence": case.recurrence, "rushed": case.rushed, "physio": physio, "missed": missed,
     })
+}
+
+/// Why the next match is more than a fixture, from what the world keeps: the derby's name, the rivalry and its record, the last
+/// memorable meeting, revenge owed, what the table puts at stake, people returning to a former club, and the papers. Nothing for an
+/// ordinary match.
+fn buildup(c: &Ctx, f: &pw_world::Fixture, team: pw_core::TeamId) -> Value {
+    use crate::model::Part;
+    use pw_world::culture::{MomentKind, Side};
+    let w = c.w;
+    let mine = w.teams[team].club;
+    let opp_team = f.opponent(team);
+    let opp = w.teams[opp_team].club;
+    let m = pw_sim::culture::meaning(w, f);
+    let name = pw_narrate::lang::occasion(w, mine, opp);
+    if name.is_none() && !m.derby && m.significance < 25 {
+        return Value::Null;
+    }
+    let (us, them) = (Side::Club(mine), Side::Club(opp));
+    let club = |k: pw_core::ClubId| Part::l(Ref::club(k), c.club_name(k));
+    let mut lines: Vec<Vec<Part>> = Vec::new();
+    let rivalry = w.culture.rivalries.get(us, them);
+    if let Some(n) = &name {
+        lines.push(vec![Part::t(format!("This is {n}."))]);
+    } else if m.derby {
+        lines.push(vec![Part::t("A derby. The city takes sides.")]);
+    } else if let Some(r) = rivalry.filter(|r| r.intensity >= 40) {
+        lines.push(vec![Part::t("A rivalry that has been building since "), Part::date(r.since)]);
+    }
+    if let Some(r) = rivalry {
+        let (won, drawn, lost) = if r.a == us { r.h2h } else { (r.h2h.2, r.h2h.1, r.h2h.0) };
+        if won + drawn + lost > 0 {
+            lines.push(vec![Part::t(format!("Head to head: {won} won, {drawn} drawn, {lost} lost against "))
+                , club(opp)]);
+        }
+        if let Some(mo) = r.moments.last() {
+            let line = match mo.kind {
+                MomentKind::Elimination { winner } if winner == us => Some(vec![Part::t("You knocked them out on "), Part::date(mo.date)]),
+                MomentKind::Elimination { .. } => Some(vec![Part::t("They knocked you out on "), Part::date(mo.date)]),
+                MomentKind::TitleDecided { winner } if winner == us => Some(vec![Part::t("The title was decided between you on "), Part::date(mo.date), Part::t(", and it went your way")]),
+                MomentKind::TitleDecided { .. } => Some(vec![Part::t("The title was decided between you on "), Part::date(mo.date), Part::t(", and it went theirs")]),
+                MomentKind::Meeting { winner: Some(s), margin } if margin >= 3 => Some(if s == us {
+                    vec![Part::t(format!("The last big one: a {margin}-goal win for you on ")), Part::date(mo.date)]
+                } else {
+                    vec![Part::t(format!("Still remembered: a {margin}-goal defeat on ")), Part::date(mo.date)]
+                }),
+                MomentKind::Transfer { player, .. } if w.players.cold.get(player).is_some() => {
+                    let p = w.players.cold[player].person;
+                    Some(vec![Part::l(Ref::person(p), c.person_name(p)), Part::t(" crossed between the clubs on "), Part::date(mo.date)])
+                }
+                _ => None,
+            };
+            if let Some(l) = line {
+                lines.push(l);
+            }
+        }
+    }
+    match m.revenge {
+        Some(s) if s == us => lines.push(vec![Part::t("You owe them for the last knockout.")]),
+        Some(_) => lines.push(vec![Part::t("They have not forgotten the last knockout.")]),
+        None => {}
+    }
+    if m.title_race {
+        lines.push(vec![Part::t("A title race meeting: both sides are in the top three.")]);
+    }
+    if m.promotion {
+        lines.push(vec![Part::t("Promotion is at stake for both sides.")]);
+    }
+    if m.relegation {
+        lines.push(vec![Part::t("Both sides are fighting to stay up.")]);
+    }
+    let me = c.me().unwrap_or(pw_core::PersonId::NONE);
+    for &(who, former) in &m.returns {
+        if who == me {
+            lines.push(vec![Part::t("You face "), club(former), Part::t(", your former club.")]);
+        } else if w.people.get(who).is_some() {
+            lines.push(vec![Part::l(Ref::person(who), c.person_name(who)), Part::t(" returns to face "), club(former), Part::t(", a former club.")]);
+        }
+    }
+    for s in w.media.stories.iter().rev().take_while(|s| s.date.days_until(w.date) <= 5).filter(|s| (s.club == mine && s.other_club == opp) || (s.club == opp && s.other_club == mine)).take(2) {
+        lines.push(vec![Part::t(format!("{}: \u{201c}{}\u{201d}", pw_narrate::press::outlet_name(w, s), c.headline(s)))]);
+    }
+    json!({"name": name, "significance": m.significance, "lines": lines})
 }

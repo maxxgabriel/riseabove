@@ -2245,6 +2245,12 @@ export interface MeTodayViewKnownFace {
   role: string;
 }
 
+export interface MeTodayViewBuildup {
+  name: string | null;
+  significance: number;
+  lines: Part[][];
+}
+
 export interface MeTodayViewMissed {
   uid: number;
   date: number;
@@ -2270,6 +2276,7 @@ export interface MeTodayViewRecovery {
 
 export interface MeTodayView {
   availability: MeTodayViewAvailability;
+  buildup: MeTodayViewBuildup | null;
   known_faces: MeTodayViewKnownFace[];
   recovery: MeTodayViewRecovery | null;
   changes: MeTodayViewChange[];

@@ -54,6 +54,7 @@ export interface TodayResp {
   routine_hours: number;
   waiting_on: { kind: string; text: string; since: number; date?: number; ref?: { k: string; id: number } }[];
   known_faces: { who: Named; how: Part[]; role: string }[];
+  buildup: null | { name: string | null; significance: number; lines: Part[][] };
   recovery: null | {
     injury: string; since: number; treatment: string; estimate: number; sureness: string; stages: string[]; stage: number; setbacks: number;
     recurrence: boolean; rushed: boolean; physio: Named | null; missed: { uid: number; date: number; opponent: Named; score: string; outcome: string }[];

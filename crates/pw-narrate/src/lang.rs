@@ -480,7 +480,7 @@ fn incident_event(w: &World, i: &pw_world::incident::Incident, date: Date) -> Op
 }
 
 /// The name the reference data gives a meeting of these two clubs (a derby), with its article: "the Kolkata Derby".
-fn occasion(w: &World, home: ClubId, away: ClubId) -> Option<String> {
+pub fn occasion(w: &World, home: ClubId, away: ClubId) -> Option<String> {
     let d = w.ext.scenario.known_derbies.iter().find(|d| (d.a == home && d.b == away) || (d.a == away && d.b == home))?;
     let name = d.name.trim();
     if name.is_empty() {

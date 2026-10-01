@@ -1163,8 +1163,16 @@ response! {
         pub physio: Option<NamedIn>,
         pub missed: Vec<MeTodayViewMissed>,
     }
+    /// What makes the next match more than a fixture: its name, the history between the sides, what is at stake, who returns, what
+    /// the papers are saying.
+    pub struct MeTodayViewBuildup {
+        pub name: Option<String>,
+        pub significance: f64,
+        pub lines: Vec<Vec<PartIn>>,
+    }
     pub struct MeTodayView {
         pub availability: MeTodayViewAvailability,
+        pub buildup: Option<MeTodayViewBuildup>,
         pub known_faces: Vec<MeTodayViewKnownFace>,
         pub recovery: Option<MeTodayViewRecovery>,
         pub changes: Vec<MeTodayViewChange>,
@@ -2015,6 +2023,7 @@ pub fn declarations() -> Vec<String> {
         MeTodayViewRecent::declaration(),
         MeTodayViewWaitingOn::declaration(),
         MeTodayViewKnownFace::declaration(),
+        MeTodayViewBuildup::declaration(),
         MeTodayViewMissed::declaration(),
         MeTodayViewRecovery::declaration(),
         MeTodayView::declaration(),

@@ -73,6 +73,12 @@ export function Portal() {
           <aside className="portal-context stack">
             <Section title="Next match" tone="strong">
               {t.next_match ? <a className="portal-next" href={href(`/match/${t.next_match.uid}`)}><span className="hint">{t.next_match.comp.name} · {t.next_match.round}</span><strong>{t.next_match.home ? "v" : "at"} {t.next_match.opponent.name}</strong><span>{relativeDays(t.next_match.date, t.date)} <small>· <Dt d={t.next_match.date} year={false} /></small></span></a> : <div className="card muted">No match is scheduled.</div>}
+              {t.buildup && (
+                <div className="buildup">
+                  <div className="subhead">{t.buildup.name ? t.buildup.name.replace(/^the /, "The ") : "More than three points"}</div>
+                  <ul>{t.buildup.lines.map((l, i) => <li key={i}><Parts parts={l} /></li>)}</ul>
+                </div>
+              )}
               {t.known_faces.length > 0 && (
                 <div className="portal-faces">
                   <div className="subhead">People you know on the other side</div>
