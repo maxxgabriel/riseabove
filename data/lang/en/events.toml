@@ -1,0 +1,637 @@
+# Event semantics: what facts an event has. `hidden = true` marks true facts that outsiders do not know (they may only appear for a speaker whose
+# knowledge lists them, and the leak check watches for them). Types: club person team competition place text num money date list bool.
+# Derived facts (match.result: total margin result_kind winner loser winner_goals loser_goals) are computed from these by the engine.
+
+[[event]]
+kind = "transfer.bid_made"
+summary = "A club has made a bid for a player."
+[[event.fact]]
+key = "improved"
+type = "bool"
+[[event.fact]]
+key = "ours"
+type = "bool"
+[[event.fact]]
+key = "buyer"
+type = "club"
+[[event.fact]]
+key = "seller"
+type = "club"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "fee"
+type = "money"
+[[event.fact]]
+key = "round"
+type = "num"
+
+[[event]]
+kind = "transfer.interest"
+summary = "A club is reported to be interested in a player. It says nothing about a bid having been made; stage is how far the interest is said to have gone (watching, keen, preparing)."
+[[event.fact]]
+key = "buyer"
+type = "club"
+[[event.fact]]
+key = "seller"
+type = "club"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "fee"
+type = "money"
+[[event.fact]]
+key = "stage"
+type = "text"
+
+[[event]]
+kind = "transfer.bid_rejected"
+summary = "A bid was turned down. A journalist may know the bid and the rejection but not the seller's minimum."
+[[event.fact]]
+key = "improved"
+type = "bool"
+[[event.fact]]
+key = "ours"
+type = "bool"
+[[event.fact]]
+key = "buyer"
+type = "club"
+[[event.fact]]
+key = "seller"
+type = "club"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "fee"
+type = "money"
+[[event.fact]]
+key = "round"
+type = "num"
+[[event.fact]]
+key = "seller_minimum"
+type = "money"
+hidden = true
+[[event.fact]]
+key = "reason"
+type = "text"
+hidden = true
+
+[[event]]
+kind = "transfer.completed"
+summary = "A signing is done."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "from"
+type = "club"
+[[event.fact]]
+key = "to"
+type = "club"
+[[event.fact]]
+key = "fee"
+type = "money"
+[[event.fact]]
+key = "contract_years"
+type = "num"
+[[event.fact]]
+key = "wage"
+type = "money"
+hidden = true
+
+[[event]]
+kind = "contract.renewed"
+summary = "A player has signed a new contract."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "contract_years"
+type = "num"
+[[event.fact]]
+key = "wage"
+type = "money"
+hidden = true
+
+[[event]]
+kind = "player.released"
+summary = "A club has released a player."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "reason"
+type = "text"
+hidden = true
+
+[[event]]
+kind = "injury.suffered"
+summary = "A player has been injured."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "injury"
+type = "text"
+[[event.fact]]
+key = "weeks_out"
+type = "num"
+[[event.fact]]
+key = "opponent"
+type = "club"
+[[event.fact]]
+key = "competition"
+type = "competition"
+[[event.fact]]
+key = "in_match"
+type = "bool"
+
+[[event]]
+kind = "injury.returned"
+summary = "A player is back from injury."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "injury"
+type = "text"
+[[event.fact]]
+key = "games_missed"
+type = "num"
+
+[[event]]
+kind = "callup.national"
+summary = "A player has been called into a national squad."
+[[event.fact]]
+key = "to_player"
+type = "bool"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "team"
+type = "team"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "camp"
+type = "text"
+[[event.fact]]
+key = "caps"
+type = "num"
+[[event.fact]]
+key = "first_call"
+type = "bool"
+
+[[event]]
+kind = "callup.state"
+summary = "A player has been selected for a state team or its probables."
+[[event.fact]]
+key = "to_player"
+type = "bool"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "team"
+type = "team"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "competition"
+type = "competition"
+[[event.fact]]
+key = "stage"
+type = "text"
+
+[[event]]
+kind = "academy.invitation"
+summary = "An academy has invited a young player."
+[[event.fact]]
+key = "to_player"
+type = "bool"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "academy"
+type = "club"
+[[event.fact]]
+key = "offer_kind"
+type = "text"
+[[event.fact]]
+key = "place"
+type = "place"
+
+[[event]]
+kind = "university.scholarship"
+summary = "A university has offered a sports scholarship or quota place."
+[[event.fact]]
+key = "to_player"
+type = "bool"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "university"
+type = "club"
+[[event.fact]]
+key = "offer_kind"
+type = "text"
+[[event.fact]]
+key = "course"
+type = "text"
+
+[[event]]
+kind = "exchange.trip"
+summary = "A player is on an exchange or training stint at a foreign or partner club."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "home_club"
+type = "club"
+[[event.fact]]
+key = "host"
+type = "club"
+[[event.fact]]
+key = "programme"
+type = "text"
+[[event.fact]]
+key = "weeks"
+type = "num"
+
+[[event]]
+kind = "manager.departed"
+summary = "A manager has left a club: sacked, resigned or by mutual consent."
+[[event.fact]]
+key = "manager"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "manner"
+type = "text"
+[[event.fact]]
+key = "games"
+type = "num"
+[[event.fact]]
+key = "position"
+type = "num"
+[[event.fact]]
+key = "board_reason"
+type = "text"
+hidden = true
+
+[[event]]
+kind = "manager.appointed"
+summary = "A club has appointed a manager."
+[[event.fact]]
+key = "manager"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "contract_years"
+type = "num"
+[[event.fact]]
+key = "previous_club"
+type = "club"
+
+[[event]]
+kind = "competition.promotion"
+summary = "A club has been promoted."
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "competition"
+type = "competition"
+[[event.fact]]
+key = "to_tier"
+type = "text"
+[[event.fact]]
+key = "position"
+type = "num"
+
+[[event]]
+kind = "competition.relegation"
+summary = "A club has been relegated."
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "competition"
+type = "competition"
+[[event.fact]]
+key = "to_tier"
+type = "text"
+[[event.fact]]
+key = "position"
+type = "num"
+
+[[event]]
+kind = "match.result"
+summary = "A match has finished. Only recorded facts are available; nothing about how the game went is implied beyond them."
+[[event.fact]]
+key = "home"
+type = "club"
+[[event.fact]]
+key = "away"
+type = "club"
+[[event.fact]]
+key = "home_goals"
+type = "num"
+[[event.fact]]
+key = "away_goals"
+type = "num"
+[[event.fact]]
+key = "competition"
+type = "competition"
+[[event.fact]]
+key = "venue"
+type = "place"
+[[event.fact]]
+key = "scorers"
+type = "list"
+[[event.fact]]
+key = "attendance"
+type = "num"
+[[event.fact]]
+key = "star"
+type = "person"
+[[event.fact]]
+key = "occasion"
+type = "text"
+
+[[event]]
+kind = "interview.quote"
+summary = "Someone has spoken on the record. Only the stance of what was said is known to the writer of this text (praise, criticism, ...), never its words."
+[[event.fact]]
+key = "speaker"
+type = "person"
+[[event.fact]]
+key = "about"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "stance"
+type = "text"
+
+[[event]]
+kind = "milestone.reached"
+summary = "A player has reached a round number in his career. `kind` is club_apps, career_goals, senior_apps or caps; `count` is the number reached."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "kind"
+type = "text"
+[[event.fact]]
+key = "count"
+type = "num"
+
+[[event]]
+kind = "transfer.record"
+summary = "A club has paid or received its highest fee. `kind` is signing, sale or world (the highest fee anywhere)."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "kind"
+type = "text"
+[[event.fact]]
+key = "fee"
+type = "money"
+
+[[event]]
+kind = "player.unhappy"
+summary = "A player is said to be unhappy at his club. Whether it is true is for the speaker's certainty, not this event."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "player.praise"
+summary = "A player has been talked up by those who write about football. It carries no claim about how he played."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "award.won"
+summary = "A player has won an award; `award` is its name as it reads after the word wins."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "award"
+type = "text"
+
+[[event]]
+kind = "record.broken"
+summary = "A record has been set."
+[[event.fact]]
+key = "person"
+type = "person"
+[[event.fact]]
+key = "record"
+type = "text"
+[[event.fact]]
+key = "value"
+type = "text"
+[[event.fact]]
+key = "previous_holder"
+type = "person"
+
+[[event]]
+kind = "scout.assessment"
+summary = "A scout's view of a player: what was seen and what it suggests."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "position"
+type = "text"
+[[event.fact]]
+key = "age"
+type = "num"
+[[event.fact]]
+key = "strengths"
+type = "list"
+[[event.fact]]
+key = "concerns"
+type = "list"
+[[event.fact]]
+key = "matches_seen"
+type = "num"
+[[event.fact]]
+key = "level"
+type = "text"
+
+[[event]]
+kind = "ui.unknown_value"
+summary = "Interface copy for something the game does not know yet."
+[[event.fact]]
+key = "label"
+type = "text"
+[[event.fact]]
+key = "matches_seen"
+type = "num"
+
+[[event]]
+kind = "player.reading"
+summary = "A feature or data piece reads a player through a label the media already use (reading: big_game, flat_track, in_form, in_slump, underrated, overrated, goal_threat, workhorse, unreliable, breakthrough, frozen_out, durable, injury_prone). It is an opinion, never a measure of ability."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "reading"
+type = "text"
+
+[[event]]
+kind = "manager.pressure"
+summary = "A manager's position is being questioned. Speculation about the future, not a decision."
+[[event.fact]]
+key = "manager"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "player.discipline"
+summary = "A club has dealt with a player internally. What was done and why are the club's business and are not facts here."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "player.criticism"
+summary = "A player's recent showings have drawn criticism. An opinion."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "fans.reaction"
+summary = "A club's supporters reacting, as news in itself. mood: angry, delighted or divided."
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "mood"
+type = "text"
+
+[[event]]
+kind = "incident.reported"
+summary = "An incident made public. kind names it (training_clash, tactics_row, stormed_out, late, postponed, travel_delay, pitch_damage, facility_damage, equipment, visa, registration, coach_walked_out, staff_poached, ownership, sponsor_collapse, investigation, supporter_unrest, burglary); who and other are the people involved, first the instigator."
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "who"
+type = "person"
+[[event.fact]]
+key = "other"
+type = "person"
+[[event.fact]]
+key = "kind"
+type = "text"
+
+[[event]]
+kind = "match.analysis"
+summary = "The analysis the morning after a match: who played whom, the score and the player the talk was about. Says nothing of anyone's ability."
+[[event.fact]]
+key = "home"
+type = "club"
+[[event.fact]]
+key = "away"
+type = "club"
+[[event.fact]]
+key = "home_goals"
+type = "num"
+[[event.fact]]
+key = "away_goals"
+type = "num"
+[[event.fact]]
+key = "star"
+type = "person"
+[[event.fact]]
+key = "occasion"
+type = "text"
+
+[[event]]
+kind = "match.moment"
+summary = "Something in a match that supporters talk about: `kind` is late_winner, hat_trick or red_card. `club` is the player's side that day and `opponent` the other. Says nothing about the rest of the match."
+[[event.fact]]
+key = "kind"
+type = "text"
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "opponent"
+type = "club"
+
+[[event]]
+kind = "player.transfer_request"
+summary = "A player has asked to leave his club, openly. Says nothing of why or where he wants to go."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "social.reaction"
+summary = "A supporter answers someone else's post. It carries no fact of its own beyond the club the answer is about (when it is about one); what is said comes from the speaker's stance, which is the request's behaviour (agree, disagree, jibe, sarcasm, cheer, ask)."
+[[event.fact]]
+key = "club"
+type = "club"

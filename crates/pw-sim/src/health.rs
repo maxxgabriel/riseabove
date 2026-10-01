@@ -85,7 +85,13 @@ pub fn hazard_mult(w: &World, p: PlayerId) -> f32 {
     };
     let wear = f32::from(c.wear.iter().copied().max().unwrap_or(0));
     let age = person.dob.age_years(w.date);
-    let age_mult = if age > 28.0 { 1.0 + 0.03 * (age - 28.0) } else if age < 20.0 { 1.0 + 0.02 * (20.0 - age) } else { 1.0 };
+    let age_mult = if age > 28.0 {
+        1.0 + 0.03 * (age - 28.0)
+    } else if age < 20.0 {
+        1.0 + 0.02 * (20.0 - age)
+    } else {
+        1.0
+    };
     let wellbeing = 1.1 - 0.2 * f32::from(h.wellbeing) / 100.0;
     (0.6 + 0.04 * person.hidden.f(Hidden::InjuryProneness))
         * acwr_mult.min(2.5)
@@ -93,6 +99,9 @@ pub fn hazard_mult(w: &World, p: PlayerId) -> f32 {
         * (1.0 + 0.6 * wear / 100.0)
         * age_mult
         * wellbeing
+        * w.medical.fragility(p)
+        * crate::returns::hazard_factor(w, p)
+        * crate::affairs::body_care(w, c.person)
 }
 
 /// Pick an injury from the catalogue for a mechanism; returns (catalogue index, days).
@@ -122,12 +131,17 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
     let tuning = w.data.tuning.health.clone();
     let winter = matches!(today.month(), 11 | 12 | 1 | 2);
     let medical: Vec<f32> = w.clubs.iter().map(|c| 0.9 + 0.012 * f32::from(c.facilities.medical)).collect();
-    let hazards: Vec<f32> = (0..w.players.len()).into_par_iter().map(|i| {
-        let p = PlayerId(i as u32);
-        if w.players.hot[p].status == PlayerStatus::Active { hazard_mult(w, p) } else { 1.0 }
-    }).collect();
+    let hazards: Vec<f32> = (0..w.players.len())
+        .into_par_iter()
+        .map(|i| {
+            let p = PlayerId(i as u32);
+            if w.players.hot[p].status == PlayerStatus::Active { hazard_mult(w, p) } else { 1.0 }
+        })
+        .collect();
+    let tload: Vec<f32> = (0..w.teams.len()).map(|i| w.ext.training.load_mult(TeamId(i as u32))).collect();
     let injuries = &w.data.injuries;
     let people = &w.people;
+    let lives = &w.lives;
     let cold: &[pw_world::PlayerCold] = &w.players.cold;
 
     let outcomes: Vec<Outcome> = w
@@ -165,8 +179,15 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
                 return Some(out);
             }
 
-            // Load and fitness.
-            let load = kind.load() * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
+            // Load and fitness: the club's day, shaped by the player's own plan
+            // (intensity, extra sessions, recovery work) and their week off the pitch.
+            let plan = c.plan;
+            let training_day = matches!(kind, DayKind::Training | DayKind::BeforeMatch);
+            let own = if training_day { plan.intensity.load_mult() + f32::from(plan.extra) * 0.06 - f32::from(plan.recovery) * 0.03 } else { 1.0 };
+            let tl = if h.team.is_some() { tload[h.team.0 as usize] } else { 1.0 };
+            let load = kind.load() * own * tl * if h.status == PlayerStatus::FreeAgent { 0.4 } else { 1.0 };
+            let routine = lives.get(c.person).map(|l| l.routine).unwrap_or_default();
+            let sleep = lives.get(c.person).map_or(70.0, |l| f32::from(l.sleep));
             h.acute = pw_core::math::ewma(h.acute, load, 0.25);
             h.chronic = pw_core::math::ewma(h.chronic, load, 0.069);
             let capacity = 380.0 + nf * 12.0;
@@ -174,7 +195,8 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             h.fatigue = debt.clamp(0.0, 100.0) as u8;
 
             let age_rec = if age > 30.0 { 1.0 - 0.025 * (age - 30.0) } else { 1.0 };
-            let recover = tuning.condition_recovery * (0.7 + nf / 40.0) * age_rec * kind.recovery() * (0.9 + 0.2 * f32::from(h.wellbeing) / 100.0);
+            let habits = 1.0 + f32::from(plan.recovery) * 0.03 + (f32::from(routine.rest + routine.recovery) - 16.0) * 0.004 - f32::from(routine.nightlife) * 0.008 + (sleep - 70.0) * 0.002;
+            let recover = tuning.condition_recovery * (0.7 + nf / 40.0) * age_rec * kind.recovery() * (0.9 + 0.2 * f32::from(h.wellbeing) / 100.0) * habits.clamp(0.8, 1.15);
             let cap = 100.0 - f32::from(h.fatigue) * 0.3;
             let cond = (f32::from(h.condition) + recover - load / 60.0).min(cap);
             h.condition = cond.clamp(10.0, 100.0) as u8;
@@ -192,9 +214,19 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
             if matches!(kind, DayKind::Training | DayKind::BeforeMatch) {
                 let prof = person.hidden.f(Hidden::Professionalism);
                 let det = c.attrs.get(Attr::Determination);
-                let base = 5.8 + 0.06 * (prof - 10.0) + 0.05 * (det - 10.0) + 0.012 * (f32::from(c.ca) - 100.0).clamp(-40.0, 60.0)
+                let effort = match plan.intensity {
+                    pw_world::Intensity::Light => -0.25,
+                    pw_world::Intensity::Normal => 0.0,
+                    pw_world::Intensity::High => 0.2,
+                } + f32::from(plan.extra) * 0.06;
+                let base = 5.8
+                    + 0.06 * (prof - 10.0)
+                    + 0.05 * (det - 10.0)
+                    + 0.012 * (f32::from(c.ca) - 100.0).clamp(-40.0, 60.0)
                     + 0.3 * (f32::from(h.wellbeing) - 60.0) / 40.0
                     + 0.4 * (f32::from(h.condition) - 85.0) / 15.0
+                    + effort
+                    - f32::from(routine.nightlife) * 0.03
                     + rng.normal() * 0.55;
                 let r = (base.clamp(4.0, 10.0) * 10.0).round();
                 h.training = (f32::from(h.training) * 0.8 + r * 0.2).round() as u8;
@@ -222,7 +254,9 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
         let vis = if o.club.is_some() { Visibility::Club(o.club) } else { Visibility::Public };
         if let Some((k, d)) = o.injury {
             apply_injury_effects(w, o.player, k);
-            w.events.push(today, vis, EventKind::Injured { player: o.player, injury: k, days: d });
+            // The world hears the medical team's estimate, not the truth.
+            let est = crate::medical::on_injury(w, o.player, k, d);
+            w.events.push(today, vis, EventKind::Injured { player: o.player, injury: k, days: est });
         } else if o.recovered {
             w.events.push(today, vis, EventKind::Recovered { player: o.player });
         }
@@ -230,17 +264,18 @@ pub fn daily(w: &mut World, days: &[DayKind]) {
 }
 
 /// Record an injury that happened in a match (the engine only flags it).
-pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng) {
-    let mech = [Mechanism::Contact, Mechanism::NonContact];
-    if let Some((k, d)) = sample_injury(&w.data.injuries, &mech, rng) {
+pub fn match_injury(w: &mut World, p: PlayerId, rng: &mut Rng, noncontact: bool) {
+    let mech: &[Mechanism] = if noncontact { &[Mechanism::NonContact, Mechanism::Overuse] } else { &[Mechanism::Contact] };
+    if let Some((k, d)) = sample_injury(&w.data.injuries, mech, rng) {
         let h = &mut w.players.hot[p];
         h.injury = k as u16 + 1;
         h.injury_days = d;
         h.injury_total = d;
         let club = h.club;
         apply_injury_effects(w, p, k as u16 + 1);
+        let est = crate::medical::on_injury(w, p, k as u16 + 1, d);
         let vis = if club.is_some() { Visibility::Club(club) } else { Visibility::Public };
-        w.events.push(w.date, vis, EventKind::Injured { player: p, injury: k as u16 + 1, days: d });
+        w.events.push(w.date, vis, EventKind::Injured { player: p, injury: k as u16 + 1, days: est });
     }
 }
 

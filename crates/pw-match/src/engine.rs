@@ -410,6 +410,8 @@ impl<'a> Engine<'a> {
         let ment = side.mentality.level() as f32;
         let width_u = Tactics::unit(t.width);
         let line_u = Tactics::unit(t.line);
+        // Several per-slot arrays are indexed together.
+        #[allow(clippy::needless_range_loop)]
         for i in 0..11 {
             side.outfield[i] = side.on[i] != NONE && side.slots[i].pos != Pos::GK;
             if side.on[i] == NONE {
@@ -421,7 +423,13 @@ impl<'a> Engine<'a> {
             let prof = role.profile();
             let keeper = side.slots[i].pos == Pos::GK;
             let (bx, by) = xy[i];
-            let toward_line = if by < 0.5 { -1.0 } else if by > 0.5 { 1.0 } else { 0.0 };
+            let toward_line = if by < 0.5 {
+                -1.0
+            } else if by > 0.5 {
+                1.0
+            } else {
+                0.0
+            };
             let mut ay = by;
             if prof.width > 0.0 {
                 ay += toward_line * (prof.width * 0.12 + width_u.max(0.0) * 0.05);
@@ -452,6 +460,8 @@ impl<'a> Engine<'a> {
         }
 
         let r = reach();
+        // Zones and slots index several arrays together.
+        #[allow(clippy::needless_range_loop)]
         for b in 0..N_ZONES {
             for i in 0..11 {
                 if side.on[i] == NONE {
@@ -555,10 +565,7 @@ impl<'a> Engine<'a> {
 
     fn keeper(&self, s: usize) -> usize {
         let side = &self.sides[s];
-        side.keeper_slot()
-            .and_then(|k| (side.on[k] != NONE).then_some(side.on[k] as usize))
-            .or_else(|| side.on.iter().find(|&&p| p != NONE).map(|&p| p as usize))
-            .unwrap_or(0)
+        side.keeper_slot().and_then(|k| (side.on[k] != NONE).then_some(side.on[k] as usize)).or_else(|| side.on.iter().find(|&&p| p != NONE).map(|&p| p as usize)).unwrap_or(0)
     }
 
     fn slot_role(&self, i: usize) -> Role {
@@ -624,6 +631,7 @@ impl<'a> Engine<'a> {
         if self.rng.chance(p) {
             let s = m.side as usize;
             self.mp[i].line.injured = true;
+            self.mp[i].line.injury_noncontact = self.rng.chance(0.5);
             let z = self.ball;
             self.event(s, Ev::Injury, i, None, z, 0.0);
             self.dead(45.0, 110.0);
@@ -687,9 +695,7 @@ impl<'a> Engine<'a> {
                 next_cp += CHECKPOINT;
             }
             if self.clock >= end {
-                let st = *stoppage.get_or_insert_with(|| {
-                    (if short { 45.0 } else { 140.0 }) + 26.0 * self.half_events as f32 + self.rng.range_f32(0.0, 75.0)
-                });
+                let st = *stoppage.get_or_insert_with(|| (if short { 45.0 } else { 140.0 }) + 26.0 * self.half_events as f32 + self.rng.range_f32(0.0, 75.0));
                 if self.clock >= end + st {
                     break;
                 }
@@ -1148,8 +1154,7 @@ impl<'a> Engine<'a> {
 
     fn aggression(&self, i: usize) -> f32 {
         let m = &self.mp[i];
-        (1.0 + (m.eff(Attr::Aggression) - 10.0) / 20.0 + (m.hidden(Hidden::Dirtiness) - 10.0) / 20.0 - (m.hidden(Hidden::Sportsmanship) - 10.0) / 30.0)
-            .clamp(0.4, 2.0)
+        (1.0 + (m.eff(Attr::Aggression) - 10.0) / 20.0 + (m.hidden(Hidden::Dirtiness) - 10.0) / 20.0 - (m.hidden(Hidden::Sportsmanship) - 10.0) / 30.0).clamp(0.4, 2.0)
     }
 
     fn foul(&mut self, offender: usize, victim: usize, zone: usize, tackle: bool) {
@@ -1401,8 +1406,7 @@ impl<'a> Engine<'a> {
         if xg >= 0.3 {
             self.sides[s].stats.big_chances += 1;
         }
-        let assister = (self.passer != NONE && self.carries_since_pass <= 1 && self.passer as usize != c && kind != ShotKind::FreeKick)
-            .then_some(self.passer as usize);
+        let assister = (self.passer != NONE && self.carries_since_pass <= 1 && self.passer as usize != c && kind != ShotKind::FreeKick).then_some(self.passer as usize);
         if let Some(a) = assister {
             self.mp[a].line.key_passes += 1;
             self.mp[a].line.xa += xg;
@@ -1519,8 +1523,7 @@ impl<'a> Engine<'a> {
         let t = &self.mp[taker];
         let g = &self.mp[gk];
         let nerves = (10.0 - t.eff(Attr::Composure)).max(0.0) * pressure;
-        (0.76 + 0.012 * (t.eff(Attr::PenaltyTaking) - 12.0) + 0.008 * (t.eff(Attr::Composure) - 12.0) - 0.01 * (g.eff(Attr::Reflexes) - 12.0) - 0.012 * nerves - 0.04 * pressure)
-            .clamp(0.5, 0.93)
+        (0.76 + 0.012 * (t.eff(Attr::PenaltyTaking) - 12.0) + 0.008 * (t.eff(Attr::Composure) - 12.0) - 0.01 * (g.eff(Attr::Reflexes) - 12.0) - 0.012 * nerves - 0.04 * pressure).clamp(0.5, 0.93)
     }
 
     fn own_goal(&mut self, i: usize) {
@@ -1678,8 +1681,7 @@ impl<'a> Engine<'a> {
             return false;
         }
         let Slot { pos, role } = self.sides[s].slots[slot];
-        let best = self
-            .sides[s]
+        let best = self.sides[s]
             .bench
             .iter()
             .copied()

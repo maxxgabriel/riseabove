@@ -3,20 +3,26 @@ use pw_data::DataPack;
 use pw_match::MatchResult;
 use serde::{Deserialize, Serialize};
 
+use crate::agent::Agents;
+use crate::beliefs::Beliefs;
 use crate::club::{Club, Team, TeamKind};
 use crate::comp::{Competition, Fixtures};
 use crate::contract::{Contract, Loan};
 use crate::decision::{Decisions, MindKind};
 use crate::event::EventLog;
 use crate::history::History;
+use crate::intent::Intents;
+use crate::interaction::Meetings;
 use crate::knowledge::Knowledge;
+use crate::life::Life;
+use crate::media::Media;
 use crate::names::Names;
 use crate::nation::Nation;
+use crate::negotiation::Negotiation;
 use crate::person::Person;
 use crate::player::{PlayerStatus, Players};
-use crate::staff::Staff;
-use crate::negotiation::Negotiation;
 use crate::social::Social;
+use crate::staff::Staff;
 use crate::stats::SeasonStats;
 use crate::{FxHashMap, FxHashSet};
 
@@ -37,6 +43,16 @@ pub struct MarketBook {
     /// (buyer, player) → earliest date the buyer may approach again.
     pub cooldown: FxHashMap<(ClubId, PlayerId), Date>,
     pub pending: Vec<PendingDeal>,
+    /// Players who have handed in a transfer request, and when.
+    pub requests: FxHashMap<PlayerId, Date>,
+    /// Players their club has explicitly made available for transfer, and when.
+    pub listed: FxHashMap<PlayerId, Date>,
+    /// Players their club has agreed to loan out, and when.
+    pub loan_listed: FxHashMap<PlayerId, Date>,
+    /// Players currently in contract talks (one set of talks at a time).
+    pub talking: FxHashMap<PlayerId, pw_core::TalkId>,
+    /// Players who have noticed a teammate paid far more, and how much more they will ask for: 0..0.5 on top of their wage demand.
+    pub envy: FxHashMap<PlayerId, f32>,
 }
 
 impl MarketBook {
@@ -46,6 +62,10 @@ impl MarketBook {
 
     pub fn is_pending(&self, p: PlayerId) -> bool {
         self.pending.iter().any(|d| d.player == p)
+    }
+
+    pub fn has_requested(&self, p: PlayerId) -> bool {
+        self.requests.contains_key(&p)
     }
 }
 
@@ -71,9 +91,97 @@ pub struct World {
     pub market: MarketBook,
     pub social: Social,
     pub talks: IdVec<pw_core::TalkId, Negotiation>,
+    /// What individual people believe (S15).
+    pub beliefs: Beliefs,
+    /// Life off the pitch, one per person (aligned with `people`).
+    pub lives: IdVec<PersonId, Life>,
+    pub agents: Agents,
+    pub media: Media,
+    pub meetings: Meetings,
+    pub intents: Intents,
+    /// Owners, boards, policies and projects, per club.
+    pub governance: FxHashMap<ClubId, crate::governance::Governance>,
+    pub economy: crate::governance::Economy,
+    /// Manager identities and CVs.
+    pub careers: crate::careers::Careers,
+    /// Scouts, their assignments and reports.
+    pub scouting: crate::scouting::Scouting,
+    /// Squad plans, shortlists, club-to-club deals, payables, clauses.
+    pub deals: crate::deals::Deals,
+    /// Grassroots and amateur clubs, academies, trials, schooling.
+    pub youth: crate::youth::Youth,
+    /// National sides, caps, international matches and tournaments.
+    pub intl: crate::intl::Intl,
+    /// Injury cases, histories, fragile regions, chronic conditions.
+    pub medical: crate::medical::Medical,
+    /// Domain state added by the simulation expansion (see `ext`).
+    #[serde(with = "crate::ext::envelope")]
+    pub ext: crate::ext::Extensions,
+    /// Dressing-room hierarchies, groups and integration, per club.
+    pub rooms: crate::dressing::Rooms,
+    /// Appearance records, season lines and how observers read them.
+    pub perf: crate::perf::Perf,
+    /// Development records: mentors, trajectories, stagnation.
+    pub growth: crate::growth::Growth,
+    /// Records, tallies, legends, hall of fame, award votes.
+    pub honours: crate::honours::Honours,
+    /// Local, continental and celebrity standing, followers.
+    pub renown: crate::renown::Renowns,
+    /// Study, homes, personal staff, giving, investments, post-playing work.
+    pub affairs: crate::affairs::AffairsBook,
+    /// Brands, club sponsorships and personal endorsements.
+    pub commerce: crate::commerce::Commerce,
+    /// Club identities, national trends and rivalries.
+    pub culture: crate::culture::Culture,
+    /// Information items: who knows what, how they learned it, who told whom.
+    pub grapevine: crate::info::Grapevine,
+    /// Incidents, unresolved tension, leave, deferred decisions.
+    pub incidents: crate::incident::Incidents,
+    /// Communication due later (follow-ups, analysis, denials).
+    pub agenda: crate::agenda::Agenda,
+    /// Facts of the last four weeks of senior matches.
+    pub recent_matches: crate::matchfacts::RecentMatches,
+    /// Press conferences and every quote on the record.
+    pub pressroom: crate::pressroom::Pressroom,
+    /// Social media: accounts, opinions, posts, supporter groups, chants, memes.
+    pub net: crate::socialnet::SocialNet,
+    /// Messages and conversation threads for people humans control.
+    pub inbox: crate::inbox::Inbox,
+    /// Schools, universities, amateur and grassroots competitions and their history.
+    pub minor: crate::minor::Minor,
+    /// Records at every level, with their histories.
+    pub records: crate::records::RecordBook,
+    /// Votes with ballots, halls of fame, the chronicle of achievements.
+    pub acclaim: crate::awards::Acclaim,
+    /// Referees, controversies, appeals, charges, atmosphere.
+    pub officials: crate::officials::Officials,
+    /// Tactical schools and rule changes.
+    pub evolution: crate::evolution::Evolution,
+    /// The world's past before the start date (imported or generated).
+    pub backfill: crate::backfill::Backfill,
+    /// Where imported records came from and which facts the importer had to fill in.
+    pub origins: crate::origin::OriginBook,
     /// Full match results (events, per-player lines) for watched teams, keyed by fixture uid.
     pub reports: FxHashMap<u64, MatchResult>,
     pub days_simulated: u64,
+    /// Teams whose matches are recorded at full detail on request (recording only, never outcomes).
+    pub followed: Vec<TeamId>,
+    /// Whether the one-time preparation (`pw_sim::prepare`) has run. A saved
+    /// world is prepared; preparing it again would advance it.
+    pub prepared: bool,
+    /// Mixed into the seed when a playthrough begins, so two playthroughs of
+    /// the same starting world diverge while one save replays exactly (S22).
+    pub playthrough: u64,
+    /// What each club's people believe about players: dossiers, evaluators' track records.
+    pub dossiers: crate::dossier::Dossiers,
+    /// Who has a say in signings, clubs' appetite for risk, case files of important deals.
+    pub boardroom: crate::boardroom::Boardroom,
+    /// Players settling in after a move.
+    pub adaptation: crate::adaptation::Adaptations,
+    /// What staff saw and concluded in matches, what managers changed, what clubs remember of opponents, how drilled squads are.
+    pub tactics: crate::tactics::Tactical,
+    /// What people carry from their lives onto the pitch, and what their managers know of it.
+    pub lifestate: crate::lifestate::LifeStates,
 }
 
 impl World {
@@ -99,9 +207,137 @@ impl World {
             market: MarketBook::default(),
             social: Social::default(),
             talks: IdVec::new(),
+            beliefs: Beliefs::default(),
+            lives: IdVec::new(),
+            agents: Agents::default(),
+            media: Media::default(),
+            meetings: Meetings::default(),
+            intents: Intents::default(),
+            governance: FxHashMap::default(),
+            economy: Default::default(),
+            careers: Default::default(),
+            scouting: Default::default(),
+            deals: Default::default(),
+            youth: Default::default(),
+            intl: Default::default(),
+            medical: Default::default(),
+            ext: Default::default(),
+            rooms: Default::default(),
+            perf: Default::default(),
+            growth: Default::default(),
+            honours: Default::default(),
+            renown: Default::default(),
+            affairs: Default::default(),
+            commerce: Default::default(),
+            culture: Default::default(),
+            grapevine: Default::default(),
+            incidents: Default::default(),
+            agenda: Default::default(),
+            recent_matches: Default::default(),
+            pressroom: Default::default(),
+            net: Default::default(),
+            inbox: Default::default(),
+            minor: Default::default(),
+            records: Default::default(),
+            acclaim: Default::default(),
+            officials: Default::default(),
+            evolution: Default::default(),
+            backfill: Default::default(),
+            origins: Default::default(),
             reports: FxHashMap::default(),
             days_simulated: 0,
+            followed: Vec::new(),
+            prepared: false,
+            playthrough: 0,
+            dossiers: Default::default(),
+            boardroom: Default::default(),
+            adaptation: Default::default(),
+            tactics: Default::default(),
+            lifestate: Default::default(),
         }
+    }
+
+    /// Inhabit a person: from now on their decisions come from outside the
+    /// simulation. Nothing else about the world changes (S4).
+    pub fn take_control(&mut self, person: PersonId) -> bool {
+        match self.people.get_mut(person) {
+            Some(p) => {
+                p.mind = MindKind::External;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Hand a person back to their own AI mind, which carries on from their
+    /// personality, values and memories (S4).
+    pub fn release_control(&mut self, person: PersonId) {
+        if let Some(p) = self.people.get_mut(person) {
+            p.mind = MindKind::Ai;
+        }
+    }
+
+    /// Start a new playthrough: future randomness diverges from any other
+    /// playthrough of the same world, while this one stays reproducible (S22).
+    /// A random stream for one subsystem, keyed by stable ids and (where the
+    /// draw belongs to a time window) a period key from `rng::period`. See
+    /// the RNG architecture in `pw_core::rng`.
+    pub fn rng(&self, subsystem: u64, keys: &[u64]) -> pw_core::Rng {
+        let mut k: smallvec::SmallVec<[u64; 8]> = smallvec::SmallVec::new();
+        k.push(self.seed);
+        k.push(subsystem);
+        k.extend_from_slice(keys);
+        pw_core::Rng::keyed(&k)
+    }
+
+    /// One uniform draw in `[0, 1)` for a subsystem and keys.
+    pub fn roll(&self, subsystem: u64, keys: &[u64]) -> f32 {
+        self.rng(subsystem, keys).f32()
+    }
+
+    pub fn begin_playthrough(&mut self, salt: u64) {
+        self.playthrough = pw_core::rng::hash_key(&[self.playthrough, salt]);
+        self.seed = pw_core::rng::hash_key(&[self.seed, pw_core::rng::stream::PLAYTHROUGH, self.playthrough]);
+    }
+
+    #[inline]
+    pub fn life(&self, person: PersonId) -> &Life {
+        &self.lives[person]
+    }
+
+    #[inline]
+    pub fn life_mut(&mut self, person: PersonId) -> &mut Life {
+        &mut self.lives[person]
+    }
+
+    /// The club a person currently works or plays for, if any.
+    pub fn club_of_person(&self, person: PersonId) -> ClubId {
+        let p = &self.people[person];
+        if p.player.is_some() {
+            let h = &self.players.hot[p.player];
+            if h.status == PlayerStatus::Active {
+                return h.club;
+            }
+        }
+        if p.staff.is_some() && self.staff[p.staff].employed() {
+            return self.staff[p.staff].club;
+        }
+        ClubId::NONE
+    }
+
+    /// The team a player currently plays for (loan club during a loan).
+    pub fn playing_club(&self, p: PlayerId) -> ClubId {
+        let t = self.players.hot[p].team;
+        if t.is_some() { self.teams[t].club } else { ClubId::NONE }
+    }
+
+    /// The manager (as a person) of the club a player trains with.
+    pub fn manager_of_player(&self, p: PlayerId) -> Option<PersonId> {
+        let club = self.playing_club(p);
+        if club.is_none() {
+            return None;
+        }
+        self.clubs[club].manager.get().map(|m| self.staff[m].person)
     }
 
     #[inline]
@@ -172,6 +408,7 @@ impl World {
             .filter(|p| p.mind == MindKind::External && p.player.is_some())
             .map(|p| self.players.hot[p.player].team)
             .filter(|t| t.is_some())
+            .chain(self.followed.iter().copied())
             .collect()
     }
 
@@ -191,9 +428,6 @@ impl World {
     pub fn club_manager_judging(&self, club: ClubId) -> (f32, f32) {
         let c = &self.clubs[club];
         let best = |f: fn(&Staff) -> f32| c.staff.iter().map(|&s| f(&self.staff[s])).fold(6.0f32, f32::max);
-        (
-            best(|s| s.attrs.f(pw_core::StaffAttr::JudgingAbility)),
-            best(|s| s.attrs.f(pw_core::StaffAttr::JudgingPotential)),
-        )
+        (best(|s| s.attrs.f(pw_core::StaffAttr::JudgingAbility)), best(|s| s.attrs.f(pw_core::StaffAttr::JudgingPotential)))
     }
 }

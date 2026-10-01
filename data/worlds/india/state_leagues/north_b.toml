@@ -1,0 +1,653 @@
+# State league pyramids below the state top division (competition records only; no clubs/memberships here).
+[meta]
+dataset = "state_leagues.north_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "North India below the state top divisions (Punjab, Delhi, J&K, Haryana, Uttarakhand, Himachal Pradesh, Rajasthan, Uttar Pradesh): lower divisions, district leagues, women's leagues and age-group championships. Adds a top-division record for Haryana, Himachal Pradesh and Uttar Pradesh, which had none."
+gaps = [
+  "Model knowledge only (no web access, per brief v2): every record is q = C (existence and rough role believed correct) or q = D (name/format a scenario seed). No season-verified participant lists, team counts or dates.",
+  "The state top-division competitions (state premier leagues) already exist in competitions/membership_t4_b.toml and are only REFERENCED here via qualifies_to; they were not edited, so their fed_by fields do not point back at the divisions defined here.",
+  "tier is the in-state pyramid position (1 = state top division = game tier 4). District leagues and cups carry no tier.",
+  "Women's leagues use qualifies_to = comp.iwl2 as a coarse pointer to the national women's pathway; the actual nomination mechanism for a given year was not checked.",
+  "State Junior (u19) and Sub-Junior (u16) championships are pointed at comp.junior-nfc and comp.sub-junior-nfc; the exact age bands used by each state association in 2026-27 were not verified.",
+  "Women's leagues for Kerala, Manipur, Odisha, Tamil Nadu, Delhi, Haryana, Karnataka, Goa, Mizoram, Meghalaya and Maharashtra (Mumbai) are defined by another agent in competitions/membership_women_b.toml and are deliberately not repeated here; women's leagues for the other states in this file are new (mostly q = D).",
+  "Guwahati Premier League is already an alias of comp.as.assam-state-premier-league and is not a separate record.",
+  "Delhi is the only state here with a reasonably known multi-division pyramid; the others are thin and mostly scenario seeds (q = D).",
+  "Chandigarh (assoc.cfa-ch) and Ladakh (assoc.lfa) are outside the assignment and not covered.",
+  "Departmental competitions (Army, Punjab Police, BSF, Services) are not state leagues and are not modelled.",
+]
+
+[[competition]]
+id = "comp.pb.state-league-division-2"
+name = "Punjab State Football League Division 2"
+organiser = "assoc.fap"
+level = "state"
+tier = 2
+state = "state.pb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level under the Punjab State Super Football League; format unknown."
+qualifies_to = ["comp.pb.punjab-state-super-football-league"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.pb.jalandhar-district-league"
+name = "Jalandhar District Football League"
+organiser = "assoc.fap"
+operator = "Jalandhar district football association"
+level = "district"
+state = "state.pb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Local league of Punjab's football hub (Jalandhar, Hoshiarpur, Kapurthala belt)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.pb.womens-league"
+name = "Punjab Women's League"
+organiser = "assoc.fap"
+level = "state"
+tier = 1
+state = "state.pb"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.pb.junior-championship"
+name = "Punjab State Junior Championship (U-19)"
+organiser = "assoc.fap"
+level = "state"
+state = "state.pb"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.pb.sub-junior-championship"
+name = "Punjab State Sub-Junior Championship (U-16)"
+organiser = "assoc.fap"
+level = "state"
+state = "state.pb"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.pb.youth-league-u17"
+name = "Punjab Youth League U-17"
+organiser = "assoc.fap"
+level = "state"
+state = "state.pb"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for clubs/academies feeding the national Elite Youth League; format not known."
+qualifies_to = ["comp.youth-league-u17"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }
+
+[[competition]]
+id = "comp.dl.senior-division"
+name = "Delhi Senior Division League"
+short = "Delhi Senior Division"
+organiser = "assoc.fd"
+level = "state"
+tier = 2
+state = "state.dl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level under the Delhi Premier League: roughly 12-16 clubs, with promotion to the Premier League."
+promotion = "Top club(s) promoted to the Delhi Premier League."
+relegation = "Bottom club(s) relegated to the A Division."
+qualifies_to = ["comp.dl.delhi-premier-league"]
+fed_by = ["comp.dl.a-division"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; the Senior Division name is recalled; size varies" }
+
+[[competition]]
+id = "comp.dl.a-division"
+name = "Delhi A Division"
+organiser = "assoc.fd"
+level = "state"
+tier = 3
+state = "state.dl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Third level of the Delhi pyramid."
+qualifies_to = ["comp.dl.senior-division"]
+fed_by = ["comp.dl.b-division"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name and existence unverified" }
+
+[[competition]]
+id = "comp.dl.b-division"
+name = "Delhi B Division"
+organiser = "assoc.fd"
+level = "state"
+tier = 4
+state = "state.dl"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Fourth level of the Delhi pyramid."
+qualifies_to = ["comp.dl.a-division"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name and existence unverified" }
+
+[[competition]]
+id = "comp.dl.junior-championship"
+name = "Delhi State Junior Championship (U-19)"
+organiser = "assoc.fd"
+level = "state"
+state = "state.dl"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.dl.sub-junior-championship"
+name = "Delhi State Sub-Junior Championship (U-16)"
+organiser = "assoc.fd"
+level = "state"
+state = "state.dl"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.dl.youth-league-u17"
+name = "Delhi Youth League U-17"
+organiser = "assoc.fd"
+level = "state"
+state = "state.dl"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for clubs/academies feeding the national Elite Youth League; format not known."
+qualifies_to = ["comp.youth-league-u17"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }
+
+[[competition]]
+id = "comp.jk.kashmir-division-league"
+name = "Kashmir Division Football League"
+organiser = "assoc.jkfa"
+level = "district"
+state = "state.jk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Local league for Srinagar/Kashmir valley clubs beneath the J&K top competition; format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jk.jammu-division-league"
+name = "Jammu Division Football League"
+organiser = "assoc.jkfa"
+level = "district"
+state = "state.jk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Local league for Jammu-province clubs; format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jk.womens-league"
+name = "J&K Women's League"
+organiser = "assoc.jkfa"
+level = "state"
+tier = 1
+state = "state.jk"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.jk.junior-championship"
+name = "J&K State Junior Championship (U-19)"
+organiser = "assoc.jkfa"
+level = "state"
+state = "state.jk"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.jk.sub-junior-championship"
+name = "J&K State Sub-Junior Championship (U-16)"
+organiser = "assoc.jkfa"
+level = "state"
+state = "state.jk"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.jk.youth-league-u17"
+name = "J&K Youth League U-17"
+organiser = "assoc.jkfa"
+level = "state"
+state = "state.jk"
+age = "u17"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Age-group league for clubs/academies feeding the national Elite Youth League; format not known."
+qualifies_to = ["comp.youth-league-u17"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; generic name" }
+
+[[competition]]
+id = "comp.hr.state-league"
+name = "Haryana State Football League"
+organiser = "assoc.hfa"
+level = "state"
+tier = 1
+state = "state.hr"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Haryana FA's top men's state competition; Gurugram, Faridabad, Rohtak and Hisar area clubs; format unknown."
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; no top-tier record exists for Haryana elsewhere; league name a guess" }
+
+[[competition]]
+id = "comp.hr.junior-championship"
+name = "Haryana State Junior Championship (U-19)"
+organiser = "assoc.hfa"
+level = "state"
+state = "state.hr"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.hr.sub-junior-championship"
+name = "Haryana State Sub-Junior Championship (U-16)"
+organiser = "assoc.hfa"
+level = "state"
+state = "state.hr"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.uk.second-division"
+name = "Uttarakhand Second Division League"
+organiser = "assoc.ufa"
+level = "state"
+tier = 2
+state = "state.uk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level under the Uttarakhand Premier League; format unknown."
+qualifies_to = ["comp.uk.uttarakhand-premier-league"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.uk.dehradun-district-league"
+name = "Dehradun District Football League"
+organiser = "assoc.ufa"
+operator = "Dehradun district association"
+level = "district"
+state = "state.uk"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "City league of the state capital (army, ITBP and local club sides); format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.uk.womens-league"
+name = "Uttarakhand Women's League"
+organiser = "assoc.ufa"
+level = "state"
+tier = 1
+state = "state.uk"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.uk.junior-championship"
+name = "Uttarakhand State Junior Championship (U-19)"
+organiser = "assoc.ufa"
+level = "state"
+state = "state.uk"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.uk.sub-junior-championship"
+name = "Uttarakhand State Sub-Junior Championship (U-16)"
+organiser = "assoc.ufa"
+level = "state"
+state = "state.uk"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.hp.state-league"
+name = "Himachal Pradesh State Football League"
+organiser = "assoc.hpfa"
+level = "state"
+tier = 1
+state = "state.hp"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "HPFA's top men's state competition; Shimla, Solan, Kangra and Una clubs; format unknown."
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; no top-tier record exists for HP elsewhere; name a guess" }
+
+[[competition]]
+id = "comp.hp.shimla-league"
+name = "Shimla Football League"
+organiser = "assoc.hpfa"
+operator = "Shimla district association"
+level = "district"
+state = "state.hp"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Shimla's local league (Shimla has a long football history, including the origin of the Durand Cup); format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.hp.womens-league"
+name = "Himachal Pradesh Women's League"
+organiser = "assoc.hpfa"
+level = "state"
+tier = 1
+state = "state.hp"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.hp.junior-championship"
+name = "Himachal Pradesh State Junior Championship (U-19)"
+organiser = "assoc.hpfa"
+level = "state"
+state = "state.hp"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.hp.sub-junior-championship"
+name = "Himachal Pradesh State Sub-Junior Championship (U-16)"
+organiser = "assoc.hpfa"
+level = "state"
+state = "state.hp"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.rj.second-division"
+name = "Rajasthan State League Second Division"
+organiser = "assoc.rfa"
+level = "state"
+tier = 2
+state = "state.rj"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Second level under the Rajasthan State Premier League; format unknown."
+qualifies_to = ["comp.rj.rajasthan-state-premier-league"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.rj.jaipur-district-league"
+name = "Jaipur District Football League"
+organiser = "assoc.rfa"
+operator = "Jaipur district association"
+level = "district"
+state = "state.rj"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "Jaipur's local league (Rajasthan United and Zinc FA sit above this level); format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.rj.womens-league"
+name = "Rajasthan Women's League"
+organiser = "assoc.rfa"
+level = "state"
+tier = 1
+state = "state.rj"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.rj.junior-championship"
+name = "Rajasthan State Junior Championship (U-19)"
+organiser = "assoc.rfa"
+level = "state"
+state = "state.rj"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.rj.sub-junior-championship"
+name = "Rajasthan State Sub-Junior Championship (U-16)"
+organiser = "assoc.rfa"
+level = "state"
+state = "state.rj"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.up.state-premier-league"
+name = "Uttar Pradesh State Premier League"
+organiser = "assoc.upfa"
+level = "state"
+tier = 1
+state = "state.up"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "UPFA's top men's state competition; Lucknow, Varanasi, Kanpur, Meerut and Noida clubs; format unknown."
+qualifies_to = ["comp.ifl3"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; no top-tier record exists for UP elsewhere; name a guess" }
+
+[[competition]]
+id = "comp.up.lucknow-district-league"
+name = "Lucknow District Football League"
+organiser = "assoc.upfa"
+operator = "Lucknow district association"
+level = "district"
+state = "state.up"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026-27"
+format = "City league of the state capital; format unknown."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.up.womens-league"
+name = "Uttar Pradesh Women's League"
+organiser = "assoc.upfa"
+level = "state"
+tier = 1
+state = "state.up"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+format = "State women's league; format unknown."
+qualifies_to = ["comp.iwl2"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; name a guess" }
+
+[[competition]]
+id = "comp.up.junior-championship"
+name = "Uttar Pradesh State Junior Championship (U-19)"
+organiser = "assoc.upfa"
+level = "state"
+state = "state.up"
+age = "u19"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-19 boys' championship (district teams or clubs) used to pick the state side for the Junior National Football Championship; format not known."
+qualifies_to = ["comp.junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band and existence per national pathway; state-level format unknown" }
+
+[[competition]]
+id = "comp.up.sub-junior-championship"
+name = "Uttar Pradesh State Sub-Junior Championship (U-16)"
+organiser = "assoc.upfa"
+level = "state"
+state = "state.up"
+age = "u16"
+gender = "men"
+kind = "championship"
+season = "2026-27"
+format = "State association's under-16 boys' championship used to pick the state side for the Sub-Junior National Football Championship; format not known."
+qualifies_to = ["comp.sub-junior-nfc"]
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "guess / scenario seed, name and format unverified; age band per national pathway; state-level format unknown" }

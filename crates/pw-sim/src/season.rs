@@ -134,15 +134,17 @@ pub fn finish_nation(w: &mut World, n: NationId) {
             (r, 0) => r,
             (r, p) => r.min(p),
         });
-        let upper_rank: Vec<TeamId> = last_table(w, upper, year);
-        let lower_rank: Vec<TeamId> = last_table(w, lower, year);
+        // Rank by last season's table, but only among sides still in the division: an earlier pair (or the
+        // state pathway) may already have moved someone, and a side must never be in two divisions.
+        let upper_rank: Vec<TeamId> = last_table(w, upper, year).into_iter().filter(|t| w.comps[upper].state.entrants.contains(t)).collect();
+        let lower_rank: Vec<TeamId> = last_table(w, lower, year).into_iter().filter(|t| w.comps[lower].state.entrants.contains(t)).collect();
         if upper_rank.is_empty() || lower_rank.is_empty() || k == 0 {
             continue;
         }
         let promoted: Vec<TeamId> = lower_rank.iter().filter(|&&t| !is_b_team_blocked(w, t, upper)).take(k).copied().collect();
         let relegated: Vec<TeamId> = upper_rank.iter().rev().take(promoted.len()).copied().collect();
         let date = w.date;
-        let mut new_upper: Vec<TeamId> = upper_rank.iter().copied().filter(|t| !relegated.contains(t)).collect();
+        let mut new_upper: Vec<TeamId> = w.comps[upper].state.entrants.iter().copied().filter(|t| !relegated.contains(t)).collect();
         new_upper.extend(promoted.iter().copied());
         let mut new_lower: Vec<TeamId> = w.comps[lower].state.entrants.iter().copied().filter(|t| !promoted.contains(t)).collect();
         new_lower.extend(relegated.iter().copied());
@@ -157,6 +159,7 @@ pub fn finish_nation(w: &mut World, n: NationId) {
             w.comps[lower].state.last_moves.push((t, -1));
         }
     }
+    crate::statepath::season_end(w, n, year);
     crate::reputation::season_end(w, n);
 }
 
@@ -196,6 +199,9 @@ fn close_league(w: &mut World, c: CompId, year: i32) {
         w.clubs[club].finance.balance += amount;
         w.clubs[club].finance.season_income += amount;
     }
+    crate::culture::season_end(w, c, &rows);
+    crate::records::league_season(w, c, &rows);
+    crate::almanac::league_season(w, c, &rows);
     w.history.tables.push(ArchivedTable { comp: c, season: year, rows });
     archive_stats(w, c, year);
     w.comps[c].state.stage = Stage::Finished;
@@ -218,12 +224,12 @@ fn archive_stats(w: &mut World, c: CompId, year: i32) {
         let min_apps = (f32::from(games) * 0.6) as u16;
         let best = lines.iter().filter(|l| l.apps >= min_apps.max(1)).max_by(|a, b| a.avg_rating().total_cmp(&b.avg_rating()));
         award(AwardKind::PlayerOfSeason, best, best.map_or(0.0, |l| l.avg_rating()));
-        let young = lines
-            .iter()
-            .filter(|l| l.apps >= (min_apps / 2).max(1) && w.people[w.players.cold[l.player].person].dob.age_on(date) <= 21)
-            .max_by(|a, b| a.avg_rating().total_cmp(&b.avg_rating()));
+        let young =
+            lines.iter().filter(|l| l.apps >= (min_apps / 2).max(1) && w.people[w.players.cold[l.player].person].dob.age_on(date) <= 21).max_by(|a, b| a.avg_rating().total_cmp(&b.avg_rating()));
         award(AwardKind::YoungPlayerOfSeason, young, young.map_or(0.0, |l| l.avg_rating()));
+        crate::honours::season_awards(w, c, year, &lines, games);
     }
+    crate::almanac::season_lines(w, c, &lines, games);
     w.history.archive_lines(lines);
 }
 
@@ -272,7 +278,11 @@ pub fn advance_knockouts(w: &mut World) {
                 }
                 let legs = match w.comps[c].format {
                     Format::Knockout { legs, final_legs } | Format::Groups { ko_legs: legs, final_legs, .. } => {
-                        if winners.len() == 2 { final_legs } else { legs }
+                        if winners.len() == 2 {
+                            final_legs
+                        } else {
+                            legs
+                        }
                     }
                     Format::League { .. } => 1,
                 };
@@ -297,12 +307,7 @@ fn next_round_date(w: &World, c: CompId, today: Date) -> Date {
 fn crown(w: &mut World, c: CompId, winner: TeamId) {
     let date = w.date;
     let year = w.comps[c].state.season;
-    let runner = w
-        .fixtures
-        .between(date.add_days(-10), date)
-        .map(|f| w.fixtures.get(f))
-        .find(|f| f.comp == c && f.involves(winner))
-        .map_or(TeamId::NONE, |f| f.opponent(winner));
+    let runner = w.fixtures.between(date.add_days(-10), date).map(|f| w.fixtures.get(f)).find(|f| f.comp == c && f.involves(winner)).map_or(TeamId::NONE, |f| f.opponent(winner));
     let club = w.teams[winner].club;
     w.comps[c].state.winner = winner;
     w.comps[c].state.runner_up = runner;
@@ -314,6 +319,7 @@ fn crown(w: &mut World, c: CompId, winner: TeamId) {
     }
     let prize = w.comps[c].prize_pool / 3;
     w.clubs[club].finance.balance += prize;
+    crate::economy::record_continental(w, c);
     archive_stats(w, c, year);
 }
 
@@ -341,6 +347,7 @@ fn continental(w: &mut World, confed: Confed) {
         reset_state(w, c, s.year, group_start, s.end);
         let entrants = continental_entrants(w, c, confed, rank, s.year);
         w.comps[c].state.entrants = entrants;
+        crate::clauses::on_continental_entry(w, c);
         let mut rng = Rng::keyed(&[w.seed, stream::DRAW, u64::from(c.0), s.year as u64]);
         match w.comps[c].format {
             Format::Groups { groups, size, .. } => {
@@ -389,18 +396,11 @@ fn continental_entrants(w: &World, c: CompId, confed: Confed, tier: usize, year:
     let mut out = Vec::new();
     for (rank, &n) in nations.iter().enumerate() {
         let top = w.nations[n].leagues[0];
-        let order: Vec<TeamId> = w
-            .history
-            .tables
-            .iter()
-            .rev()
-            .find(|t| t.comp == top && t.season < year)
-            .map(|t| t.rows.iter().map(|r| r.team).collect())
-            .unwrap_or_else(|| {
-                let mut v = w.comps[top].state.entrants.clone();
-                v.sort_by_key(|&t| std::cmp::Reverse(w.clubs[w.teams[t].club].reputation));
-                v
-            });
+        let order: Vec<TeamId> = w.history.tables.iter().rev().find(|t| t.comp == top && t.season < year).map(|t| t.rows.iter().map(|r| r.team).collect()).unwrap_or_else(|| {
+            let mut v = w.comps[top].state.entrants.clone();
+            v.sort_by_key(|&t| std::cmp::Reverse(w.clubs[w.teams[t].club].reputation));
+            v
+        });
         let (a, b) = slots(rank);
         let (skip, take) = if tier == 0 { (0, a) } else { (a, b) };
         out.extend(order.into_iter().skip(skip).take(take));

@@ -1,0 +1,647 @@
+[meta]
+dataset = "competitions.inter_university_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "AIU women's zone and All India football (plus the missing Central zone for men), the MAKA overall trophy, KIUG men and women splits, and about two dozen university inter-college football championships (Kerala, Bengal, Mumbai, Pune, Goa, Delhi, Punjab, North East, Karnataka, Tamil Nadu, Telangana, Odisha, Assam) plus one generic Vice-Chancellor's Cup template. Complements competitions/national.toml (men's AIU zones and All India, KIUG, SGFI)."
+gaps = [
+ "Model knowledge only, no web verification: names of university inter-college championships are descriptive (each university runs its own sports board events under its own names and dates); existence is highly likely but titles, formats, team counts and dates are not verified.",
+ "Organiser field: no association records exist for university sports boards, so organiser is set to assoc.aiu (the umbrella body that these events feed) and the actual operator is in the operator text. SCHEMA GAP: an association kind for university sports boards (or organiser as free text) would be cleaner.",
+ "AIU has five zones including Central; comp.aiu-central and comp.aiu-women-central are added here; the zone enum on [[university]] (north|south|east|west) does not include central. SCHEMA GAP: add central.",
+ "No edition-level results, winners, hosts or years are recorded; nothing here is an achievement record.",
+ "FISU World University Games football (India selection via AIU) is not modelled because the competition level enum has no global value. SCHEMA GAP: level = 'global'.",
+ "Women's inter-college events are recorded only for Calicut, MG, Kerala and Kannur (Kerala has the deepest women's university football); other universities likely run them too.",
+ "KIUG editions: 2020 Bhubaneswar, 2021 edition (April 2022) Bengaluru, 2022 edition (May 2023) Uttar Pradesh are recalled; later editions and football-specific participation not confirmed.",
+]
+
+[[competition]]
+id = "comp.aiu-women-north"
+name = "AIU North Zone Inter-University Football (Women)"
+short = "AIU North W"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "zonal"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal stage among member universities of the zone; the leading teams advance to the All India stage. Number of teams, group or knockout format and qualifiers per zone vary by year and were not checked."
+qualifies_to = ["comp.aiu-women-inter-zone"]
+calendar = "Zonal stage typically October to December (varies)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Women's counterpart of the men's zone tournament; AIU runs women's inter-university football by zone. Host, team counts and dates not checked." }
+
+[[competition]]
+id = "comp.aiu-women-south"
+name = "AIU South Zone Inter-University Football (Women)"
+short = "AIU South W"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "zonal"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal stage among member universities of the zone; the leading teams advance to the All India stage. Number of teams, group or knockout format and qualifiers per zone vary by year and were not checked."
+qualifies_to = ["comp.aiu-women-inter-zone"]
+calendar = "Zonal stage typically October to December (varies)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Women's counterpart of the men's zone tournament; AIU runs women's inter-university football by zone. Host, team counts and dates not checked." }
+
+[[competition]]
+id = "comp.aiu-women-east"
+name = "AIU East Zone Inter-University Football (Women)"
+short = "AIU East W"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "zonal"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal stage among member universities of the zone; the leading teams advance to the All India stage. Number of teams, group or knockout format and qualifiers per zone vary by year and were not checked."
+qualifies_to = ["comp.aiu-women-inter-zone"]
+calendar = "Zonal stage typically October to December (varies)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Women's counterpart of the men's zone tournament; AIU runs women's inter-university football by zone. Host, team counts and dates not checked." }
+
+[[competition]]
+id = "comp.aiu-women-west"
+name = "AIU West Zone Inter-University Football (Women)"
+short = "AIU West W"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "zonal"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal stage among member universities of the zone; the leading teams advance to the All India stage. Number of teams, group or knockout format and qualifiers per zone vary by year and were not checked."
+qualifies_to = ["comp.aiu-women-inter-zone"]
+calendar = "Zonal stage typically October to December (varies)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Women's counterpart of the men's zone tournament; AIU runs women's inter-university football by zone. Host, team counts and dates not checked." }
+
+[[competition]]
+id = "comp.aiu-central"
+name = "AIU Central Zone Inter-University Football"
+short = "AIU Central"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "zonal"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal stage among member universities of the zone; the leading teams advance to the All India stage. Number of teams, group or knockout format and qualifiers per zone vary by year and were not checked."
+qualifies_to = ["comp.aiu-inter-zone"]
+calendar = "Zonal stage typically October to December (varies)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Added because the existing comp.aiu-* records omit the fifth AIU zone (Central). Which states sit in Central versus North is not confirmed here (understood to include UP, MP, Chhattisgarh), so treat the membership as unknown." }
+
+[[competition]]
+id = "comp.aiu-women-central"
+name = "AIU Central Zone Inter-University Football (Women)"
+short = "AIU Central W"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "zonal"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Zonal stage among member universities of the zone; the leading teams advance to the All India stage. Number of teams, group or knockout format and qualifiers per zone vary by year and were not checked."
+qualifies_to = ["comp.aiu-women-inter-zone"]
+calendar = "Zonal stage typically October to December (varies)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Women's counterpart of the men's zone tournament; AIU runs women's inter-university football by zone. Host, team counts and dates not checked." }
+
+[[competition]]
+id = "comp.aiu-women-inter-zone"
+name = "AIU All India Inter-University Football (Women)"
+short = "AIU All India W"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities, hosted by a member university"
+level = "national"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "All India stage among zonal qualifiers; league-then-knockout or knockout depending on year. Team count unchecked."
+fed_by = ["comp.aiu-women-north", "comp.aiu-women-south", "comp.aiu-women-east", "comp.aiu-women-west", "comp.aiu-women-central"]
+calendar = "Typically December to March (varies)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Women's national inter-university football. Host university rotates." }
+
+[[competition]]
+id = "comp.aiu-maka-trophy"
+name = "Maulana Abul Kalam Azad (MAKA) Trophy (AIU overall sports championship)"
+short = "MAKA Trophy"
+organiser = "assoc.aiu"
+operator = "Association of Indian Universities"
+level = "national"
+age = "senior"
+gender = "mixed"
+kind = "championship"
+season = "2026-27"
+format = "Overall inter-university sports trophy awarded on cumulative points across AIU disciplines; football results are one input among many. It is not a football competition in itself."
+prize = "Overall championship trophy"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Real AIU award, included so university sports-quota and prestige logic can reference it. Points scheme not recorded. Repeated winners are understood to include Punjab universities such as GNDU and Punjabi University, Patiala, but that is not recorded as an achievement because it was not verified." }
+
+[[competition]]
+id = "comp.kiug-men"
+name = "Khelo India University Games Football (Men)"
+short = "KIUG Men"
+organiser = "assoc.aiu"
+operator = "Ministry of Youth Affairs and Sports with AIU and a host state or university"
+level = "national"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Football event within the multi-sport Khelo India University Games; participating universities qualify or are selected from AIU results. Team count and format unchecked."
+calendar = "Multi-sport games; dates depend on host, not fixed."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Gender split of the existing comp.kiug record. Editions understood to be 2020 (Odisha, Bhubaneswar, KIIT and KISS), 2021 edition held in April 2022 (Karnataka, Bengaluru, Jain University lead host) and 2022 edition held in May 2023 (Uttar Pradesh). Whether football was contested at every edition, and later editions, are not confirmed." }
+
+[[competition]]
+id = "comp.kiug-women"
+name = "Khelo India University Games Football (Women)"
+short = "KIUG Women"
+organiser = "assoc.aiu"
+operator = "Ministry of Youth Affairs and Sports with AIU and a host state or university"
+level = "national"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Women's football event within the Khelo India University Games. Format unchecked."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Women's split of comp.kiug. Not confirmed that a women's football event was held in every edition." }
+
+[[competition]]
+id = "comp.calicut-univ-intercollegiate"
+name = "Calicut University Inter-Collegiate Football Championship (Men)"
+short = "Calicut IC"
+organiser = "assoc.aiu"
+operator = "University of Calicut sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Calicut University teams have a strong football tradition in the South Zone; colleges in Malappuram, Kozhikode, Thrissur, Palakkad and Wayanad take part." }
+
+[[competition]]
+id = "comp.calicut-univ-intercollegiate-women"
+name = "Calicut University Inter-Collegiate Football Championship (Women)"
+short = "Calicut IC W"
+organiser = "assoc.aiu"
+operator = "University of Calicut sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Women's inter-college football within the university; format unchecked."
+qualifies_to = ["comp.aiu-women-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Women's event existence assumed from the sports board structure." }
+
+[[competition]]
+id = "comp.mg-univ-intercollegiate"
+name = "MG University Inter-Collegiate Football Championship (Men)"
+short = "MGU IC"
+organiser = "assoc.aiu"
+operator = "Mahatma Gandhi University sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Colleges in Kottayam, Ernakulam, Idukki and Pathanamthitta districts." }
+
+[[competition]]
+id = "comp.mg-univ-intercollegiate-women"
+name = "MG University Inter-Collegiate Football Championship (Women)"
+short = "MGU IC W"
+organiser = "assoc.aiu"
+operator = "Mahatma Gandhi University sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Women's inter-college football within the university; format unchecked."
+qualifies_to = ["comp.aiu-women-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.kerala-univ-intercollegiate"
+name = "University of Kerala Inter-Collegiate Football Championship (Men)"
+short = "Kerala Univ IC"
+organiser = "assoc.aiu"
+operator = "University of Kerala sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Colleges in Thiruvananthapuram, Kollam, Alappuzha and Pathanamthitta districts." }
+
+[[competition]]
+id = "comp.kerala-univ-intercollegiate-women"
+name = "University of Kerala Inter-Collegiate Football Championship (Women)"
+short = "Kerala Univ IC W"
+organiser = "assoc.aiu"
+operator = "University of Kerala sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Women's inter-college football within the university; format unchecked."
+qualifies_to = ["comp.aiu-women-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.kannur-univ-intercollegiate"
+name = "Kannur University Inter-Collegiate Football Championship (Men)"
+short = "Kannur IC"
+organiser = "assoc.aiu"
+operator = "Kannur University sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Colleges in Kannur, Kasaragod and Wayanad districts." }
+
+[[competition]]
+id = "comp.kannur-univ-intercollegiate-women"
+name = "Kannur University Inter-Collegiate Football Championship (Women)"
+short = "Kannur IC W"
+organiser = "assoc.aiu"
+operator = "Kannur University sports board"
+level = "state"
+state = "state.kl"
+age = "senior"
+gender = "women"
+kind = "tournament"
+season = "2026-27"
+format = "Women's inter-college football within the university; format unchecked."
+qualifies_to = ["comp.aiu-women-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.calcutta-univ-intercollegiate"
+name = "Calcutta University Inter-College Football Championship (Men)"
+short = "CU IC"
+organiser = "assoc.aiu"
+operator = "University of Calcutta Department of Physical Education and Sports"
+level = "state"
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-east"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Kolkata colleges are the core of the pool; tournament feeds the CU team for AIU East Zone. Do not confuse with the IFA Calcutta Football League." }
+
+[[competition]]
+id = "comp.mumbai-univ-intercollegiate"
+name = "University of Mumbai Inter-Collegiate Football (Men)"
+short = "MU IC"
+organiser = "assoc.aiu"
+operator = "University of Mumbai Department of Sports and Physical Education"
+level = "state"
+state = "state.mh"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-west"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Mumbai colleges dominate; a strong local club football culture feeds it." }
+
+[[competition]]
+id = "comp.pune-univ-intercollegiate"
+name = "SPPU Inter-Collegiate Football (Men)"
+short = "SPPU IC"
+organiser = "assoc.aiu"
+operator = "Savitribai Phule Pune University Department of Physical Education"
+level = "state"
+state = "state.mh"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-west"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Colleges across Pune, Ahmednagar and Nashik districts." }
+
+[[competition]]
+id = "comp.goa-univ-intercollegiate"
+name = "Goa University Inter-Collegiate Football (Men)"
+short = "GU IC"
+organiser = "assoc.aiu"
+operator = "Goa University sports office"
+level = "state"
+state = "state.ga"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-west"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Goa colleges with players from the state league (GFA) pathways." }
+
+[[competition]]
+id = "comp.du-inter-college"
+name = "University of Delhi Inter-College Football Championship (Men)"
+short = "DU IC"
+organiser = "assoc.aiu"
+operator = "University of Delhi Department of Physical Education and Sports"
+level = "state"
+state = "state.dl"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-north"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Well-known college sides include Hansraj, Khalsa, Hindu, Kirori Mal, St Stephen's and Ramjas (recollection, not verified)." }
+
+[[competition]]
+id = "comp.gndu-intercollege"
+name = "GNDU Inter-College Football Championship (Men)"
+short = "GNDU IC"
+organiser = "assoc.aiu"
+operator = "Guru Nanak Dev University sports department"
+level = "state"
+state = "state.pb"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-north"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Colleges in Amritsar, Tarn Taran, Gurdaspur, Jalandhar and Kapurthala region." }
+
+[[competition]]
+id = "comp.panjab-univ-intercollege"
+name = "Panjab University Inter-College Football Championship (Men)"
+short = "PU IC"
+organiser = "assoc.aiu"
+operator = "Panjab University Department of Physical Education"
+level = "state"
+state = "state.ch"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-north"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Chandigarh and affiliated colleges." }
+
+[[competition]]
+id = "comp.punjabi-univ-intercollege"
+name = "Punjabi University Inter-College Football Championship (Men)"
+short = "PbiU IC"
+organiser = "assoc.aiu"
+operator = "Punjabi University, Patiala sports department"
+level = "state"
+state = "state.pb"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-north"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.manipur-univ-intercollege"
+name = "Manipur University Inter-College Football Championship (Men)"
+short = "MU Imphal IC"
+organiser = "assoc.aiu"
+operator = "Manipur University sports board"
+level = "state"
+state = "state.mn"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-east"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Manipur has an exceptionally strong football base (Santosh Trophy tradition); the university and Imphal colleges feed local clubs." }
+
+[[competition]]
+id = "comp.nehu-intercollege"
+name = "NEHU Inter-College Football Championship (Men)"
+short = "NEHU IC"
+organiser = "assoc.aiu"
+operator = "North-Eastern Hill University sports board"
+level = "state"
+state = "state.ml"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-east"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Colleges in Meghalaya and Nagaland region under NEHU; Shillong football culture." }
+
+[[competition]]
+id = "comp.mizoram-univ-intercollege"
+name = "Mizoram University Inter-College Football Championship (Men)"
+short = "MZU IC"
+organiser = "assoc.aiu"
+operator = "Mizoram University sports board"
+level = "state"
+state = "state.mz"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-east"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Mizoram colleges affiliated to MZU." }
+
+[[competition]]
+id = "comp.gauhati-univ-intercollege"
+name = "Gauhati University Inter-College Football Championship (Men)"
+short = "GU Guwahati IC"
+organiser = "assoc.aiu"
+operator = "Gauhati University sports board"
+level = "state"
+state = "state.as"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-east"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.utkal-univ-intercollege"
+name = "Utkal University Inter-College Football Championship (Men)"
+short = "Utkal IC"
+organiser = "assoc.aiu"
+operator = "Utkal University sports board"
+level = "state"
+state = "state.od"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-east"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.bangalore-univ-intercollegiate"
+name = "Bangalore University Inter-Collegiate Football (Men)"
+short = "BU IC"
+organiser = "assoc.aiu"
+operator = "Bangalore University Directorate of Physical Education"
+level = "state"
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Bangalore University's colleges; Bengaluru City University was carved out in 2017 and may run its own event." }
+
+[[competition]]
+id = "comp.madras-univ-intercollegiate"
+name = "University of Madras Inter-Collegiate Football (Men)"
+short = "Madras IC"
+organiser = "assoc.aiu"
+operator = "University of Madras Department of Physical Education"
+level = "state"
+state = "state.tn"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. Chennai college football has a long tradition (Loyola, Madras Christian College and others)." }
+
+[[competition]]
+id = "comp.osmania-univ-intercollegiate"
+name = "Osmania University Inter-Collegiate Football (Men)"
+short = "OU IC"
+organiser = "assoc.aiu"
+operator = "Osmania University Directorate of Physical Education"
+level = "state"
+state = "state.ts"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.mysore-univ-intercollegiate"
+name = "University of Mysore Inter-Collegiate Football (Men)"
+short = "Mysore IC"
+organiser = "assoc.aiu"
+operator = "University of Mysore Directorate of Physical Education"
+level = "state"
+state = "state.ka"
+age = "senior"
+gender = "men"
+kind = "tournament"
+season = "2026-27"
+format = "Inter-college (affiliated colleges) football championship within the university, usually league or knockout by zone or cluster then a final round; used to select the university team for the AIU zone tournament. Exact format unchecked."
+qualifies_to = ["comp.aiu-south"]
+calendar = "Usually mid-year to late-year (varies by university sports calendar)."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. University inter-college sports boards run such events under their own names and dates; competition name here is descriptive. " }
+
+[[competition]]
+id = "comp.vc-cup-intercollege"
+name = "Vice-Chancellor's Cup (inter-college football, generic template)"
+short = "VC Cup"
+organiser = "assoc.aiu"
+operator = "Any university sports board"
+level = "state"
+age = "senior"
+gender = "men"
+kind = "cup"
+season = "2026-27"
+format = "Generic template for the many university-level inter-college knockout cups that are named after the Vice-Chancellor of the day; not a single real event."
+status = "active"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Deliberate scenario seed so the simulation can create university cup events without inventing a specific real one. Individual real Vice-Chancellor's Cups exist in various universities but none is recorded here because none was verified." }

@@ -13,6 +13,8 @@ pub enum StaffRole {
     SportsScientist,
     HeadOfYouth,
     DirectorOfFootball,
+    /// Performance/data analyst: evidence from numbers, opposition reports.
+    Analyst,
 }
 
 impl StaffRole {
@@ -28,6 +30,7 @@ impl StaffRole {
             StaffRole::SportsScientist => "Sports Scientist",
             StaffRole::HeadOfYouth => "Head of Youth Development",
             StaffRole::DirectorOfFootball => "Director of Football",
+            StaffRole::Analyst => "Analyst",
         }
     }
 
@@ -45,6 +48,7 @@ impl StaffRole {
             StaffRole::SportsScientist => &[SportsScience, Fitness],
             StaffRole::HeadOfYouth => &[Youngsters, JudgingPotential, Technical],
             StaffRole::DirectorOfFootball => &[JudgingAbility, JudgingPotential, Negotiating],
+            StaffRole::Analyst => &[JudgingAbility, TacticalKnowledge, Tactical],
         }
     }
 }

@@ -9,6 +9,10 @@ pub enum TeamKind {
     U21,
     U19,
     U18,
+    /// Academy age groups below the scholarship years.
+    U16,
+    U14,
+    U12,
 }
 
 impl TeamKind {
@@ -19,6 +23,9 @@ impl TeamKind {
             TeamKind::U21 => "U21",
             TeamKind::U19 => "U19",
             TeamKind::U18 => "U18",
+            TeamKind::U16 => "U16",
+            TeamKind::U14 => "U14",
+            TeamKind::U12 => "U12",
         }
     }
 
@@ -29,6 +36,9 @@ impl TeamKind {
             TeamKind::U21 => Some(21),
             TeamKind::U19 => Some(19),
             TeamKind::U18 => Some(18),
+            TeamKind::U16 => Some(16),
+            TeamKind::U14 => Some(14),
+            TeamKind::U12 => Some(12),
         }
     }
 
@@ -68,6 +78,8 @@ pub struct Finance {
     pub season_income: Money,
     pub season_spend: Money,
     pub debt: Money,
+    /// How the club's wage pool scales the player wage curve (cached monthly; 0 = not computed yet).
+    pub wage_scale: f32,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, Default)]

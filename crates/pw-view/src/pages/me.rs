@@ -1,0 +1,917 @@
+//! Pages that exist only while inhabiting someone: Today, Messages, Calendar,
+//! Football and the contract. Each is built from what that person can know.
+
+use pw_core::{Date, PlayerId};
+use pw_sim::health::{self, DayKind};
+use pw_world::event::EventKind as E;
+use pw_world::{Contract, Focus, Intensity, PlayerStatus};
+use serde_json::{Value, json};
+
+use crate::ctx::Ctx;
+use crate::model::{ApiError, ApiResult, Named, Ref, band};
+use crate::narrative;
+use crate::session::Session;
+use crate::tables::{round_text, score_text};
+
+pub(crate) fn named(r: Ref, n: String) -> Value {
+    serde_json::to_value(Named::new(r, n)).unwrap_or(Value::Null)
+}
+
+pub(crate) fn need_me(c: &Ctx) -> ApiResult<PlayerId> {
+    c.my_player().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit a player to use this page.".into()))
+}
+
+/// How the player feels, in the words a player would use: never the engine's 0-100 numbers (locked design 8.5).
+fn condition_words(h: &pw_world::PlayerHot) -> Value {
+    json!({
+        "condition": band(h.condition, &[(92, "Fresh"), (78, "Good"), (62, "Tired")], "Exhausted"),
+        "sharpness": band(h.sharpness, &[(80, "Match sharp"), (60, "Reasonably sharp")], "Rusty"),
+        "morale": band(h.morale, &[(80, "Excellent"), (65, "Good"), (45, "Okay"), (30, "Low")], "Very low"),
+        "confidence": band(h.confidence, &[(80, "Very confident"), (62, "Confident"), (42, "Uncertain")], "Doubting"),
+        "wellbeing": band(h.wellbeing, &[(80, "Thriving"), (62, "Well"), (42, "Strained")], "Struggling"),
+        "fatigue": band(100 - h.fatigue.min(100), &[(85, "Light legs"), (65, "Some fatigue"), (40, "Heavy legs")], "Very heavy legs"),
+    })
+}
+
+/// How far ahead a published date is worth mentioning, by kind.
+const TRIALS_AHEAD: i32 = 60;
+const SQUAD_AHEAD: i32 = 75;
+const RECRUITING_AHEAD: i32 = 90;
+
+/// What the calendar holds for you (`waiting_on` items): district trials, state squad naming, university recruiting, an offer held for
+/// you. Only published dates, the eligibility rules as they apply to you, and your own offers.
+fn calendar_waits(c: &Ctx, me: pw_core::PersonId, p: PlayerId, today: Date) -> Vec<Value> {
+    let w = c.w;
+    let mut out: Vec<Value> = Vec::new();
+    if p.is_none() || !w.ext.ecosystem.is_configured() {
+        return out;
+    }
+    if let Some((district, day)) = pw_sim::ecosystem::trials_ahead(w, p).filter(|x| today.days_until(x.1) <= TRIALS_AHEAD) {
+        let left = today.days_until(day);
+        let text = format!(
+            "Open trials for the {} district side on {}, {}. Anyone of the age may turn up; the selectors pick the side on the day",
+            super::chronicle::region_name(c, district),
+            crate::fmt::day_month(day),
+            crate::fmt::in_days(left)
+        );
+        out.push(json!({"kind": "selection", "text": text, "date": day.0}));
+    }
+    if let Some((state, day)) = pw_sim::statepath::selection_ahead(w, p).filter(|x| today.days_until(x.1) <= SQUAD_AHEAD) {
+        let left = today.days_until(day);
+        let text = format!(
+            "The {} selectors name their squad for the state championship on {}, {}. Nobody applies: they pick from the players they have seen",
+            super::chronicle::region_name(c, state),
+            crate::fmt::day_month(day),
+            crate::fmt::in_days(left)
+        );
+        out.push(json!({"kind": "selection", "text": text, "date": day.0}));
+    }
+    // A place a university is holding for you: until when, and what happens if the day comes without an answer.
+    let mut offered = false;
+    for (_, d) in w.decisions.pending_for(me).filter(|(_, d)| d.answer.is_none()) {
+        let pw_world::DecisionKind::Scholarship { institution, tier } = d.kind else { continue };
+        offered = true;
+        let then = match d.options.get(usize::from(d.default)) {
+            Some(pw_world::Choice::Accept) => "your own judgement takes it up",
+            _ => "your own judgement turns it down and the place goes to the next name on their list",
+        };
+        let text = format!(
+            "{} are holding a place for you on {} until {}, {}. If you have not answered by then, {then}",
+            pw_narrate::history::institution(w, institution),
+            super::chronicle::tier_words(tier),
+            crate::fmt::day_month(d.deadline),
+            crate::fmt::in_days(today.days_until(d.deadline))
+        );
+        out.push(json!({"kind": "university", "text": text, "since": d.created.0, "date": d.deadline.0}));
+    }
+    let day = pw_sim::university::next_recruiting_day(today, w.minor.season);
+    if !offered && today.days_until(day) <= RECRUITING_AHEAD && pw_sim::university::prospect_on(w, p, day) {
+        let text = format!(
+            "Universities make their scholarship offers in the week of {}, {}. Only a programme that has seen you play can offer you a place",
+            crate::fmt::day_month(day),
+            crate::fmt::in_days(today.days_until(day))
+        );
+        out.push(json!({"kind": "university", "text": text, "date": day.0}));
+    }
+    out
+}
+
+fn day_kind_text(k: DayKind) -> (&'static str, &'static str) {
+    match k {
+        DayKind::Match => ("Match day", "match"),
+        DayKind::AfterMatch => ("Recovery day after the match", "recovery"),
+        DayKind::BeforeMatch => ("Preparation for tomorrow's match", "training"),
+        DayKind::Training => ("Training day", "training"),
+        DayKind::Rest => ("Rest day", "rest"),
+        DayKind::Offseason => ("Off-season, individual work", "rest"),
+    }
+}
+
+fn fixture_brief(c: &Ctx, f: &pw_world::Fixture) -> Value {
+    let my = c.my_team();
+    let home = f.home == my;
+    let opp = f.opponent(my);
+    json!({
+        "uid": f.uid, "date": f.date.0, "comp": named(Ref::comp(f.comp), c.comp_short(f.comp)), "round": round_text(c, f),
+        "opponent": named(c.team_ref(opp), c.team_short(opp)), "home": home, "days": f.date.0 - c.w.date.0,
+        "venue": if f.neutral { Some("Neutral venue".to_string()) } else { Some(c.w.clubs[c.w.teams[f.home].club].stadium.clone()).filter(|v| !v.trim().is_empty()) },
+    })
+}
+
+fn result_brief(c: &Ctx, f: &pw_world::Fixture) -> Value {
+    let mut v = fixture_brief(c, f);
+    let concealed = c.is_concealed(f.uid);
+    v["concealed"] = json!(concealed);
+    if let (Some(s), false) = (f.score, concealed) {
+        v["score"] = json!(score_text(&s));
+        let my = c.my_team();
+        v["outcome"] = json!(match s.home_won() {
+            Some(h) if h == (f.home == my) => "win",
+            Some(_) => "loss",
+            None => "draw",
+        });
+    }
+    v
+}
+
+fn my_fixtures<'a>(c: &Ctx<'a>, from: Date, to: Date) -> Vec<&'a pw_world::Fixture> {
+    let my = c.my_team();
+    if my.is_none() {
+        return vec![];
+    }
+    c.w.fixtures.between(from, to).map(|id| c.w.fixtures.get(id)).filter(|f| f.involves(my)).collect()
+}
+
+pub(crate) fn contract_rows(c: &Ctx, k: &Contract) -> Value {
+    let mut rows = contract_base_rows(c, k);
+    if let Value::Array(v) = &mut rows {
+        for (label, m) in [
+            ("Assist bonus", k.assist_bonus),
+            ("Clean sheet bonus", k.clean_sheet_bonus),
+            ("Loyalty bonus (each year)", k.loyalty_bonus),
+            ("Title bonus", k.title_bonus),
+            ("Promotion bonus", k.promotion_bonus),
+            ("Continental qualification bonus", k.continental_bonus),
+            ("Bonus per international cap", k.cap_bonus),
+            ("Release clause if relegated", k.relegation_release),
+        ] {
+            if m > 0 {
+                v.push(json!({"label": label, "money": m}));
+            }
+        }
+        for (label, text) in crate::pages::inbox::options_text(&k.options) {
+            let used = if k.options.used { " (decided)" } else { "" };
+            v.push(json!({"label": label, "text": format!("{text}{used}")}));
+        }
+    }
+    rows
+}
+
+fn contract_base_rows(c: &Ctx, k: &Contract) -> Value {
+    json!([
+        {"label": "Wage per week", "money": k.current_wage(c.w.date).max(k.wage)},
+        {"label": "Runs until", "date": k.end.0},
+        {"label": "Starts", "date": k.start.0},
+        {"label": "Release clause", "money": if k.release_clause > 0 { json!(k.release_clause) } else { Value::Null }, "text": if k.release_clause > 0 { Value::Null } else { json!("None") }},
+        {"label": "Promised role", "text": k.promised_status.map_or("None".to_string(), |s| s.label().to_string())},
+        {"label": "Appearance bonus", "money": k.appearance_bonus},
+        {"label": "Goal bonus", "money": k.goal_bonus},
+        {"label": "Yearly rise", "text": format!("{}%", k.yearly_rise)},
+        {"label": "Cut if relegated", "text": format!("{}%", k.relegation_cut)},
+    ])
+}
+
+pub fn today(c: &Ctx) -> ApiResult<Value> {
+    let p = need_me(c)?;
+    let w = c.w;
+    let h = &w.players.hot[p];
+    let cold = &w.players.cold[p];
+    let me = c.me().expect("inhabiting");
+    let team = h.team;
+    let date = w.date;
+
+    let day_kind = if team.is_some() { health::team_days(w, date)[team.0 as usize] } else { DayKind::Offseason };
+    let (day_label, day_key) = day_kind_text(day_kind);
+
+    let next = if team.is_some() { w.fixtures.next_for(team, date, 120).map(|id| w.fixtures.get(id)) } else { None };
+    let recent: Vec<Value> = {
+        let mut v = my_fixtures(c, date.add_days(-90), date.add_days(-1));
+        v.retain(|f| f.score.is_some());
+        v.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
+        v.iter().take(5).map(|f| result_brief(c, f)).collect()
+    };
+    let unrevealed: Vec<Value> = c.concealed_fixtures().into_iter().filter(|f| f.involves(team)).map(|f| fixture_brief(c, f)).collect();
+
+    // Commitments.
+    let mut commitments: Vec<Value> = Vec::new();
+    let mut match_listed = false;
+    if let Some(f) = my_fixtures(c, date, date).into_iter().next()
+        && f.score.is_none()
+    {
+        let text = format!("Match day: {} {}", if f.home == team { "home to" } else { "away at" }, c.team_short(f.opponent(team)));
+        commitments.push(json!({"kind": "match", "text": text, "ref": Ref::fixture(f.uid)}));
+        match_listed = true;
+    }
+    if !(match_listed && day_key == "match") {
+        commitments.push(json!({"kind": day_key, "text": day_label}));
+    }
+    if h.injury != 0 {
+        commitments.push(json!({"kind": "medical", "text": crate::fmt::singulars(format!("Rehabilitation: {}, about {} days to go", health::injury_name(w, h.injury).to_lowercase(), h.injury_days))}));
+    }
+    if h.ban > 0 {
+        commitments.push(json!({"kind": "discipline", "text": format!("Suspended for {} more {}", h.ban, if h.ban == 1 { "match" } else { "matches" })}));
+    }
+
+    // Decisions waiting.
+    let decisions = super::inbox::waiting(c);
+
+    // What reached the viewer since they last looked.
+    let since = Date(c.s.meta.last_viewed.max(date.0 - 60));
+    let mut changes: Vec<Value> = Vec::new();
+    for e in w.events.since(since).iter().rev() {
+        if !pw_career::feed::concerns(w, me, e) || !narrative::visible(c, e) {
+            continue;
+        }
+        changes.push(json!({
+            "id": format!("e{}", e.id.0), "date": e.date.0, "kind": narrative::label(&e.kind), "parts": narrative::describe(c, e),
+            "important": pw_career::feed::is_important(w, me, e),
+        }));
+        if changes.len() >= 12 {
+            break;
+        }
+    }
+
+    // What is on the person's mind, in their own words, with the world's recorded reasons.
+    let life = &w.lives[me];
+    let mut mind = super::life::merged(&life.morale_why);
+    mind.sort_by_key(|(_, x)| std::cmp::Reverse(x.unsigned_abs()));
+    let mind: Vec<Value> = mind.iter().take(4).filter(|(_, x)| x.unsigned_abs() >= 2).map(|(f, x)| json!({"text": format!("{} {}", pw_narrate::fmt::feeling(*x), f.label()), "pull": crate::model::pull(*x)})).collect();
+
+    // Things the person has set in motion that the world has not yet acted on.
+    let mut waiting_on: Vec<Value> = Vec::new();
+    // Asking the same person about the same thing twice before the day ends is one request to the reader.
+    let mut asked: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for pi in w.intents.queue.iter().filter(|pi| pi.person == me) {
+        let text = super::act::intent_text(c, &pi.intent);
+        if asked.insert(text.clone()) {
+            waiting_on.push(json!({"kind": "intent", "text": text, "since": pi.date.0}));
+        }
+    }
+    for (_, m) in w.meetings.pending().filter(|(_, m)| m.initiator == me) {
+        waiting_on.push(
+            json!({"kind": "meeting", "text": format!("You asked {} to talk about {}", c.person_name(m.with), m.topic.label()), "since": m.requested.0, "date": m.date.0, "ref": Ref::person(m.with)}),
+        );
+    }
+    // What the world has not answered yet: a trial with no verdict, clubs said to want you, an agent sounding out a move, an injury
+    // that will take as long as it takes. Only what you could know, in the words you would hear it in.
+    for t in w.deals.trials.iter().filter(|t| t.player == p).map(|t| (t.club, t.from, t.until)).chain(w.youth.trials.iter().filter(|t| t.player == p).map(|t| (t.club, t.from, t.until))) {
+        let left = date.days_until(t.2).max(0);
+        let text = format!("Trial at {}: nobody has told you how it is going. They decide within {}", c.club_name(t.0), crate::fmt::days_words(left));
+        waiting_on.push(json!({"kind": "trial", "text": text, "since": t.1.0, "date": t.2.0, "ref": Ref::club(t.0)}));
+    }
+    let mut linked: Vec<pw_core::ClubId> = Vec::new();
+    for s in w.media.stories.iter().rev().take_while(|s| s.date.days_until(date) <= 45) {
+        if s.kind != pw_world::media::StoryKind::TransferRumour || s.player != p || s.other_club.is_none() || s.other_club == h.club || linked.contains(&s.other_club) {
+            continue;
+        }
+        linked.push(s.other_club);
+        let how = match s.claim {
+            0..=39 => "are said to be keeping an eye on you",
+            40..=69 => "are said to be interested",
+            _ => "are said to be preparing a bid",
+        };
+        let text = format!("{} {how}, according to {}. Nobody has been in touch", c.club_name(s.other_club), pw_narrate::press::outlet_name(w, s));
+        waiting_on.push(json!({"kind": "rumour", "text": text, "since": s.date.0, "ref": Ref::club(s.other_club)}));
+    }
+    if let Some(e) = w.events.since(date.add_days(-60)).iter().rev().find(|e| matches!(e.kind, pw_world::EventKind::AgentExploring { player, .. } if player == p)) {
+        waiting_on.push(json!({"kind": "agent", "text": "Your agent is sounding out clubs about a move. Nothing firm yet", "since": e.date.0}));
+    }
+    if h.injury != 0
+        && let Some(e) = w.events.since(date.add_days(-400)).iter().rev().find(|e| matches!(e.kind, pw_world::EventKind::Diagnosed { player, .. } if player == p))
+        && let pw_world::EventKind::Diagnosed { estimate, .. } = e.kind
+    {
+        // The estimate you were given, as a range: a diagnosis is a guess, and the body keeps its own time.
+        let (lo, hi) = (e.date.add_days(i32::from(estimate) * 4 / 5), e.date.add_days(i32::from(estimate) * 6 / 5 + 3));
+        let text = format!("Back in training somewhere between {} and {}, if the recovery goes to plan", crate::fmt::day_month(lo), crate::fmt::day_month(hi));
+        waiting_on.push(json!({"kind": "injury", "text": text, "since": e.date.0, "date": hi.0}));
+    }
+    // Contract talks where the club owes you an answer.
+    for t in w.talks.iter().rev().take(3000).filter(|t| t.player == p && t.state == pw_world::negotiation::TalkState::ClubTurn) {
+        let text = format!("{} have your answer on the contract and have not replied yet. Talks close by {}", c.club_name(t.club), crate::fmt::day_month(t.deadline));
+        waiting_on.push(json!({"kind": "talks", "text": text, "since": t.opened.0, "date": t.deadline.0, "ref": Ref::club(t.club)}));
+    }
+    // The published calendar, as it applies to you: open trials for a district side and the day the state selectors name their squad,
+    // when you are of the age and the place; and the universities' recruiting, or the offer one of them is holding for you.
+    waiting_on.extend(calendar_waits(c, me, p, date));
+    let on_this_day = on_this_day(c, me);
+    let around = around_the_country(c, me);
+    let known_faces: Vec<Value> = next
+        .map(|f| f.opponent(team))
+        .map(|t| w.teams[t].club)
+        .map(|opp| super::chronicle::known_faces(c, me, opp))
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(who, how, role)| json!({"who": named(Ref::person(who), c.person_name(who)), "how": how, "role": role}))
+        .collect();
+    let recovery = recovery(c, p, team);
+    let buildup = next.map_or(Value::Null, |f| buildup(c, f, team));
+    let open_promises = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).count();
+    let next_due = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).map(|pr| pr.due.0).min();
+
+    let contract = if h.club.is_some() {
+        json!({"club": named(Ref::club(cold.contract.club), c.club_name(cold.contract.club)), "end": cold.contract.end.0, "days_left": cold.contract.days_left(date), "status": cold.status.label(), "wage": cold.contract.current_wage(date)})
+    } else {
+        Value::Null
+    };
+    let mut position_in_league = Value::Null;
+    if let Some(l) = team.get().and_then(|t| w.league_of(t)) {
+        let (rows, _) = crate::tables::visible_table(c, l);
+        if let Some(pos) = rows.iter().position(|r| r.team == team) {
+            position_in_league = json!({"comp": named(Ref::comp(l), c.comp_name(l)), "position": pos + 1, "teams": rows.len(), "points": rows[pos].points});
+        }
+    }
+    let atmosphere = atmosphere(c, h.club, team, &position_in_league);
+    // Settling in after a move: each part of the new life in words, only the parts the move made hard.
+    let settling = w.adaptation.current.get(&p).map_or(Value::Null, |a| {
+        use pw_world::adaptation::Channel;
+        let parts: Vec<Value> = Channel::ALL
+            .iter()
+            .filter(|ch| a.distance[ch.idx()] > 0.1)
+            .map(|ch| {
+                let x = a.progress[ch.idx()];
+                let words = match x {
+                    x if x < 0.3 => "a struggle",
+                    x if x < 0.6 => "getting there",
+                    x if x < 0.9 => "nearly there",
+                    _ => "settled",
+                };
+                json!({"label": crate::fmt::capitalise(ch.label()), "words": words})
+            })
+            .collect();
+        // Where you live since the move, and how the clock at home stands against yours.
+        let home = {
+            use pw_world::affairs::HomeKind as H;
+            let (kind, q) = pw_sim::chronicle::place_after_move(w, me, a.since);
+            match kind {
+                H::Family => "With a host family the club found".to_string(),
+                H::Digs => "In the club's digs, until you find a place of your own".to_string(),
+                H::Rented => crate::fmt::capitalise(&format!("a {}rented place", super::chronicle::quality_word(q))),
+                H::Owned => format!("Your own {}home", super::chronicle::quality_word(q)),
+            }
+        };
+        let clock = w.lives.get(me).and_then(|l| super::chronicle::clock_words(c, pw_world::chat::family_nation(w, me), l.home));
+        json!({"club": named(Ref::club(a.club), c.club_name(a.club)), "since": a.since.0, "plan": a.plan.label(), "parts": parts, "home": home, "clock": clock})
+    });
+    let queued: Vec<String> = {
+        let mut seen = std::collections::HashSet::new();
+        c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).filter(|t| seen.insert(t.clone())).collect()
+    };
+    Ok(json!({
+        "date": date.0, "weekday": date.weekday().index(),
+        "me": {
+            "person": me.0, "name": c.person_name(me), "age": c.age(me), "position": cold.best_pos.code(),
+            "club": if h.club.is_some() { named(Ref::club(h.club), c.club_name(h.club)) } else { Value::Null },
+            "team": if team.is_some() { Value::String(w.teams[team].kind.label().into()) } else { Value::Null },
+            "status": c.status_label(p), "squad_status": if h.club.is_some() { json!(cold.status.label()) } else { Value::Null },
+            "shirt": cold.shirt,
+        },
+        "day": {"label": day_label, "kind": day_key},
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "on_this_day": on_this_day, "around": around, "known_faces": known_faces, "recovery": recovery, "buildup": buildup, "atmosphere": atmosphere, "settling": settling,
+        "promises": {"open": open_promises, "next_due": next_due},
+        "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
+        "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,
+        "condition": condition_words(h),
+        "availability": {
+            "injured": h.injury != 0, "injury": if h.injury != 0 { json!(health::injury_name(w, h.injury)) } else { Value::Null }, "days": h.injury_days, "ban": h.ban,
+        },
+        "contract": contract, "league": position_in_league,
+        "form": c.visible_form(p),
+        "minutes_4w": h.minutes_4w,
+        "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
+        "queued": queued,
+        "last_viewed": c.s.meta.last_viewed,
+        "conceal_mine": c.s.meta.conceal_mine,
+    }))
+}
+
+pub fn mark_viewed(s: &mut Session) -> ApiResult<Value> {
+    s.meta.last_viewed = s.today().0;
+    s.game.session.seen = s.game.sim.world.events.last_id();
+    Ok(crate::contract::wire(crate::contract::Done { ok: true }))
+}
+
+// ---- calendar ----------------------------------------------------------------------------------
+
+pub fn calendar(c: &Ctx, args: &Value) -> ApiResult<Value> {
+    let p = need_me(c)?;
+    let w = c.w;
+    let req: crate::contract::CalendarReq = crate::contract::request(args.clone())?;
+    let from = Date(req.from.map_or(w.date.0, |v| v as i32));
+    let to = Date(req.to.map_or(from.0 + 34, |v| v as i32).min(from.0 + 120));
+    let team = c.my_team();
+    let cold = &w.players.cold[p];
+    let h = &w.players.hot[p];
+    let mut days: Vec<Value> = Vec::new();
+    let mut d = from;
+    while d <= to {
+        let mut entries: Vec<Value> = Vec::new();
+        if team.is_some() && d >= w.date {
+            let kind = health::team_days(w, d)[team.0 as usize];
+            let (label, key) = day_kind_text(kind);
+            if !matches!(kind, DayKind::Match) {
+                entries.push(json!({"kind": key, "label": label, "source": "Club training schedule", "state": "scheduled"}));
+            }
+        }
+        for f in my_fixtures(c, d, d) {
+            let concealed = c.is_concealed(f.uid);
+            let mut e = json!({
+                "kind": "match", "label": format!("{} {}", if f.home == team { "v" } else { "at" }, c.team_short(f.opponent(team))),
+                "sub": c.comp_short(f.comp), "source": "Fixture list", "state": if f.score.is_some() { "played" } else { "confirmed" },
+                "ref": Ref::fixture(f.uid), "required": true,
+            });
+            if let (Some(s), false) = (f.score, concealed) {
+                e["result"] = json!(score_text(&s));
+            }
+            entries.push(e);
+        }
+        if h.club.is_some() && d == cold.contract.end {
+            entries.push(json!({"kind": "contract", "label": "Contract ends", "source": "Contract", "state": "confirmed"}));
+        }
+        if h.club.is_some() {
+            let n = &w.nations[w.clubs[h.club].nation];
+            for (a, b) in n.season.windows.iter() {
+                if d == *a {
+                    entries.push(json!({"kind": "window", "label": "Transfer window opens", "source": "Competition rules", "state": "confirmed"}));
+                }
+                if d == *b {
+                    entries.push(json!({"kind": "window", "label": "Transfer window closes", "source": "Competition rules", "state": "confirmed"}));
+                }
+            }
+            if d == n.season.start {
+                entries.push(json!({"kind": "season", "label": "Season starts", "source": "Competition rules", "state": "confirmed"}));
+            }
+            if d == n.season.end {
+                entries.push(json!({"kind": "season", "label": "Season ends", "source": "Competition rules", "state": "confirmed"}));
+            }
+        }
+        for (_, dec) in w.decisions.pending_for(c.me().expect("me")) {
+            if dec.deadline == d && dec.answer.is_none() {
+                entries.push(json!({"kind": "decision", "label": format!("{} expires", dec.kind.title()), "source": "Messages", "state": "deadline"}));
+            }
+        }
+        days.push(json!({"date": d.0, "entries": entries}));
+        d = d.add_days(1);
+    }
+    Ok(json!({"from": from.0, "to": to.0, "today": w.date.0, "days": days}))
+}
+
+// ---- football: squad place, training, contract -------------------------------------------------------
+
+/// The training plan the person has asked for that the world has not applied yet.
+fn plan_pending(c: &Ctx) -> Value {
+    let Some(me) = c.me() else { return Value::Null };
+    c.w.intents
+        .queue
+        .iter()
+        .rev()
+        .find_map(|pi| match pi.intent {
+            pw_world::Intent::SetTraining(plan) if pi.person == me => Some(plan_json(&plan)),
+            _ => None,
+        })
+        .unwrap_or(Value::Null)
+}
+
+fn plan_view(plan: &pw_world::TrainingPlan) -> crate::contract::PlanView {
+    let (kind, value) = match plan.focus {
+        Focus::General => ("general", None),
+        Focus::Group(g) => ("group", Some(format!("{g:?}").to_lowercase())),
+        Focus::Attribute(a) => ("attribute", Some(a.key().to_string())),
+        Focus::Position(p) => ("position", Some(p.code().to_string())),
+    };
+    crate::contract::PlanView {
+        focus: crate::contract::FocusView { kind: kind.into(), value },
+        intensity: match plan.intensity {
+            Intensity::Light => "light",
+            Intensity::Normal => "normal",
+            Intensity::High => "high",
+        }
+        .into(),
+        extra: plan.extra,
+        recovery: plan.recovery,
+    }
+}
+
+fn plan_json(plan: &pw_world::TrainingPlan) -> Value {
+    crate::contract::wire(plan_view(plan))
+}
+
+pub fn football(c: &Ctx) -> ApiResult<Value> {
+    let p = need_me(c)?;
+    let w = c.w;
+    let h = &w.players.hot[p];
+    let cold = &w.players.cold[p];
+    let team = h.team;
+    let mut usage: Vec<Value> = Vec::new();
+    if team.is_some() {
+        let mut fx = my_fixtures(c, w.date.add_days(-120), w.date.add_days(-1));
+        fx.retain(|f| f.score.is_some());
+        fx.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
+        for f in fx.iter().take(8) {
+            let mut item = result_brief(c, f);
+            if let Some(line) = w.reports.get(&f.uid).and_then(|r| r.line(p))
+                && !c.is_concealed(f.uid)
+            {
+                item["played"] = json!({"started": line.started, "minutes": line.minutes, "rating": line.rating, "goals": line.goals, "assists": line.assists});
+            }
+            usage.push(item);
+        }
+    }
+    // Others competing for similar roles, as far as the viewer knows them.
+    let rivals: Vec<Value> = if team.is_some() {
+        w.teams[team]
+            .squad
+            .iter()
+            .copied()
+            .filter(|&q| q != p && w.players.cold[q].best_pos.group() == cold.best_pos.group())
+            .map(|q| {
+                let qh = &w.players.hot[q];
+                json!({"player": named(c.player_ref(q), c.player_name(q)), "pos": w.players.cold[q].best_pos.code(), "age": c.age(w.players.cold[q].person),
+                    "available": qh.available(), "minutes_4w": qh.minutes_4w})
+            })
+            .collect()
+    } else {
+        vec![]
+    };
+    let apps = c.w.stats.for_player(p).map(|l| (u32::from(l.apps), u32::from(l.starts), l.minutes)).fold((0, 0, 0), |a, b| (a.0 + b.0, a.1 + b.1, a.2 + b.2));
+    Ok(json!({
+        "team": if team.is_some() { Value::String(w.teams[team].kind.label().into()) } else { Value::Null },
+        "squad_status": cold.status.label(), "promised": cold.contract.promised_status.map(|s| s.label()),
+        "usage": usage, "rivals": rivals,
+        "season": {"apps": apps.0, "starts": apps.1, "minutes": apps.2},
+        "minutes_4w": h.minutes_4w,
+        "plan": plan_json(&cold.plan), "plan_pending": plan_pending(c),
+        "options": {
+            "attributes": pw_core::Attr::ALL.iter().filter(|a| !a.is_goalkeeping() || cold.best_pos == pw_core::Pos::GK).map(|a| json!({"key": a.key(), "label": a.label(), "group": format!("{:?}", a.group())})).collect::<Vec<_>>(),
+            "positions": pw_core::Pos::ALL.iter().map(|p| json!({"code": p.code()})).collect::<Vec<_>>(),
+        },
+    }))
+}
+
+pub fn set_plan(s: &mut Session, args: &Value) -> ApiResult<Value> {
+    let p = s.my_player().ok_or_else(|| ApiError::Unauthorized("Inhabit a player to set a training plan.".into()))?;
+    if s.w().players.hot[p].status == PlayerStatus::Retired {
+        return Err(ApiError::State("You have retired.".into()));
+    }
+    let req: crate::contract::PlanReq = crate::contract::request(args.clone())?;
+    let mut plan = s.w().players.cold[p].plan;
+    if let Some(i) = req.intensity.as_deref() {
+        plan.intensity = match i {
+            "light" => Intensity::Light,
+            "normal" => Intensity::Normal,
+            "high" => Intensity::High,
+            _ => return Err(ApiError::Bad("Unknown intensity.".into())),
+        };
+    }
+    if let Some(e) = req.extra {
+        plan.extra = e.min(3) as u8;
+    }
+    if let Some(r) = req.recovery {
+        plan.recovery = r.min(2) as u8;
+    }
+    if let Some(f) = req.focus {
+        let kind = f.kind.as_deref().unwrap_or("general");
+        let value = f.value.as_deref().unwrap_or("");
+        plan.focus = match kind {
+            "general" => Focus::General,
+            "group" => Focus::Group(match value {
+                "technical" => pw_core::attr::AttrGroup::Technical,
+                "mental" => pw_core::attr::AttrGroup::Mental,
+                "physical" => pw_core::attr::AttrGroup::Physical,
+                "goalkeeping" => pw_core::attr::AttrGroup::Goalkeeping,
+                _ => return Err(ApiError::Bad("Unknown attribute group.".into())),
+            }),
+            "attribute" => Focus::Attribute(pw_core::Attr::from_key(value).ok_or_else(|| ApiError::Bad("Unknown attribute.".into()))?),
+            "position" => Focus::Position(pw_core::Pos::from_code(value).ok_or_else(|| ApiError::Bad("Unknown position.".into()))?),
+            _ => return Err(ApiError::Bad("Unknown focus.".into())),
+        };
+    }
+    s.act(pw_world::Intent::SetTraining(plan))?;
+    Ok(crate::contract::wire(crate::contract::PlanSet { plan: plan_view(&plan), applies: "tomorrow".into() }))
+}
+
+pub fn contract(c: &Ctx) -> ApiResult<Value> {
+    let p = need_me(c)?;
+    let w = c.w;
+    let h = &w.players.hot[p];
+    let cold = &w.players.cold[p];
+    if h.club.is_none() {
+        return Ok(json!({"has_contract": false, "status": c.status_label(p)}));
+    }
+    let k = &cold.contract;
+    let me = c.me().expect("me");
+    let offers: Vec<Value> =
+        w.decisions.pending_for(me).filter(|(_, d)| d.answer.is_none()).map(|(id, d)| json!({"id": format!("d{}", id.0), "title": d.kind.title(), "deadline": d.deadline.0})).collect();
+    let agent = w.agents.of_player.get(&p).map(|r| {
+        let a = &w.agents.list[r.agent];
+        json!({"who": named(Ref::person(a.person), c.person_name(a.person)), "fee_pct": r.fee_pct, "until": r.until.0, "satisfaction": pw_narrate::fmt::level(r.satisfaction)})
+    });
+    let talks = w.market.talking.get(&p).map(|&t| super::inbox::talk_json(c, &w.talks[t]));
+    let past: Vec<Value> = w
+        .events
+        .all()
+        .iter()
+        .filter(|e| matches!(e.kind, E::ContractSigned { player, .. } if player == p) && narrative::visible(c, e))
+        .rev()
+        .take(6)
+        .map(|e| json!({"date": e.date.0, "parts": narrative::describe(c, e)}))
+        .collect();
+    Ok(json!({
+        "has_contract": true,
+        "club": named(Ref::club(k.club), c.club_name(k.club)),
+        "summary": {"wage": k.current_wage(w.date), "end": k.end.0, "days_left": k.days_left(w.date), "status": cold.status.label(), "kind": format!("{:?}", k.kind)},
+        "terms": contract_rows(c, k),
+        "loan": cold.loan.as_ref().map(|l| json!({"parent": named(Ref::club(l.parent), c.club_name(l.parent)), "club": named(Ref::club(l.club), c.club_name(l.club)), "end": l.end.0, "recall": l.recall, "wage_share": l.wage_share, "buy_option": l.buy_option})),
+        "offers": offers, "history": past, "agent": agent, "talks": talks,
+        "transfer_request": w.market.requests.get(&p).map(|d| d.0), "listed": w.market.listed.contains_key(&p),
+        "guaranteed_note": "Bonuses are paid only when earned. The wage shown is the current weekly figure including any yearly rises.",
+    }))
+}
+
+/// The open injury as it is lived: diagnosis, sureness, the step of the return, the physio, the matches missed.
+/// Lines of your own story from this day in earlier years: "One year ago today".
+fn on_this_day(c: &Ctx, me: pw_core::PersonId) -> Vec<Value> {
+    let Some(life) = c.w.ext.chronicle.of(me) else { return Vec::new() };
+    let (y, m, d) = c.w.date.ymd();
+    let mut out = Vec::new();
+    for e in life.entries.iter().rev() {
+        let (ey, em, ed) = e.date.ymd();
+        if ey >= y || em != m || ed != d {
+            continue;
+        }
+        let Some(parts) = super::chronicle::line_parts(c, life, e.line) else { continue };
+        out.push(json!({"years_ago": y - ey, "date": e.date.0, "parts": parts}));
+        if out.len() >= 3 {
+            break;
+        }
+    }
+    out
+}
+
+/// A few public stories of the week from your own country, chosen by how rare and how big they are, not by how recent: a teenager
+/// breaking through, a big club changing manager or owner, a club going under, a record, an underdog's title. One per kind.
+fn around_the_country(c: &Ctx, me: pw_core::PersonId) -> Vec<Value> {
+    use pw_world::EventKind as E;
+    let w = c.w;
+    let home = w.people[me].nation;
+    let today = w.date;
+    let club_rep = |k: pw_core::ClubId| w.clubs.get(k).filter(|x| x.nation == home).map(|x| f32::from(x.reputation) / 10_000.0);
+    let mut best: Vec<(&'static str, f32, &pw_world::event::Event)> = Vec::new();
+    for e in w.events.since(today.add_days(-7)) {
+        if !matches!(e.vis, pw_world::event::Visibility::Public) || pw_career::feed::concerns(w, me, e) {
+            continue;
+        }
+        let scored: Option<(&'static str, f32)> = match e.kind {
+            E::Breakout { player, .. } => {
+                let q = w.players.cold.get(player);
+                let teen = q.is_some_and(|x| w.people.get(x.person).is_some_and(|pp| pp.age(today) <= 19));
+                let mine = q.is_some_and(|x| w.people.get(x.person).is_some_and(|pp| pp.nation == home));
+                (teen && mine).then(|| ("breakout", 0.9 + w.clubs.get(w.players.hot[player].club).map_or(0.0, |k| f32::from(k.reputation) / 10_000.0)))
+            }
+            E::ManagerSacked { club, .. } => club_rep(club).filter(|r| *r >= 0.4).map(|r| ("manager", 0.6 + r)),
+            E::ManagerResigned { club, .. } => club_rep(club).filter(|r| *r >= 0.4).map(|r| ("manager", 0.55 + r)),
+            E::Takeover { club, .. } => club_rep(club).map(|r| ("owner", 0.7 + r)),
+            E::Administration { club } => club_rep(club).map(|r| ("administration", 1.0 + r)),
+            E::OwnerInvestment { club, .. } => club_rep(club).filter(|r| *r >= 0.3).map(|r| ("investment", 0.4 + r)),
+            E::ProjectCompleted { club, .. } => club_rep(club).map(|r| ("project", 0.3 + r)),
+            // A record held by a person (team records have none, and their line names a person).
+            E::RecordBroken { club, player, .. } if player.is_some() => club_rep(club).map(|r| ("record", 0.5 + r)),
+            _ => None,
+        };
+        let Some((kind, score)) = scored else { continue };
+        if !narrative::visible(c, e) {
+            continue;
+        }
+        match best.iter_mut().find(|(k, _, _)| *k == kind) {
+            Some(slot) if slot.1 < score => *slot = (kind, score, e),
+            Some(_) => {}
+            None => best.push((kind, score, e)),
+        }
+    }
+    best.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.2.id.cmp(&b.2.id)));
+    best.into_iter().take(4).map(|(kind, _, e)| json!({"kind": kind, "date": e.date.0, "parts": narrative::describe(c, e)})).collect()
+}
+
+fn recovery(c: &Ctx, p: pw_core::PlayerId, team: pw_core::TeamId) -> Value {
+    use pw_world::medical::ReturnStage;
+    let w = c.w;
+    let h = &w.players.hot[p];
+    let Some(case) = w.medical.open.get(&p).filter(|_| h.injury != 0) else { return Value::Null };
+    const STAGES: [(ReturnStage, &str); 6] = [
+        (ReturnStage::Rehab, "Treatment and rest"),
+        (ReturnStage::Individual, "Working alone with the physio"),
+        (ReturnStage::PartialTeam, "Parts of training with the group"),
+        (ReturnStage::FullTraining, "Full training"),
+        (ReturnStage::BenchReady, "Fit for the bench"),
+        (ReturnStage::MatchReady, "Match fit"),
+    ];
+    let now = ReturnStage::of(f32::from(h.injury_days) / f32::from(h.injury_total.max(1)));
+    let stage = STAGES.iter().position(|(s, _)| *s == now).unwrap_or(0);
+    let sureness = match case.certainty {
+        0..=39 => "The physios are not sure yet",
+        40..=69 => "A rough estimate",
+        _ => "A firm estimate",
+    };
+    let physio = w.staff.iter().find(|s| s.club == h.club && s.role == pw_world::staff::StaffRole::Physio && s.employed()).map(|s| named(Ref::person(s.person), c.person_name(s.person)));
+    let missed: Vec<Value> = if team.is_some() {
+        let mut v = my_fixtures(c, case.date, w.date.add_days(-1));
+        v.retain(|f| f.score.is_some() && !c.is_concealed(f.uid));
+        v.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
+        v.iter()
+            .take(5)
+            .map(|f| {
+                let b = result_brief(c, f);
+                json!({"uid": f.uid, "date": f.date.0, "opponent": b["opponent"], "score": b["score"], "outcome": b["outcome"]})
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    json!({
+        "injury": health::injury_name(w, case.injury), "since": case.date.0, "treatment": case.treatment.label(), "estimate": case.estimate,
+        "sureness": sureness, "stages": STAGES.iter().map(|(_, l)| *l).collect::<Vec<_>>(), "stage": stage, "setbacks": case.setbacks,
+        "recurrence": case.recurrence, "rushed": case.rushed, "physio": physio, "missed": missed,
+    })
+}
+
+/// Why the next match is more than a fixture, from what the world keeps: the derby's name, the rivalry and its record, the last
+/// memorable meeting, revenge owed, what the table puts at stake, people returning to a former club, and the papers. Nothing for an
+/// ordinary match.
+fn buildup(c: &Ctx, f: &pw_world::Fixture, team: pw_core::TeamId) -> Value {
+    use crate::model::Part;
+    use pw_world::culture::{MomentKind, Side};
+    let w = c.w;
+    let mine = w.teams[team].club;
+    let opp_team = f.opponent(team);
+    let opp = w.teams[opp_team].club;
+    let m = pw_sim::culture::meaning(w, f);
+    let name = pw_narrate::lang::occasion(w, mine, opp);
+    if name.is_none() && !m.derby && m.significance < 25 {
+        return Value::Null;
+    }
+    let (us, them) = (Side::Club(mine), Side::Club(opp));
+    let club = |k: pw_core::ClubId| Part::l(Ref::club(k), c.club_name(k));
+    let mut lines: Vec<Vec<Part>> = Vec::new();
+    let rivalry = w.culture.rivalries.get(us, them);
+    if let Some(n) = &name {
+        lines.push(vec![Part::t(format!("This is {n}."))]);
+    } else if m.derby {
+        lines.push(vec![Part::t("A derby. The city takes sides.")]);
+    } else if let Some(r) = rivalry.filter(|r| r.intensity >= 40) {
+        lines.push(vec![Part::t("A rivalry that has been building since "), Part::date(r.since)]);
+    }
+    if let Some(r) = rivalry {
+        let (won, drawn, lost) = if r.a == us { r.h2h } else { (r.h2h.2, r.h2h.1, r.h2h.0) };
+        if won + drawn + lost > 0 {
+            lines.push(vec![Part::t(format!("Head to head: {won} won, {drawn} drawn, {lost} lost against "))
+                , club(opp)]);
+        }
+        if let Some(mo) = r.moments.last() {
+            let line = match mo.kind {
+                MomentKind::Elimination { winner } if winner == us => Some(vec![Part::t("You knocked them out on "), Part::date(mo.date)]),
+                MomentKind::Elimination { .. } => Some(vec![Part::t("They knocked you out on "), Part::date(mo.date)]),
+                MomentKind::TitleDecided { winner } if winner == us => Some(vec![Part::t("The title was decided between you on "), Part::date(mo.date), Part::t(", and it went your way")]),
+                MomentKind::TitleDecided { .. } => Some(vec![Part::t("The title was decided between you on "), Part::date(mo.date), Part::t(", and it went theirs")]),
+                MomentKind::Meeting { winner: Some(s), margin } if margin >= 3 => Some(if s == us {
+                    vec![Part::t(format!("The last big one: a {margin}-goal win for you on ")), Part::date(mo.date)]
+                } else {
+                    vec![Part::t(format!("Still remembered: a {margin}-goal defeat on ")), Part::date(mo.date)]
+                }),
+                MomentKind::Transfer { player, .. } if w.players.cold.get(player).is_some() => {
+                    let p = w.players.cold[player].person;
+                    Some(vec![Part::l(Ref::person(p), c.person_name(p)), Part::t(" crossed between the clubs on "), Part::date(mo.date)])
+                }
+                _ => None,
+            };
+            if let Some(l) = line {
+                lines.push(l);
+            }
+        }
+    }
+    match m.revenge {
+        Some(s) if s == us => lines.push(vec![Part::t("You owe them for the last knockout.")]),
+        Some(_) => lines.push(vec![Part::t("They have not forgotten the last knockout.")]),
+        None => {}
+    }
+    if m.title_race {
+        lines.push(vec![Part::t("A title race meeting: both sides are in the top three.")]);
+    }
+    if m.promotion {
+        lines.push(vec![Part::t("Promotion is at stake for both sides.")]);
+    }
+    if m.relegation {
+        lines.push(vec![Part::t("Both sides are fighting to stay up.")]);
+    }
+    let me = c.me().unwrap_or(pw_core::PersonId::NONE);
+    for &(who, former) in &m.returns {
+        if who == me {
+            lines.push(vec![Part::t("You face "), club(former), Part::t(", your former club.")]);
+        } else if w.people.get(who).is_some() {
+            lines.push(vec![Part::l(Ref::person(who), c.person_name(who)), Part::t(" returns to face "), club(former), Part::t(", a former club.")]);
+        }
+    }
+    for s in w.media.stories.iter().rev().take_while(|s| s.date.days_until(w.date) <= 5).filter(|s| (s.club == mine && s.other_club == opp) || (s.club == opp && s.other_club == mine)).take(2) {
+        lines.push(vec![Part::t(format!("{}: \u{201c}{}\u{201d}", pw_narrate::press::outlet_name(w, s), c.headline(s)))]);
+    }
+    json!({"name": name, "significance": m.significance, "lines": lines})
+}
+
+/// The mood around the club, in a word and its reasons: the run of results (hidden ones left out), the table, the supporters, the
+/// dressing room's harmony and faith in the manager, the press.
+fn atmosphere(c: &Ctx, club: pw_core::ClubId, team: pw_core::TeamId, league: &Value) -> Value {
+    let w = c.w;
+    if club.is_none() || team.is_none() {
+        return Value::Null;
+    }
+    let mut score: i32 = 0;
+    let mut lines: Vec<String> = Vec::new();
+    // Results, newest first.
+    let mut played = my_fixtures(c, w.date.add_days(-120), w.date.add_days(-1));
+    played.retain(|f| f.score.is_some() && !c.is_concealed(f.uid));
+    played.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
+    let outcome = |f: &pw_world::Fixture| -> i8 {
+        let s = f.score.as_ref().expect("played");
+        match s.home_won() {
+            Some(h) if h == (f.home == team) => 1,
+            Some(_) => -1,
+            None => 0,
+        }
+    };
+    let res: Vec<i8> = played.iter().take(10).map(|f| outcome(f)).collect();
+    let run = |pred: &dyn Fn(i8) -> bool| res.iter().take_while(|r| pred(**r)).count();
+    let (wins, unbeaten, losses, winless) = (run(&|r| r == 1), run(&|r| r >= 0), run(&|r| r == -1), run(&|r| r <= 0));
+    if wins >= 3 {
+        lines.push(format!("{wins} wins in a row"));
+        score += 2 + wins as i32 / 2;
+    } else if unbeaten >= 5 {
+        lines.push(format!("Unbeaten in {unbeaten}"));
+        score += 2;
+    } else if losses >= 3 {
+        lines.push(format!("{losses} defeats in a row"));
+        score -= 2 + losses as i32 / 2;
+    } else if winless >= 5 {
+        lines.push(format!("{winless} games without a win"));
+        score -= 2;
+    }
+    if let (Some(pos), Some(n)) = (league["position"].as_u64(), league["teams"].as_u64()) {
+        if pos == 1 {
+            lines.push("Top of the league".into());
+            score += 2;
+        } else if pos <= 3 {
+            lines.push("In the top three".into());
+            score += 1;
+        } else if pos + 2 >= n && n > 4 {
+            lines.push("In the bottom three".into());
+            score -= 2;
+        }
+    }
+    let fans = w.clubs[club].fan_mood;
+    if fans >= 70 {
+        lines.push("The supporters are singing again".into());
+        score += 1;
+    } else if fans <= 30 {
+        lines.push("The supporters are restless".into());
+        score -= 1;
+    }
+    // The dressing room you are in: how it feels, not a number.
+    if let Some(room) = w.rooms.clubs.get(&club) {
+        if room.harmony >= 70 {
+            lines.push("The dressing room is tight".into());
+            score += 1;
+        } else if room.harmony <= 35 {
+            lines.push("The dressing room is split".into());
+            score -= 2;
+        }
+        if room.backing <= 35 {
+            lines.push("Players are losing faith in the manager".into());
+            score -= 1;
+        }
+    }
+    let week = |d: pw_core::Date| d.days_until(w.date) <= 7;
+    let hostile = w.media.stories.iter().rev().take_while(|s| week(s.date)).filter(|s| (s.club == club) && s.tone < -20).count();
+    if hostile >= 3 {
+        lines.push("Journalists are waiting outside the training ground".into());
+        score -= 1;
+    }
+    if w.media.stories.iter().rev().take_while(|s| s.date.days_until(w.date) <= 14).any(|s| s.club == club && s.kind == pw_world::media::StoryKind::ManagerPressure) {
+        lines.push("The papers say the manager is under pressure".into());
+        score -= 1;
+    }
+    let mood = match score {
+        6.. => "Buoyant",
+        2..=5 => "Good",
+        -1..=1 => "Steady",
+        -5..=-2 => "Uneasy",
+        _ => "In crisis",
+    };
+    json!({"mood": mood, "lines": lines})
+}

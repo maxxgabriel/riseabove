@@ -1,0 +1,245 @@
+# Speaker voices: thirteen dimensions, all 0..1. Presets only; games may build any voice. `rs_words` writes "Rs" for the rupee sign.
+
+[[voice]]
+id = "wire_reporter"
+summary = "Agency-style desk reporter: plain, formal, no colour."
+role = "journalist"
+formality = 0.8
+sentence_length = 0.5
+confidence = 0.6
+technical = 0.4
+emotion = 0.05
+humour = 0.0
+history = 0.3
+stats = 0.4
+tactical = 0.2
+local = 0.3
+slang = 0.0
+skepticism = 0.5
+optimism = 0.5
+rs_words = true
+
+[[voice]]
+id = "sports_desk"
+summary = "National sports desk: fluent, moderately formal."
+role = "journalist"
+formality = 0.65
+sentence_length = 0.6
+confidence = 0.6
+technical = 0.5
+emotion = 0.2
+humour = 0.1
+history = 0.4
+stats = 0.5
+tactical = 0.4
+local = 0.3
+slang = 0.05
+skepticism = 0.5
+optimism = 0.5
+
+[[voice]]
+id = "tabloid"
+summary = "Excitable transfer-pages voice: short, punchy, high emotion."
+role = "journalist"
+formality = 0.25
+sentence_length = 0.3
+confidence = 0.8
+technical = 0.2
+emotion = 0.85
+humour = 0.4
+history = 0.2
+stats = 0.2
+tactical = 0.1
+local = 0.3
+slang = 0.5
+skepticism = 0.2
+optimism = 0.7
+
+[[voice]]
+id = "regional_daily"
+summary = "State daily with local knowledge: warm, local references."
+role = "journalist"
+formality = 0.6
+sentence_length = 0.6
+confidence = 0.55
+technical = 0.35
+emotion = 0.35
+humour = 0.1
+history = 0.6
+stats = 0.3
+tactical = 0.25
+local = 0.9
+slang = 0.1
+skepticism = 0.4
+optimism = 0.6
+
+[[voice]]
+id = "analyst"
+summary = "Tactical analyst: technical, measured, stat-aware."
+role = "journalist"
+formality = 0.7
+sentence_length = 0.75
+confidence = 0.5
+technical = 0.9
+emotion = 0.1
+humour = 0.05
+history = 0.4
+stats = 0.9
+tactical = 0.9
+local = 0.2
+slang = 0.0
+skepticism = 0.7
+optimism = 0.4
+
+[[voice]]
+id = "fan_hype"
+summary = "Enthusiastic supporter account."
+role = "fan"
+formality = 0.1
+sentence_length = 0.2
+confidence = 0.8
+technical = 0.1
+emotion = 0.95
+humour = 0.4
+history = 0.3
+stats = 0.1
+tactical = 0.1
+local = 0.8
+slang = 0.7
+skepticism = 0.1
+optimism = 0.95
+
+[[voice]]
+id = "fan_sceptic"
+summary = "Doubting supporter account."
+role = "fan"
+formality = 0.2
+sentence_length = 0.4
+confidence = 0.6
+technical = 0.2
+emotion = 0.5
+humour = 0.4
+history = 0.6
+stats = 0.3
+tactical = 0.2
+local = 0.7
+slang = 0.5
+skepticism = 0.95
+optimism = 0.1
+
+[[voice]]
+id = "club_official"
+summary = "Official club voice: formal, careful, upbeat."
+role = "club_official"
+formality = 0.9
+sentence_length = 0.6
+confidence = 0.7
+technical = 0.2
+emotion = 0.2
+humour = 0.0
+history = 0.5
+stats = 0.1
+tactical = 0.1
+local = 0.4
+slang = 0.0
+skepticism = 0.1
+optimism = 0.8
+
+[[voice]]
+id = "scout_report"
+summary = "Working scout: clipped, technical, cautious."
+role = "scout"
+formality = 0.6
+sentence_length = 0.3
+confidence = 0.5
+technical = 0.85
+emotion = 0.05
+humour = 0.0
+history = 0.1
+stats = 0.5
+tactical = 0.7
+local = 0.4
+slang = 0.05
+skepticism = 0.7
+optimism = 0.4
+
+[[voice]]
+id = "manager_press"
+summary = "Manager in a press conference."
+role = "manager"
+formality = 0.6
+sentence_length = 0.4
+confidence = 0.7
+technical = 0.6
+emotion = 0.35
+humour = 0.2
+history = 0.2
+stats = 0.2
+tactical = 0.7
+local = 0.4
+slang = 0.15
+skepticism = 0.4
+optimism = 0.6
+
+[[voice]]
+id = "agent"
+summary = "Player's representative: courteous, guarded."
+role = "agent"
+formality = 0.8
+sentence_length = 0.5
+confidence = 0.7
+technical = 0.2
+emotion = 0.1
+humour = 0.0
+history = 0.1
+stats = 0.2
+tactical = 0.1
+local = 0.2
+slang = 0.0
+skepticism = 0.5
+optimism = 0.6
+
+[[voice]]
+id = "system"
+summary = "Game interface: neutral, exact, no personality."
+role = "system"
+formality = 0.6
+sentence_length = 0.2
+confidence = 0.5
+technical = 0.3
+emotion = 0.0
+humour = 0.0
+history = 0.0
+stats = 0.2
+tactical = 0.0
+local = 0.0
+slang = 0.0
+skepticism = 0.5
+optimism = 0.5
+
+# --- Outlet language profiles: safe metadata only (which voice house-style an outlet class maps to). No scores, no claims about real people.
+[[profile]]
+id = "national_english_daily"
+voice = "sports_desk"
+languages = ["lang.en"]
+notes = "English-language national daily sports desk."
+[[profile]]
+id = "news_agency"
+voice = "wire_reporter"
+languages = ["lang.en"]
+notes = "Agency copy: formal, rupee written as Rs."
+[[profile]]
+id = "regional_language_daily"
+voice = "regional_daily"
+languages = []
+notes = "State-language daily; local references and place names come first."
+[[profile]]
+id = "transfer_tabloid"
+voice = "tabloid"
+languages = ["lang.en"]
+notes = "Digital-first transfer coverage."
+[[profile]]
+id = "tactics_site"
+voice = "analyst"
+languages = ["lang.en"]
+notes = "Analysis-led football site."

@@ -19,3 +19,9 @@ __pycache__/
 
 # Local-only dumps
 /foundation/_ofm_worktree_*
+
+# Local user data archives (never committed)
+/archive/
+/database/
+
+!crates/pw-cli/tests/fixtures/*.pws

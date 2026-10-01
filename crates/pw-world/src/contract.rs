@@ -68,6 +68,51 @@ impl SquadStatus {
     }
 }
 
+/// What sets off an automatic extension (locked design 5.14).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Trigger {
+    /// Appearances since signing.
+    Appearances(u16),
+    Promotion,
+    Title,
+    Continental,
+    /// International caps since signing.
+    Caps(u16),
+}
+
+impl Trigger {
+    pub fn label(self) -> String {
+        match self {
+            Trigger::Appearances(n) => format!("{n} appearances"),
+            Trigger::Promotion => "promotion".into(),
+            Trigger::Title => "winning the title".into(),
+            Trigger::Continental => "continental qualification".into(),
+            Trigger::Caps(n) => format!("{n} international caps"),
+        }
+    }
+}
+
+/// Options and extensions on a contract. Who holds an option changes what it is worth (locked design 5.14).
+#[derive(Clone, Copy, Default, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Options {
+    /// The club may add this many years at the same wage.
+    pub club_years: u8,
+    /// The player may add this many years.
+    pub player_years: u8,
+    /// Both must want it.
+    pub mutual_years: u8,
+    /// Extra years added automatically when the trigger is met.
+    pub auto: Option<(Trigger, u8)>,
+    /// One of the above has been used.
+    pub used: bool,
+}
+
+impl Options {
+    pub fn any(&self) -> bool {
+        self.club_years > 0 || self.player_years > 0 || self.mutual_years > 0 || self.auto.is_some()
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Contract {
     pub club: ClubId,
@@ -85,6 +130,22 @@ pub struct Contract {
     pub relegation_cut: u8,
     pub appearance_bonus: Money,
     pub goal_bonus: Money,
+    pub assist_bonus: Money,
+    pub clean_sheet_bonus: Money,
+    /// Paid each year on the anniversary of signing while he is still at the club.
+    pub loyalty_bonus: Money,
+    pub title_bonus: Money,
+    pub promotion_bonus: Money,
+    /// Paid when the club qualifies for a continental competition.
+    pub continental_bonus: Money,
+    /// Per senior international cap.
+    pub cap_bonus: Money,
+    /// A release clause that only exists after relegation (0 = none).
+    pub relegation_release: Money,
+    pub options: Options,
+    /// His senior appearances and caps when he signed, so triggers can count from there.
+    pub apps_base: u16,
+    pub caps_base: u16,
 }
 
 impl Contract {

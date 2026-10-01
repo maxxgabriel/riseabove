@@ -1,0 +1,198 @@
+[meta]
+dataset = "academies.b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Club academies and youth setups of ISL and I-League clubs plus a few independent academies; identity, parent club and city only."
+gaps = ["All records are model knowledge, not re-checked (brief v2: no web access). Age groups are the typical Indian youth-league bands, not verified per academy.", "AIFF accreditation ratings and current status per academy not researched.", "Not included because existence or current form was not certain: Aizawl FC, Gokulam Kerala, Hyderabad FC, Sreenidi Deccan, Rajasthan United, Inter Kashi, NEROCA and Pune FC youth setups.", "Punjab FC youth setup is covered under academy.minerva-academy (lineage), not as a separate record.", "Athletic residential status (residential) left out where unknown."]
+
+[[academy]]
+id = "academy.bengaluru-fc-academy"
+name = "Bengaluru FC Academy (BFC Youth)"
+city = "Bengaluru"
+state = "state.ka"
+parent = "club.bengaluru"
+kind = "club"
+residential = true
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth setup of Bengaluru FC (JSW Sports) with a residential element and a wider grassroots programme (BFC Soccer Schools); exact facilities not recorded." }
+
+[[academy]]
+id = "academy.kerala-blasters-academy"
+name = "Kerala Blasters Youth Academy"
+city = "Kochi"
+state = "state.kl"
+parent = "club.kerala-blasters"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth and reserve teams of Kerala Blasters; also runs grassroots schools. Residential status and facilities not recorded." }
+
+[[academy]]
+id = "academy.mohun-bagan-academy"
+name = "Mohun Bagan Super Giant Youth Academy"
+city = "Kolkata"
+state = "state.wb"
+parent = "club.mohun-bagan-sg"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth teams of Mohun Bagan feeding Calcutta Football League and national youth leagues. Facilities and residential status not recorded." }
+
+[[academy]]
+id = "academy.east-bengal-academy"
+name = "East Bengal Youth Academy"
+city = "Kolkata"
+state = "state.wb"
+parent = "club.east-bengal"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth development setup of East Bengal. Structure and facilities not recorded." }
+
+[[academy]]
+id = "academy.mohammedan-sc-academy"
+name = "Mohammedan Sporting Youth Setup"
+city = "Kolkata"
+state = "state.wb"
+parent = "club.mohammedan"
+kind = "club"
+age_groups = ["U15", "U17"]
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Junior teams of Mohammedan SC in Kolkata leagues; whether it is formally branded an academy is not known to me, so status is unknown." }
+
+[[academy]]
+id = "academy.shillong-lajong-academy"
+name = "Shillong Lajong Football Academy"
+city = "Shillong"
+state = "state.ml"
+parent = "club.shillong-lajong"
+kind = "club"
+residential = true
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Lajong is known as a youth-development club in Meghalaya, with an academy pathway to its senior side since the late 2000s. Residential details not recorded." }
+
+[[academy]]
+id = "academy.sudeva-delhi-academy"
+name = "Sudeva Football Academy"
+city = "New Delhi"
+state = "state.dl"
+parent = "club.sudeva-delhi"
+kind = "club"
+age_groups = ["U13", "U15", "U17"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Sudeva Delhi FC grew out of the Sudeva academy programme in Delhi (founded around the mid 2010s). Facilities not recorded." }
+
+[[academy]]
+id = "academy.fc-goa-academy"
+name = "FC Goa Youth Academy"
+city = "Goa"
+state = "state.ga"
+parent = "club.goa"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth setup of FC Goa, historically strongly tied to Goan talent. City not recorded (training base is in Goa)." }
+
+[[academy]]
+id = "academy.mumbai-city-fc-academy"
+name = "Mumbai City FC Youth Academy"
+city = "Mumbai"
+state = "state.mh"
+parent = "club.mumbai-city"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth setup of Mumbai City FC (City Football Group)." }
+
+[[academy]]
+id = "academy.odisha-fc-academy"
+name = "Odisha FC Youth Academy"
+city = "Bhubaneswar"
+state = "state.od"
+parent = "club.odisha"
+kind = "club"
+residential = true
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Odisha FC operates a youth development programme in Bhubaneswar; residential details not recorded." }
+
+[[academy]]
+id = "academy.chennaiyin-fc-academy"
+name = "Chennaiyin FC Youth Academy"
+city = "Chennai"
+state = "state.tn"
+parent = "club.chennaiyin"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth teams of Chennaiyin FC; also grassroots schools in Tamil Nadu." }
+
+[[academy]]
+id = "academy.jamshedpur-fc-academy"
+name = "Jamshedpur FC Youth Academy"
+city = "Jamshedpur"
+state = "state.jh"
+parent = "club.jamshedpur"
+kind = "club"
+age_groups = ["U13", "U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth setup of Jamshedpur FC (Tata Steel group); separate from the older Tata Football Academy (academy.tata-football-academy)." }
+
+[[academy]]
+id = "academy.northeast-united-academy"
+name = "NorthEast United FC Youth Setup"
+city = "Guwahati"
+state = "state.as"
+parent = "club.northeast-united"
+kind = "club"
+age_groups = ["U15", "U17", "U21"]
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Reserve and youth teams of NorthEast United; formal academy branding and base not known with confidence, so status is unknown." }
+
+[[academy]]
+id = "academy.churchill-brothers-academy"
+name = "Churchill Brothers Youth Academy"
+city = "Margao"
+state = "state.ga"
+parent = "club.churchill-brothers"
+kind = "club"
+age_groups = ["U15", "U17", "U21"]
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth teams of Churchill Brothers SC, a Goan club with a history of developing local players. Formal academy structure and base town not certain." }
+
+[[academy]]
+id = "academy.dempo-sc-academy"
+name = "Dempo SC Youth Academy"
+city = "Panaji"
+state = "state.ga"
+parent = "club.dempo"
+kind = "club"
+age_groups = ["U15", "U17", "U21"]
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Youth setup of Dempo Sports Club, a Goan club with a long history of youth development. Formal branding and base not certain." }
+
+[[academy]]
+id = "academy.real-kashmir-academy"
+name = "Real Kashmir FC Youth Academy"
+city = "Srinagar"
+state = "state.jk"
+parent = "club.real-kashmir"
+kind = "club"
+age_groups = ["U15", "U17", "U21"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Real Kashmir runs youth teams alongside its senior side in Srinagar; base and facilities not recorded." }
+
+[[academy]]
+id = "academy.kenkre-fc-academy"
+name = "Kenkre FC Academy"
+city = "Mumbai"
+state = "state.mh"
+parent = "club.kenkre"
+kind = "club"
+age_groups = ["U15", "U17"]
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Mumbai club Kenkre FC has a youth setup; formal residential status and age groups not known with confidence." }

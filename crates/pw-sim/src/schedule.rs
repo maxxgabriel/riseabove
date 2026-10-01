@@ -12,7 +12,7 @@ pub fn round_robin(n: usize, legs: u8) -> Vec<Vec<(usize, usize)>> {
     if n < 2 {
         return Vec::new();
     }
-    let m = if n % 2 == 0 { n } else { n + 1 };
+    let m = if n.is_multiple_of(2) { n } else { n + 1 };
     let mut ring: Vec<usize> = (0..m).collect();
     let mut first: Vec<Vec<(usize, usize)>> = Vec::with_capacity(m - 1);
     for r in 0..m - 1 {
@@ -83,6 +83,8 @@ pub fn spread_dates(w: &World, from: Date, to: Date, count: usize, preferred: We
 }
 
 pub fn add_fixture(w: &mut World, comp: CompId, round: u8, leg: u8, group: u8, date: Date, home: TeamId, away: TeamId, tie: u16, decisive: bool, neutral: bool) {
+    // A team never plays twice in a day: a clash moves this fixture to the next free day.
+    let date = w.fixtures.first_free_date(home, away, date, 14, None);
     w.fixtures.add(Fixture { uid: 0, comp, round, leg, group, date, home, away, tie, decisive, neutral, score: None });
 }
 

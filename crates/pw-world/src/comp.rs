@@ -83,14 +83,7 @@ impl TableRow {
 
 /// Standard ordering: points, goal difference, goals for, then id (stable).
 pub fn sort_table(rows: &mut [TableRow]) {
-    rows.sort_by(|a, b| {
-        (a.group)
-            .cmp(&b.group)
-            .then(b.points.cmp(&a.points))
-            .then(b.gd().cmp(&a.gd()))
-            .then(b.gf.cmp(&a.gf))
-            .then(a.team.cmp(&b.team))
-    });
+    rows.sort_by(|a, b| (a.group).cmp(&b.group).then(b.points.cmp(&a.points)).then(b.gd().cmp(&a.gd())).then(b.gf.cmp(&a.gf)).then(a.team.cmp(&b.team)));
 }
 
 /// A knockout pairing across one or two legs.
@@ -245,6 +238,9 @@ impl Fixture {
 pub struct Fixtures {
     list: IdVec<FixtureId, Fixture>,
     by_date: BTreeMap<Date, Vec<FixtureId>>,
+    /// Each team's fixtures (so per-team questions cost that team's
+    /// schedule, not the world's).
+    by_team: crate::FxHashMap<TeamId, Vec<FixtureId>>,
     next_uid: u64,
 }
 
@@ -252,10 +248,20 @@ impl Fixtures {
     pub fn add(&mut self, mut f: Fixture) -> FixtureId {
         f.uid = self.next_uid;
         self.next_uid += 1;
-        let date = f.date;
+        let (date, home, away) = (f.date, f.home, f.away);
         let id = self.list.push(f);
         self.by_date.entry(date).or_default().push(id);
+        self.by_team.entry(home).or_default().push(id);
+        self.by_team.entry(away).or_default().push(id);
         id
+    }
+
+    /// A team's fixtures between two dates (inclusive), in no particular order.
+    pub fn of_team_between(&self, team: TeamId, from: Date, to: Date) -> impl Iterator<Item = FixtureId> + '_ {
+        self.by_team.get(&team).into_iter().flatten().copied().filter(move |&id| {
+            let d = self.list[id].date;
+            d >= from && d <= to
+        })
     }
 
     #[inline]
@@ -273,11 +279,18 @@ impl Fixtures {
     }
 
     pub fn between(&self, from: Date, to: Date) -> impl Iterator<Item = FixtureId> + '_ {
-        self.by_date.range(from..=to).flat_map(|(_, v)| v.iter().copied())
+        // An empty window (a competition that has not started yet asks for `start - 1 ..= today`) is empty, not a panic.
+        let window = (from <= to).then(|| self.by_date.range(from..=to));
+        window.into_iter().flatten().flat_map(|(_, v)| v.iter().copied())
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (FixtureId, &Fixture)> {
         self.list.iter_enumerated()
+    }
+
+    /// Whether a match with this id was ever scheduled, kept or not (`compact` forgets old ones; their ids are never reused).
+    pub fn issued(&self, uid: u64) -> bool {
+        uid < self.next_uid
     }
 
     pub fn len(&self) -> usize {
@@ -286,6 +299,17 @@ impl Fixtures {
 
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+
+    /// Whether `team` has no fixture (other than `ignore`) on `date`.
+    pub fn team_free(&self, team: TeamId, date: Date, ignore: Option<FixtureId>) -> bool {
+        self.of_team_between(team, date, date).all(|id| Some(id) == ignore)
+    }
+
+    /// The first date on or after `from` when neither team is playing
+    /// (a team never plays twice in a day). Gives up after `limit` days and returns `from`.
+    pub fn first_free_date(&self, a: TeamId, b: TeamId, from: Date, limit: i32, ignore: Option<FixtureId>) -> Date {
+        (0..=limit).map(|d| from.add_days(d)).find(|&d| self.team_free(a, d, ignore) && self.team_free(b, d, ignore)).unwrap_or(from)
     }
 
     /// Move a fixture to another date (postponement / rescheduling).
@@ -299,23 +323,22 @@ impl Fixtures {
     }
 
     pub fn next_for(&self, team: TeamId, from: Date, horizon: i32) -> Option<FixtureId> {
-        self.between(from, from.add_days(horizon)).find(|&id| {
-            let f = &self.list[id];
-            f.score.is_none() && f.involves(team)
-        })
+        self.of_team_between(team, from, from.add_days(horizon)).filter(|&id| self.list[id].score.is_none()).min_by_key(|&id| (self.list[id].date, id))
     }
 
     /// Drop played fixtures older than `before`. Invalidates `FixtureId`s;
     /// callers keep only `uid`s across compaction.
     pub fn compact(&mut self, before: Date) {
-        let kept: Vec<Fixture> =
-            std::mem::take(&mut self.list).into_vec().into_iter().filter(|f| f.date >= before || f.score.is_none()).collect();
+        let kept: Vec<Fixture> = std::mem::take(&mut self.list).into_vec().into_iter().filter(|f| f.date >= before || f.score.is_none()).collect();
         self.by_date.clear();
+        self.by_team.clear();
         self.list = IdVec::with_capacity(kept.len());
         for f in kept {
-            let d = f.date;
+            let (d, home, away) = (f.date, f.home, f.away);
             let id = self.list.push(f);
             self.by_date.entry(d).or_default().push(id);
+            self.by_team.entry(home).or_default().push(id);
+            self.by_team.entry(away).or_default().push(id);
         }
     }
 }

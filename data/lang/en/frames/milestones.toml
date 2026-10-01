@@ -1,0 +1,200 @@
+# Frames for career milestones: a round number reached. Nothing here says how the player played.
+
+[[frame]]
+id = "milestone.reached.news.headline.report.club_apps.1"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player} reaches {count} games for {club}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.club_apps.2"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{count} games for {club}: a landmark for {player}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.club_apps.3"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player} reaches {count} appearances"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.club_apps.4"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player} notches {count} appearances"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.club_apps.1"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player:desc} reached {count} appearances for {club} {date}"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.club_apps.2"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'count']
+when = "kind == 'club_apps'"
+time = "past"
+text = "{player:desc} made a {count:ord} appearance for {club} {date}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.career_goals.1"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'career_goals'"
+time = "past"
+text = "{count} and counting for {player}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.career_goals.2"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'career_goals'"
+time = "past"
+text = "{player} reaches {count} career goals"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.career_goals.1"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'career_goals'"
+time = "past"
+text = "{player:desc} reached {count} career goals {date}"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.career_goals.2"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'career_goals'"
+time = "past"
+text = "{player:desc} scored a {count:ord} career goal {date}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.senior_apps.1"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'senior_apps'"
+time = "past"
+text = "{player} brings up {count} appearances"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.senior_apps.2"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'senior_apps'"
+time = "past"
+text = "{player} reaches {count} senior appearances"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.senior_apps.1"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'senior_apps'"
+time = "past"
+text = "{player:desc} reached {count} senior appearances {date}"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.senior_apps.2"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'senior_apps'"
+time = "past"
+text = "{player:desc} made a {count:ord} senior appearance {date}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.caps.1"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'caps'"
+time = "past"
+text = "{player} wins cap number {count}"
+
+[[frame]]
+id = "milestone.reached.news.headline.report.caps.2"
+event = "milestone.reached"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'caps'"
+time = "past"
+text = "{player} earns a {count:ord} cap"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.caps.1"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'caps'"
+time = "past"
+text = "{player:desc} won a {count:ord} cap for their country {date}"
+
+[[frame]]
+id = "milestone.reached.news.lede.report.caps.2"
+event = "milestone.reached"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'count']
+when = "kind == 'caps'"
+time = "past"
+text = "{player:desc} played for their country for the {count:ord} time {date}"
+

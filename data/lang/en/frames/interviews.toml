@@ -1,0 +1,442 @@
+# Frames for interviews: what someone said on the record, as far as the writer knows it (the stance, never the words).
+
+[[frame]]
+id = "interview.quote.news.headline.report.praise.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'praise'"
+time = "past"
+text = "{speaker} hails {about}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.praise.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'praise'"
+time = "past"
+text = "{speaker} full of praise for {about}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.praise.3"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'praise'"
+time = "past"
+text = "{about} earns praise from {speaker}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.praise.4"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker} full of praise"
+
+[[frame]]
+id = "interview.quote.news.headline.report.praise.5"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker} delighted"
+
+[[frame]]
+id = "interview.quote.news.headline.report.praise.6"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker} all smiles"
+
+[[frame]]
+id = "interview.quote.news.lede.report.praise.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'praise'"
+time = "past"
+text = "{speaker:desc} spoke warmly of {about} {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.praise.2"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'praise'"
+time = "past"
+text = "{speaker:desc} had only good things to say about {about} {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.praise.3"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'praise' && !about"
+time = "past"
+text = "{speaker:desc} was in a positive mood {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.criticise.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'criticise'"
+time = "past"
+text = "{speaker} criticises {about}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.criticise.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'criticise'"
+time = "past"
+text = "{speaker} takes aim at {about}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.criticise.3"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'criticise' && !about"
+time = "past"
+text = "{speaker} does not hold back"
+
+[[frame]]
+id = "interview.quote.news.headline.report.criticise.4"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'criticise' && !about"
+time = "past"
+text = "{speaker} in critical mood"
+
+[[frame]]
+id = "interview.quote.news.lede.report.criticise.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'criticise'"
+time = "past"
+text = "{speaker:desc} was critical of {about} {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.criticise.2"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'criticise'"
+time = "past"
+text = "{speaker:desc} did not hide their frustration with {about} {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.criticise.3"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'criticise' && !about"
+time = "past"
+text = "{speaker:desc} was in critical mood {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.deflect.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker} gives little away"
+
+[[frame]]
+id = "interview.quote.news.headline.report.deflect.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker} keeps counsel"
+
+[[frame]]
+id = "interview.quote.news.headline.report.deflect.3"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker} says little"
+
+[[frame]]
+id = "interview.quote.news.lede.report.deflect.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker:desc} declined to be drawn on the subject {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.deflect.2"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deflect'"
+time = "past"
+text = "{speaker:desc} gave little away {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.ambition.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'ambition'"
+time = "past"
+text = "{speaker} talks up their ambitions"
+
+[[frame]]
+id = "interview.quote.news.headline.report.ambition.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'ambition'"
+time = "past"
+text = "{speaker} sets sights high"
+
+[[frame]]
+id = "interview.quote.news.lede.report.ambition.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'ambition'"
+time = "past"
+text = "{speaker:desc} spoke about their ambitions {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.loyalty.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'club']
+when = "stance == 'loyalty'"
+time = "past"
+text = "{speaker} says they are happy at {club}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.loyalty.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'club']
+when = "stance == 'loyalty'"
+time = "past"
+text = "{speaker} committed to {club}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.loyalty.3"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'loyalty' && !about"
+time = "past"
+text = "{speaker} speaks of commitment"
+
+[[frame]]
+id = "interview.quote.news.lede.report.loyalty.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker', 'club']
+when = "stance == 'loyalty'"
+time = "past"
+text = "{speaker:desc} spoke of commitment to {club} {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.loyalty.2"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'loyalty' && !about"
+time = "past"
+text = "{speaker:desc} spoke of commitment {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.complain.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'complain'"
+time = "past"
+text = "{speaker} speaks out over role"
+
+[[frame]]
+id = "interview.quote.news.headline.report.complain.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'complain'"
+time = "past"
+text = "{speaker} unhappy with situation"
+
+[[frame]]
+id = "interview.quote.news.lede.report.complain.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'complain'"
+time = "past"
+text = "{speaker:desc} voiced frustration over their situation {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.support.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'support'"
+time = "past"
+text = "{speaker} backs {about}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.support.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'support'"
+time = "past"
+text = "{speaker} stands by {about}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.support.3"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'support' && !about"
+time = "past"
+text = "{speaker} stands by the squad"
+
+[[frame]]
+id = "interview.quote.news.lede.report.support.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker', 'about']
+when = "stance == 'support'"
+time = "past"
+text = "{speaker:desc} publicly backed {about} {date}"
+
+[[frame]]
+id = "interview.quote.news.lede.report.support.2"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'support' && !about"
+time = "past"
+text = "{speaker:desc} stood by the squad {date}"
+
+[[frame]]
+id = "interview.quote.news.headline.report.deny.1"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deny'"
+time = "past"
+text = "{speaker} denies the reports"
+
+[[frame]]
+id = "interview.quote.news.headline.report.deny.2"
+event = "interview.quote"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deny'"
+time = "past"
+text = "{speaker} rejects the talk"
+
+[[frame]]
+id = "interview.quote.news.lede.report.deny.1"
+event = "interview.quote"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['speaker']
+when = "stance == 'deny'"
+time = "past"
+text = "{speaker:desc} dismissed the reports {date}"
+

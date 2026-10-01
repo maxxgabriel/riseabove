@@ -1,0 +1,34 @@
+[meta]
+dataset = "grassroots"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Three structural programmes only."
+gaps = ["Ages, active periods, state and club programmes not recorded."]
+
+[[programme]]
+id = "prog.blue-cubs"
+name = "AIFF Baby Leagues / Blue Cubs"
+operator = "assoc.aiff"
+kind = "grassroots"
+region = "national"
+description = "Real programme; details unverified."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[programme]]
+id = "prog.khelo-india"
+name = "Khelo India (football talent identification and accredited academies)"
+operator = "assoc.gov-sports"
+kind = "talent_id"
+region = "national"
+description = "Real programme; details unverified."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[programme]]
+id = "prog.sai-ncoe"
+name = "SAI National Centres of Excellence and Training Centres (football)"
+operator = "Sports Authority of India"
+kind = "residential"
+region = "national"
+description = "Real programme; details unverified."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

@@ -1,0 +1,439 @@
+//! A nation's football ecosystem below and beside the professional game:
+//! regions and districts, the associations that run them, the mass of children
+//! who play (as aggregates, never as people), the institutions that develop
+//! them, and the route each materialised player has taken.
+//!
+//! Layers, cheapest first:
+//! 1. `Pool`: participants per district and age, plain numbers.
+//! 2. Prospects: when a child becomes competitive or noticed, they become a
+//!    real player (`PlayerSource::RegionalPool`) with a `PlayerStory`.
+//! 3. Registered and professional players use the ordinary machinery.
+//!
+//! Everything regional is a *state* that moves: infrastructure follows
+//! investment with a lag, culture remembers what a region has produced, and
+//! nothing is a permanent bonus for a place.
+
+use pw_core::{ClubId, Date, IdVec, LocalClubId, NationId, PersonId, PlayerId, RegionId};
+use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
+
+use crate::FxHashMap;
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum RegionKind {
+    /// A state or union territory (or the equivalent): has an association.
+    State,
+    /// A district or cluster of districts inside a state.
+    District,
+}
+
+/// Coarse environment: adaptation, travel, pitch condition and scheduling, not weather.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Climate {
+    HumidCoastal,
+    HotDry,
+    HighAltitude,
+    CoolHill,
+    HeavyMonsoon,
+    NorthEast,
+    Temperate,
+}
+
+/// A place football is played and developed. Every quality runs 0–100 and moves.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Region {
+    pub name: String,
+    pub nation: NationId,
+    pub kind: RegionKind,
+    /// The state, for a district; `NONE` for a state.
+    pub parent: RegionId,
+    /// Coarse map position on a 0–100 grid (west→east, south→north). Not geography, only distance.
+    pub x: u8,
+    pub y: u8,
+    pub climate: Climate,
+    /// Main language, an index into the nation's language list (adaptation, settling).
+    pub language: u8,
+    /// University zone.
+    pub zone: u8,
+    pub population_k: u32,
+    /// Share of children who play organised football.
+    pub participation: f32,
+    pub facilities: f32,
+    pub coach_density: f32,
+    pub academy_access: f32,
+    /// How affordable it is to take part.
+    pub economic_access: f32,
+    /// Closeness of professional clubs (visibility, role models, trials).
+    pub pro_proximity: f32,
+    pub competition_density: f32,
+    /// How much of the region's football is watched by people who can move a player on.
+    pub scouting_coverage: f32,
+    /// Investment received this year (public and private), the flow that infrastructure lags behind.
+    pub invest_public: f32,
+    pub invest_private: f32,
+    /// Football memory: what the region has produced lately. Decays; feeds participation and pride.
+    pub culture: f32,
+}
+
+/// A state (or national) football association as an institution.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Association {
+    pub admin: f32,
+    pub youth_invest: f32,
+    pub coach_ed: f32,
+    pub comp_quality: f32,
+    pub scouting: f32,
+    pub finance: f32,
+    pub grassroots_reach: f32,
+    pub academy_coord: f32,
+    pub referee_dev: f32,
+    pub facilities: f32,
+    pub commercial: f32,
+    pub governance: f32,
+}
+
+/// Participants by age, ages 4–17, for one district.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Pool {
+    pub part: [f32; 14],
+    /// Prospects drawn out of the pool so far (for the development metrics).
+    pub materialised: u32,
+}
+
+pub const POOL_FIRST_AGE: usize = 4;
+
+/// Who runs the football a child first plays.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Provider {
+    /// The AIFF's grassroots programme run through clubs and associations.
+    BlueCubs,
+    School,
+    Community,
+    Municipal,
+    Foundation,
+    PrivateSchool,
+}
+
+/// What a step on a player's route was.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum StageKind {
+    Grassroots,
+    School,
+    District,
+    StateYouth,
+    Academy,
+    Released,
+    University,
+    StateLeague,
+    StateTeam,
+    Trial,
+    SemiPro,
+    Professional,
+    NationalCamp,
+}
+
+impl StageKind {
+    pub const fn code(self) -> u8 {
+        self as u8
+    }
+
+    pub fn from_code(c: u8) -> StageKind {
+        use StageKind::*;
+        [Grassroots, School, District, StateYouth, Academy, Released, University, StateLeague, StateTeam, Trial, SemiPro, Professional, NationalCamp].get(usize::from(c)).copied().unwrap_or(Grassroots)
+    }
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            StageKind::Grassroots => "grassroots football",
+            StageKind::School => "school football",
+            StageKind::District => "district football",
+            StageKind::StateYouth => "state youth football",
+            StageKind::Academy => "academy",
+            StageKind::Released => "released",
+            StageKind::University => "university",
+            StageKind::StateLeague => "state league",
+            StageKind::StateTeam => "state team",
+            StageKind::Trial => "trial",
+            StageKind::SemiPro => "semi-professional",
+            StageKind::Professional => "professional",
+            StageKind::NationalCamp => "national camp",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Stage {
+    pub date: Date,
+    pub kind: StageKind,
+    /// The club, institution or competition (meaning depends on `kind`).
+    pub target: u32,
+    pub region: RegionId,
+}
+
+/// Where a player comes from and who found them. Only for materialised players.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct PlayerStory {
+    /// Where they grew up.
+    pub home: RegionId,
+    /// Where they are developing now (moves with school, academy, university).
+    pub dev: RegionId,
+    pub provider: Provider,
+    /// The first person outside the family who took them seriously (a scout, coach or selector).
+    pub found_by: PersonId,
+    pub found_club: ClubId,
+    pub found_on: Date,
+}
+
+/// What a university gives a player.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Scholarship {
+    pub inst: u32,
+    /// 0 none, 1 tuition, 2 tuition and hostel, 3 full support with a stipend.
+    pub tier: u8,
+    pub from: Date,
+}
+
+/// Extra state for a school, sports school or university (`minor::Institution` keeps the basics).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct InstProfile {
+    pub region: RegionId,
+    /// Sports budget, 0–100. Moves with results, visibility and sponsors.
+    pub resources: f32,
+    pub facilities: f32,
+    /// Scholarship places it can fund each year.
+    pub scholarships: u8,
+    /// Sports school or residential programme (better environment, but it means moving).
+    pub residential: bool,
+    /// Rolling football success, 0–100.
+    pub success: f32,
+    /// A real institution (named from the seed data) rather than a generated one.
+    pub real: bool,
+}
+
+/// The state-team championship in progress (the Santosh Trophy's shape: state and
+/// association sides, groups, then knockouts).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Tournament {
+    pub year: i32,
+    pub nation: NationId,
+    /// (state, squad).
+    pub squads: Vec<(RegionId, Vec<PlayerId>)>,
+    /// Groups of indices into `squads`.
+    pub groups: Vec<Vec<usize>>,
+    /// Scheduled matches not yet played: (date, home, away, knockout).
+    pub fixtures: Vec<(Date, usize, usize, bool)>,
+    /// Points and goals per squad in the groups: (played, points, for, against).
+    pub table: Vec<(u8, u8, u16, u16)>,
+    /// Squads still alive in the knockout.
+    pub alive: Vec<usize>,
+    pub stage: u8,
+    pub winner: RegionId,
+    pub scorers: FxHashMap<PlayerId, u16>,
+}
+
+/// The level a piece of football was played at, which decides how far it can carry a name.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Tier {
+    /// Neighbourhood and Blue Cubs football: enormous numbers, almost nobody watching.
+    Grassroots,
+    School,
+    /// District selection sides and their tournaments.
+    District,
+    /// Adult amateur, university and state-league football.
+    Adult,
+    /// Academy age-group leagues.
+    Academy,
+    /// State teams, the state championship.
+    State,
+}
+
+pub const TIERS: usize = 6;
+
+impl Tier {
+    pub const fn ix(self) -> usize {
+        self as usize
+    }
+
+    /// What a performance at this level is worth to people deciding who to look at next.
+    /// A hat-trick in a park counts for little; the same in a state side counts for a lot.
+    pub const fn weight(self) -> f32 {
+        match self {
+            Tier::Grassroots => 0.10,
+            Tier::School => 0.28,
+            Tier::District => 0.55,
+            Tier::Adult => 0.50,
+            Tier::Academy => 0.70,
+            Tier::State => 1.0,
+        }
+    }
+}
+
+/// Evidence at one level: how well, over how many games, and how steadily.
+#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize)]
+pub struct Evidence {
+    /// Running level of credited performance (0 = par for the level).
+    pub steady: f32,
+    /// Running spread of that performance (steady players are trusted more).
+    pub spread: f32,
+    /// Effective games behind it; fades when the player is not seen playing.
+    pub games: f32,
+    /// Best single game credited (kept to tell a spike from a habit).
+    pub peak: f32,
+}
+
+/// What people who might move a player on have to go on. Nothing here is a rating of ability.
+#[derive(Clone, Copy, Default, Debug, Serialize, Deserialize)]
+pub struct Repute {
+    pub at: [Evidence; TIERS],
+    /// Times a watcher has actually seen them play (not the same as being judged good).
+    pub sightings: u16,
+    /// Distinct calendar years someone was watching.
+    pub sight_years: u8,
+    pub last_sight: Date,
+    /// One-off big games that did not amount to a pattern.
+    pub spikes: u8,
+    /// A coach, teacher or selector who vouches for them (0 none).
+    pub sponsor: u8,
+    /// Times a club abroad has sent someone to watch them.
+    pub foreign: u8,
+    /// Talk about them, 0–100: only makes scouts look, never makes them good. Fades fast.
+    pub buzz: u8,
+}
+
+/// On what ground a player may play for a state side.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum Basis {
+    /// Grew up in the state.
+    Birth,
+    /// Registered with a club based in the state.
+    Club,
+    /// At school or university in the state.
+    Institution,
+    /// Has developed in the state for at least `residence_years`.
+    Residence,
+}
+
+impl Basis {
+    pub fn parse(s: &str) -> Option<Basis> {
+        match s {
+            "birth" => Some(Basis::Birth),
+            "club" => Some(Basis::Club),
+            "institution" => Some(Basis::Institution),
+            "residence" => Some(Basis::Residence),
+            _ => None,
+        }
+    }
+}
+
+/// Who may represent a state side. Data, not code: read from the pack and changeable per world.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Eligibility {
+    pub min_age: u8,
+    pub max_age: u8,
+    /// Grounds that qualify, in order of preference (the first that applies is the player's own state).
+    pub bases: Vec<Basis>,
+    pub residence_years: u8,
+    /// Players of the top division are with their clubs and cannot be called.
+    pub exclude_top_division: bool,
+    /// A player who has played for one state in a year cannot play for another the same year.
+    pub one_state_per_year: bool,
+}
+
+impl Default for Eligibility {
+    fn default() -> Self {
+        Eligibility { min_age: 17, max_age: 34, bases: vec![Basis::Birth, Basis::Club, Basis::Institution, Basis::Residence], residence_years: 2, exclude_top_division: true, one_state_per_year: true }
+    }
+}
+
+/// Owned by `pw_sim::ecosystem`. Empty unless a nation has been given an ecosystem.
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct Ecosystem {
+    pub regions: IdVec<RegionId, Region>,
+    pub zones: Vec<String>,
+    pub languages: Vec<String>,
+    /// Given names and surnames by language index, so children drawn from a place carry that place's names.
+    pub lang_names: Vec<(Vec<crate::NameId>, Vec<crate::NameId>)>,
+    /// State associations, keyed by the state's region.
+    pub assoc: FxHashMap<RegionId, Association>,
+    /// Each association's name (the pack's real names).
+    pub assoc_name: FxHashMap<RegionId, String>,
+    /// The national federation's own attributes.
+    pub federation: Option<Association>,
+    pub pools: FxHashMap<RegionId, Pool>,
+    pub inst: FxHashMap<u32, InstProfile>,
+    pub scholarship: FxHashMap<PlayerId, Scholarship>,
+    pub story: FxHashMap<PlayerId, PlayerStory>,
+    pub stages: FxHashMap<PlayerId, SmallVec<[Stage; 8]>>,
+    pub local_region: FxHashMap<LocalClubId, RegionId>,
+    pub club_region: FxHashMap<ClubId, RegionId>,
+    /// National identification camps: (year, deepest stage reached 1–3).
+    pub camp: FxHashMap<PlayerId, (i32, u8)>,
+    /// What is known of each young player's football, level by level (see `pw_sim::recognition`).
+    pub repute: FxHashMap<PlayerId, Repute>,
+    /// The state-team championship of the current year, while it runs.
+    pub tournament: Option<Tournament>,
+    pub eligibility: Eligibility,
+    /// How much the football world abroad thinks of the country's players, 0–100. Moves slowly with
+    /// how Indian players do abroad; it decides how many foreign scouts turn up.
+    pub export: f32,
+    /// How much two states care about beating each other, 0–100, keyed with the lower id first. Built by
+    /// closeness and by meetings that mattered; fades without them.
+    pub rivalry: FxHashMap<(RegionId, RegionId), f32>,
+    /// Foreign scouting visits so far (metric).
+    pub foreign_looks: u32,
+    /// Which state a player played for in a given year (one state per year).
+    pub represented: FxHashMap<PlayerId, (i32, RegionId)>,
+    /// Winners of the state championship so far: (state, year).
+    pub tournament_titles: Vec<(RegionId, i32)>,
+    /// Year the last yearly update ran.
+    pub last_year: i32,
+}
+
+impl Ecosystem {
+    pub fn is_configured(&self) -> bool {
+        !self.regions.is_empty()
+    }
+
+    /// The state a region belongs to (itself if it is one).
+    pub fn state_of(&self, r: RegionId) -> RegionId {
+        if r.is_none() {
+            return r;
+        }
+        let reg = &self.regions[r];
+        if reg.kind == RegionKind::State { r } else { reg.parent }
+    }
+
+    /// Coarse travel burden between two regions, 0 (same place) to 1 (across the country).
+    pub fn travel_burden(&self, a: RegionId, b: RegionId) -> f32 {
+        if a.is_none() || b.is_none() {
+            return 0.3;
+        }
+        let (ra, rb) = (&self.regions[a], &self.regions[b]);
+        let dx = f32::from(ra.x) - f32::from(rb.x);
+        let dy = f32::from(ra.y) - f32::from(rb.y);
+        ((dx * dx + dy * dy).sqrt() / 100.0).min(1.0)
+    }
+
+    pub fn rivalry_of(&self, a: RegionId, b: RegionId) -> f32 {
+        let k = if a <= b { (a, b) } else { (b, a) };
+        self.rivalry.get(&k).copied().unwrap_or(0.0)
+    }
+
+    pub fn bump_rivalry(&mut self, a: RegionId, b: RegionId, by: f32) {
+        if a == b || a.is_none() || b.is_none() {
+            return;
+        }
+        let k = if a <= b { (a, b) } else { (b, a) };
+        let e = self.rivalry.entry(k).or_insert(0.0);
+        *e = (*e + by).min(100.0);
+    }
+
+    pub fn region_of_club(&self, c: ClubId) -> RegionId {
+        self.club_region.get(&c).copied().unwrap_or(RegionId::NONE)
+    }
+
+    /// A player's route so far, oldest first.
+    pub fn route(&self, p: PlayerId) -> &[Stage] {
+        self.stages.get(&p).map_or(&[], |v| v.as_slice())
+    }
+}

@@ -78,7 +78,34 @@ pub fn hidden_random(rng: &mut Rng) -> HiddenAttrs {
 
 /// Share of potential typically realised by a given age (youth → peak).
 pub fn ca_share_at(age: f32) -> f32 {
-    interp(&[(14.0, 0.3), (15.0, 0.35), (16.0, 0.42), (17.0, 0.5), (18.0, 0.58), (19.0, 0.66), (20.0, 0.73), (21.0, 0.8), (23.0, 0.89), (25.0, 0.95), (27.0, 1.0)], age)
+    interp(
+        &[
+            (8.0, 0.12),
+            (10.0, 0.18),
+            (12.0, 0.24),
+            (14.0, 0.3),
+            (15.0, 0.35),
+            (16.0, 0.42),
+            (17.0, 0.5),
+            (18.0, 0.58),
+            (19.0, 0.66),
+            (20.0, 0.73),
+            (21.0, 0.8),
+            (23.0, 0.89),
+            (25.0, 0.95),
+            (27.0, 1.0),
+        ],
+        age,
+    )
+}
+
+/// The most of his potential a player of this (biological) age can have realised: what a typical player has (`ca_share_at`), plus
+/// room for the precocious, room that widens with age until, by the early twenties, nothing but potential limits him. A ten-year-old
+/// is a ten-year-old whatever his gift; without this a gifted child grew at a youth rate from eight and was as good as a senior
+/// professional at twelve.
+pub fn maturity_ceiling(age: f32) -> f32 {
+    let headroom = interp(&[(12.0, 0.1), (16.0, 0.2), (19.0, 0.3), (22.0, 1.0)], age);
+    (ca_share_at(age) + headroom).min(1.0)
 }
 
 /// FM-style potential: positive values are exact; negative encode a range
@@ -123,9 +150,21 @@ pub fn random_position(rng: &mut Rng) -> Pos {
 pub fn height_for(pos: Pos, rng: &mut Rng) -> u8 {
     let mean = match pos.group() {
         PosGroup::Gk => 189.0,
-        PosGroup::Def => if pos == Pos::DC { 187.0 } else { 178.0 },
+        PosGroup::Def => {
+            if pos == Pos::DC {
+                187.0
+            } else {
+                178.0
+            }
+        }
         PosGroup::Mid => 178.0,
-        PosGroup::Att => if pos == Pos::ST { 183.0 } else { 175.0 },
+        PosGroup::Att => {
+            if pos == Pos::ST {
+                183.0
+            } else {
+                175.0
+            }
+        }
     };
     rng.normal_ms(mean, 5.5).round().clamp(158.0, 205.0) as u8
 }

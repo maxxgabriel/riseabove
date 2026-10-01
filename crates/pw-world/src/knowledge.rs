@@ -66,6 +66,8 @@ impl Knowledge {
 pub enum Observer {
     Club(ClubId),
     Person(u32),
+    /// The market at large: a shared, stable reading of a player from what is public.
+    Public,
 }
 
 impl Observer {
@@ -74,6 +76,7 @@ impl Observer {
         match self {
             Observer::Club(c) => u64::from(c.0),
             Observer::Person(p) => (1 << 40) | u64::from(p),
+            Observer::Public => 2 << 40,
         }
     }
 }
@@ -109,14 +112,7 @@ pub fn perceived_ca(true_ca: f32, attr_sigma: f32, observer: Observer, subject: 
 }
 
 /// Perceived potential: noisier than CA and never below the perceived CA.
-pub fn perceived_pa(
-    true_pa: f32,
-    est_ca: f32,
-    attr_sigma: f32,
-    judging_potential: f32,
-    observer: Observer,
-    subject: PlayerId,
-) -> (f32, f32) {
+pub fn perceived_pa(true_pa: f32, est_ca: f32, attr_sigma: f32, judging_potential: f32, observer: Observer, subject: PlayerId) -> (f32, f32) {
     let band = attr_sigma * 6.0 + (20.0 - judging_potential.clamp(1.0, 20.0)) * 1.2;
     (perceive(true_pa, band, observer, subject, field::PA).clamp(est_ca, 200.0), band)
 }

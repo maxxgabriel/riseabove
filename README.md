@@ -26,12 +26,18 @@ verified. Design documents live in [`plan/`](plan/) and [`foundation/`](foundati
 | `crates/pw-import` | world import from a user-provided export (`data/IMPORT_FORMAT.md`) |
 | `crates/pw-cli` | headless runner (`pathway-sim`) |
 | `crates/pw-career` | the player-career layer (in progress) |
+| `crates/pw-narrate` | every sentence the game shows, rendered from recorded state |
+| `crates/pw-view` | the API the interface talks to: pages, table queries, actions, inbox |
+| `crates/pw-serve` | that API over local HTTP, for development and browser tests |
+| `app` | the desktop client (Tauri 2, React, TypeScript); see [`app/README.md`](app/README.md) |
 | `vendor/ofm-engine` | OpenFootManager's match engine, unmodified (GPL-3) |
 | `fm23_dat_tool.py` | read-only inspector/extractor for a locally installed FM23 database |
 
 No game data is included. Worlds are built from data you supply yourself.
 
 ## Build
+
+The desktop client is described in [`app/README.md`](app/README.md). The simulation runs headless too:
 
 ```
 cargo run --release -p pw-cli --bin pathway-sim -- synth small --days 365

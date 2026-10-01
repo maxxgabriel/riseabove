@@ -1,0 +1,1122 @@
+# India football ecosystem: seed data.
+#
+# Names of real organisations are used as identities only. No history,
+# result, title or record is attached to any of them: everything from the
+# start date onward is simulated. Strengths below are *initial conditions*
+# read once at world start (roughly how much football a state has around it);
+# they move afterwards with investment, competition and what each place
+# produces. Coordinates are a coarse 0-100 grid (west to east, south to
+# north) used only for travel burden. Population is approximate, in millions.
+#
+# Replace or extend any of this from a real database export; the builder
+# treats this file as the fallback, not the truth.
+
+zones = ["North", "North-West", "East", "North-East", "West", "Central", "South", "South-West"]
+languages = ["Hindi", "Bengali", "Malayalam", "Tamil", "Telugu", "Kannada", "Marathi", "Gujarati", "Punjabi", "Odia", "Assamese", "Manipuri", "Mizo", "Khasi", "Konkani", "Nepali", "Kashmiri", "Naga", "English"]
+
+# strength: seed football participation 0-1; econ: household affordability 0-1;
+# pro: closeness of professional clubs 0-1; lang: index into languages; zone: index into zones.
+# Listed roughly by how much football there is, so a small world takes the first few.
+
+[[state]]
+key = "KL"
+name = "Kerala"
+assoc = "Kerala Football Association"
+pop_m = 36.0
+x = 30
+y = 8
+climate = "heavy_monsoon"
+lang = 2
+zone = 7
+strength = 0.80
+econ = 0.75
+pro = 0.70
+districts = ["Thiruvananthapuram", "Ernakulam", "Thrissur", "Kozhikode", "Malappuram", "Kannur"]
+
+[[state]]
+key = "WB"
+name = "West Bengal"
+assoc = "Indian Football Association"
+pop_m = 100.0
+x = 68
+y = 52
+climate = "humid_coastal"
+lang = 1
+zone = 2
+strength = 0.80
+econ = 0.55
+pro = 0.85
+districts = ["Kolkata", "Howrah", "North 24 Parganas", "Darjeeling", "Murshidabad", "Bardhaman"]
+
+[[state]]
+key = "GA"
+name = "Goa"
+assoc = "Goa Football Association"
+pop_m = 1.6
+x = 22
+y = 25
+climate = "humid_coastal"
+lang = 14
+zone = 4
+strength = 0.90
+econ = 0.85
+pro = 0.90
+districts = ["North Goa", "South Goa"]
+
+[[state]]
+key = "OD"
+name = "Odisha"
+assoc = "Football Association of Odisha"
+pop_m = 46.0
+x = 62
+y = 42
+climate = "humid_coastal"
+lang = 9
+zone = 2
+strength = 0.50
+econ = 0.45
+pro = 0.55
+districts = ["Khordha", "Cuttack", "Mayurbhanj", "Sundargarh", "Ganjam"]
+
+[[state]]
+key = "PB"
+name = "Punjab"
+assoc = "Punjab Football Association"
+pop_m = 31.0
+x = 40
+y = 82
+climate = "hot_dry"
+lang = 8
+zone = 1
+strength = 0.50
+econ = 0.70
+pro = 0.55
+districts = ["Amritsar", "Jalandhar", "Ludhiana", "Mohali", "Hoshiarpur"]
+
+[[state]]
+key = "MN"
+name = "Manipur"
+assoc = "Football Association of Manipur"
+pop_m = 3.2
+x = 90
+y = 52
+climate = "north_east"
+lang = 11
+zone = 3
+strength = 0.85
+econ = 0.40
+pro = 0.55
+districts = ["Imphal West", "Imphal East", "Thoubal", "Bishnupur"]
+
+[[state]]
+key = "MZ"
+name = "Mizoram"
+assoc = "Mizoram Football Association"
+pop_m = 1.2
+x = 88
+y = 45
+climate = "north_east"
+lang = 12
+zone = 3
+strength = 0.80
+econ = 0.50
+pro = 0.45
+districts = ["Aizawl", "Lunglei", "Champhai"]
+
+[[state]]
+key = "ML"
+name = "Meghalaya"
+assoc = "Meghalaya Football Association"
+pop_m = 3.4
+x = 80
+y = 56
+climate = "heavy_monsoon"
+lang = 13
+zone = 3
+strength = 0.75
+econ = 0.45
+pro = 0.55
+districts = ["East Khasi Hills", "West Khasi Hills", "Jaintia Hills"]
+
+[[state]]
+key = "KA"
+name = "Karnataka"
+assoc = "Karnataka State Football Association"
+pop_m = 68.0
+x = 32
+y = 22
+climate = "temperate"
+lang = 5
+zone = 6
+strength = 0.50
+econ = 0.75
+pro = 0.70
+districts = ["Bengaluru Urban", "Mysuru", "Dakshina Kannada", "Kodagu", "Dharwad"]
+
+[[state]]
+key = "TN"
+name = "Tamil Nadu"
+assoc = "Tamil Nadu Football Association"
+pop_m = 78.0
+x = 42
+y = 10
+climate = "humid_coastal"
+lang = 3
+zone = 6
+strength = 0.45
+econ = 0.75
+pro = 0.55
+districts = ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Nilgiris"]
+
+[[state]]
+key = "MH"
+name = "Maharashtra"
+assoc = "Maharashtra Football Association"
+pop_m = 126.0
+x = 30
+y = 40
+climate = "hot_dry"
+lang = 6
+zone = 4
+strength = 0.40
+econ = 0.80
+pro = 0.65
+districts = ["Mumbai", "Pune", "Nagpur", "Kolhapur", "Nashik"]
+
+[[state]]
+key = "AS"
+name = "Assam"
+assoc = "Assam Football Association"
+pop_m = 36.0
+x = 85
+y = 58
+climate = "north_east"
+lang = 10
+zone = 3
+strength = 0.55
+econ = 0.40
+pro = 0.50
+districts = ["Kamrup Metropolitan", "Dibrugarh", "Cachar", "Nagaon"]
+
+[[state]]
+key = "DL"
+name = "Delhi"
+assoc = "Football Delhi"
+pop_m = 21.0
+x = 45
+y = 75
+climate = "hot_dry"
+lang = 0
+zone = 0
+strength = 0.45
+econ = 0.80
+pro = 0.60
+districts = ["New Delhi", "South Delhi", "North Delhi"]
+
+[[state]]
+key = "JH"
+name = "Jharkhand"
+assoc = "Jharkhand Football Association"
+pop_m = 39.0
+x = 60
+y = 55
+climate = "hot_dry"
+lang = 0
+zone = 2
+strength = 0.45
+econ = 0.35
+pro = 0.50
+districts = ["East Singhbhum", "Ranchi", "Simdega", "Khunti"]
+
+[[state]]
+key = "NL"
+name = "Nagaland"
+assoc = "Nagaland Football Association"
+pop_m = 2.2
+x = 92
+y = 60
+climate = "north_east"
+lang = 17
+zone = 3
+strength = 0.60
+econ = 0.45
+pro = 0.30
+districts = ["Kohima", "Dimapur"]
+
+[[state]]
+key = "SK"
+name = "Sikkim"
+assoc = "Sikkim Football Association"
+pop_m = 0.7
+x = 74
+y = 64
+climate = "cool_hill"
+lang = 15
+zone = 3
+strength = 0.65
+econ = 0.60
+pro = 0.30
+districts = ["Gangtok", "Namchi"]
+
+[[state]]
+key = "TR"
+name = "Tripura"
+assoc = "Tripura Football Association"
+pop_m = 4.2
+x = 84
+y = 46
+climate = "humid_coastal"
+lang = 1
+zone = 3
+strength = 0.40
+econ = 0.40
+pro = 0.30
+districts = ["West Tripura", "South Tripura"]
+
+[[state]]
+key = "JK"
+name = "Jammu & Kashmir"
+assoc = "Jammu & Kashmir Football Association"
+pop_m = 14.0
+x = 42
+y = 95
+climate = "high_altitude"
+lang = 16
+zone = 0
+strength = 0.40
+econ = 0.50
+pro = 0.35
+districts = ["Srinagar", "Anantnag", "Jammu"]
+
+[[state]]
+key = "TS"
+name = "Telangana"
+assoc = "Telangana Football Association"
+pop_m = 38.0
+x = 42
+y = 32
+climate = "hot_dry"
+lang = 4
+zone = 6
+strength = 0.35
+econ = 0.70
+pro = 0.50
+districts = ["Hyderabad", "Warangal", "Karimnagar"]
+
+[[state]]
+key = "AP"
+name = "Andhra Pradesh"
+assoc = "Andhra Pradesh Football Association"
+pop_m = 53.0
+x = 46
+y = 28
+climate = "humid_coastal"
+lang = 4
+zone = 6
+strength = 0.30
+econ = 0.55
+pro = 0.30
+districts = ["Visakhapatnam", "Krishna", "Guntur", "Anantapur"]
+
+[[state]]
+key = "RJ"
+name = "Rajasthan"
+assoc = "Rajasthan Football Association"
+pop_m = 82.0
+x = 25
+y = 68
+climate = "hot_dry"
+lang = 0
+zone = 1
+strength = 0.30
+econ = 0.45
+pro = 0.40
+districts = ["Jaipur", "Udaipur", "Jodhpur", "Ajmer"]
+
+[[state]]
+key = "GJ"
+name = "Gujarat"
+assoc = "Gujarat State Football Association"
+pop_m = 71.0
+x = 12
+y = 55
+climate = "hot_dry"
+lang = 7
+zone = 1
+strength = 0.30
+econ = 0.75
+pro = 0.30
+districts = ["Ahmedabad", "Surat", "Vadodara", "Rajkot"]
+
+[[state]]
+key = "UP"
+name = "Uttar Pradesh"
+assoc = "Uttar Pradesh Football Association"
+pop_m = 235.0
+x = 52
+y = 68
+climate = "hot_dry"
+lang = 0
+zone = 0
+strength = 0.25
+econ = 0.35
+pro = 0.30
+districts = ["Lucknow", "Varanasi", "Meerut", "Gorakhpur", "Aligarh", "Prayagraj"]
+
+[[state]]
+key = "HR"
+name = "Haryana"
+assoc = "Haryana Football Association"
+pop_m = 30.0
+x = 42
+y = 76
+climate = "hot_dry"
+lang = 0
+zone = 0
+strength = 0.30
+econ = 0.65
+pro = 0.30
+districts = ["Gurugram", "Faridabad", "Rohtak"]
+
+[[state]]
+key = "HP"
+name = "Himachal Pradesh"
+assoc = "Himachal Pradesh Football Association"
+pop_m = 7.5
+x = 46
+y = 86
+climate = "cool_hill"
+lang = 0
+zone = 0
+strength = 0.30
+econ = 0.60
+pro = 0.20
+districts = ["Shimla", "Kangra"]
+
+[[state]]
+key = "MP"
+name = "Madhya Pradesh"
+assoc = "Madhya Pradesh Football Association"
+pop_m = 87.0
+x = 42
+y = 52
+climate = "hot_dry"
+lang = 0
+zone = 5
+strength = 0.25
+econ = 0.40
+pro = 0.25
+districts = ["Bhopal", "Indore", "Jabalpur"]
+
+[[state]]
+key = "UK"
+name = "Uttarakhand"
+assoc = "Uttarakhand Football Association"
+pop_m = 11.5
+x = 52
+y = 80
+climate = "cool_hill"
+lang = 0
+zone = 0
+strength = 0.30
+econ = 0.55
+pro = 0.20
+districts = ["Dehradun", "Nainital"]
+
+[[state]]
+key = "BR"
+name = "Bihar"
+assoc = "Bihar Football Association"
+pop_m = 127.0
+x = 58
+y = 62
+climate = "hot_dry"
+lang = 0
+zone = 2
+strength = 0.25
+econ = 0.25
+pro = 0.20
+districts = ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur"]
+
+[[state]]
+key = "CG"
+name = "Chhattisgarh"
+assoc = "Chhattisgarh Football Association"
+pop_m = 30.0
+x = 52
+y = 45
+climate = "hot_dry"
+lang = 0
+zone = 5
+strength = 0.30
+econ = 0.35
+pro = 0.20
+districts = ["Raipur", "Bilaspur", "Bastar"]
+
+[[state]]
+key = "AR"
+name = "Arunachal Pradesh"
+assoc = "Arunachal Pradesh Football Association"
+pop_m = 1.6
+x = 96
+y = 66
+climate = "north_east"
+lang = 18
+zone = 3
+strength = 0.35
+econ = 0.40
+pro = 0.15
+districts = ["Papum Pare", "Tawang"]
+
+[[state]]
+key = "PY"
+name = "Puducherry"
+assoc = "Puducherry Football Association"
+pop_m = 1.6
+x = 44
+y = 14
+climate = "humid_coastal"
+lang = 3
+zone = 6
+strength = 0.30
+econ = 0.65
+pro = 0.20
+districts = ["Puducherry"]
+
+[[state]]
+key = "CH"
+name = "Chandigarh"
+assoc = "Chandigarh Football Association"
+pop_m = 1.2
+x = 43
+y = 80
+climate = "hot_dry"
+lang = 8
+zone = 1
+strength = 0.40
+econ = 0.85
+pro = 0.55
+districts = ["Chandigarh"]
+
+[[state]]
+key = "LA"
+name = "Ladakh"
+assoc = "Ladakh Football Association"
+pop_m = 0.3
+x = 48
+y = 98
+climate = "high_altitude"
+lang = 16
+zone = 0
+strength = 0.30
+econ = 0.45
+pro = 0.05
+districts = ["Leh"]
+
+# ------------------------------------------------------------------ universities
+# Real institutions, names only. `state` is a state key above; `scholarships` is a
+# starting number of funded football places (moves with budgets and results).
+
+[[university]]
+name = "University of Calicut"
+city = "Malappuram"
+state = "KL"
+scholarships = 10
+
+[[university]]
+name = "Mahatma Gandhi University"
+city = "Kottayam"
+state = "KL"
+scholarships = 8
+
+[[university]]
+name = "University of Kerala"
+city = "Thiruvananthapuram"
+state = "KL"
+scholarships = 5
+
+[[university]]
+name = "Kannur University"
+city = "Kannur"
+state = "KL"
+scholarships = 4
+
+[[university]]
+name = "Adamas University"
+city = "Kolkata"
+state = "WB"
+scholarships = 10
+
+[[university]]
+name = "University of Calcutta"
+city = "Kolkata"
+state = "WB"
+scholarships = 6
+
+[[university]]
+name = "Jadavpur University"
+city = "Kolkata"
+state = "WB"
+scholarships = 4
+
+[[university]]
+name = "Guru Nanak Dev University"
+city = "Amritsar"
+state = "PB"
+scholarships = 10
+
+[[university]]
+name = "Lovely Professional University"
+city = "Jalandhar"
+state = "PB"
+scholarships = 10
+
+[[university]]
+name = "Chandigarh University"
+city = "Mohali"
+state = "PB"
+scholarships = 10
+
+[[university]]
+name = "Guru Kashi University"
+city = "Bathinda"
+state = "PB"
+scholarships = 6
+
+[[university]]
+name = "Panjab University"
+city = "Chandigarh"
+state = "CH"
+scholarships = 6
+
+[[university]]
+name = "IIMT University"
+city = "Meerut"
+state = "UP"
+scholarships = 8
+
+[[university]]
+name = "Aligarh Muslim University"
+city = "Aligarh"
+state = "UP"
+scholarships = 5
+
+[[university]]
+name = "Savitribai Phule Pune University"
+city = "Pune"
+state = "MH"
+scholarships = 6
+
+[[university]]
+name = "Shivaji University"
+city = "Kolhapur"
+state = "MH"
+scholarships = 5
+
+[[university]]
+name = "University of Mumbai"
+city = "Mumbai"
+state = "MH"
+scholarships = 4
+
+[[university]]
+name = "Utkal University"
+city = "Bhubaneswar"
+state = "OD"
+scholarships = 6
+
+[[university]]
+name = "KIIT"
+city = "Bhubaneswar"
+state = "OD"
+scholarships = 10
+
+[[university]]
+name = "University of Madras"
+city = "Chennai"
+state = "TN"
+scholarships = 5
+
+[[university]]
+name = "Annamalai University"
+city = "Chidambaram"
+state = "TN"
+scholarships = 5
+
+[[university]]
+name = "Osmania University"
+city = "Hyderabad"
+state = "TS"
+scholarships = 5
+
+[[university]]
+name = "Bengaluru City University"
+city = "Bengaluru"
+state = "KA"
+scholarships = 5
+
+[[university]]
+name = "Goa University"
+city = "Taleigao"
+state = "GA"
+scholarships = 5
+
+[[university]]
+name = "University of Rajasthan"
+city = "Jaipur"
+state = "RJ"
+scholarships = 4
+
+[[university]]
+name = "Poornima University"
+city = "Jaipur"
+state = "RJ"
+scholarships = 6
+
+[[university]]
+name = "University of Delhi"
+city = "New Delhi"
+state = "DL"
+scholarships = 5
+
+[[university]]
+name = "Gauhati University"
+city = "Guwahati"
+state = "AS"
+scholarships = 4
+
+[[university]]
+name = "Manipur University"
+city = "Imphal"
+state = "MN"
+scholarships = 5
+
+[[university]]
+name = "Mizoram University"
+city = "Aizawl"
+state = "MZ"
+scholarships = 4
+
+[[university]]
+name = "North-Eastern Hill University"
+city = "Shillong"
+state = "ML"
+scholarships = 4
+
+[[university]]
+name = "Sikkim University"
+city = "Gangtok"
+state = "SK"
+scholarships = 3
+
+[[university]]
+name = "Pondicherry University"
+city = "Puducherry"
+state = "PY"
+scholarships = 3
+
+# ------------------------------------------------------------------ clubs
+# tier: 1 top flight, 2 second tier, 3 third tier, 4 fourth tier (the state pathway's
+# entry to the national pyramid), 0 = independent academy with no senior side.
+# rep is a seed standing (0-10000). Real names, no history.
+
+[[club]]
+name = "Mohun Bagan Super Giant"
+city = "Kolkata"
+state = "WB"
+tier = 1
+rep = 6800
+
+[[club]]
+name = "East Bengal"
+city = "Kolkata"
+state = "WB"
+tier = 1
+rep = 6400
+
+[[club]]
+name = "Mohammedan SC"
+city = "Kolkata"
+state = "WB"
+tier = 1
+rep = 5200
+
+[[club]]
+name = "Bengaluru FC"
+city = "Bengaluru"
+state = "KA"
+tier = 1
+rep = 6500
+
+[[club]]
+name = "Kerala Blasters"
+city = "Kochi"
+state = "KL"
+tier = 1
+rep = 6300
+
+[[club]]
+name = "Chennaiyin FC"
+city = "Chennai"
+state = "TN"
+tier = 1
+rep = 5600
+
+[[club]]
+name = "FC Goa"
+city = "Margao"
+state = "GA"
+tier = 1
+rep = 6100
+
+[[club]]
+name = "Jamshedpur FC"
+city = "Jamshedpur"
+state = "JH"
+tier = 1
+rep = 5700
+
+[[club]]
+name = "Mumbai City FC"
+city = "Mumbai"
+state = "MH"
+tier = 1
+rep = 6200
+
+[[club]]
+name = "NorthEast United"
+city = "Guwahati"
+state = "AS"
+tier = 1
+rep = 5500
+
+[[club]]
+name = "Odisha FC"
+city = "Bhubaneswar"
+state = "OD"
+tier = 1
+rep = 5800
+
+[[club]]
+name = "Punjab FC"
+city = "Mohali"
+state = "PB"
+tier = 1
+rep = 5400
+
+[[club]]
+name = "Hyderabad FC"
+city = "Hyderabad"
+state = "TS"
+tier = 1
+rep = 5000
+
+[[club]]
+name = "Inter Kashi"
+city = "Varanasi"
+state = "UP"
+tier = 2
+rep = 3600
+
+[[club]]
+name = "Churchill Brothers"
+city = "Margao"
+state = "GA"
+tier = 2
+rep = 3700
+
+[[club]]
+name = "Real Kashmir"
+city = "Srinagar"
+state = "JK"
+tier = 2
+rep = 3500
+
+[[club]]
+name = "Gokulam Kerala"
+city = "Kozhikode"
+state = "KL"
+tier = 2
+rep = 3900
+
+[[club]]
+name = "Sreenidi Deccan"
+city = "Hyderabad"
+state = "TS"
+tier = 2
+rep = 3600
+
+[[club]]
+name = "Rajasthan United"
+city = "Jaipur"
+state = "RJ"
+tier = 2
+rep = 3300
+
+[[club]]
+name = "NEROCA"
+city = "Imphal"
+state = "MN"
+tier = 2
+rep = 3400
+
+[[club]]
+name = "TRAU FC"
+city = "Imphal"
+state = "MN"
+tier = 2
+rep = 3300
+
+[[club]]
+name = "Aizawl FC"
+city = "Aizawl"
+state = "MZ"
+tier = 2
+rep = 3500
+
+[[club]]
+name = "Shillong Lajong"
+city = "Shillong"
+state = "ML"
+tier = 2
+rep = 3400
+
+[[club]]
+name = "Delhi FC"
+city = "New Delhi"
+state = "DL"
+tier = 2
+rep = 3200
+
+[[club]]
+name = "Dempo SC"
+city = "Panaji"
+state = "GA"
+tier = 2
+rep = 3600
+
+[[club]]
+name = "Sudeva Delhi FC"
+city = "New Delhi"
+state = "DL"
+tier = 3
+rep = 2500
+
+[[club]]
+name = "Kenkre FC"
+city = "Mumbai"
+state = "MH"
+tier = 3
+rep = 2300
+
+[[club]]
+name = "Bhawanipore FC"
+city = "Kolkata"
+state = "WB"
+tier = 3
+rep = 2400
+
+[[club]]
+name = "FC Bengaluru United"
+city = "Bengaluru"
+state = "KA"
+tier = 3
+rep = 2400
+
+[[club]]
+name = "South United FC"
+city = "Bengaluru"
+state = "KA"
+tier = 3
+rep = 2300
+
+[[club]]
+name = "ARA FC"
+city = "Ahmedabad"
+state = "GJ"
+tier = 3
+rep = 2100
+
+[[club]]
+name = "Zinc Football Academy"
+city = "Udaipur"
+state = "RJ"
+tier = 3
+rep = 2200
+
+[[club]]
+name = "Rangdajied United"
+city = "Shillong"
+state = "ML"
+tier = 3
+rep = 2300
+
+[[club]]
+name = "Kickstart FC"
+city = "Bengaluru"
+state = "KA"
+tier = 4
+rep = 1700
+
+[[club]]
+name = "FC Madras"
+city = "Chennai"
+state = "TN"
+tier = 4
+rep = 1700
+
+[[club]]
+name = "PFC Kerala"
+city = "Kochi"
+state = "KL"
+tier = 4
+rep = 1600
+
+[[club]]
+name = "SESA Football Academy"
+city = "Sanquelim"
+state = "GA"
+tier = 4
+rep = 1800
+
+[[club]]
+name = "Roots FC"
+city = "Bhubaneswar"
+state = "OD"
+tier = 4
+rep = 1500
+
+# Independent academies with no senior side: they play the development and youth leagues.
+
+[[club]]
+name = "Reliance Foundation Young Champs"
+city = "Navi Mumbai"
+state = "MH"
+tier = 0
+rep = 5200
+
+[[club]]
+name = "Minerva Academy"
+city = "Mohali"
+state = "PB"
+tier = 0
+rep = 4200
+
+[[club]]
+name = "RKM Football Academy"
+city = "Narendrapur"
+state = "WB"
+tier = 0
+rep = 3600
+
+[[club]]
+name = "Pune Krida Prabodhini"
+city = "Pune"
+state = "MH"
+tier = 0
+rep = 3000
+
+[[club]]
+name = "Bhaichung Bhutia Football Schools"
+city = "Gangtok"
+state = "SK"
+tier = 0
+rep = 3200
+
+# Who may play for a state side (state associations and the Santosh Trophy's shape). Changeable per world.
+# bases in order of preference: birth (grew up there), club (registered with a club there),
+# institution (school or university there), residence (developed there for residence_years).
+[eligibility]
+min_age = 17
+max_age = 34
+bases = ["birth", "club", "institution", "residence"]
+residence_years = 2
+exclude_top_division = true
+one_state_per_year = true
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# Tuning of how being seen works. These are INITIAL VALUES, not football truths: they are read once at world start and any of
+# them may be recalibrated here without touching code (generic code implements the concepts; this pack configures them). The
+# defaults in `pw_world::scenario` are the same numbers, so removing a key falls back to them.
+
+[recognition]
+# What a performance at each level is worth to people deciding who to look at next:
+# grassroots, school, district, adult, academy, state.
+tier_weight = [0.10, 0.28, 0.55, 0.50, 0.70, 1.0]
+half_sample = 8.0          # games at a level before half of what they showed is believed
+game_cap = 1.0             # one game can never count for more than this
+look_gap_days = 10         # two sightings closer than this are one look
+attention_base = -2.9      # chance a scout singles a child out (logit scale): base and how far merit lifts it
+attention_merit = 2.6
+need_base = 0.05           # what an academy needs before inviting a child: base + sq * rep^2 + lin * rep
+need_sq = 0.34
+need_lin = 0.14
+feeder_discount = 0.6      # feeder sides are trusted a little more
+min_games = 6.0
+established_rep = 4500     # academies at or above this want more looks
+looks_established = 3
+looks_other = 2
+gate_above_park = 6500     # reputation from which an academy wants proof above the park
+gate_above_school = 8500   # ... and above school football
+vouch_prior_trust = 0.5    # how far a scout believes a coach with no history, and how far a record moves it
+vouch_record_weight = 0.4
+
+[scouting]
+school_visit_base = 0.01       # a club's chance in a month of visiting a school: base + coverage * nearness
+school_visit_coverage = 0.06
+district_look_base = 0.05      # academy people at a district side: base + coverage * regional scouting coverage
+district_look_coverage = 0.30
+district_side = 16             # players a district picks
+camp_called = [100, 40, 25]    # national camp: called, then kept at the second and third cut
+camp_age = [14, 17]
+foreign_min_rep = 3000         # clubs abroad below this send no one
+foreign_base = 0.05            # chance a market's club comes: base + share * that market's regard for the football on show
+foreign_share = 0.5
+looks_per_visit = 2            # players a scout who has come to watch singles out
+
+# When things happen. months are 1-12; day = 0 means throughout the month (the monthly pass), else on that day only.
+[[calendar]]
+event = "district_selection"
+months = [10]
+
+[[calendar]]
+event = "university_scouting"
+months = [1]
+
+[[calendar]]
+event = "national_camp"
+months = [5]
+
+[[calendar]]
+event = "school_scouting"
+months = [8, 9, 11, 12, 2, 3, 4]
+
+[[calendar]]
+event = "state_championship"
+months = [2]
+day = 1
+
+[[calendar]]
+event = "university_review"
+months = [7]
+
+# Markets abroad: groups of nations whose clubs look at the same things the same way. `start` is the regard (0-100) those clubs
+# begin with for this country's players: a scenario seed, labelled as one. Nations in no market do not look here at all.
+[[market]]
+key = "Spain"
+nations = ["ESP"]
+start = 10.0
+
+[[market]]
+key = "East Asia"
+nations = ["JPN", "KOR"]
+start = 14.0
+
+# Who may play for a nation's national sides (federation rules), by nation code. A nation not listed uses the built-in defaults, which are
+# the same values. bases, in order: nationality, birth, parent, residence.
+[[national_rules]]
+nation = "IND"
+bases = ["nationality", "parent", "residence"]
+residence_years = 5
+switch_max_caps = 0
+switch_wait_years = 3

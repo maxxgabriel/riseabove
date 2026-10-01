@@ -6,9 +6,7 @@ use pw_world::club::{Board, ClubMarket, Facilities, Finance, Ownership};
 use pw_world::comp::{CompRules, CompState};
 use pw_world::nation::{Confed, NationSeason};
 use pw_world::staff::ManagerRecord;
-use pw_world::{
-    Archetype, Club, CompKind, Competition, Format, MindKind, NameId, Nation, Person, Philosophy, Staff, StaffRole, Team, TeamKind, World,
-};
+use pw_world::{Archetype, Club, CompKind, Competition, Format, MindKind, NameId, Nation, Person, Philosophy, Staff, StaffRole, Team, TeamKind, World};
 use smallvec::SmallVec;
 
 pub fn add_nation(w: &mut World, code: &str, name: &str, confed: Confed, reputation: u16, calendar: &str, economy: f32, youth_rating: u8) -> NationId {
@@ -26,6 +24,7 @@ pub fn add_nation(w: &mut World, code: &str, name: &str, confed: Confed, reputat
         season: NationSeason::default(),
         first_names: Vec::new(),
         last_names: Vec::new(),
+        env: pw_world::nation::inferred_environment(code, confed),
     })
 }
 
@@ -154,16 +153,22 @@ pub fn ensure_staff(w: &mut World) {
                 }
             }
         }
-        if w.clubs[club].manager.is_none() {
-            if let Some(&m) = w.clubs[club].staff.iter().find(|&&s| w.staff[s].role == StaffRole::Manager) {
-                w.clubs[club].manager = m;
-            }
+        if w.clubs[club].manager.is_none()
+            && let Some(&m) = w.clubs[club].staff.iter().find(|&&s| w.staff[s].role == StaffRole::Manager)
+        {
+            w.clubs[club].manager = m;
         }
     }
 }
 
 pub fn new_staff(w: &mut World, club: ClubId, role: StaffRole, level: f32, rng: &mut Rng) -> StaffId {
     let nation = w.clubs[club].nation;
+    new_staff_at(w, club, nation, f32::from(w.clubs[club].reputation), role, level, rng)
+}
+
+/// A generated staff member. `club` may be `ClubId::NONE` for someone unemployed; `club_rep` then stands for the
+/// level they were last at.
+pub fn new_staff_at(w: &mut World, club: ClubId, nation: NationId, club_rep: f32, role: StaffRole, level: f32, rng: &mut Rng) -> StaffId {
     let (first, last) = pw_sim::people::random_name(w, nation, rng);
     let dob = w.date.add_days(-(365 * rng.range_i32(32, 62)));
     let person = w.people.push(Person {
@@ -193,19 +198,24 @@ pub fn new_staff(w: &mut World, club: ClubId, role: StaffRole, level: f32, rng: 
         youth_trust: rng.range_i32(20, 80) as u8,
         archetype: [Archetype::Pragmatist, Archetype::Developer, Archetype::Rotator, Archetype::Loyalist][rng.index(4)],
     };
-    let rep = (f32::from(w.clubs[club].reputation) * rng.range_f32(0.5, 0.9)) as u16;
-    let revenue = pw_sim::finance::season_revenue(w, club) as f32;
-    let wage_share = match role {
-        StaffRole::Manager => 0.006,
-        StaffRole::Assistant | StaffRole::DirectorOfFootball => 0.002,
-        _ => 0.0008,
+    let rep = (club_rep * rng.range_f32(0.5, 0.9)) as u16;
+    let wage = if club.is_some() {
+        let revenue = pw_sim::finance::season_revenue(w, club) as f32;
+        let wage_share = match role {
+            StaffRole::Manager => 0.006,
+            StaffRole::Assistant | StaffRole::DirectorOfFootball => 0.002,
+            _ => 0.0008,
+        };
+        (revenue * wage_share / 52.0) as i64
+    } else {
+        0
     };
     let id = w.staff.push(Staff {
         person,
         role,
         club,
         attrs,
-        wage: (revenue * wage_share / 52.0) as i64,
+        wage,
         contract_end: w.date.add_months(24),
         reputation: rep,
         philosophy: phil,
@@ -221,12 +231,7 @@ pub fn new_staff(w: &mut World, club: ClubId, role: StaffRole, level: f32, rng: 
 pub fn finalize(w: &mut World) {
     // Nation league chains and cups.
     for n in w.nations.ids() {
-        let mut leagues: Vec<CompId> = w
-            .comps
-            .iter_enumerated()
-            .filter(|(_, c)| c.nation == n && c.kind == CompKind::League && c.team_kind == TeamKind::First)
-            .map(|(id, _)| id)
-            .collect();
+        let mut leagues: Vec<CompId> = w.comps.iter_enumerated().filter(|(_, c)| c.nation == n && c.kind == CompKind::League && c.team_kind == TeamKind::First).map(|(id, _)| id).collect();
         leagues.sort_by_key(|&c| (w.comps[c].tier, c));
         // One league per tier forms the promotion chain; extra regional
         // leagues at the same tier hang off the chain above.
@@ -250,13 +255,7 @@ pub fn finalize(w: &mut World) {
             continue;
         }
         let (nation, kind, size) = (comp.nation, comp.team_kind, usize::from(comp.size));
-        let mut teams: Vec<TeamId> = w
-            .clubs
-            .iter()
-            .filter(|cl| cl.nation == nation)
-            .flat_map(|cl| cl.teams.iter().copied())
-            .filter(|&t| w.teams[t].kind == kind)
-            .collect();
+        let mut teams: Vec<TeamId> = w.clubs.iter().filter(|cl| cl.nation == nation).flat_map(|cl| cl.teams.iter().copied()).filter(|&t| w.teams[t].kind == kind).collect();
         teams.sort_by_key(|&t| std::cmp::Reverse(w.clubs[w.teams[t].club].reputation));
         if size >= 2 {
             teams.truncate(size);
@@ -286,6 +285,8 @@ pub fn finalize(w: &mut World) {
         w.nations[n].first_names = f.into_iter().map(NameId).collect();
         w.nations[n].last_names = l.into_iter().map(NameId).collect();
     }
+    // Revenue (and so every wage and staff salary set from here on) includes the broadcast pools.
+    pw_sim::economy::ensure_pools(w);
 }
 
 pub fn person_age_days(dob: Date, today: Date) -> i32 {
@@ -302,18 +303,7 @@ pub fn add_person(w: &mut World, first: &str, last: &str, common: &str, dob: Dat
     let first = w.names.intern(first);
     let last = w.names.intern(last);
     let common = w.names.intern(common);
-    w.people.push(Person {
-        first,
-        last,
-        common,
-        dob,
-        nation,
-        nation2,
-        hidden: Default::default(),
-        player: Default::default(),
-        staff: Default::default(),
-        mind: MindKind::Ai,
-    })
+    w.people.push(Person { first, last, common, dob, nation, nation2, hidden: Default::default(), player: Default::default(), staff: Default::default(), mind: MindKind::Ai })
 }
 
 pub fn familiarity_from(naturals: &[Pos]) -> [u8; pw_core::N_POS] {

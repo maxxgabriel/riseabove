@@ -1,0 +1,902 @@
+# West Bengal state-level club football (below the national pyramid).
+[meta]
+dataset = "state_leagues.wb"
+quality = "B"
+effective = "2026-07-01"
+season = "2026"
+last_checked = "2026-09-29"
+coverage = "CFL Premier Division 2025 (completed) and 2026 (Day-0 lineup) participants; CFL lower divisions recorded as structure only; IFA Shield 2025; Bengal Super League 2025-26 franchises."
+gaps = [
+  "Participant lists for CFL First to Fifth Divisions not found.",
+  "District league structure (each district sports association runs its own league) not itemised.",
+  "Founded years for most Kolkata maidan clubs not verified, so omitted.",
+  "2026 CFL results are post-Day-0 and deliberately not recorded as history.",
+]
+national_clubs_referenced = ["club.east-bengal", "club.mohun-bagan-sg", "club.mohammedan", "club.bhawanipore", "club.diamond-harbour", "club.united-sc", "club.gokulam-kerala", "club.namdhari", "club.sreenidi-deccan"]
+
+# ---------------- competitions ----------------
+[[competition]]
+id = "comp.wb.cfl-premier"
+name = "Calcutta Football League Premier Division"
+short = "CFL Premier"
+aliases = ["CFL", "Calcutta Premier Division", "Style Baazar Calcutta Football League"]
+organiser = "assoc.ifa"
+level = "state"
+tier = 1
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2026"
+teams = 24
+format = "Two groups played single round-robin; top three per group to a Super Six championship round (group points not carried); bottom teams to a relegation round."
+stages = ["group stage (2 groups)", "Super Six", "relegation round"]
+promotion = "Top eligible teams (not already in ISL/I-League) have been nominated by IFA for I-League 3."
+relegation = "Bottom teams of the relegation round drop to CFL First Division (2 in 2025)."
+qualifies_to = ["comp.ifl3"]
+fed_by = ["comp.wb.cfl-1st-div"]
+calendar = "July to September"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/", "https://en.wikipedia.org/wiki/Calcutta_Football_League"], note = "2025: 26 teams in 2 groups of 13, 25 Jun-22 Sep 2025, East Bengal champions, Southern Samity and Army Red relegated, Suruchi Sangha and United Kolkata SC nominated to I-League 3. 2026: 26 drawn, Diamond Harbour and Sribhumi withdrew leaving 24 (2x12), started 12 Jul 2026." }
+
+[[competition]]
+id = "comp.wb.cfl-1st-div"
+name = "Calcutta Football League First Division"
+short = "CFL 1st Division"
+organiser = "assoc.ifa"
+level = "state"
+tier = 2
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2025"
+promotion = "Top two promoted to Premier Division (2024: Sribhumi FC and United Kolkata SC; 2025: Coal India SPA and Bidhannagar MSA)."
+relegation = "Two relegated to Second Division."
+qualifies_to = ["comp.wb.cfl-premier"]
+fed_by = ["comp.wb.cfl-2nd-div"]
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League", "https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"], note = "About 20 teams per Wikipedia; participant list not found." }
+
+[[competition]]
+id = "comp.wb.cfl-2nd-div"
+name = "Calcutta Football League Second Division"
+organiser = "assoc.ifa"
+level = "state"
+tier = 3
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2025"
+teams = 16
+promotion = "Two promoted to First Division."
+relegation = "Two relegated to Third Division."
+qualifies_to = ["comp.wb.cfl-1st-div"]
+fed_by = ["comp.wb.cfl-3rd-div"]
+status = "active"
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"], note = "Team count from Wikipedia structure table; not season-verified." }
+
+[[competition]]
+id = "comp.wb.cfl-3rd-div"
+name = "Calcutta Football League Third Division"
+organiser = "assoc.ifa"
+level = "state"
+tier = 4
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2025"
+qualifies_to = ["comp.wb.cfl-2nd-div"]
+fed_by = ["comp.wb.cfl-4th-div"]
+status = "active"
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
+
+[[competition]]
+id = "comp.wb.cfl-4th-div"
+name = "Calcutta Football League Fourth Division"
+organiser = "assoc.ifa"
+level = "state"
+tier = 5
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2025"
+qualifies_to = ["comp.wb.cfl-3rd-div"]
+fed_by = ["comp.wb.cfl-5th-div"]
+status = "active"
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
+
+[[competition]]
+id = "comp.wb.cfl-5th-div"
+name = "Calcutta Football League Fifth Division"
+organiser = "assoc.ifa"
+level = "state"
+tier = 6
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2025"
+format = "Entry level of the CFL, split into Group A and Group B (Wikipedia lists ~35 and ~18 teams)."
+qualifies_to = ["comp.wb.cfl-4th-div"]
+status = "active"
+prov = { status = "inferred", q = "C", src = ["https://en.wikipedia.org/wiki/Calcutta_Football_League"] }
+
+[[competition]]
+id = "comp.wb.ifa-shield"
+name = "IFA Shield"
+organiser = "assoc.ifa"
+level = "state"
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "cup"
+season = "2025"
+teams = 6
+format = "2025: six invited teams in two groups of three (single round-robin), group winners to the final."
+calendar = "October (2025 edition 8-18 Oct)"
+prize = "2025 final: Mohun Bagan beat East Bengal on penalties at Salt Lake Stadium."
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield", "https://en.wikipedia.org/wiki/IFA_Shield"], note = "Founded 1893. Invitational; format varies by edition." }
+
+[[competition]]
+id = "comp.wb.bengal-super-league"
+name = "Bengal Super League"
+short = "BSL"
+organiser = "assoc.ifa"
+operator = "Shrachi Sports (ten-year agreement with IFA)"
+level = "state"
+state = "state.wb"
+age = "senior"
+gender = "men"
+kind = "league"
+season = "2025-26"
+teams = 8
+format = "District-based franchise league: double round-robin, semi-finals and final; squads of 25 with minimum seven state-grown players in the XI, max two foreigners and two outstation national-level players."
+prize = "2025-26 champions: Howrah Hooghly Warriors (beat JHR Royal City in final)."
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://www.adgully.com/post/10181/shrachi-sports-inaugurates-the-first-edition-of-the-bengal-super-league", "https://www.exchange4media.com/industry-briefing-news/shrachi-sports-ties-up-with-zee-banglasonar-and-zee5-for-bengal-super-league-149333.html"], note = "Franchise league outside CFL promotion/relegation. Launched 8 Jul 2025." }
+
+# ---------------- clubs (CFL Premier 2025/2026, non-national) ----------------
+[[club]]
+id = "club.army-red"
+name = "Army Red"
+city = "Kolkata"
+state = "state.wb"
+kind = "institutional"
+parent = "Indian Army"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"], note = "Relegated from CFL Premier 2025." }
+
+[[club]]
+id = "club.bss-sporting"
+name = "BSS Sporting Club"
+aliases = ["Behala SS", "BSS"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/BSS_Sporting_Club", "https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"], note = "Behala-based club; listed as Behala SS in 2026 CFL." }
+
+[[club]]
+id = "club.calcutta-customs"
+name = "Calcutta Customs"
+aliases = ["Kolkata Customs"]
+city = "Kolkata"
+state = "state.wb"
+kind = "departmental"
+parent = "Customs department"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.george-telegraph"
+name = "George Telegraph"
+aliases = ["TK George Telegraph"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.kalighat-milan-sangha"
+name = "Kalighat Milan Sangha"
+aliases = ["Kalighat MS"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.kalighat-sla"
+name = "Kalighat Sports Lovers Association"
+aliases = ["Kalighat SLA"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[club]]
+id = "club.measurers"
+name = "Measurers Club"
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.pathachakra"
+name = "Pathachakra"
+aliases = ["MG Pathachakra"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.police-ac"
+name = "Police Athletic Club"
+aliases = ["Police AC"]
+city = "Kolkata"
+state = "state.wb"
+kind = "departmental"
+parent = "Police"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.railway-fc-kolkata"
+name = "Railway FC"
+city = "Kolkata"
+state = "state.wb"
+kind = "departmental"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"], note = "Kolkata CFL club; distinct from the national Railways representative team (club.railways)." }
+
+[[club]]
+id = "club.suruchi-sangha"
+name = "Suruchi Sangha"
+aliases = ["NA Suruchi Sangha"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"], note = "Super Six 2025 (3rd); nominated by IFA for I-League 3 from 2025 CFL." }
+
+[[club]]
+id = "club.aryan"
+name = "Aryan Club"
+aliases = ["Aryan"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.calcutta-police"
+name = "Calcutta Police Club"
+city = "Kolkata"
+state = "state.wb"
+kind = "departmental"
+parent = "Kolkata Police"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.kidderpore"
+name = "Kidderpore SC"
+aliases = ["Kidderpore", "LL Kidderpore"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.peerless"
+name = "Peerless SC"
+aliases = ["Peerless"]
+city = "Kolkata"
+state = "state.wb"
+kind = "departmental"
+parent = "Peerless group (corporate club)"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/Calcutta_Football_League"], note = "CFL champions 2019." }
+
+[[club]]
+id = "club.rainbow-ac"
+name = "Rainbow Athletic Club"
+aliases = ["Rainbow", "NBP Rainbow AC"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.sribhumi"
+name = "Sribhumi FC"
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"], note = "Promoted 2025; withdrew before the 2026 CFL and was placed in First Division." }
+
+[[club]]
+id = "club.southern-samity"
+name = "Southern Samity"
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"], note = "Relegated from CFL Premier 2025." }
+
+[[club]]
+id = "club.united-kolkata"
+name = "United Kolkata SC"
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/Calcutta_Football_League"], note = "2024 First Division champions; nominated by IFA for I-League 3 from 2025 CFL." }
+
+[[club]]
+id = "club.wari"
+name = "Wari Athletic Club"
+aliases = ["Wari", "Wari AC"]
+city = "Kolkata"
+state = "state.wb"
+kind = "amateur"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division", "https://en.wikipedia.org/wiki/2026_CFL_Premier_Division"] }
+
+[[club]]
+id = "club.coal-india-spa"
+name = "Coal India SPA"
+aliases = ["Coal India Sports Promotion Association"]
+city = "Kolkata"
+state = "state.wb"
+kind = "departmental"
+parent = "Coal India Limited"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"], note = "Promoted from CFL First Division for 2026." }
+
+[[club]]
+id = "club.bidhannagar-msa"
+name = "Bidhannagar Municipal Sports Academy"
+aliases = ["Bidhannagar MSA"]
+city = "Bidhannagar"
+state = "state.wb"
+kind = "academy"
+parent = "Bidhannagar Municipal Corporation"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"], note = "The club and its 2026 league place are sourced. Only the municipal parent was inferred from the name; treat that field as inferred, not verified." }
+
+# Bengal Super League franchises
+[[club]]
+id = "club.burdwan-blasters"
+name = "Burdwan Blasters"
+city = "Bardhaman"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://en.wikipedia.org/wiki/Burdwan_Blasters"] }
+
+[[club]]
+id = "club.howrah-hooghly-warriors"
+name = "Howrah Hooghly Warriors"
+city = "Howrah"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"], note = "Inaugural BSL champions 2025-26." }
+
+[[club]]
+id = "club.jhr-royal-city"
+name = "JHR Royal City FC"
+city = "Malda"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://en.wikipedia.org/wiki/JHR_Royal_City_FC"] }
+
+[[club]]
+id = "club.kopa-tigers-birbhum"
+name = "Kopa Tigers Birbhum"
+city = "Bolpur"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[club]]
+id = "club.fc-medinipur"
+name = "FC Medinipur"
+city = "Midnapore"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://en.wikipedia.org/wiki/FC_Medinipur"] }
+
+[[club]]
+id = "club.north-24-parganas"
+name = "North 24 Parganas FC"
+city = "Naihati"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://en.wikipedia.org/wiki/North_24_Parganas_FC"] }
+
+[[club]]
+id = "club.north-bengal-united"
+name = "North Bengal United FC"
+city = "Siliguri"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://en.wikipedia.org/wiki/North_Bengal_United_FC"] }
+
+[[club]]
+id = "club.sundarban-bengal-auto"
+name = "Sundarban Bengal Auto FC"
+city = "Canning"
+state = "state.wb"
+kind = "professional"
+status = "active"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League", "https://en.wikipedia.org/wiki/Sundarban_Bengal_Auto_FC"] }
+
+[[membership]]
+club = "club.army-red"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+note = "Relegated"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.bss-sporting"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.calcutta-customs"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+note = "Champions"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.george-telegraph"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.kalighat-milan-sangha"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.kalighat-sla"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.measurers"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.mohun-bagan-sg"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.pathachakra"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.police-ac"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.railway-fc-kolkata"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.suruchi-sangha"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group A"
+note = "Super Six 3rd; nominated for I-League 3"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.aryan"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.bhawanipore"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.calcutta-police"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.diamond-harbour"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+note = "Super Six 4th"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.kidderpore"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.mohammedan"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.peerless"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.rainbow-ac"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.sribhumi"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.southern-samity"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+note = "Relegated"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.united-kolkata"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+note = "Super Six 5th; nominated for I-League 3"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.united-sc"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+note = "Super Six runners-up"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.wari"
+competition = "comp.wb.cfl-premier"
+season = "2025"
+stage = "Group B"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_CFL_Premier_Division"] }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.bhawanipore"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.mohun-bagan-sg"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.calcutta-customs"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.united-kolkata"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.kalighat-milan-sangha"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.railway-fc-kolkata"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.kidderpore"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.bss-sporting"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.pathachakra"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.george-telegraph"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.bidhannagar-msa"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 1"
+note = "Promoted from First Division"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.mohammedan"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.rainbow-ac"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.united-sc"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.peerless"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.aryan"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.police-ac"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.kalighat-sla"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.measurers"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.suruchi-sangha"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.calcutta-police"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.wari"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.coal-india-spa"
+competition = "comp.wb.cfl-premier"
+season = "2026"
+stage = "Group 2"
+note = "Promoted from First Division"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2026_CFL_Premier_Division", "https://sportslightmedia.com/calcutta-football-league-2026-groups-round-1-fixture-where-to-watch/"] }
+
+[[membership]]
+club = "club.mohun-bagan-sg"
+competition = "comp.wb.ifa-shield"
+season = "2025"
+note = "Winners"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield"] }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.wb.ifa-shield"
+season = "2025"
+note = "Runners-up"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield"] }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.wb.ifa-shield"
+season = "2025"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield"] }
+
+[[membership]]
+club = "club.namdhari"
+competition = "comp.wb.ifa-shield"
+season = "2025"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield"] }
+
+[[membership]]
+club = "club.sreenidi-deccan"
+competition = "comp.wb.ifa-shield"
+season = "2025"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield"] }
+
+[[membership]]
+club = "club.united-sc"
+competition = "comp.wb.ifa-shield"
+season = "2025"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/2025_IFA_Shield"] }
+
+[[membership]]
+club = "club.burdwan-blasters"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.howrah-hooghly-warriors"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+note = "Champions"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.jhr-royal-city"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+note = "Runners-up"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.kopa-tigers-birbhum"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.fc-medinipur"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.north-24-parganas"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.north-bengal-united"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }
+
+[[membership]]
+club = "club.sundarban-bengal-auto"
+competition = "comp.wb.bengal-super-league"
+season = "2025-26"
+prov = { status = "verified", q = "B", src = ["https://en.wikipedia.org/wiki/Bengal_Super_League"] }

@@ -1,0 +1,945 @@
+# Test corpus: representative event states, each rendered over several seeds and checked for grammar, certainty, leaks, dates and channel fit.
+
+[[case]]
+id = "tbr.news.fact"
+summary = "Journalist knows the bid and rejection first-hand, not the seller's minimum."
+now = "2026-08-15"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "wire_reporter"
+[case.speaker.knows]
+buyer = "fact"
+seller = "fact"
+player = "fact"
+fee = "fact"
+round = "fact"
+[case.expect]
+must_contain = ["Rahul Kumar"]
+must_not_contain = ["4.5 crore", "45000000", "undervalued"]
+certainty = "fact"
+min_parts = 2
+min_distinct = 3
+
+[[case]]
+id = "tbr.news.sourced-fee"
+summary = "The fee is only a source claim, so the whole sentence carries it."
+now = "2026-08-15"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+buyer = "fact"
+seller = "fact"
+player = "fact"
+round = "fact"
+fee = "source_claim:unnamed"
+[case.expect]
+must_contain = ["sources close to the club"]
+must_not_contain = ["4.5 crore", "undervalued"]
+certainty = "source_claim"
+min_distinct = 2
+
+[[case]]
+id = "tbr.news.unknown-minimum"
+summary = "The journalist knows the minimum is not known."
+now = "2026-08-15"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+buyer = "fact"
+seller = "fact"
+player = "fact"
+fee = "fact"
+round = "fact"
+seller_minimum = "unknown"
+[case.expect]
+must_contain = ["not known"]
+must_not_contain = ["4.5 crore", "45000000"]
+min_parts = 3
+
+[[case]]
+id = "tbr.news.tabloid"
+summary = "Tabloid voice may use the informal verbs."
+now = "2026-08-15"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "tabloid"
+[case.speaker.knows]
+buyer = "fact"
+seller = "fact"
+player = "fact"
+fee = "fact"
+round = "fact"
+[case.expect]
+must_not_contain = ["4.5 crore"]
+certainty = "fact"
+min_distinct = 2
+
+[[case]]
+id = "tbr.social.rumour"
+summary = "A supporter account repeats a rumour and doubts it."
+now = "2026-08-15"
+channel = "social"
+behaviour = "antihype"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "fan"
+voice = "fan_sceptic"
+[case.speaker.knows]
+buyer = "rumour:grapevine"
+seller = "rumour:grapevine"
+player = "rumour:grapevine"
+[case.expect]
+certainty = "rumour"
+min_parts = 2
+min_distinct = 2
+
+[[case]]
+id = "tbr.social.hype-fact"
+summary = "A hype account on a stated fact."
+now = "2026-08-15"
+channel = "social"
+behaviour = "anger"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+[case.speaker.knows]
+buyer = "fact"
+seller = "fact"
+player = "fact"
+[case.expect]
+certainty = "fact"
+min_parts = 2
+
+[[case]]
+id = "tbr.social.denial"
+summary = "The club denies the bid happened."
+now = "2026-08-15"
+channel = "social"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "club_official"
+voice = "club_official"
+[case.speaker.knows]
+buyer = "denial:club"
+seller = "denial:club"
+player = "denial:club"
+[case.expect]
+must_contain = ["the club"]
+certainty = "denial"
+
+[[case]]
+id = "tbr.news.correction"
+summary = "An earlier report is corrected."
+now = "2026-08-16"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "wire_reporter"
+[case.speaker.knows]
+buyer = "correction"
+seller = "correction"
+player = "correction"
+[case.expect]
+must_contain = ["Correction"]
+certainty = "correction"
+
+[[case]]
+id = "tbr.inbox.ours"
+summary = "Our bid was rejected: message with options."
+now = "2026-08-15"
+channel = "inbox"
+seeds = 6
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = true
+[case.speaker]
+role = "scout"
+voice = "scout_report"
+[case.speaker.knows]
+buyer = "fact"
+seller = "fact"
+player = "fact"
+fee = "fact"
+round = "fact"
+ours = "fact"
+[case.expect]
+must_contain = ["our"]
+must_not_contain = ["4.5 crore"]
+options = ["bid.raise", "bid.drop", "bid.wait"]
+min_parts = 5
+
+[[case]]
+id = "tbr.nothing-known"
+summary = "A speaker who knows nothing writes nothing."
+now = "2026-08-15"
+channel = "news"
+seeds = 3
+[case.event]
+kind = "transfer.bid_rejected"
+date = "2026-08-14"
+[case.event.facts]
+buyer = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+round = 2
+seller_minimum = { money = 45000000 }
+reason = "undervalued"
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+[case.expect]
+empty = true
+
+[[case]]
+id = "bid.made.news"
+summary = "A bid, first round."
+now = "2026-08-15"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.bid_made"
+date = "2026-08-15"
+[case.event.facts]
+buyer = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+seller = { id = "club.bengaluru-fc", full = "Bengaluru FC", short = "Bengaluru", plural = true }
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "age_role", text = "22-year-old midfielder" }, { kind = "role", text = "midfielder" }] }
+fee = { money = 8000000 }
+round = 1
+ours = false
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+buyer = "verified_report:reliable_outlet"
+seller = "verified_report:reliable_outlet"
+player = "verified_report:reliable_outlet"
+fee = "verified_report:reliable_outlet"
+round = "verified_report:reliable_outlet"
+[case.expect]
+must_contain = ["reliable"]
+certainty = "verified_report"
+min_distinct = 2
+
+[[case]]
+id = "done.news"
+summary = "A completed signing."
+now = "2026-09-01"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.completed"
+date = "2026-08-31"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+from = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+to = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+fee = { money = 30000000 }
+contract_years = 3
+wage = { money = 2400000 }
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+player = "fact"
+from = "fact"
+to = "fact"
+fee = "fact"
+contract_years = "fact"
+[case.expect]
+must_contain = ["Rahul Kumar"]
+must_not_contain = ["24 lakh", "2400000"]
+certainty = "fact"
+min_distinct = 3
+
+[[case]]
+id = "done.news.free"
+summary = "A free signing."
+now = "2026-09-01"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "transfer.completed"
+date = "2026-09-01"
+[case.event.facts]
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "age_role", text = "22-year-old midfielder" }, { kind = "role", text = "midfielder" }] }
+from = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+to = { id = "club.bengaluru-fc", full = "Bengaluru FC", short = "Bengaluru", plural = true }
+fee = { money = 0 }
+contract_years = 1
+[case.speaker]
+role = "journalist"
+voice = "wire_reporter"
+[case.speaker.knows]
+player = "fact"
+from = "fact"
+to = "fact"
+fee = "fact"
+contract_years = "fact"
+[case.expect]
+must_contain = ["free transfer"]
+must_not_contain = ["₹0", "Rs 0"]
+
+[[case]]
+id = "renew.news"
+summary = "A renewed contract."
+now = "2026-05-02"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "contract.renewed"
+date = "2026-05-01"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+club = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+contract_years = 4
+wage = { money = 1800000 }
+[case.speaker]
+role = "journalist"
+voice = "club_official"
+[case.speaker.knows]
+player = "fact"
+club = "fact"
+contract_years = "fact"
+[case.expect]
+must_not_contain = ["18 lakh"]
+certainty = "fact"
+
+[[case]]
+id = "released.social"
+summary = "A release."
+now = "2026-05-02"
+channel = "social"
+behaviour = "reaction"
+seeds = 8
+[case.event]
+kind = "player.released"
+date = "2026-05-01"
+[case.event.facts]
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "age_role", text = "22-year-old midfielder" }, { kind = "role", text = "midfielder" }] }
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+reason = "disciplinary"
+[case.speaker]
+role = "fan"
+voice = "fan_sceptic"
+[case.speaker.knows]
+player = "fact"
+club = "fact"
+[case.expect]
+must_not_contain = ["disciplinary"]
+certainty = "fact"
+
+[[case]]
+id = "injury.news"
+summary = "An injury in a match."
+now = "2026-10-04"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "injury.suffered"
+date = "2026-10-03"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+club = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+injury = "hamstring strain"
+weeks_out = 6
+opponent = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+competition = "ISL"
+in_match = true
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+player = "fact"
+club = "fact"
+injury = "fact"
+weeks_out = "fact"
+opponent = "fact"
+in_match = "fact"
+[case.expect]
+must_contain = ["hamstring strain"]
+certainty = "fact"
+min_parts = 2
+min_distinct = 3
+
+[[case]]
+id = "injury.news.rumour"
+summary = "Injury heard second-hand, duration unknown."
+now = "2026-10-04"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "injury.suffered"
+date = "2026-10-03"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+club = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+injury = "hamstring strain"
+weeks_out = 6
+[case.speaker]
+role = "journalist"
+voice = "tabloid"
+[case.speaker.knows]
+player = "fact"
+club = "fact"
+injury = "rumour:grapevine"
+[case.expect]
+certainty = "rumour"
+must_not_contain = ["6 weeks"]
+
+[[case]]
+id = "injury.inbox"
+summary = "Medical staff message with options."
+now = "2026-10-04"
+channel = "inbox"
+seeds = 5
+[case.event]
+kind = "injury.suffered"
+date = "2026-10-03"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+club = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+injury = "hamstring strain"
+weeks_out = 1
+in_match = false
+[case.speaker]
+role = "scout"
+voice = "system"
+[case.speaker.knows]
+player = "fact"
+club = "fact"
+injury = "fact"
+weeks_out = "fact"
+in_match = "fact"
+[case.expect]
+options = ["injury.report", "injury.ok"]
+must_contain = ["1 week"]
+min_parts = 4
+
+[[case]]
+id = "injury.back"
+summary = "Return from injury."
+now = "2026-11-20"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "injury.returned"
+date = "2026-11-19"
+[case.event.facts]
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "age_role", text = "22-year-old midfielder" }, { kind = "role", text = "midfielder" }] }
+club = { id = "club.bengaluru-fc", full = "Bengaluru FC", short = "Bengaluru", plural = true }
+injury = "knee sprain"
+games_missed = 1
+[case.speaker]
+role = "journalist"
+voice = "regional_daily"
+[case.speaker.knows]
+player = "fact"
+club = "fact"
+injury = "fact"
+games_missed = "fact"
+[case.expect]
+must_contain = ["knee sprain"]
+
+[[case]]
+id = "match.win"
+summary = "A three-goal win."
+now = "2026-10-18"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "match.result"
+date = "2026-10-17"
+[case.event.facts]
+home = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+away = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+home_goals = 3
+away_goals = 0
+competition = "Indian Super League"
+venue = "the Salt Lake Stadium"
+scorers = ["R. Kumar 12'", "A. Devi 55'", "R. Kumar 80'"]
+attendance = 61234
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+home = "fact"
+away = "fact"
+home_goals = "fact"
+away_goals = "fact"
+competition = "fact"
+venue = "fact"
+scorers = "fact"
+attendance = "fact"
+[case.expect]
+must_contain = ["3-0"]
+certainty = "fact"
+min_distinct = 3
+
+[[case]]
+id = "match.win.minimal"
+summary = "A one-goal win with only the score known: nothing about the game may be added."
+now = "2026-10-18"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "match.result"
+date = "2026-10-18"
+[case.event.facts]
+home = { id = "club.bengaluru-fc", full = "Bengaluru FC", short = "Bengaluru", plural = true }
+away = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+home_goals = 1
+away_goals = 2
+[case.speaker]
+role = "journalist"
+voice = "wire_reporter"
+[case.speaker.knows]
+home = "fact"
+away = "fact"
+home_goals = "fact"
+away_goals = "fact"
+[case.expect]
+must_contain = ["2-1"]
+must_not_contain = ["dominat", "cruise", "thrash", "comfortable", "emphatic"]
+
+[[case]]
+id = "match.draw"
+summary = "A goalless draw."
+now = "2026-10-18"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "match.result"
+date = "2026-10-17"
+[case.event.facts]
+home = { id = "club.bengaluru-fc", full = "Bengaluru FC", short = "Bengaluru", plural = true }
+away = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+home_goals = 0
+away_goals = 0
+competition = "I-League"
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+home = "fact"
+away = "fact"
+home_goals = "fact"
+away_goals = "fact"
+competition = "fact"
+[case.expect]
+must_contain = ["0-0"]
+must_not_contain = ["beat", "defeated"]
+
+[[case]]
+id = "match.social"
+summary = "Full-time post."
+now = "2026-10-18"
+channel = "social"
+behaviour = "reaction"
+seeds = 8
+[case.event]
+kind = "match.result"
+date = "2026-10-17"
+[case.event.facts]
+home = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+away = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+home_goals = 2
+away_goals = 2
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+[case.speaker.knows]
+home = "fact"
+away = "fact"
+home_goals = "fact"
+away_goals = "fact"
+[case.expect]
+min_parts = 2
+
+[[case]]
+id = "callup.first"
+summary = "A first national call-up, news."
+now = "2026-09-02"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "callup.national"
+date = "2026-09-01"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+team = { id = "team.india-men", full = "India", short = "India", plural = true }
+club = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+camp = "preparatory camp"
+caps = 0
+first_call = true
+to_player = false
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+player = "fact"
+team = "fact"
+camp = "fact"
+caps = "fact"
+first_call = "fact"
+[case.expect]
+must_contain = ["call-up"]
+min_parts = 2
+
+[[case]]
+id = "callup.inbox"
+summary = "National call-up, to the player."
+now = "2026-09-02"
+channel = "inbox"
+seeds = 5
+[case.event]
+kind = "callup.national"
+date = "2026-09-01"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+team = { id = "team.india-men", full = "India", short = "India", plural = true }
+club = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+camp = "preparatory camp"
+caps = 0
+first_call = true
+to_player = true
+[case.speaker]
+role = "club_official"
+voice = "club_official"
+[case.speaker.knows]
+player = "fact"
+team = "fact"
+camp = "fact"
+to_player = "fact"
+[case.expect]
+must_contain = ["you"]
+options = ["callup.accept", "callup.thanks"]
+
+[[case]]
+id = "acad.inbox"
+summary = "Academy trial invitation, to the player."
+now = "2026-03-02"
+channel = "inbox"
+seeds = 5
+[case.event]
+kind = "academy.invitation"
+date = "2026-03-01"
+[case.event.facts]
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "age_role", text = "22-year-old midfielder" }, { kind = "role", text = "midfielder" }] }
+academy = { id = "club.gokulam-academy", full = "Gokulam Kerala Academy", short = "Gokulam", plural = true }
+offer_kind = "trial"
+place = "Kozhikode"
+to_player = true
+[case.speaker]
+role = "club_official"
+voice = "club_official"
+[case.speaker.knows]
+player = "fact"
+academy = "fact"
+offer_kind = "fact"
+to_player = "fact"
+[case.expect]
+must_contain = ["trial"]
+options = ["academy.accept", "academy.decline"]
+
+[[case]]
+id = "univ.news"
+summary = "A sports-quota place."
+now = "2026-06-10"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "university.scholarship"
+date = "2026-06-09"
+[case.event.facts]
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "age_role", text = "22-year-old midfielder" }, { kind = "role", text = "midfielder" }] }
+university = { id = "club.calcutta-university", full = "Calcutta University", short = "Calcutta University", plural = true }
+offer_kind = "sports quota"
+course = "BA"
+to_player = false
+[case.speaker]
+role = "journalist"
+voice = "regional_daily"
+[case.speaker.knows]
+player = "fact"
+university = "fact"
+offer_kind = "fact"
+course = "fact"
+[case.expect]
+must_contain = ["sports quota"]
+
+[[case]]
+id = "sacked.news"
+summary = "A manager is sacked."
+now = "2026-12-02"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "manager.departed"
+date = "2026-12-01"
+[case.event.facts]
+manager = { id = "person.manolo-gomez", full = "Manolo Gomez", short = "Gomez", plural = false, descriptors = [{ kind = "role", text = "head coach" }] }
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+manner = "sacked"
+games = 9
+position = 8
+board_reason = "results"
+[case.speaker]
+role = "journalist"
+voice = "sports_desk"
+[case.speaker.knows]
+manager = "fact"
+club = "fact"
+manner = "fact"
+games = "fact"
+position = "fact"
+[case.expect]
+must_not_contain = ["results"]
+min_distinct = 2
+
+[[case]]
+id = "mutual.news"
+summary = "A mutual parting."
+now = "2026-12-02"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "manager.departed"
+date = "2026-12-02"
+[case.event.facts]
+manager = { id = "person.manolo-gomez", full = "Manolo Gomez", short = "Gomez", plural = false, descriptors = [{ kind = "role", text = "head coach" }] }
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+manner = "mutual"
+[case.speaker]
+role = "journalist"
+voice = "wire_reporter"
+[case.speaker.knows]
+manager = "fact"
+club = "fact"
+manner = "fact"
+[case.expect]
+must_contain = ["mutual consent"]
+must_not_contain = ["sacked", "dismissed"]
+
+[[case]]
+id = "promo.news"
+summary = "Promotion."
+now = "2027-05-11"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "competition.promotion"
+date = "2027-05-10"
+[case.event.facts]
+club = { id = "club.sudeva-delhi", full = "Sudeva Delhi FC", short = "Sudeva", plural = true }
+competition = "I-League 2"
+to_tier = "I-League"
+position = 1
+[case.speaker]
+role = "journalist"
+voice = "regional_daily"
+[case.speaker.knows]
+club = "fact"
+competition = "fact"
+to_tier = "fact"
+position = "fact"
+[case.expect]
+must_contain = ["Sudeva"]
+
+[[case]]
+id = "relegation.news"
+summary = "Relegation."
+now = "2027-05-11"
+channel = "news"
+seeds = 8
+[case.event]
+kind = "competition.relegation"
+date = "2027-05-10"
+[case.event.facts]
+club = { id = "club.sudeva-delhi", full = "Sudeva Delhi FC", short = "Sudeva", plural = true }
+competition = "I-League"
+to_tier = "I-League 2"
+position = 13
+[case.speaker]
+role = "journalist"
+voice = "regional_daily"
+[case.speaker.knows]
+club = "fact"
+competition = "fact"
+to_tier = "fact"
+position = "fact"
+[case.expect]
+must_contain = ["Sudeva"]
+
+[[case]]
+id = "scout.report"
+summary = "A scout report with a small sample."
+now = "2026-09-10"
+channel = "scout"
+seeds = 4
+[case.event]
+kind = "scout.assessment"
+date = "2026-09-09"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+position = "winger"
+age = 19
+strengths = ["pace", "first touch"]
+concerns = ["end product"]
+matches_seen = 2
+level = "state league starter"
+[case.speaker]
+role = "scout"
+voice = "scout_report"
+[case.speaker.knows]
+player = "fact"
+position = "fact"
+age = "fact"
+strengths = "fact"
+concerns = "fact"
+matches_seen = "fact"
+level = "speculation"
+[case.expect]
+certainty = "speculation"
+must_contain = ["Small sample"]
+min_parts = 5
+
+[[case]]
+id = "ui.unknown"
+summary = "UI copy for something not yet scouted."
+now = "2026-09-10"
+channel = "ui"
+seeds = 2
+[case.event]
+kind = "ui.unknown_value"
+date = "2026-09-10"
+[case.event.facts]
+label = "Potential"
+matches_seen = 0
+[case.speaker]
+role = "system"
+voice = "system"
+[case.speaker.knows]
+label = "fact"
+matches_seen = "fact"
+[case.expect]
+must_contain = ["not scouted yet"]

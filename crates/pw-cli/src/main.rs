@@ -1,9 +1,19 @@
 //! Headless runner: build or load a world, simulate, report, save.
 //!
-//! pathway-sim synth [tiny|small|huge] [--days N] [--seed S] [--save FILE]
-//! pathway-sim import DIR [--days N] [--save FILE]
+//! pathway-sim synth [tiny|small|huge|NATIONS] [--days N] [--seed S] [--save FILE]
+//! pathway-sim import DIR [--days N] [--seed S] [--save FILE]
+//! pathway-sim growth <micro|tiny|small|huge|india-tiny|india-regional|india-full> [--years N] [--seed S] [--detail media,ext.recog] [--depth D] [--top K] [--every N]   save size and speed by year
+//! pathway-sim balance <micro|tiny|small|huge|india|india-regional|india-tiny|DIR> [--years N] [--seeds 1,2,3]   long-run economy, fame and growth trends
+//!
+//! `--data DIR` on any command loads the engine data (tuning, weights, ...) from DIR at run time instead of the compiled-in copy
+//! (files missing there fall back to the built-in ones), so calibration can be iterated without rebuilding: `--data data/engine`.
+//!
+//! Without `--seed` every new world gets a fresh random seed (printed, so a
+//! world can be rebuilt exactly). Seeds may be hex, decimal or any word.
 //! pathway-sim run FILE --days N [--save FILE]
 //! pathway-sim report FILE
+
+mod growth;
 
 use std::path::PathBuf;
 use std::time::Instant;
@@ -17,52 +27,163 @@ struct Args {
     cmd: String,
     positional: Option<String>,
     days: u32,
-    seed: u64,
+    seed: Option<u64>,
     save: Option<PathBuf>,
+    years: u32,
+    seeds: Vec<u64>,
+    data: Option<PathBuf>,
+    detail: Vec<String>,
+    depth: usize,
+    top: usize,
+    every: u32,
 }
 
 fn parse() -> Args {
     let mut it = std::env::args().skip(1);
     let cmd = it.next().unwrap_or_else(|| "help".into());
-    let mut a = Args { cmd, positional: None, days: 0, seed: 42, save: None };
+    let mut a = Args { cmd, positional: None, days: 0, seed: None, save: None, years: 5, seeds: vec![1, 2, 3], data: None, detail: Vec::new(), depth: 3, top: 40, every: 1 };
     while let Some(x) = it.next() {
         match x.as_str() {
             "--days" => a.days = it.next().and_then(|v| v.parse().ok()).unwrap_or(0),
-            "--seed" => a.seed = it.next().and_then(|v| v.parse().ok()).unwrap_or(42),
+            "--seed" => a.seed = it.next().map(|v| pw_core::rng::parse_seed(&v)),
             "--save" => a.save = it.next().map(PathBuf::from),
+            "--data" => a.data = it.next().map(PathBuf::from),
+            "--detail" => a.detail = it.next().map(|v| v.split(',').map(String::from).collect()).unwrap_or_default(),
+            "--depth" => a.depth = it.next().and_then(|v| v.parse().ok()).unwrap_or(3),
+            "--top" => a.top = it.next().and_then(|v| v.parse().ok()).unwrap_or(40),
+            "--every" => a.every = it.next().and_then(|v| v.parse().ok()).unwrap_or(1).max(1),
+            "--years" => a.years = it.next().and_then(|v| v.parse().ok()).unwrap_or(5),
+            "--seeds" => a.seeds = it.next().map(|v| v.split(',').map(pw_core::rng::parse_seed).collect()).unwrap_or_default(),
             _ => a.positional = Some(x),
         }
     }
     a
 }
 
+/// The engine data: compiled in, or read from `--data DIR` at run time.
+fn pack(a: &Args) -> DataPack {
+    match &a.data {
+        Some(dir) => DataPack::load_dir(dir).unwrap_or_else(|e| die(&format!("--data {}: {e}", dir.display()))),
+        None => DataPack::builtin(),
+    }
+}
+
+/// A scale by name (`micro`, `tiny`, `small`, `huge`, or a number of nations).
+fn scale_named(name: Option<&str>) -> pw_import::synthetic::Scale {
+    match name {
+        Some("micro") => pw_import::synthetic::Scale::MICRO,
+        Some("tiny") => pw_import::synthetic::Scale::TINY,
+        Some("huge") => pw_import::synthetic::Scale::HUGE,
+        // `N`: N nations of four 22-club divisions (for scale runs).
+        Some(n) if n.parse::<u16>().is_ok() => pw_import::synthetic::Scale { nations: n.parse().unwrap_or(1), ..pw_import::synthetic::Scale::HUGE },
+        _ => pw_import::synthetic::Scale::SMALL,
+    }
+}
+
+/// Run the same world for several seeds and years and say what is drifting.
+fn balance(a: &Args) {
+    let target = a.positional.clone().unwrap_or_else(|| "small".into());
+    let dir = PathBuf::from(&target);
+    let mut problems = 0;
+    for &seed in &a.seeds {
+        let world = if target == "india" || target == "india-tiny" || target == "india-regional" {
+            let scale = match target.as_str() {
+                "india" => pw_import::india::IndiaScale::FULL,
+                "india-regional" => pw_import::india::IndiaScale { states: 12, state_league: 8, squad: 20 },
+                _ => pw_import::india::IndiaScale::TINY,
+            };
+            pw_import::india::build(pack(a), seed, scale)
+        } else if dir.is_dir() {
+            pw_import::load_dir_seeded(&dir, pack(a), Some(seed)).unwrap_or_else(|e| die(&e.to_string())).0
+        } else {
+            pw_import::synthetic::build(pack(a), seed, scale_named(Some(target.as_str())))
+        };
+        let t = Instant::now();
+        let mut sim = Sim::new(world);
+        let run = pw_sim::metrics::observe(&mut sim, a.years, |s| eprintln!("  seed {seed}: year {} done ({:.0?})", s.year, t.elapsed()));
+        println!("
+== {target}, seed {} ({} years, {:.1?}) ==", pw_core::rng::seed_label(seed), a.years, t.elapsed());
+        print!("{}", pw_sim::metrics::render(&run));
+        print!("{}", pw_sim::metrics::render_economy(&run));
+        print!("{}", pw_sim::metrics::render_population(&run));
+        let findings = pw_sim::metrics::analyse(&run);
+        if findings.is_empty() {
+            println!("no drift found");
+        }
+        for f in &findings {
+            problems += usize::from(f.level == pw_sim::metrics::Level::Problem);
+            println!("  {} [{}] {}", if f.level == pw_sim::metrics::Level::Problem { "PROBLEM" } else { "warn   " }, f.series, f.message);
+        }
+    }
+    println!("
+{problems} problem(s) across {} seed(s)", a.seeds.len());
+}
+
+/// `check FILE`: what a save is (schema, build, seed, migration history) and whether the world in it is structurally sound.
+fn check(a: &Args) {
+    let file = PathBuf::from(a.positional.clone().unwrap_or_else(|| die("check needs a save file")));
+    let info = pw_sim::save::inspect(&file).unwrap_or_else(|e| die(&e.to_string()));
+    println!("{}: schema {} ({:?}), {:.1} MB", file.display(), info.schema, info.compat, info.bytes as f64 / 1e6);
+    match &info.meta {
+        Some(m) => println!("  created with schema {}, last written by build {}, seed {:?}, import provenance {:?}, {} migration(s) {:?}", m.created_schema.map_or("unknown".into(), |s| s.to_string()), m.build, m.world_seed, m.import_provenance, m.migrations.len(), m.migrations),
+        None => println!("  no metadata (written before saves carried it)"),
+    }
+    let w: World = pw_sim::save::load(&file).unwrap_or_else(|e| die(&e.to_string()));
+    let problems = pw_sim::validate::problems(&w);
+    println!("  {} people, {} players, {} clubs; {} structural problem(s)", w.people.len(), w.players.hot.len(), w.clubs.len(), problems.len());
+    for p in &problems {
+        println!("    {p}");
+    }
+    if !problems.is_empty() {
+        std::process::exit(1);
+    }
+}
+
 fn main() {
+    if std::env::args().nth(1).as_deref() == Some("database") {
+        database();
+        return;
+    }
     let a = parse();
+    if a.cmd == "balance" {
+        balance(&a);
+        return;
+    }
+    if a.cmd == "growth" {
+        let o = growth::Opts {
+            world: a.positional.clone().unwrap_or_else(|| "small".into()),
+            years: a.years,
+            seed: a.seed.unwrap_or(1),
+            depth: a.depth,
+            top: a.top,
+            detail: a.detail.clone(),
+            data: a.data.clone(),
+            every: a.every,
+            save: a.save.clone(),
+        };
+        growth::run(&o);
+        return;
+    }
+    if a.cmd == "check" {
+        check(&a);
+        return;
+    }
     let world = match a.cmd.as_str() {
         "synth" => {
-            let scale = match a.positional.as_deref() {
-                Some("tiny") => pw_import::synthetic::Scale::TINY,
-                Some("huge") => pw_import::synthetic::Scale::HUGE,
-                _ => pw_import::synthetic::Scale::SMALL,
-            };
+            let scale = scale_named(a.positional.as_deref());
             let t = Instant::now();
-            let w = pw_import::synthetic::build(DataPack::builtin(), a.seed, scale);
+            let seed = a.seed.unwrap_or_else(pw_core::rng::fresh_seed);
+            println!("world seed: {}", pw_core::rng::seed_label(seed));
+            let w = pw_import::synthetic::build(pack(&a), seed, scale);
             println!("built synthetic world: {} players, {} clubs in {:.2?}", w.players.len(), w.clubs.len(), t.elapsed());
             w
         }
         "import" => {
             let dir = PathBuf::from(a.positional.clone().unwrap_or_else(|| die("import needs a folder")));
             let t = Instant::now();
-            let (w, rep) = pw_import::load_dir(&dir, DataPack::builtin()).unwrap_or_else(|e| die(&e.to_string()));
-            println!(
-                "imported {} nations, {} competitions, {} clubs, {} players, {} staff in {:.2?}",
-                rep.nations,
-                rep.competitions,
-                rep.clubs,
-                rep.players,
-                rep.staff,
-                t.elapsed()
-            );
+            let (w, rep) = pw_import::load_dir_seeded(&dir, pack(&a), a.seed).unwrap_or_else(|e| die(&e.to_string()));
+            println!("world seed: {}", pw_core::rng::seed_label(w.seed));
+            println!("imported in {:.2?}: {}", t.elapsed(), rep.summary());
             for wmsg in rep.warnings.iter().take(20) {
                 println!("  warning: {wmsg}");
             }
@@ -70,7 +191,7 @@ fn main() {
         }
         "run" | "report" => {
             let file = PathBuf::from(a.positional.clone().unwrap_or_else(|| die("needs a save file")));
-            pw_sim::save::load::<World>(&file).unwrap_or_else(|e| die(&e.to_string()))
+            pw_sim::save::load_world(&file).unwrap_or_else(|e| die(&e.to_string()))
         }
         _ => {
             println!("usage: pathway-sim synth [tiny|small|huge] [--days N] [--save F] | import DIR [--days N] [--save F] | run F --days N | report F");
@@ -85,9 +206,55 @@ fn main() {
     report(&sim.world);
     if let Some(path) = &a.save {
         let t = Instant::now();
-        pw_sim::save::save(&sim.world, path).unwrap_or_else(|e| die(&e.to_string()));
+        pw_sim::save::save_with(&sim.world, path, &pw_sim::save::Info::of_world(&sim.world)).unwrap_or_else(|e| die(&e.to_string()));
         let size = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
         println!("saved {} ({:.1} MB) in {:.2?}", path.display(), size as f64 / 1e6, t.elapsed());
+    }
+}
+
+/// Profile or browse source records without constructing a simulated world.
+/// database DIR --all | --table FILE [--column FIELD --value ID] [--search NAME] [--cache DIR]
+fn database() {
+    let mut it = std::env::args().skip(2);
+    let root = PathBuf::from(it.next().unwrap_or_else(|| die("database needs a source folder")));
+    let mut cache = std::env::temp_dir().join("riseabove-database-indexes");
+    let (mut table, mut column, mut value, mut search, mut all) = (None, None, String::new(), String::new(), false);
+    while let Some(flag) = it.next() {
+        match flag.as_str() {
+            "--all" => all = true,
+            "--table" => table = it.next(),
+            "--column" => column = it.next(),
+            "--value" => value = it.next().unwrap_or_default(),
+            "--search" => search = it.next().unwrap_or_default(),
+            "--cache" => cache = it.next().map(PathBuf::from).unwrap_or(cache),
+            _ => die(&format!("unknown database option {flag}")),
+        }
+    }
+    let mut db = pw_import::database::Catalog::open(&root, &cache).unwrap_or_else(|e| die(&e.to_string()));
+    println!("source: {}\nindex cache: {}", db.root().display(), cache.display());
+    if all {
+        let tables: Vec<_> = db.tables().iter().map(|t| t.name.clone()).collect();
+        let begin = Instant::now();
+        let mut rows = 0;
+        for table in tables {
+            let t = Instant::now();
+            let p = db.query(&table, None, "", "", 0, 1).unwrap_or_else(|e| die(&e.to_string()));
+            let cold = t.elapsed();
+            let t = Instant::now();
+            let end = db.query(&table, None, "", "", p.total.saturating_sub(1), 1).unwrap_or_else(|e| die(&e.to_string()));
+            assert_eq!(end.total, p.total);
+            rows += p.total;
+            println!("{table:<38} {:>10} rows {:>7.1} MB index {:>9.3}s first {:>8.3}ms last; malformed {}{}", p.total,
+                p.index_bytes as f64 / 1e6, cold.as_secs_f64(), t.elapsed().as_secs_f64() * 1000.0, p.malformed, if p.cached { " (disk cache)" } else { "" });
+        }
+        println!("{rows} records across {} tables in {:.3}s", db.tables().len(), begin.elapsed().as_secs_f64());
+    } else if let Some(table) = table {
+        let t = Instant::now();
+        let p = db.query(&table, column.as_deref(), &value, &search, 0, 10).unwrap_or_else(|e| die(&e.to_string()));
+        println!("{} matching / {} total; {:.3}ms; {} malformed", p.matched, p.total, t.elapsed().as_secs_f64() * 1000.0, p.malformed);
+        for row in p.rows { println!("record {}: {:?}", row.row + 1, row.fields); }
+    } else {
+        for table in db.tables() { println!("{}: {} bytes; {}", table.name, table.bytes, table.status); }
     }
 }
 
@@ -103,11 +270,19 @@ fn simulate(sim: &mut Sim, days: u32) {
         }
     }
     let el = t.elapsed();
-    println!(
-        "simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches",
-        el.as_secs_f64() * 1000.0 / f64::from(days.max(1)),
-        worst as f64 / 1000.0
-    );
+    println!("simulated {days} days in {el:.2?} ({:.1} ms/day avg, worst {:.1} ms), {matches} matches", el.as_secs_f64() * 1000.0 / f64::from(days.max(1)), worst as f64 / 1000.0);
+    // Peak memory, where the platform reports it.
+    if let Ok(status) = std::fs::read_to_string("/proc/self/status")
+        && let Some(line) = status.lines().find(|l| l.starts_with("VmHWM"))
+    {
+        println!("peak memory: {}", line.trim_start_matches("VmHWM:").trim());
+    }
+    if pw_sim::profile::enabled() {
+        println!("time by system (PW_PROFILE):");
+        for (name, us, calls) in pw_sim::profile::take().into_iter().take(25) {
+            println!("  {name:<28} {:>10.1} ms  {calls:>6} calls", us as f64 / 1000.0);
+        }
+    }
 }
 
 fn report(w: &World) {
@@ -151,11 +326,11 @@ fn report(w: &World) {
     for (id, c) in w.comps.iter_enumerated().filter(|(_, c)| c.kind == CompKind::League && c.team_kind == TeamKind::First && c.tier == 1).take(3) {
         let mut rows = c.state.table.clone();
         let mut season = c.state.season;
-        if rows.iter().all(|r| r.played == 0) {
-            if let Some(t) = w.history.tables.iter().rev().find(|t| t.comp == id) {
-                rows = t.rows.clone();
-                season = t.season;
-            }
+        if rows.iter().all(|r| r.played == 0)
+            && let Some(t) = w.history.tables.iter().rev().find(|t| t.comp == id)
+        {
+            rows = t.rows.clone();
+            season = t.season;
         }
         sort_table(&mut rows);
         println!("\n{} {} — {}", c.name, season, w.nations.get(c.nation).map_or("", |n| n.name.as_str()));

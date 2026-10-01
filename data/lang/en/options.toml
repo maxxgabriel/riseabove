@@ -1,0 +1,124 @@
+# Consequential options offered with an inbox message. `effect` is the id of an action the simulation implements; `consequence` says in plain words what
+# that action does and must not promise more. New effects need a matching implementation before they ship (see docs/LANGUAGE.md).
+# Not offered, because nothing in the simulation does what they say (details in docs/LANGUAGE.md): transfer.open_bid and transfer.drop_target (nobody the player controls bids or keeps a
+# shortlist), medical.request_report (no reply that only asks for more detail exists, and a person's own diagnosis is already shown). `pw_narrate::lang::effect_choice` is the list of effects a decision can carry out.
+
+[[option]]
+event = "transfer.bid_rejected"
+channel = "inbox"
+id = "bid.raise"
+label = "Prepare a new {lex:bid.sing}"
+effect = "transfer.open_bid"
+consequence = "Opens the bid screen for {player} so you can set new terms."
+needs = ["player", "ours"]
+when = "ours == true"
+[[option]]
+event = "transfer.bid_rejected"
+channel = "inbox"
+id = "bid.drop"
+label = "Move on from {player}"
+effect = "transfer.drop_target"
+consequence = "Removes {player} from your shortlist for now."
+needs = ["player", "ours"]
+when = "ours == true"
+[[option]]
+event = "transfer.bid_rejected"
+channel = "inbox"
+id = "bid.wait"
+label = "Leave it for now"
+effect = "inbox.dismiss"
+consequence = "Closes this message. Nothing else changes."
+needs = ["ours"]
+when = "ours == true"
+
+[[option]]
+event = "injury.suffered"
+channel = "inbox"
+id = "injury.report"
+label = "Ask for a fuller report"
+effect = "medical.request_report"
+consequence = "Asks the medical staff for more detail on {player:short}'s {injury}."
+needs = ["player", "injury"]
+[[option]]
+event = "injury.suffered"
+channel = "inbox"
+id = "injury.ok"
+label = "Understood"
+effect = "inbox.dismiss"
+consequence = "Closes this message. Nothing else changes."
+
+[[option]]
+event = "callup.national"
+channel = "inbox"
+id = "callup.accept"
+label = "Accept the call-up"
+effect = "callup.accept"
+consequence = "Confirms that you will report to {team}."
+needs = ["team", "to_player"]
+when = "to_player == true"
+[[option]]
+event = "callup.national"
+channel = "inbox"
+id = "callup.thanks"
+label = "Send thanks"
+effect = "inbox.dismiss"
+consequence = "Closes this message. Nothing else changes."
+needs = ["to_player"]
+when = "to_player == true"
+
+[[option]]
+event = "academy.invitation"
+channel = "inbox"
+id = "academy.accept"
+label = "Accept the invitation"
+effect = "academy.accept"
+consequence = "Tells {academy} that you will attend."
+needs = ["academy", "to_player"]
+when = "to_player == true"
+[[option]]
+event = "academy.invitation"
+channel = "inbox"
+id = "academy.decline"
+label = "Decline"
+effect = "academy.decline"
+consequence = "Tells {academy} that you will not attend."
+needs = ["academy", "to_player"]
+when = "to_player == true"
+
+[[option]]
+event = "university.scholarship"
+channel = "inbox"
+id = "university.accept"
+label = "Accept the offer"
+effect = "university.accept"
+consequence = "Tells {university} that you accept."
+needs = ["university", "to_player"]
+when = "to_player == true"
+[[option]]
+event = "university.scholarship"
+channel = "inbox"
+id = "university.decline"
+label = "Decline"
+effect = "university.decline"
+consequence = "Tells {university} that you decline."
+needs = ["university", "to_player"]
+when = "to_player == true"
+
+[[option]]
+event = "transfer.bid_made"
+channel = "inbox"
+id = "approach.listen"
+label = "Hear {buyer} out"
+effect = "decision.accept"
+consequence = "Tells {buyer} you are open to talks. Nothing is agreed until terms are."
+needs = ["buyer", "ours"]
+when = "ours == false"
+[[option]]
+event = "transfer.bid_made"
+channel = "inbox"
+id = "approach.refuse"
+label = "Not interested"
+effect = "decision.reject"
+consequence = "Ends {buyer}'s approach. They will not come back for a while."
+needs = ["buyer", "ours"]
+when = "ours == false"

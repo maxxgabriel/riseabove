@@ -1,0 +1,372 @@
+# Attitude words for posts: what a supporter says about something that has happened, as opposed to what happened. They carry no facts, so they are
+# honest about anything; a variant that rests on one (`requires`/`when`) says so. Chosen for the speaker's voice, which for an account is built from its
+# personality (`humour`, `optimism`, `skepticism`, `emotion`, `slang`, `formality`): a joker, a pessimist and a formal analyst do not pick the same word.
+# Variants with no voice are the plain baseline, used when no more specific word suits the speaker.
+
+[[concept]]
+id = "cheer"
+meaning = "joy at something good that has happened"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "get in there" }
+voice = { slang = 0.5, emotion = 0.8, formality = 0.2 }
+[[concept.variant]]
+forms = { base = "scenes" }
+voice = { slang = 0.9, emotion = 0.9, formality = 0.05 }
+[[concept.variant]]
+forms = { base = "let's go" }
+voice = { slang = 0.7, emotion = 0.9, formality = 0.1 }
+[[concept.variant]]
+forms = { base = "what a day" }
+voice = { emotion = 0.7, optimism = 0.9 }
+[[concept.variant]]
+forms = { base = "what a result" }
+voice = { emotion = 0.6, optimism = 0.8 }
+requires = ["home_goals"]
+[[concept.variant]]
+forms = { base = "magnificent" }
+voice = { formality = 0.5, emotion = 0.7 }
+[[concept.variant]]
+forms = { base = "love this team" }
+voice = { emotion = 0.8, optimism = 0.9, formality = 0.2 }
+[[concept.variant]]
+forms = { base = "a welcome result" }
+voice = { formality = 0.9, emotion = 0.1, slang = 0.0 }
+requires = ["home_goals"]
+[[concept.variant]]
+forms = { base = "good news" }
+voice = { formality = 0.8, emotion = 0.2, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "lovely" }
+
+[[concept]]
+id = "groan"
+meaning = "disappointment at something bad that has happened"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "gutted" }
+voice = { emotion = 0.7, formality = 0.3 }
+[[concept.variant]]
+forms = { base = "sick of this" }
+voice = { emotion = 0.8, optimism = 0.1, formality = 0.2 }
+[[concept.variant]]
+forms = { base = "same old story" }
+voice = { history = 0.8, optimism = 0.2 }
+[[concept.variant]]
+forms = { base = "painful to watch" }
+voice = { emotion = 0.7, optimism = 0.2 }
+[[concept.variant]]
+forms = { base = "pain" }
+voice = { slang = 0.9, emotion = 0.6, formality = 0.05 }
+[[concept.variant]]
+forms = { base = "why do we do this to ourselves" }
+voice = { slang = 0.7, humour = 0.6, optimism = 0.1 }
+[[concept.variant]]
+forms = { base = "a disappointing result" }
+voice = { formality = 0.9, emotion = 0.1, slang = 0.0 }
+requires = ["home_goals"]
+[[concept.variant]]
+forms = { base = "a setback" }
+voice = { formality = 0.9, emotion = 0.1, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "not good" }
+
+[[concept]]
+id = "praise_adj"
+meaning = "high praise for what someone did"
+pos = "adj"
+[[concept.variant]]
+forms = { base = "excellent" }
+voice = { formality = 0.9, emotion = 0.1, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "impressive" }
+voice = { formality = 0.9, emotion = 0.1, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "outstanding" }
+voice = { formality = 0.85, emotion = 0.2, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "assured" }
+voice = { formality = 0.85, technical = 0.7, emotion = 0.1 }
+[[concept.variant]]
+forms = { base = "influential" }
+voice = { formality = 0.8, technical = 0.8, stats = 0.6 }
+[[concept.variant]]
+forms = { base = "off the charts" }
+voice = { stats = 0.95, technical = 0.7, slang = 0.3 }
+[[concept.variant]]
+forms = { base = "elite by every measure" }
+voice = { stats = 0.95, technical = 0.8, formality = 0.6 }
+[[concept.variant]]
+forms = { base = "sensational" }
+voice = { emotion = 0.9, slang = 0.4, formality = 0.3 }
+[[concept.variant]]
+forms = { base = "stunning" }
+voice = { emotion = 0.9, formality = 0.3 }
+[[concept.variant]]
+forms = { base = "unstoppable" }
+voice = { emotion = 0.9, optimism = 0.9 }
+[[concept.variant]]
+forms = { base = "unreal" }
+voice = { slang = 0.85, emotion = 0.8, formality = 0.05 }
+[[concept.variant]]
+forms = { base = "different class" }
+voice = { slang = 0.8, emotion = 0.8, formality = 0.1 }
+[[concept.variant]]
+forms = { base = "cold" }
+voice = { slang = 0.95, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "levels above" }
+voice = { slang = 0.8, emotion = 0.7, formality = 0.1 }
+[[concept.variant]]
+forms = { base = "brilliant" }
+[[concept.variant]]
+forms = { base = "superb" }
+[[concept.variant]]
+forms = { base = "class" }
+voice = { slang = 0.5, formality = 0.3 }
+[[concept.variant]]
+forms = { base = "top drawer" }
+voice = { slang = 0.3, history = 0.5 }
+
+[[concept]]
+id = "criticism_adj"
+meaning = "harsh judgement of what someone did"
+pos = "adj"
+[[concept.variant]]
+forms = { base = "poor" }
+[[concept.variant]]
+forms = { base = "off the pace" }
+voice = { formality = 0.8, emotion = 0.1, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "unconvincing" }
+voice = { formality = 0.8, emotion = 0.1, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "below their usual level" }
+voice = { formality = 0.85, emotion = 0.1, slang = 0.0, sentence_length = 0.8 }
+[[concept.variant]]
+forms = { base = "underperforming the numbers" }
+voice = { stats = 0.95, technical = 0.8, formality = 0.6 }
+[[concept.variant]]
+forms = { base = "below expected output" }
+voice = { stats = 0.95, technical = 0.8, formality = 0.6 }
+[[concept.variant]]
+forms = { base = "woeful" }
+voice = { emotion = 0.9, formality = 0.2 }
+[[concept.variant]]
+forms = { base = "shambolic" }
+voice = { emotion = 0.9, formality = 0.2 }
+[[concept.variant]]
+forms = { base = "mid" }
+voice = { slang = 0.95, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "finished" }
+voice = { slang = 0.8, formality = 0.1, emotion = 0.7 }
+[[concept.variant]]
+forms = { base = "not it" }
+voice = { slang = 0.9, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "shocking" }
+voice = { emotion = 0.7, formality = 0.3 }
+[[concept.variant]]
+forms = { base = "not good enough" }
+[[concept.variant]]
+forms = { base = "dreadful" }
+voice = { emotion = 0.7, formality = 0.35 }
+
+[[concept]]
+id = "jibe"
+meaning = "a dig at the other side, about what happened and never about who anyone is"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "enjoy that one" }
+voice = { humour = 0.8, skepticism = 0.3, slang = 0.3 }
+[[concept.variant]]
+forms = { base = "same time next year" }
+voice = { humour = 0.8, skepticism = 0.3, history = 0.5 }
+[[concept.variant]]
+forms = { base = "we'll take it" }
+voice = { humour = 0.7, optimism = 0.8, skepticism = 0.2 }
+[[concept.variant]]
+forms = { base = "lol ok" }
+voice = { humour = 0.85, slang = 0.95, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "not the flex you think it is" }
+voice = { humour = 0.8, slang = 0.9, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "we move" }
+voice = { humour = 0.6, slang = 0.9, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "actually embarrassing" }
+voice = { skepticism = 0.95, slang = 0.8, humour = 0.2, emotion = 0.7 }
+[[concept.variant]]
+forms = { base = "sit down" }
+voice = { skepticism = 0.95, slang = 0.9, humour = 0.4, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "can't make it up" }
+voice = { skepticism = 0.9, slang = 0.7, humour = 0.4 }
+[[concept.variant]]
+forms = { base = "shocking" }
+voice = { skepticism = 0.95, slang = 0.2, humour = 0.1, emotion = 0.6 }
+[[concept.variant]]
+forms = { base = "embarrassing from them" }
+voice = { skepticism = 0.95, slang = 0.2, humour = 0.1, emotion = 0.6 }
+[[concept.variant]]
+forms = { base = "no excuses" }
+voice = { skepticism = 0.9, slang = 0.2, humour = 0.1 }
+[[concept.variant]]
+forms = { base = "enjoy the trip home" }
+voice = { humour = 0.6, skepticism = 0.6 }
+[[concept.variant]]
+forms = { base = "that's football" }
+[[concept.variant]]
+forms = { base = "it is what it is" }
+voice = { humour = 0.3, optimism = 0.4 }
+[[concept.variant]]
+forms = { base = "a chastening day for them" }
+voice = { formality = 0.9, humour = 0.1, slang = 0.0 }
+
+[[concept]]
+id = "sarcasm"
+meaning = "saying the opposite of what is meant about something bad"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "great, love that for us" }
+voice = { slang = 0.8, humour = 0.8, optimism = 0.2 }
+[[concept.variant]]
+forms = { base = "incredible scenes, not" }
+voice = { slang = 0.8, humour = 0.8, optimism = 0.1 }
+[[concept.variant]]
+forms = { base = "ok sure" }
+voice = { slang = 0.9, humour = 0.6, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "marvellous" }
+voice = { slang = 0.2, humour = 0.7, formality = 0.5 }
+[[concept.variant]]
+forms = { base = "brilliant, just brilliant" }
+voice = { slang = 0.2, humour = 0.7, formality = 0.5 }
+[[concept.variant]]
+forms = { base = "well that went well" }
+
+[[concept]]
+id = "worry"
+meaning = "unease about what may follow"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "not sure about this" }
+[[concept.variant]]
+forms = { base = "worrying" }
+voice = { formality = 0.7, optimism = 0.2 }
+[[concept.variant]]
+forms = { base = "nervous about this" }
+voice = { slang = 0.4, optimism = 0.2, emotion = 0.5 }
+[[concept.variant]]
+forms = { base = "not a good sign" }
+voice = { optimism = 0.15 }
+[[concept.variant]]
+forms = { base = "there is some concern here" }
+voice = { formality = 0.9, emotion = 0.1, slang = 0.0 }
+[[concept.variant]]
+forms = { base = "questions remain" }
+voice = { formality = 0.85, technical = 0.7, emotion = 0.1 }
+
+[[concept]]
+id = "ask"
+meaning = "a worried or doubtful question to other supporters"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "anyone else worried" }
+voice = { optimism = 0.2, slang = 0.5 }
+[[concept.variant]]
+forms = { base = "is it just me or is this off" }
+voice = { slang = 0.7, optimism = 0.2, formality = 0.1 }
+[[concept.variant]]
+forms = { base = "what's going on" }
+[[concept.variant]]
+forms = { base = "what next" }
+voice = { formality = 0.8, emotion = 0.1 }
+[[concept.variant]]
+forms = { base = "where does this leave us" }
+voice = { formality = 0.6, history = 0.4 }
+
+[[concept]]
+id = "loyal"
+meaning = "standing by one of the club's own"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "one of our own" }
+voice = { local = 0.8, optimism = 0.7 }
+[[concept.variant]]
+forms = { base = "a proper club servant" }
+voice = { history = 0.8, local = 0.8, formality = 0.5 }
+[[concept.variant]]
+forms = { base = "gets this club" }
+voice = { local = 0.8, slang = 0.5 }
+
+[[concept]]
+id = "patience"
+meaning = "asking for time"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "give it time" }
+[[concept.variant]]
+forms = { base = "be patient" }
+voice = { formality = 0.6, optimism = 0.6 }
+[[concept.variant]]
+forms = { base = "early days" }
+voice = { slang = 0.3, optimism = 0.5 }
+
+[[concept]]
+id = "concede"
+meaning = "admitting an earlier view was wrong"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "ok fair play, I was wrong" }
+voice = { slang = 0.8, formality = 0.1, humour = 0.5 }
+[[concept.variant]]
+forms = { base = "I'll hold my hands up" }
+voice = { slang = 0.6, formality = 0.2 }
+[[concept.variant]]
+forms = { base = "I've been cooked" }
+voice = { slang = 0.95, humour = 0.7, formality = 0.0 }
+[[concept.variant]]
+forms = { base = "fair enough, proved me wrong" }
+[[concept.variant]]
+forms = { base = "hands up, I was wrong about this one" }
+voice = { formality = 0.4, sentence_length = 0.8 }
+[[concept.variant]]
+forms = { base = "credit where it's due" }
+voice = { formality = 0.5, history = 0.4 }
+
+[[concept]]
+id = "hold_line"
+meaning = "refusing to change a view after one good result"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "one good game doesn't change anything" }
+voice = { skepticism = 0.8 }
+[[concept.variant]]
+forms = { base = "still not convinced" }
+voice = { skepticism = 0.7 }
+[[concept.variant]]
+forms = { base = "let's see it every week" }
+voice = { skepticism = 0.6, formality = 0.4 }
+[[concept.variant]]
+forms = { base = "flat-track stuff" }
+voice = { skepticism = 0.8, stats = 0.5, technical = 0.5 }
+
+[[concept]]
+id = "hype_doubt"
+meaning = "doubt that praise is in proportion"
+pos = "interj"
+[[concept.variant]]
+forms = { base = "the hype is doing a lot of work" }
+voice = { skepticism = 0.8, humour = 0.4 }
+[[concept.variant]]
+forms = { base = "good, not that good" }
+voice = { skepticism = 0.8, slang = 0.5 }
+[[concept.variant]]
+forms = { base = "overrated" }
+voice = { skepticism = 0.9, slang = 0.5 }
+[[concept.variant]]
+forms = { base = "let's see the numbers before the parade" }
+voice = { skepticism = 0.8, stats = 0.9, technical = 0.6 }

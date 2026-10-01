@@ -1,0 +1,2332 @@
+[meta]
+dataset = "languages.terminology.b"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "Football vocabulary in Hindi, Bengali, Malayalam, Tamil, Telugu, Kannada, Marathi, Urdu (q = C) and Odia, Assamese, Punjabi, Nepali, Konkani, Manipuri (q = D), plus Indian English football vocabulary and city-name romanisations (model knowledge)."
+gaps = ["No source URLs: all entries are model knowledge, not re-checked (brief v2).", "Native-script spellings and synonyms have not been reviewed by native speakers; Odia, Assamese, Punjabi, Nepali, Konkani and Manipuri entries are lower confidence (q = D).", "Mizo, Khasi, Garo, Kokborok, Bodo and other northeastern languages have language records (languages.toml, languages_b.toml) but no terminology, because their football vocabulary could not be recalled reliably.", "Broadcast-specific phrases, chants and commentary idioms are not recorded.", "Nicknames and club-specific names are in languages/aliases_b.toml, not here.", "SCHEMA GAP: term.region takes state ids or national but the record has no way to mark a script variant (for example Meitei Mayek vs Bengali script) or a romanisation scheme; described in constraints/notes."]
+
+[[term]]
+id = "term.sport.football.hi"
+concept = "sport.football"
+canonical = "फुटबॉल"
+synonyms = ["फ़ुटबॉल", "futbol", "football"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.goal.hi"
+concept = "match.goal"
+canonical = "गोल"
+synonyms = ["gol"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.goalkeeper.hi"
+concept = "role.goalkeeper"
+canonical = "गोलकीपर"
+synonyms = ["गोलरक्षक", "गोलची", "golkeeper"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+constraints = "गोलरक्षक is formal/written; गोलची is colloquial"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.referee.hi"
+concept = "role.referee"
+canonical = "रेफरी"
+synonyms = ["निर्णायक", "refree"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.match.hi"
+concept = "match.match"
+canonical = "मैच"
+synonyms = ["मुकाबला", "match"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.win.hi"
+concept = "match.win"
+canonical = "जीत"
+synonyms = ["विजय", "jeet"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.defeat.hi"
+concept = "match.defeat"
+canonical = "हार"
+synonyms = ["पराजय", "शिकस्त", "haar"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.draw.hi"
+concept = "match.draw"
+canonical = "ड्रॉ"
+synonyms = ["बराबरी", "गोलरहित ड्रॉ (goalless draw)"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.captain.hi"
+concept = "role.captain"
+canonical = "कप्तान"
+synonyms = ["कैप्टन", "kaptan"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.coach.hi"
+concept = "role.coach"
+canonical = "कोच"
+synonyms = ["प्रशिक्षक", "koch"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.fan.supporters.hi"
+concept = "fan.supporters"
+canonical = "प्रशंसक"
+synonyms = ["फैंस", "समर्थक"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.fixture.derby.hi"
+concept = "fixture.derby"
+canonical = "डर्बी"
+synonyms = ["महामुकाबला"]
+register = "headline"
+region = "national"
+lang = "lang.hi"
+constraints = "महामुकाबला is a headline word for a big fixture, not only derbies"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.penalty.hi"
+concept = "match.penalty"
+canonical = "पेनल्टी"
+synonyms = ["पेनाल्टी", "penalty"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.offside.hi"
+concept = "match.offside"
+canonical = "ऑफसाइड"
+synonyms = ["ऑफ़साइड", "offside"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.red-card.hi"
+concept = "match.red-card"
+canonical = "रेड कार्ड"
+synonyms = ["लाल कार्ड"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.yellow-card.hi"
+concept = "match.yellow-card"
+canonical = "येलो कार्ड"
+synonyms = ["पीला कार्ड"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.hat-trick.hi"
+concept = "match.hat-trick"
+canonical = "हैट्रिक"
+synonyms = ["hat-trick"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.corner.hi"
+concept = "match.corner"
+canonical = "कॉर्नर"
+synonyms = ["corner kick"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.free-kick.hi"
+concept = "match.free-kick"
+canonical = "फ्री किक"
+synonyms = ["फ़्री किक"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.injury-time.hi"
+concept = "match.injury-time"
+canonical = "इंजरी टाइम"
+synonyms = ["स्टॉपेज टाइम", "अतिरिक्त समय"]
+register = "broadcast"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.match.half-time.hi"
+concept = "match.half-time"
+canonical = "हाफटाइम"
+synonyms = ["मध्यांतर"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.striker.hi"
+concept = "role.striker"
+canonical = "स्ट्राइकर"
+synonyms = ["फॉरवर्ड", "आक्रामक खिलाड़ी"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.defender.hi"
+concept = "role.defender"
+canonical = "डिफेंडर"
+synonyms = ["रक्षक"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.role.midfielder.hi"
+concept = "role.midfielder"
+canonical = "मिडफील्डर"
+synonyms = ["मध्यपंक्ति का खिलाड़ी"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.competition.final.hi"
+concept = "competition.final"
+canonical = "फाइनल"
+synonyms = ["खिताबी मुकाबला"]
+register = "headline"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.competition.semi-final.hi"
+concept = "competition.semi-final"
+canonical = "सेमीफाइनल"
+synonyms = ["सेमी-फाइनल"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.competition.knockout.hi"
+concept = "competition.knockout"
+canonical = "नॉकआउट"
+synonyms = ["knockout"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.competition.league-table.hi"
+concept = "competition.league-table"
+canonical = "अंक तालिका"
+synonyms = ["पॉइंट्स टेबल", "लीग तालिका"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.competition.top-scorer.hi"
+concept = "competition.top-scorer"
+canonical = "गोल्डन बूट"
+synonyms = ["सर्वाधिक गोल करने वाला", "शीर्ष स्कोरर"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+constraints = "Golden Boot is the ISL/I-League award name; the other forms describe the top scorer generally"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.market.transfer.hi"
+concept = "market.transfer"
+canonical = "ट्रांसफर"
+synonyms = ["स्थानांतरण"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.venue.stadium.hi"
+concept = "venue.stadium"
+canonical = "स्टेडियम"
+synonyms = ["मैदान"]
+register = "neutral"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.team.india-senior-men.hi"
+concept = "team.india-senior-men"
+canonical = "ब्लू टाइगर्स"
+synonyms = ["Blue Tigers", "भारतीय पुरुष फुटबॉल टीम"]
+register = "headline"
+region = "national"
+lang = "lang.hi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Hindi football vocabulary is mostly English loanwords in Devanagari; check spelling variants with a native speaker." }
+
+[[term]]
+id = "term.sport.football.bn"
+concept = "sport.football"
+canonical = "ফুটবল"
+synonyms = ["ফুটবল খেলা", "phutbol"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.goal.bn"
+concept = "match.goal"
+canonical = "গোল"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.goalkeeper.bn"
+concept = "role.goalkeeper"
+canonical = "গোলকিপার"
+synonyms = ["গোলরক্ষক", "golkeeper"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+constraints = "গোলরক্ষক is formal"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.referee.bn"
+concept = "role.referee"
+canonical = "রেফারি"
+synonyms = ["refari"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.match.bn"
+concept = "match.match"
+canonical = "ম্যাচ"
+synonyms = ["খেলা", "khela"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.win.bn"
+concept = "match.win"
+canonical = "জয়"
+synonyms = ["জিত", "joy"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.defeat.bn"
+concept = "match.defeat"
+canonical = "হার"
+synonyms = ["পরাজয়", "har"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.draw.bn"
+concept = "match.draw"
+canonical = "ড্র"
+synonyms = ["dra"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.captain.bn"
+concept = "role.captain"
+canonical = "অধিনায়ক"
+synonyms = ["ক্যাপ্টেন", "odhinayok"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.coach.bn"
+concept = "role.coach"
+canonical = "কোচ"
+synonyms = ["প্রশিক্ষক", "koch"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.fan.supporters.bn"
+concept = "fan.supporters"
+canonical = "সমর্থক"
+synonyms = ["ফ্যান", "somorthok"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.fixture.derby.bn"
+concept = "fixture.derby"
+canonical = "ডার্বি"
+synonyms = ["বড় ম্যাচ", "derby"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+constraints = "বড় ম্যাচ (big match) is used for the Kolkata Big Three fixtures"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.venue.maidan.bn"
+concept = "venue.maidan"
+canonical = "ময়দান"
+synonyms = ["মাঠ", "maidan"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+constraints = "Kolkata Maidan, the open ground area that houses the club tents and traditional league grounds"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.venue.stadium.bn"
+concept = "venue.stadium"
+canonical = "স্টেডিয়াম"
+synonyms = ["ক্রীড়াঙ্গন"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+constraints = "ক্রীড়াঙ্গন (krirangan) appears in official stadium names such as Yuva Bharati Krirangan"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.competition.shield.bn"
+concept = "competition.shield"
+canonical = "শিল্ড"
+synonyms = ["Shield"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+constraints = "Refers to the IFA Shield in Bengal usage"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.competition.league.bn"
+concept = "competition.league"
+canonical = "লিগ"
+synonyms = ["league"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.penalty.bn"
+concept = "match.penalty"
+canonical = "পেনাল্টি"
+synonyms = ["penalty"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.offside.bn"
+concept = "match.offside"
+canonical = "অফসাইড"
+synonyms = ["offside"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.red-card.bn"
+concept = "match.red-card"
+canonical = "লাল কার্ড"
+synonyms = ["red card"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.yellow-card.bn"
+concept = "match.yellow-card"
+canonical = "হলুদ কার্ড"
+synonyms = ["yellow card"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.match.hat-trick.bn"
+concept = "match.hat-trick"
+canonical = "হ্যাটট্রিক"
+synonyms = ["hat-trick"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.competition.league-table.bn"
+concept = "competition.league-table"
+canonical = "পয়েন্ট টেবিল"
+synonyms = ["পয়েন্ট তালিকা"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.striker.bn"
+concept = "role.striker"
+canonical = "স্ট্রাইকার"
+synonyms = ["ফরোয়ার্ড"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.defender.bn"
+concept = "role.defender"
+canonical = "ডিফেন্ডার"
+synonyms = ["রক্ষণভাগের ফুটবলার"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.role.midfielder.bn"
+concept = "role.midfielder"
+canonical = "মিডফিল্ডার"
+synonyms = ["মাঝমাঠের ফুটবলার"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.market.transfer.bn"
+concept = "market.transfer"
+canonical = "দলবদল"
+synonyms = ["ট্রান্সফার"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+constraints = "দলবদল (dolbodol) is the standard Bengali word for the transfer window/market"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.competition.final.bn"
+concept = "competition.final"
+canonical = "ফাইনাল"
+synonyms = ["final"]
+register = "neutral"
+region = ["state.wb", "state.tr"]
+lang = "lang.bn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Bengali romanisation in synonyms is informal; Kolkata / Calcutta spellings both appear in older English-language references." }
+
+[[term]]
+id = "term.sport.football.ml"
+concept = "sport.football"
+canonical = "ഫുട്ബോൾ"
+synonyms = ["കാൽപ്പന്തുകളി", "phutbol"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+constraints = "കാൽപ്പന്തുകളി (kalpanthukali, literally foot-ball-game) is the native coinage, popular in headlines"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.goal.ml"
+concept = "match.goal"
+canonical = "ഗോൾ"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.role.goalkeeper.ml"
+concept = "role.goalkeeper"
+canonical = "ഗോൾകീപ്പർ"
+synonyms = ["ഗോളി"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+constraints = "ഗോളി (goli) is colloquial"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.role.referee.ml"
+concept = "role.referee"
+canonical = "റഫറി"
+synonyms = ["റഫറി"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.match.ml"
+concept = "match.match"
+canonical = "മത്സരം"
+synonyms = ["മാച്ച്", "കളി"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+constraints = "കളി (kali) means the game or match colloquially"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.win.ml"
+concept = "match.win"
+canonical = "ജയം"
+synonyms = ["വിജയം", "ജയിച്ചു"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.defeat.ml"
+concept = "match.defeat"
+canonical = "തോൽവി"
+synonyms = ["പരാജയം"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.draw.ml"
+concept = "match.draw"
+canonical = "സമനില"
+synonyms = ["ഡ്രോ"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.role.captain.ml"
+concept = "role.captain"
+canonical = "ക്യാപ്റ്റൻ"
+synonyms = ["നായകൻ"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.role.coach.ml"
+concept = "role.coach"
+canonical = "പരിശീലകൻ"
+synonyms = ["കോച്ച്"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.fan.supporters.ml"
+concept = "fan.supporters"
+canonical = "ആരാധകർ"
+synonyms = ["ഫാൻസ്"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.fixture.derby.ml"
+concept = "fixture.derby"
+canonical = "ഡെർബി"
+synonyms = ["derby"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.penalty.ml"
+concept = "match.penalty"
+canonical = "പെനാൽറ്റി"
+synonyms = ["പെനാൽട്ടി"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.offside.ml"
+concept = "match.offside"
+canonical = "ഓഫ്സൈഡ്"
+synonyms = ["offside"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.red-card.ml"
+concept = "match.red-card"
+canonical = "ചുവപ്പ് കാർഡ്"
+synonyms = ["റെഡ് കാർഡ്"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.match.yellow-card.ml"
+concept = "match.yellow-card"
+canonical = "മഞ്ഞക്കാർഡ്"
+synonyms = ["യെല്ലോ കാർഡ്"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.competition.final.ml"
+concept = "competition.final"
+canonical = "ഫൈനൽ"
+synonyms = ["final"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.competition.league.ml"
+concept = "competition.league"
+canonical = "ലീഗ്"
+synonyms = ["league"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.competition.tournament.ml"
+concept = "competition.tournament"
+canonical = "ടൂർണമെന്റ്"
+synonyms = ["tournament"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.competition.sevens.ml"
+concept = "competition.sevens"
+canonical = "സെവൻസ്"
+synonyms = ["സെവൻസ് ഫുട്ബോൾ", "sevens"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+constraints = "Malabar 7-a-side tournament football, distinct from formal 11-a-side leagues; strongly associated with Malappuram and northern Kerala"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.market.transfer.ml"
+concept = "market.transfer"
+canonical = "ട്രാൻസ്ഫർ"
+synonyms = ["കൈമാറ്റം"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.venue.stadium.ml"
+concept = "venue.stadium"
+canonical = "സ്റ്റേഡിയം"
+synonyms = ["മൈതാനം"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.ml"
+constraints = "മൈതാനം (maithanam) is the ground/field"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.fan.supporters-group.ml"
+concept = "fan.supporters-group"
+canonical = "മഞ്ഞപ്പട"
+synonyms = ["Manjappada", "Manjapada", "Manjappata"]
+register = "casual"
+region = ["state.kl"]
+lang = "lang.ml"
+constraints = "Official Kerala Blasters supporter group; also a general nickname for the yellow-clad support base"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Malayalam terms are mostly transliterated English plus some native words; check spelling with a native speaker." }
+
+[[term]]
+id = "term.sport.football.ta"
+concept = "sport.football"
+canonical = "கால்பந்து"
+synonyms = ["கால்பந்தாட்டம்", "football"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.match.goal.ta"
+concept = "match.goal"
+canonical = "கோல்"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.role.goalkeeper.ta"
+concept = "role.goalkeeper"
+canonical = "கோல் கீப்பர்"
+synonyms = ["கோல்காப்பாளர்"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+constraints = "கோல்காப்பாளர் is formal/literary"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.role.referee.ta"
+concept = "role.referee"
+canonical = "நடுவர்"
+synonyms = ["ரெஃப்ரி"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.match.match.ta"
+concept = "match.match"
+canonical = "ஆட்டம்"
+synonyms = ["போட்டி", "மேட்ச்"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.match.win.ta"
+concept = "match.win"
+canonical = "வெற்றி"
+synonyms = ["வெற்றி பெற்றது"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.match.defeat.ta"
+concept = "match.defeat"
+canonical = "தோல்வி"
+synonyms = ["தோல்வியடைந்தது"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.match.draw.ta"
+concept = "match.draw"
+canonical = "சமநிலை"
+synonyms = ["டிரா"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.role.captain.ta"
+concept = "role.captain"
+canonical = "கேப்டன்"
+synonyms = ["தலைவர்"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.role.coach.ta"
+concept = "role.coach"
+canonical = "பயிற்சியாளர்"
+synonyms = ["கோச்"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.fan.supporters.ta"
+concept = "fan.supporters"
+canonical = "ரசிகர்கள்"
+synonyms = ["ரசிகர்"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.fixture.derby.ta"
+concept = "fixture.derby"
+canonical = "டெர்பி"
+synonyms = ["derby"]
+register = "neutral"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.fan.machan.ta"
+concept = "fan.machan"
+canonical = "மச்சான்"
+synonyms = ["machan", "machaan"]
+register = "casual"
+region = ["state.tn", "state.py"]
+lang = "lang.ta"
+constraints = "Chennai slang for friend/mate; part of the Chennaiyin FC fan identity (Super Machans)"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Tamil terms: native words (கால்பந்து, நடுவர்) are the standard press forms." }
+
+[[term]]
+id = "term.sport.football.te"
+concept = "sport.football"
+canonical = "ఫుట్‌బాల్"
+synonyms = ["ఫుట్ బాల్", "football"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.goal.te"
+concept = "match.goal"
+canonical = "గోల్"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.goalkeeper.te"
+concept = "role.goalkeeper"
+canonical = "గోల్ కీపర్"
+synonyms = ["గోల్‌కీపర్"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.referee.te"
+concept = "role.referee"
+canonical = "రిఫరీ"
+synonyms = ["రెఫరీ"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.match.te"
+concept = "match.match"
+canonical = "మ్యాచ్"
+synonyms = ["పోటీ", "ఆట"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.win.te"
+concept = "match.win"
+canonical = "విజయం"
+synonyms = ["గెలుపు"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.defeat.te"
+concept = "match.defeat"
+canonical = "ఓటమి"
+synonyms = ["పరాజయం"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.draw.te"
+concept = "match.draw"
+canonical = "డ్రా"
+synonyms = ["సమం"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.captain.te"
+concept = "role.captain"
+canonical = "కెప్టెన్"
+synonyms = ["నాయకుడు"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.coach.te"
+concept = "role.coach"
+canonical = "కోచ్"
+synonyms = ["శిక్షకుడు"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fan.supporters.te"
+concept = "fan.supporters"
+canonical = "అభిమానులు"
+synonyms = ["ఫ్యాన్స్"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fixture.derby.te"
+concept = "fixture.derby"
+canonical = "డెర్బీ"
+synonyms = ["derby"]
+register = "neutral"
+region = ["state.ts", "state.ap"]
+lang = "lang.te"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.sport.football.kn"
+concept = "sport.football"
+canonical = "ಫುಟ್ಬಾಲ್"
+synonyms = ["ಫುಟ್‌ಬಾಲ್", "football"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.goal.kn"
+concept = "match.goal"
+canonical = "ಗೋಲ್"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.goalkeeper.kn"
+concept = "role.goalkeeper"
+canonical = "ಗೋಲ್‌ಕೀಪರ್"
+synonyms = ["ಗೋಲ್ ಕೀಪರ್"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.referee.kn"
+concept = "role.referee"
+canonical = "ರೆಫರಿ"
+synonyms = ["ತೀರ್ಪುಗಾರ"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+constraints = "ತೀರ್ಪುಗಾರ (tīrpugāra) means judge/umpire and is used for referee in formal print"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.match.kn"
+concept = "match.match"
+canonical = "ಪಂದ್ಯ"
+synonyms = ["ಮ್ಯಾಚ್"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.win.kn"
+concept = "match.win"
+canonical = "ಗೆಲುವು"
+synonyms = ["ಜಯ"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.defeat.kn"
+concept = "match.defeat"
+canonical = "ಸೋಲು"
+synonyms = ["ಪರಾಜಯ"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.draw.kn"
+concept = "match.draw"
+canonical = "ಡ್ರಾ"
+synonyms = ["ಸಮಬಲ"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.captain.kn"
+concept = "role.captain"
+canonical = "ನಾಯಕ"
+synonyms = ["ಕ್ಯಾಪ್ಟನ್"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.coach.kn"
+concept = "role.coach"
+canonical = "ಕೋಚ್"
+synonyms = ["ತರಬೇತುದಾರ"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fan.supporters.kn"
+concept = "fan.supporters"
+canonical = "ಅಭಿಮಾನಿಗಳು"
+synonyms = ["ಫ್ಯಾನ್ಸ್"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fixture.derby.kn"
+concept = "fixture.derby"
+canonical = "ಡರ್ಬಿ"
+synonyms = ["derby"]
+register = "neutral"
+region = ["state.ka"]
+lang = "lang.kn"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.sport.football.mr"
+concept = "sport.football"
+canonical = "फुटबॉल"
+synonyms = ["फूटबॉल", "football"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.goal.mr"
+concept = "match.goal"
+canonical = "गोल"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.goalkeeper.mr"
+concept = "role.goalkeeper"
+canonical = "गोलरक्षक"
+synonyms = ["गोलकीपर"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.referee.mr"
+concept = "role.referee"
+canonical = "पंच"
+synonyms = ["रेफरी"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+constraints = "पंच (panch) also means umpire in other sports; रेफरी is common in headlines"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.match.mr"
+concept = "match.match"
+canonical = "सामना"
+synonyms = ["मॅच"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.win.mr"
+concept = "match.win"
+canonical = "विजय"
+synonyms = ["जिंकला"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.defeat.mr"
+concept = "match.defeat"
+canonical = "पराभव"
+synonyms = ["हार"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.draw.mr"
+concept = "match.draw"
+canonical = "बरोबरी"
+synonyms = ["ड्रॉ"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.captain.mr"
+concept = "role.captain"
+canonical = "कर्णधार"
+synonyms = ["कॅप्टन"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.coach.mr"
+concept = "role.coach"
+canonical = "प्रशिक्षक"
+synonyms = ["कोच"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fan.supporters.mr"
+concept = "fan.supporters"
+canonical = "चाहते"
+synonyms = ["समर्थक"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fixture.derby.mr"
+concept = "fixture.derby"
+canonical = "डर्बी"
+synonyms = ["derby"]
+register = "neutral"
+region = ["state.mh"]
+lang = "lang.mr"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.sport.football.ur"
+concept = "sport.football"
+canonical = "فٹ بال"
+synonyms = ["فٹبال", "football"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.goal.ur"
+concept = "match.goal"
+canonical = "گول"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.goalkeeper.ur"
+concept = "role.goalkeeper"
+canonical = "گول کیپر"
+synonyms = ["گول کیپر"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.referee.ur"
+concept = "role.referee"
+canonical = "ریفری"
+synonyms = ["ریفری"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.match.ur"
+concept = "match.match"
+canonical = "میچ"
+synonyms = ["مقابلہ"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.win.ur"
+concept = "match.win"
+canonical = "جیت"
+synonyms = ["فتح"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.defeat.ur"
+concept = "match.defeat"
+canonical = "ہار"
+synonyms = ["شکست"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.match.draw.ur"
+concept = "match.draw"
+canonical = "ڈرا"
+synonyms = ["برابری"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.captain.ur"
+concept = "role.captain"
+canonical = "کپتان"
+synonyms = ["کپتان"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.role.coach.ur"
+concept = "role.coach"
+canonical = "کوچ"
+synonyms = ["مربی"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fan.supporters.ur"
+concept = "fan.supporters"
+canonical = "مداح"
+synonyms = ["پرستار", "شائقین"]
+register = "neutral"
+region = ["state.jk", "state.ts", "state.up"]
+lang = "lang.ur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.sport.football.or"
+concept = "sport.football"
+canonical = "ଫୁଟବଲ"
+synonyms = ["ଫୁଟବଲ୍", "football"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.goal.or"
+concept = "match.goal"
+canonical = "ଗୋଲ"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.referee.or"
+concept = "role.referee"
+canonical = "ରେଫରି"
+synonyms = ["referee"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.match.or"
+concept = "match.match"
+canonical = "ମ୍ୟାଚ୍"
+synonyms = ["ଖେଳ"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.win.or"
+concept = "match.win"
+canonical = "ଜିତ"
+synonyms = ["ବିଜୟ"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.defeat.or"
+concept = "match.defeat"
+canonical = "ହାର"
+synonyms = ["ପରାଜୟ"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.captain.or"
+concept = "role.captain"
+canonical = "ଅଧିନାୟକ"
+synonyms = ["କ୍ୟାପଟେନ"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.coach.or"
+concept = "role.coach"
+canonical = "କୋଚ୍"
+synonyms = ["ପ୍ରଶିକ୍ଷକ"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.fan.supporters.or"
+concept = "fan.supporters"
+canonical = "ସମର୍ଥକ"
+synonyms = ["ଫ୍ୟାନ୍"]
+register = "neutral"
+region = ["state.od"]
+lang = "lang.or"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.sport.football.as"
+concept = "sport.football"
+canonical = "ফুটবল"
+synonyms = ["ফুটবল খেল", "futbol"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.goal.as"
+concept = "match.goal"
+canonical = "গোল"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.referee.as"
+concept = "role.referee"
+canonical = "ৰেফাৰী"
+synonyms = ["ৰেফাৰি"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.match.as"
+concept = "match.match"
+canonical = "মেচ"
+synonyms = ["খেল"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.win.as"
+concept = "match.win"
+canonical = "জয়"
+synonyms = ["জিকিলে"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.defeat.as"
+concept = "match.defeat"
+canonical = "হাৰ"
+synonyms = ["পৰাজয়"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.captain.as"
+concept = "role.captain"
+canonical = "অধিনায়ক"
+synonyms = ["কেপ্টেইন"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.coach.as"
+concept = "role.coach"
+canonical = "প্ৰশিক্ষক"
+synonyms = ["কোচ"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.fan.supporters.as"
+concept = "fan.supporters"
+canonical = "সমৰ্থক"
+synonyms = ["ফেন"]
+register = "neutral"
+region = ["state.as"]
+lang = "lang.as"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.sport.football.pa"
+concept = "sport.football"
+canonical = "ਫੁੱਟਬਾਲ"
+synonyms = ["ਫੁਟਬਾਲ", "football"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.goal.pa"
+concept = "match.goal"
+canonical = "ਗੋਲ"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.referee.pa"
+concept = "role.referee"
+canonical = "ਰੈਫਰੀ"
+synonyms = ["referee"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.match.pa"
+concept = "match.match"
+canonical = "ਮੈਚ"
+synonyms = ["ਮੁਕਾਬਲਾ"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.win.pa"
+concept = "match.win"
+canonical = "ਜਿੱਤ"
+synonyms = ["ਫ਼ਤਿਹ"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.defeat.pa"
+concept = "match.defeat"
+canonical = "ਹਾਰ"
+synonyms = ["ਸ਼ਿਕਸਤ"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.captain.pa"
+concept = "role.captain"
+canonical = "ਕਪਤਾਨ"
+synonyms = ["ਕੈਪਟਨ"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.coach.pa"
+concept = "role.coach"
+canonical = "ਕੋਚ"
+synonyms = ["ਸਿਖਲਾਈਕਾਰ"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.fan.supporters.pa"
+concept = "fan.supporters"
+canonical = "ਪ੍ਰਸ਼ੰਸਕ"
+synonyms = ["ਫੈਨ"]
+register = "neutral"
+region = ["state.pb"]
+lang = "lang.pa"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.sport.football.ne"
+concept = "sport.football"
+canonical = "फुटबल"
+synonyms = ["फुटबाल", "football"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.match.goal.ne"
+concept = "match.goal"
+canonical = "गोल"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.role.goalkeeper.ne"
+concept = "role.goalkeeper"
+canonical = "गोलकिपर"
+synonyms = ["गोलरक्षक"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.role.referee.ne"
+concept = "role.referee"
+canonical = "रेफ्री"
+synonyms = ["निर्णायक"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.match.match.ne"
+concept = "match.match"
+canonical = "खेल"
+synonyms = ["म्याच"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.match.win.ne"
+concept = "match.win"
+canonical = "जित"
+synonyms = ["विजय"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.match.defeat.ne"
+concept = "match.defeat"
+canonical = "हार"
+synonyms = ["पराजय"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.match.draw.ne"
+concept = "match.draw"
+canonical = "बराबरी"
+synonyms = ["ड्र"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.role.captain.ne"
+concept = "role.captain"
+canonical = "कप्तान"
+synonyms = ["कप्तान"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.role.coach.ne"
+concept = "role.coach"
+canonical = "प्रशिक्षक"
+synonyms = ["कोच"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.fan.supporters.ne"
+concept = "fan.supporters"
+canonical = "समर्थक"
+synonyms = ["फ्यान"]
+register = "neutral"
+region = ["state.sk", "state.wb"]
+lang = "lang.ne"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked. Darjeeling hills and Sikkim usage." }
+
+[[term]]
+id = "term.sport.football.kok"
+concept = "sport.football"
+canonical = "फुटबॉल"
+synonyms = ["futbol", "futebol", "Futbol"]
+register = "neutral"
+region = ["state.ga"]
+lang = "lang.kok"
+constraints = "Goan Konkani in Roman script often uses Futbol; futebol is the Portuguese-origin spelling"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.goal.kok"
+concept = "match.goal"
+canonical = "गोल"
+synonyms = ["gol"]
+register = "neutral"
+region = ["state.ga"]
+lang = "lang.kok"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.referee.kok"
+concept = "role.referee"
+canonical = "रेफ्री"
+synonyms = ["referee"]
+register = "neutral"
+region = ["state.ga"]
+lang = "lang.kok"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.match.match.kok"
+concept = "match.match"
+canonical = "सामनो"
+synonyms = ["match"]
+register = "neutral"
+region = ["state.ga"]
+lang = "lang.kok"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.role.coach.kok"
+concept = "role.coach"
+canonical = "कोच"
+synonyms = ["coach"]
+register = "neutral"
+region = ["state.ga"]
+lang = "lang.kok"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: standard press forms recalled from memory, native-script spelling should be checked." }
+
+[[term]]
+id = "term.sport.football.mni"
+concept = "sport.football"
+canonical = "football"
+synonyms = ["ꯐꯨꯠꯕꯣꯜ", "futbol"]
+register = "neutral"
+region = ["state.mn"]
+lang = "lang.mni"
+constraints = "Meitei football talk is almost entirely English loanwords; Meitei Mayek spellings shown are not checked"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: Meitei Mayek forms not verified; Latin-script loanwords are the reliable form." }
+
+[[term]]
+id = "term.match.goal.mni"
+concept = "match.goal"
+canonical = "goal"
+synonyms = ["ꯒꯣꯜ", "gol"]
+register = "neutral"
+region = ["state.mn"]
+lang = "lang.mni"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: Meitei Mayek forms not verified; Latin-script loanwords are the reliable form." }
+
+[[term]]
+id = "term.role.referee.mni"
+concept = "role.referee"
+canonical = "referee"
+synonyms = ["ꯔꯦꯐꯔꯤ"]
+register = "neutral"
+region = ["state.mn"]
+lang = "lang.mni"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Lower confidence: Meitei Mayek forms not verified; Latin-script loanwords are the reliable form." }
+
+[[term]]
+id = "term.team.india-senior-men.en"
+concept = "team.india-senior-men"
+canonical = "Blue Tigers"
+synonyms = ["the Blue Tigers"]
+register = "headline"
+region = "national"
+lang = "lang.en"
+constraints = "Nickname of the India senior men's national team"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.team.india-senior-women.en"
+concept = "team.india-senior-women"
+canonical = "Blue Tigresses"
+synonyms = ["Indian Women's team"]
+register = "headline"
+region = "national"
+lang = "lang.en"
+constraints = "Nickname of the India senior women's national team"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.team.india-u17-men.en"
+concept = "team.india-u17-men"
+canonical = "Blue Colts"
+register = "headline"
+region = "national"
+lang = "lang.en"
+constraints = "Nickname used for India's U-17 boys' national team"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Nickname believed; age group it applies to may vary by season." }
+
+[[term]]
+id = "term.team.india-grassroots.en"
+concept = "team.india-grassroots"
+canonical = "Blue Cubs"
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "AIFF grassroots brand; see prog.blue-cubs"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.football.big-three.en"
+concept = "football.big-three"
+canonical = "Big Three"
+synonyms = ["Kolkata Big Three", "Mohun Bagan, East Bengal, Mohammedan"]
+register = "neutral"
+region = ["state.wb"]
+lang = "lang.en"
+constraints = "Traditional label for the three big Kolkata clubs; the trio is usually Mohun Bagan, East Bengal and Mohammedan"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.venue.maidan.en"
+concept = "venue.maidan"
+canonical = "Maidan"
+synonyms = ["Kolkata Maidan", "the Maidan"]
+register = "neutral"
+region = ["state.wb"]
+lang = "lang.en"
+constraints = "Open ground in central Kolkata that hosts club tents and traditional league grounds"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.competition.sevens.en"
+concept = "competition.sevens"
+canonical = "Sevens football"
+synonyms = ["Sevens", "7s"]
+register = "neutral"
+region = ["state.kl"]
+lang = "lang.en"
+constraints = "Seven-a-side tournament football played on Malabar grounds; not the same as the 7-a-side game elsewhere"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.competition.federation-cup-old.en"
+concept = "competition.federation-cup-old"
+canonical = "Federation Cup"
+synonyms = ["Fed Cup"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Knockout cup that preceded the current Super Cup; see comp.super-cup"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.competition.nfl-old.en"
+concept = "competition.nfl-old"
+canonical = "National Football League"
+synonyms = ["NFL (India)"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Predecessor of the I-League as India's top league until the mid-2000s; see comp.ifl"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Ambiguous with the American league, so keep a full name in text." }
+
+[[term]]
+id = "term.competition.santosh-nationals.en"
+concept = "competition.santosh-nationals"
+canonical = "the Nationals"
+synonyms = ["Nationals", "Santosh"]
+register = "casual"
+region = "national"
+lang = "lang.en"
+constraints = "Casual shorthand for the Santosh Trophy; see comp.santosh-trophy"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.competition.durand.en"
+concept = "competition.durand"
+canonical = "Durand"
+synonyms = ["Durand Cup", "the Durand"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Long-standing annual tournament, often described as Asia's oldest football tournament; see comp.durand-cup"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.org.state-fa.en"
+concept = "org.state-fa"
+canonical = "state association"
+synonyms = ["state FA", "state football association"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.org.district-fa.en"
+concept = "org.district-fa"
+canonical = "district football association"
+synonyms = ["district FA", "district association"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.fan.ultras.en"
+concept = "fan.ultras"
+canonical = "ultras"
+synonyms = ["supporters' group", "fan club"]
+register = "casual"
+region = "national"
+lang = "lang.en"
+constraints = "Organised supporter groups (e.g. West Block Blues, Manjappada)"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.competition.hero.en"
+concept = "competition.hero"
+canonical = "Hero"
+synonyms = ["Hero ISL"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Historic sponsor prefix used with league names in some seasons"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Which seasons carried which prefix is not verified." }
+
+[[term]]
+id = "term.finance.title-sponsor.en"
+concept = "finance.title-sponsor"
+canonical = "title sponsor"
+synonyms = ["naming-rights sponsor"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.kolkata.en"
+concept = "place.kolkata"
+canonical = "Kolkata"
+synonyms = ["Calcutta"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Official English spelling changed in 2001; Calcutta survives in Calcutta Football League, IFA Shield references and older literature"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.bengaluru.en"
+concept = "place.bengaluru"
+canonical = "Bengaluru"
+synonyms = ["Bangalore"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Official change in 2014; Bangalore appears in older records and some overseas media"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.kochi.en"
+concept = "place.kochi"
+canonical = "Kochi"
+synonyms = ["Cochin"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Official spelling changed in the 1990s; Cochin still appears in older references"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.chennai.en"
+concept = "place.chennai"
+canonical = "Chennai"
+synonyms = ["Madras"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Renamed 1996; FC Madras keeps the old name deliberately"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.mumbai.en"
+concept = "place.mumbai"
+canonical = "Mumbai"
+synonyms = ["Bombay"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Renamed 1995"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.thiruvananthapuram.en"
+concept = "place.thiruvananthapuram"
+canonical = "Thiruvananthapuram"
+synonyms = ["Trivandrum"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Trivandrum is the older and still common short form"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.kozhikode.en"
+concept = "place.kozhikode"
+canonical = "Kozhikode"
+synonyms = ["Calicut"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Calicut is the older form; the city ground is often called Kozhikode Corporation Stadium"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.thrissur.en"
+concept = "place.thrissur"
+canonical = "Thrissur"
+synonyms = ["Trichur"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Trichur is older"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.kannur.en"
+concept = "place.kannur"
+canonical = "Kannur"
+synonyms = ["Cannanore"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Cannanore is older"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.malappuram.en"
+concept = "place.malappuram"
+canonical = "Malappuram"
+synonyms = ["Malapuram"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Malapuram is a frequent misspelling in overseas media"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.margao.en"
+concept = "place.margao"
+canonical = "Margao"
+synonyms = ["Madgaon"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Madgaon is the older Portuguese-era form; Fatorda ground is in Margao"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.panaji.en"
+concept = "place.panaji"
+canonical = "Panaji"
+synonyms = ["Panjim"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Panjim is the common colloquial form"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.guwahati.en"
+concept = "place.guwahati"
+canonical = "Guwahati"
+synonyms = ["Gauhati"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Gauhati is the older form"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.pune.en"
+concept = "place.pune"
+canonical = "Pune"
+synonyms = ["Poona"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Poona is older"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.vadodara.en"
+concept = "place.vadodara"
+canonical = "Vadodara"
+synonyms = ["Baroda"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Baroda is older"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.puducherry.en"
+concept = "place.puducherry"
+canonical = "Puducherry"
+synonyms = ["Pondicherry"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Officially changed in 2006"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.visakhapatnam.en"
+concept = "place.visakhapatnam"
+canonical = "Visakhapatnam"
+synonyms = ["Vizag"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Vizag is colloquial and common in headlines"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.odisha.en"
+concept = "place.odisha"
+canonical = "Odisha"
+synonyms = ["Orissa"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Renamed 2011; Orissa in older literature"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.jamshedpur.en"
+concept = "place.jamshedpur"
+canonical = "Jamshedpur"
+synonyms = ["Tatanagar"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Tatanagar is the railway station name; the city is Jamshedpur"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.prayagraj.en"
+concept = "place.prayagraj"
+canonical = "Prayagraj"
+synonyms = ["Allahabad"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Renamed 2018"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.varanasi.en"
+concept = "place.varanasi"
+canonical = "Varanasi"
+synonyms = ["Benares"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Benares and Banaras are older forms; Inter Kashi uses Kashi"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.mangaluru.en"
+concept = "place.mangaluru"
+canonical = "Mangaluru"
+synonyms = ["Mangalore"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Renamed 2014"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }
+
+[[term]]
+id = "term.place.mysuru.en"
+concept = "place.mysuru"
+canonical = "Mysuru"
+synonyms = ["Mysore"]
+register = "neutral"
+region = "national"
+lang = "lang.en"
+constraints = "Renamed 2014"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. " }

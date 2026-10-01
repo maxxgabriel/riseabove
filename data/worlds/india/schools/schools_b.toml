@@ -1,0 +1,41 @@
+[meta]
+dataset = "schools.b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "A small set of real football-relevant schools and state sports schools known with confidence."
+gaps = ["Model knowledge only, not re-checked (brief v2: no web access).", "Sparse on purpose: the assignment asked for Mizoram, Manipur and Goa school football programmes and SAI/Khelo India centres, but I cannot name specific institutions there with enough confidence, so none are invented.", "Which schools enter SGFI/Subroto Cup football in 2026-27 is not recorded.", "Khelo India Centres and SAI Training Centres with football are not itemised."]
+
+[[school]]
+id = "school.gv-raja-sports-school"
+name = "G. V. Raja Sports School"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "sports_school"
+residential = true
+operator = "Government of Kerala (Kerala Sports Council)"
+programme = "Residential government sports school with football among its disciplines."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Real government sports school in Thiruvananthapuram, founded in the 1970s; football is one of several sports. Current intake and competitions not recorded." }
+
+[[school]]
+id = "school.rkm-vidyalaya-narendrapur"
+name = "Ramakrishna Mission Vidyalaya, Narendrapur"
+city = "Narendrapur"
+state = "state.wb"
+kind = "academy_school"
+residential = true
+operator = "Ramakrishna Mission"
+programme = "Residential school whose football academy has long supplied Bengal clubs (see academy.rkm-narendrapur)."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Real residential school south of Kolkata; the football academy is linked but the record is separate." }
+
+[[school]]
+id = "school.kiss-bhubaneswar"
+name = "Kalinga Institute of Social Sciences (KISS) school"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "school"
+residential = true
+operator = "KIIT / KISS foundation"
+programme = "Free residential school for tribal children with a strong sports culture including football."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. KISS is a real large residential institution in Bhubaneswar; the strength of its football programme and any tie to Odisha FC is not verified." }

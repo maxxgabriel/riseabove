@@ -1,6 +1,6 @@
 # Vendored from OpenFootManager (crates/engine, v0.3.0), GPL-3.0 — see LICENSE.md.
 # Source files are unmodified; only this manifest differs (package name, no
-# workspace lints).
+# workspace lints, the dev-dependency its own tests use).
 [package]
 name = "ofm-engine"
 version = "0.3.0"
@@ -15,3 +15,6 @@ path = "src/lib.rs"
 [dependencies]
 rand = "0.10"
 serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1.0"

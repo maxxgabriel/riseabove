@@ -1,0 +1,327 @@
+[meta]
+dataset = "associations.state_b"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Additions only: the state/UT associations missing from associations.toml (Andaman and Nicobar, Dadra and Nagar Haveli, Daman and Diu, Lakshadweep), the 14 Kerala district associations, and the main city/district bodies that operate headline leagues (Bengaluru, Mumbai, Pune, Nagpur, Chennai, Hyderabad, Shillong)."
+gaps = [
+  "All names, abbreviations, HQ cities and AIFF categories are model knowledge, not re-checked against AIFF or the associations; every record is C or D.",
+  "Extra optional fields used, not in SCHEMA.md: `aliases` (list of text, already used by clubs/competitions), `aiff_category` (text: how the body sits in the AIFF structure, e.g. state association full member, institutional associate, district affiliate of a state association) and `competition_names` (list of text: headline competitions it runs, for competitions not yet defined as comp ids; `competitions` is used only for ids that exist).",
+  "Existing associations.toml records carry no competitions and no aiff_category; not edited here (add-only assignment). Known naming issues there: assoc.fd (Football Delhi) was formerly the Delhi Soccer Association (DSA); assoc.wifa is the Western India Football Association whose district body is MDFA; assoc.fap 'Football Association of Punjab' vs the commonly used 'Punjab Football Association' is unresolved; assoc.mfa is Mizoram FA and assoc.mfa-ml is Meghalaya FA (abbreviation clash is why the -ml suffix exists).",
+  "Whether the four UT bodies added here are current full AIFF members (and how the Dadra and Nagar Haveli and Daman and Diu merger of 2020 changed the two former associations) is not known; aiff_member is left out and status is unknown.",
+  "Petroleum Sports Promotion Board or other institutional affiliates beyond SSCB and RSPB (already present) are not added: unsure whether AIFF currently affiliates them.",
+  "Other district bodies exist across states (Bengal district sports associations, Goa taluka bodies, Coimbatore, Kolhapur, Guwahati, etc.) and are not covered.",
+]
+
+[[association]]
+id = "assoc.dnhfa"
+name = "Dadra and Nagar Haveli Football Association"
+abbr = "DNHFA"
+kind = "state"
+state = "state.dn"
+parent = "assoc.aiff"
+hq_city = "Silvassa"
+aiff_category = "state association (union-territory member of AIFF; membership status not re-checked)"
+status = "unknown"
+competition_names = ["Dadra and Nagar Haveli local league (Silvassa)"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; pre-2020 body of the former UT; may have been folded into a single UT body after the 26 January 2020 merger" }
+
+[[association]]
+id = "assoc.ddfa"
+name = "Daman and Diu Football Association"
+abbr = "DDFA"
+kind = "state"
+state = "state.dn"
+parent = "assoc.aiff"
+hq_city = "Daman"
+aiff_category = "state association (union-territory member of AIFF; membership status not re-checked)"
+status = "unknown"
+competition_names = ["Daman and Diu local league"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; pre-2020 body of the former UT; may have been folded into a single UT body after the 2020 merger" }
+
+[[association]]
+id = "assoc.bdfa"
+name = "Bangalore District Football Association"
+abbr = "BDFA"
+aliases = ["Bengaluru District Football Association"]
+kind = "district"
+state = "state.ka"
+parent = "assoc.ksfa"
+hq_city = "Bengaluru"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competitions = ["comp.ka.bdfa-super-division"]
+competition_names = ["BDFA Super Division", "BDFA A Division", "BDFA B Division"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; runs the Bengaluru league pyramid under KSFA" }
+
+[[association]]
+id = "assoc.mdfa"
+name = "Mumbai District Football Association"
+abbr = "MDFA"
+kind = "district"
+state = "state.mh"
+parent = "assoc.wifa"
+hq_city = "Mumbai"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competitions = ["comp.mh.mdfa-elite-division"]
+competition_names = ["MDFA Elite Division", "Mumbai Football League lower divisions"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; runs the Mumbai league under WIFA; division names beyond Elite are unsure" }
+
+[[association]]
+id = "assoc.pdfa"
+name = "Pune District Football Association"
+abbr = "PDFA"
+kind = "district"
+state = "state.mh"
+parent = "assoc.wifa"
+hq_city = "Pune"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Pune Football League"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, unsure; existence and abbreviation of the Pune body from memory; league name unsure" }
+
+[[association]]
+id = "assoc.ndfa"
+name = "Nagpur District Football Association"
+abbr = "NDFA"
+kind = "district"
+state = "state.mh"
+parent = "assoc.wifa"
+hq_city = "Nagpur"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Nagpur district football league"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, unsure; unsure; Nagpur may sit under a Vidarbha body; league name unsure" }
+
+[[association]]
+id = "assoc.chdfa"
+name = "Chennai District Football Association"
+abbr = "CDFA"
+kind = "district"
+state = "state.tn"
+parent = "assoc.tnfa"
+hq_city = "Chennai"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competitions = ["comp.tn.chennai-league-premier-division"]
+competition_names = ["Chennai League Premier Division"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, unsure; the Chennai League may be run by TNFA itself rather than a separate district body; unsure which entity is the operator" }
+
+[[association]]
+id = "assoc.hydfa"
+name = "Hyderabad Football Association"
+abbr = "HFA-HYD"
+kind = "district"
+state = "state.ts"
+parent = "assoc.tfa-ts"
+hq_city = "Hyderabad"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competitions = ["comp.ts.hyderabad-football-league"]
+competition_names = ["Hyderabad Football League"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, unsure; operator of the Hyderabad league may be the state body itself or a district body under it; abbreviation is ours to avoid clashing with Haryana HFA" }
+
+[[association]]
+id = "assoc.ssa"
+name = "Shillong Sports Association"
+abbr = "SSA"
+kind = "district"
+state = "state.ml"
+parent = "assoc.mfa-ml"
+hq_city = "Shillong"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competitions = ["comp.ml.shillong-premier-league"]
+competition_names = ["Shillong Premier League", "Shillong First Division"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, unsure; recall that the Shillong Sports Association has been involved in the city leagues; the current operator of the Shillong Premier League (SSA vs Meghalaya FA) is unsure, and competitions.organiser there is assoc.mfa-ml" }
+
+[[association]]
+id = "assoc.kl.thiruvananthapuram"
+name = "Thiruvananthapuram District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Thiruvananthapuram"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Thiruvananthapuram district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.kollam"
+name = "Kollam District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kollam"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Kollam district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.pathanamthitta"
+name = "Pathanamthitta District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Pathanamthitta"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Pathanamthitta district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.alappuzha"
+name = "Alappuzha District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Alappuzha"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Alappuzha district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.kottayam"
+name = "Kottayam District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kottayam"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Kottayam district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.idukki"
+name = "Idukki District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Thodupuzha"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Idukki district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.ernakulam"
+name = "Ernakulam District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kochi"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Ernakulam district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.thrissur"
+name = "Thrissur District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Thrissur"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Thrissur district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.palakkad"
+name = "Palakkad District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Palakkad"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Palakkad district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.malappuram"
+name = "Malappuram District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Malappuram"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Malappuram district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.kozhikode"
+name = "Kozhikode District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kozhikode"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Kozhikode district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.wayanad"
+name = "Wayanad District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kalpetta"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Wayanad district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.kannur"
+name = "Kannur District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kannur"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Kannur district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }
+
+[[association]]
+id = "assoc.kl.kasaragod"
+name = "Kasaragod District Football Association"
+kind = "district"
+state = "state.kl"
+parent = "assoc.kfa"
+hq_city = "Kasaragod"
+aiff_member = false
+aiff_category = "district association affiliated to a state association (not an AIFF member in its own right)"
+status = "unknown"
+competition_names = ["Kasaragod district league / KFA district qualifying events"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; KFA has a district association in each of the 14 districts; name pattern and HQ (district town, chosen from memory, may differ) are inferred" }

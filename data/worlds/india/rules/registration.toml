@@ -1,0 +1,8 @@
+[meta]
+dataset = "rules.registration"
+quality = "E"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-29"
+coverage = "Empty on purpose."
+gaps = ["Foreign-player limits, registration windows, U-age requirements and salary cap are NOT recorded: they were not verified and are volatile. Do not fill from memory."]

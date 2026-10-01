@@ -1,0 +1,675 @@
+[meta]
+dataset = "media.outlets"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "54 real outlets across national, football-specialist, regional-language, TV/digital and official layers."
+gaps = ["Reach, emphasis and languages are broad general-knowledge characterisations; not verified per outlet.", "Official club media, local newspapers below state level, radio and campus media not listed.", "Football-specialist outlets can close or change; active flag not checked.", "No journalists are named on purpose: journalists are simulated people attached to these outlets."]
+
+[[outlet]]
+id = "media.times-of-india-sport"
+name = "The Times of India (sports desk)"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+owner = "Bennett, Coleman & Co."
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.hindustan-times-sport"
+name = "Hindustan Times (sports desk)"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+owner = "HT Media"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.the-hindu-sport"
+name = "The Hindu (sport)"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+home_city = "Chennai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.indian-express-sport"
+name = "The Indian Express (sport)"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.telegraph-india-sport"
+name = "The Telegraph India (sport)"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "multi_state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.deccan-herald-sport"
+name = "Deccan Herald (sport)"
+kind = "general_news"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sportstar"
+name = "Sportstar"
+kind = "national_sports"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+owner = "Kasturi & Sons"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.pti"
+name = "Press Trust of India"
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.ians"
+name = "IANS"
+kind = "news_agency"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.khel-now"
+name = "Khel Now"
+kind = "football_specialist"
+medium = ["digital", "video"]
+languages = ["lang.en"]
+reach = "national"
+focus = ["professional", "national_team", "youth", "transfers"]
+football_emphasis = "specialist"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.the-bridge"
+name = "The Bridge"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.indian-football-network"
+name = "Indian Football Network"
+kind = "football_specialist"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "specialist"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sportskeeda-football"
+name = "Sportskeeda (football)"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.goal-india"
+name = "Goal India"
+kind = "football_specialist"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+football_emphasis = "specialist"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.espn-india-football"
+name = "ESPN India (football)"
+kind = "digital_sports"
+medium = ["digital"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.anandabazar"
+name = "Anandabazar Patrika"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+owner = "ABP Group"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.bartaman"
+name = "Bartaman"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sangbad-pratidin"
+name = "Sangbad Pratidin"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.aajkaal"
+name = "Aajkaal"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.bn"]
+reach = "state"
+home_state = "state.wb"
+home_city = "Kolkata"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.mathrubhumi-sports"
+name = "Mathrubhumi (sports)"
+kind = "regional"
+medium = ["print", "digital", "tv"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.malayala-manorama-sports"
+name = "Malayala Manorama (sports)"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kottayam"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.madhyamam"
+name = "Madhyamam"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+home_city = "Kozhikode"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.deshabhimani"
+name = "Deshabhimani"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ml"]
+reach = "state"
+home_state = "state.kl"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.herald-goa"
+name = "The Herald (Goa)"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+focus = ["professional", "state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.navhind-times"
+name = "The Navhind Times"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.gomantak"
+name = "Gomantak"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr", "lang.kok"]
+reach = "state"
+home_state = "state.ga"
+home_city = "Panaji"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sambad"
+name = "Sambad"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.dharitri"
+name = "Dharitri"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.or"]
+reach = "state"
+home_state = "state.od"
+home_city = "Bhubaneswar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.assam-tribune"
+name = "The Assam Tribune"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.asomiya-pratidin"
+name = "Asomiya Pratidin"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.as"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sentinel-assam"
+name = "The Sentinel (Assam)"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.as"
+home_city = "Guwahati"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sangai-express"
+name = "The Sangai Express"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en", "lang.mni"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+focus = ["state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.imphal-free-press"
+name = "Imphal Free Press"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.mn"
+home_city = "Imphal"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.vanglaini"
+name = "Vanglaini"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.lus"]
+reach = "state"
+home_state = "state.mz"
+home_city = "Aizawl"
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.shillong-times"
+name = "The Shillong Times"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.en"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+focus = ["state", "regional_leagues"]
+football_emphasis = "strong"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.highland-post"
+name = "Highland Post"
+kind = "local_newspaper"
+medium = ["print", "digital"]
+languages = ["lang.en", "lang.kha"]
+reach = "state"
+home_state = "state.ml"
+home_city = "Shillong"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.ajit"
+name = "Ajit"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.jagbani"
+name = "Jagbani"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.pa"]
+reach = "state"
+home_state = "state.pb"
+home_city = "Jalandhar"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.dinamalar"
+name = "Dinamalar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.dinamani"
+name = "Dinamani"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.ta"]
+reach = "state"
+home_state = "state.tn"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.eenadu"
+name = "Eenadu"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sakshi"
+name = "Sakshi"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.te"]
+reach = "multi_state"
+home_state = "state.ts"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.lokmat"
+name = "Lokmat"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.maharashtra-times"
+name = "Maharashtra Times"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.mr"]
+reach = "state"
+home_state = "state.mh"
+home_city = "Mumbai"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.prajavani"
+name = "Prajavani"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.kn"]
+reach = "state"
+home_state = "state.ka"
+home_city = "Bengaluru"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.dainik-jagran"
+name = "Dainik Jagran"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.amar-ujala"
+name = "Amar Ujala"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.dainik-bhaskar"
+name = "Dainik Bhaskar"
+kind = "regional"
+medium = ["print", "digital"]
+languages = ["lang.hi", "lang.gu"]
+reach = "multi_state"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.star-sports"
+name = "Star Sports (network)"
+kind = "tv_sports"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn", "lang.mr"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.sony-sports"
+name = "Sony Sports Network"
+kind = "tv_sports"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi", "lang.ta", "lang.te"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.dd-sports"
+name = "DD Sports"
+kind = "tv_sports"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+football_emphasis = "general"
+owner = "Prasar Bharati"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.fancode"
+name = "FanCode"
+kind = "digital_sports"
+medium = ["digital", "video"]
+languages = ["lang.en", "lang.hi"]
+reach = "national"
+football_emphasis = "general"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.aiff-media"
+name = "AIFF official channels"
+kind = "official_federation"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "specialist"
+owner = "All India Football Federation"
+website = "https://www.the-aiff.com"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }
+
+[[outlet]]
+id = "media.isl-official"
+name = "Indian Super League official channels"
+kind = "official_league"
+medium = ["digital", "social", "video"]
+languages = ["lang.en"]
+reach = "national"
+football_emphasis = "specialist"
+website = "https://www.indiansuperleague.com"
+active = true
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source; the outlet is real and its language/type is well known, but emphasis and reach category are a broad characterisation only." }

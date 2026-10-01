@@ -1,0 +1,34 @@
+[meta]
+dataset = "associations.ut_remaining"
+quality = "D"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "Union territories that had no association record."
+gaps = ["Whether these bodies exist as AIFF members, their exact names, and their status are all unverified. Dadra & Nagar Haveli and Daman & Diu may have two separate football bodies. Records are placeholders so every UT resolves to a body; replace after research."]
+
+[[association]]
+id = "assoc.anifa"
+name = "Andaman and Nicobar Islands Football Association"
+kind = "state"
+state = "state.an"
+parent = "assoc.aiff"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Name and membership unverified." }
+
+[[association]]
+id = "assoc.lfa-ld"
+name = "Lakshadweep Football Association"
+kind = "state"
+state = "state.ld"
+parent = "assoc.aiff"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Name and membership unverified." }
+
+[[association]]
+id = "assoc.dnhdd-fa"
+name = "Dadra and Nagar Haveli and Daman and Diu Football Association"
+kind = "state"
+state = "state.dn"
+parent = "assoc.aiff"
+status = "unknown"
+prov = { status = "unknown", q = "D", src = [], note = "Name and membership unverified; may be two separate bodies." }

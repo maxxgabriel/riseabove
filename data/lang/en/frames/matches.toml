@@ -1,0 +1,1330 @@
+# Frames for injuries, call-ups, academy and university offers, management changes, competition changes, match results, records, scout reports and UI copy.
+
+[[frame]]
+id = "injury.suffered.news.headline.report.1"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "injury"]
+time = "past"
+text = "{player} {lex:suffer.past} a {col:injury.adj} {injury}"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.2"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "weeks_out"]
+time = "past"
+text = "{player} {lex:rule_out.pp} for {weeks_out:n=week}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.1"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "player", "injury"]
+time = "past"
+text = "{club:poss} {player:desc} {lex:suffer.past} a {col:injury.adj} {injury} {date}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.2"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "player", "injury", "opponent"]
+when = "in_match == true"
+time = "past"
+text = "{club:poss} {player:desc} {lex:suffer.past} a {col:injury.adj} {injury} in the match against {opponent} {date}"
+
+[[frame]]
+id = "injury.suffered.news.detail.duration.1"
+event = "injury.suffered"
+channel = "news"
+slot = "detail"
+topic = "duration"
+needs = ["injury", "player", "weeks_out"]
+time = "past"
+text = "The {injury} {lex:rule_out.past} {player:short} for {weeks_out:n=week}."
+
+[[frame]]
+id = "injury.suffered.news.detail.duration.2"
+event = "injury.suffered"
+channel = "news"
+slot = "detail"
+topic = "duration"
+needs = ["weeks_out"]
+text = "The estimated recovery time is {weeks_out:n=week}."
+
+[[frame]]
+id = "injury.suffered.social.post.report.1"
+event = "injury.suffered"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "injury"]
+time = "past"
+text = "{player} {lex:suffer.past} a {col:injury.adj} {injury}"
+
+[[frame]]
+id = "injury.suffered.social.post.report.2"
+event = "injury.suffered"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "weeks_out"]
+time = "past"
+register = "informal"
+text = "{player} {lex:rule_out.pp} for {weeks_out:n=week}"
+
+[[frame]]
+id = "injury.suffered.inbox.subject.report.1"
+event = "injury.suffered"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player", "injury"]
+time = "past"
+text = "{player}: {injury}"
+
+[[frame]]
+id = "injury.suffered.inbox.situation.report.1"
+event = "injury.suffered"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["player", "injury"]
+text = "{player:short} has {lex:suffer.pp} a {col:injury.adj} {injury}"
+
+[[frame]]
+id = "injury.suffered.inbox.situation.duration.1"
+event = "injury.suffered"
+channel = "inbox"
+slot = "situation"
+topic = "duration"
+needs = ["weeks_out"]
+text = "The estimated recovery time is {weeks_out:n=week}."
+
+[[frame]]
+id = "injury.returned.news.headline.report.1"
+event = "injury.returned"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "injury"]
+time = "past"
+text = "{player} {lex:return.past} from {injury}"
+
+[[frame]]
+id = "injury.returned.news.lede.report.1"
+event = "injury.returned"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "player", "injury"]
+time = "past"
+text = "{club:poss} {player:desc} {lex:return.past} from a {injury} {date}"
+
+[[frame]]
+id = "injury.returned.news.detail.duration.1"
+event = "injury.returned"
+channel = "news"
+slot = "detail"
+topic = "duration"
+needs = ["player", "games_missed"]
+time = "past"
+text = "{player:short} missed {games_missed:n=game}."
+
+[[frame]]
+id = "injury.returned.social.post.report.1"
+event = "injury.returned"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "injury"]
+time = "past"
+text = "{player} {lex:return.past} from {injury}"
+
+[[frame]]
+id = "injury.returned.inbox.subject.report.1"
+event = "injury.returned"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player"]
+time = "past"
+text = "{player}: back from injury"
+
+[[frame]]
+id = "injury.returned.inbox.situation.report.1"
+event = "injury.returned"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["player", "injury"]
+time = "past"
+text = "{player:short} {lex:return.past} from a {injury} {date}"
+
+[[frame]]
+id = "callup.national.news.headline.report.1"
+event = "callup.national"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["team", "player"]
+time = "past"
+text = "{team} {lex:call_up.past} {player}"
+
+[[frame]]
+id = "callup.national.news.headline.report.2"
+event = "callup.national"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "team"]
+time = "past"
+register = "informal"
+text = "{player} gets {col:callup.adj} {team} call-up"
+
+[[frame]]
+id = "callup.national.news.lede.report.1"
+event = "callup.national"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["team", "player"]
+time = "past"
+text = "{team} {lex:call_up.past} {player:desc} {date}, a {col:callup.adj} call-up"
+
+[[frame]]
+id = "callup.national.news.lede.report.2"
+event = "callup.national"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["player", "team"]
+text = "{player:desc} has received a {col:callup.adj} call-up to {team}"
+
+[[frame]]
+id = "callup.national.news.detail.camp.1"
+event = "callup.national"
+channel = "news"
+slot = "detail"
+topic = "camp"
+needs = ["camp"]
+text = "The call-up is for the {camp}."
+
+[[frame]]
+id = "callup.national.news.detail.caps.1"
+event = "callup.national"
+channel = "news"
+slot = "detail"
+topic = "caps"
+needs = ["player", "caps", "team"]
+when = "caps >= 1"
+text = "{player:short} has {caps:n=cap} for {team}."
+
+[[frame]]
+id = "callup.national.news.detail.first.1"
+event = "callup.national"
+channel = "news"
+slot = "detail"
+topic = "first"
+needs = ["player", "team"]
+when = "first_call == true"
+text = "It is {player:short}'s first call-up to {team}."
+
+[[frame]]
+id = "callup.national.social.post.report.1"
+event = "callup.national"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["team", "player"]
+time = "past"
+text = "{team} {lex:call_up.past} {player}"
+
+[[frame]]
+id = "callup.national.social.post.report.2"
+event = "callup.national"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "team"]
+register = "informal"
+text = "{player} in the {team} {lex:squad.sing}"
+
+[[frame]]
+id = "callup.national.inbox.subject.report.1"
+event = "callup.national"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["team"]
+time = "past"
+text = "Call-up: {team}"
+
+[[frame]]
+id = "callup.national.inbox.situation.report.1"
+event = "callup.national"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["team", "to_player"]
+when = "to_player == true"
+time = "past"
+text = "{team} {lex:call_up.past} you [?camp:for the {camp}] {date}"
+
+[[frame]]
+id = "callup.national.inbox.situation.report.2"
+event = "callup.national"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["team", "player"]
+when = "to_player != true"
+time = "past"
+text = "{team} {lex:call_up.past} {player} {date}"
+
+[[frame]]
+id = "callup.state.news.headline.report.1"
+event = "callup.state"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["team", "player"]
+time = "past"
+text = "{team} {lex:call_up.past} {player}"
+
+[[frame]]
+id = "callup.state.news.lede.report.1"
+event = "callup.state"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["team", "player"]
+time = "past"
+text = "{team} {lex:call_up.past} {player:desc}[?stage: in the {stage}][?competition: for the {competition}] {date}"
+
+[[frame]]
+id = "callup.state.social.post.report.1"
+event = "callup.state"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["team", "player"]
+time = "past"
+text = "{team} {lex:call_up.past} {player}"
+
+[[frame]]
+id = "callup.state.inbox.subject.report.1"
+event = "callup.state"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["team"]
+time = "past"
+text = "Selected: {team}"
+
+[[frame]]
+id = "callup.state.inbox.situation.report.1"
+event = "callup.state"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["team", "to_player"]
+when = "to_player == true"
+time = "past"
+text = "{team} {lex:call_up.past} you [?stage:in the {stage}] {date}"
+
+[[frame]]
+id = "callup.state.inbox.situation.report.2"
+event = "callup.state"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["team", "player"]
+when = "to_player != true"
+time = "past"
+text = "{team} {lex:call_up.past} {player} {date}"
+
+[[frame]]
+id = "academy.invitation.news.headline.report.1"
+event = "academy.invitation"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'trial'"
+time = "past"
+text = "{academy} {lex:invite.past} {player} for a trial"
+
+[[frame]]
+id = "academy.invitation.news.headline.report.2"
+event = "academy.invitation"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'admission'"
+time = "past"
+text = "{academy} {lex:offer.past} {player} a place"
+
+[[frame]]
+id = "academy.invitation.news.headline.report.3"
+event = "academy.invitation"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{academy} {lex:offer.past} {player} a scholarship"
+
+[[frame]]
+id = "academy.invitation.news.lede.report.1"
+event = "academy.invitation"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'trial'"
+time = "past"
+text = "{academy} {lex:invite.past} {player:desc}[?place: from {place}] for a trial {date}"
+
+[[frame]]
+id = "academy.invitation.news.lede.report.2"
+event = "academy.invitation"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'admission'"
+time = "past"
+text = "{academy} {lex:offer.past} {player:desc}[?place: from {place}] a place {date}"
+
+[[frame]]
+id = "academy.invitation.news.lede.report.3"
+event = "academy.invitation"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{academy} {lex:offer.past} {player:desc}[?place: from {place}] a scholarship {date}"
+
+[[frame]]
+id = "academy.invitation.social.post.report.1"
+event = "academy.invitation"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'trial'"
+time = "past"
+text = "{academy} {lex:invite.past} {player} for a trial"
+
+[[frame]]
+id = "academy.invitation.social.post.report.2"
+event = "academy.invitation"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'admission'"
+time = "past"
+text = "{academy} {lex:offer.past} {player} a place"
+
+[[frame]]
+id = "academy.invitation.social.post.report.3"
+event = "academy.invitation"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["academy", "player"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{academy} {lex:offer.past} {player} a scholarship"
+
+[[frame]]
+id = "academy.invitation.inbox.subject.report.1"
+event = "academy.invitation"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["academy"]
+when = "offer_kind == 'trial'"
+time = "past"
+text = "{academy}: trial invitation"
+
+[[frame]]
+id = "academy.invitation.inbox.subject.report.2"
+event = "academy.invitation"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["academy"]
+when = "offer_kind == 'admission'"
+time = "past"
+text = "{academy}: offer of a place"
+
+[[frame]]
+id = "academy.invitation.inbox.subject.report.3"
+event = "academy.invitation"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["academy"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{academy}: scholarship offer"
+
+[[frame]]
+id = "academy.invitation.inbox.situation.report.1"
+event = "academy.invitation"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["academy", "to_player", "offer_kind"]
+when = "offer_kind == 'trial' && to_player == true"
+time = "past"
+text = "{academy} {lex:invite.past} you for a trial {date}"
+
+[[frame]]
+id = "academy.invitation.inbox.situation.report.2"
+event = "academy.invitation"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["academy", "to_player", "offer_kind"]
+when = "offer_kind == 'admission' && to_player == true"
+time = "past"
+text = "{academy} {lex:offer.past} you a place {date}"
+
+[[frame]]
+id = "academy.invitation.inbox.situation.report.3"
+event = "academy.invitation"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["academy", "to_player", "offer_kind"]
+when = "offer_kind == 'scholarship' && to_player == true"
+time = "past"
+text = "{academy} {lex:offer.past} you a scholarship {date}"
+
+[[frame]]
+id = "university.scholarship.news.headline.report.1"
+event = "university.scholarship"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["university", "player"]
+when = "offer_kind == 'sports quota'"
+time = "past"
+text = "{university} {lex:offer.past} {player} a place under the sports quota"
+
+[[frame]]
+id = "university.scholarship.news.headline.report.2"
+event = "university.scholarship"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["university", "player"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{university} {lex:offer.past} {player} a sports scholarship"
+
+[[frame]]
+id = "university.scholarship.news.lede.report.1"
+event = "university.scholarship"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["university", "player"]
+when = "offer_kind == 'sports quota'"
+time = "past"
+text = "{university} {lex:offer.past} {player:desc} a place under the sports quota[?course: on the {course} course] {date}"
+
+[[frame]]
+id = "university.scholarship.news.lede.report.2"
+event = "university.scholarship"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["university", "player"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{university} {lex:offer.past} {player:desc} a sports scholarship[?course: on the {course} course] {date}"
+
+[[frame]]
+id = "university.scholarship.social.post.report.1"
+event = "university.scholarship"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["university", "player"]
+when = "offer_kind == 'sports quota'"
+time = "past"
+text = "{university} {lex:offer.past} {player} a place under the sports quota"
+
+[[frame]]
+id = "university.scholarship.social.post.report.2"
+event = "university.scholarship"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["university", "player"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{university} {lex:offer.past} {player} a sports scholarship"
+
+[[frame]]
+id = "university.scholarship.inbox.subject.report.1"
+event = "university.scholarship"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["university"]
+when = "offer_kind == 'sports quota'"
+time = "past"
+text = "{university}: sports quota offer"
+
+[[frame]]
+id = "university.scholarship.inbox.subject.report.2"
+event = "university.scholarship"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["university"]
+when = "offer_kind == 'scholarship'"
+time = "past"
+text = "{university}: sports scholarship offer"
+
+[[frame]]
+id = "university.scholarship.inbox.situation.report.1"
+event = "university.scholarship"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["university", "to_player", "offer_kind"]
+when = "offer_kind == 'sports quota' && to_player == true"
+time = "past"
+text = "{university} {lex:offer.past} you a place under the sports quota[?course: on the {course} course] {date}"
+
+[[frame]]
+id = "university.scholarship.inbox.situation.report.2"
+event = "university.scholarship"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["university", "to_player", "offer_kind"]
+when = "offer_kind == 'scholarship' && to_player == true"
+time = "past"
+text = "{university} {lex:offer.past} you a sports scholarship[?course: on the {course} course] {date}"
+
+[[frame]]
+id = "exchange.trip.news.headline.report.1"
+event = "exchange.trip"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "weeks", "host"]
+time = "future"
+text = "{player} to spend {weeks:n=week} with {host}"
+
+[[frame]]
+id = "exchange.trip.news.headline.report.2"
+event = "exchange.trip"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "weeks", "host"]
+time = "past"
+text = "{player} {lex:spend.past} {weeks:n=week} with {host}"
+
+[[frame]]
+id = "exchange.trip.news.lede.report.1"
+event = "exchange.trip"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["home_club", "player", "weeks", "host"]
+time = "future"
+text = "{home_club:poss} {player:desc} will spend {weeks:n=week} with {host}[?programme: on the {programme}]"
+
+[[frame]]
+id = "exchange.trip.news.lede.report.2"
+event = "exchange.trip"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["home_club", "player", "weeks", "host"]
+time = "past"
+text = "{home_club:poss} {player:desc} {lex:spend.past} {weeks:n=week} with {host}[?programme: on the {programme}]"
+
+[[frame]]
+id = "exchange.trip.social.post.report.1"
+event = "exchange.trip"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "weeks", "host"]
+time = "future"
+text = "{player} to spend {weeks:n=week} with {host}"
+
+[[frame]]
+id = "exchange.trip.social.post.report.2"
+event = "exchange.trip"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "weeks", "host"]
+time = "past"
+text = "{player} {lex:spend.past} {weeks:n=week} with {host}"
+
+[[frame]]
+id = "exchange.trip.inbox.subject.report.1"
+event = "exchange.trip"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["host"]
+text = "{host}: exchange"
+
+[[frame]]
+id = "exchange.trip.inbox.situation.report.1"
+event = "exchange.trip"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["player", "weeks", "host"]
+time = "future"
+text = "{player:short} will spend {weeks:n=week} with {host}"
+
+[[frame]]
+id = "manager.departed.news.headline.report.1"
+event = "manager.departed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club", "manager"]
+when = "manner == 'sacked'"
+time = "past"
+text = "{club} {lex:dismiss.past} {manager}"
+
+[[frame]]
+id = "manager.departed.news.headline.report.2"
+event = "manager.departed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["manager", "club"]
+when = "manner == 'resigned'"
+time = "past"
+text = "{manager} {lex:resign.past} as {club} {lex:manager_title.sing}"
+
+[[frame]]
+id = "manager.departed.news.headline.report.3"
+event = "manager.departed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club", "manager"]
+when = "manner == 'mutual'"
+time = "past"
+text = "{club} and {manager} {lex:part_ways.past} by mutual consent"
+
+[[frame]]
+id = "manager.departed.news.lede.report.1"
+event = "manager.departed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "manager"]
+when = "manner == 'sacked'"
+time = "past"
+text = "{club} {lex:dismiss.past} {lex:manager_title.sing} {manager}[?games: after {games:n=game} in charge] {date}"
+
+[[frame]]
+id = "manager.departed.news.lede.report.2"
+event = "manager.departed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["manager", "club"]
+when = "manner == 'resigned'"
+time = "past"
+text = "{manager} {lex:resign.past} as {lex:manager_title.sing} of {club}[?games: after {games:n=game} in charge] {date}"
+
+[[frame]]
+id = "manager.departed.news.lede.report.3"
+event = "manager.departed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "manager"]
+when = "manner == 'mutual'"
+time = "past"
+text = "{club} and {lex:manager_title.sing} {manager} {lex:part_ways.past} by mutual consent[?games: after {games:n=game}] {date}"
+
+[[frame]]
+id = "manager.departed.news.detail.table.1"
+event = "manager.departed"
+channel = "news"
+slot = "detail"
+topic = "table"
+needs = ["club", "position"]
+text = "{club} {club:was} {position:ord} in the table at the time."
+
+[[frame]]
+id = "manager.departed.social.post.report.1"
+event = "manager.departed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club", "manager"]
+when = "manner == 'sacked'"
+time = "past"
+text = "{club} {lex:dismiss.past} {manager}"
+
+[[frame]]
+id = "manager.departed.social.post.report.2"
+event = "manager.departed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["manager", "club"]
+when = "manner == 'resigned'"
+time = "past"
+text = "{manager} {lex:resign.past} as {club} {lex:manager_title.sing}"
+
+[[frame]]
+id = "manager.departed.social.post.report.3"
+event = "manager.departed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club", "manager"]
+when = "manner == 'mutual'"
+time = "past"
+text = "{club} and {manager} {lex:part_ways.past}"
+
+[[frame]]
+id = "manager.departed.inbox.subject.report.1"
+event = "manager.departed"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club}: {lex:manager_title.sing} departs"
+
+[[frame]]
+id = "manager.departed.inbox.situation.report.1"
+event = "manager.departed"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["manager", "club"]
+text = "{manager} has left {club} {date}"
+
+[[frame]]
+id = "manager.appointed.news.headline.report.1"
+event = "manager.appointed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club", "manager"]
+time = "past"
+text = "{club} {lex:appoint.past} {manager}"
+
+[[frame]]
+id = "manager.appointed.news.lede.report.1"
+event = "manager.appointed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "manager"]
+time = "past"
+text = "{club} {lex:appoint.past} {manager} as {lex:manager_title.sing}[?contract_years: on a {contract_years:words}-year {lex:deal.sing}] {date}"
+
+[[frame]]
+id = "manager.appointed.news.detail.background.1"
+event = "manager.appointed"
+channel = "news"
+slot = "detail"
+topic = "background"
+needs = ["manager", "previous_club"]
+text = "{manager:short} was previously with {previous_club}."
+
+[[frame]]
+id = "manager.appointed.social.post.report.1"
+event = "manager.appointed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club", "manager"]
+time = "past"
+text = "{club} {lex:appoint.past} {manager} as {lex:manager_title.sing}"
+
+[[frame]]
+id = "manager.appointed.inbox.subject.report.1"
+event = "manager.appointed"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club}: new {lex:manager_title.sing}"
+
+[[frame]]
+id = "manager.appointed.inbox.situation.report.1"
+event = "manager.appointed"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["club", "manager"]
+time = "past"
+text = "{club} {lex:appoint.past} {manager} as {lex:manager_title.sing} {date}"
+
+[[frame]]
+id = "competition.promotion.news.headline.report.1"
+event = "competition.promotion"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:promote.past}[?to_tier: to the {to_tier}]"
+
+[[frame]]
+id = "competition.promotion.news.lede.report.1"
+event = "competition.promotion"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "position", "competition"]
+time = "past"
+text = "{club} {lex:promote.past}[?to_tier: to the {to_tier}], finishing {position:ord} in the {competition} {date}"
+
+[[frame]]
+id = "competition.promotion.news.lede.report.2"
+event = "competition.promotion"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:promote.past}[?to_tier: to the {to_tier}] {date}"
+
+[[frame]]
+id = "competition.promotion.social.post.report.1"
+event = "competition.promotion"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:promote.past}[?to_tier: to the {to_tier}]"
+
+[[frame]]
+id = "competition.promotion.inbox.subject.report.1"
+event = "competition.promotion"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club}: promotion"
+
+[[frame]]
+id = "competition.promotion.inbox.situation.report.1"
+event = "competition.promotion"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:promote.past}[?to_tier: to the {to_tier}] {date}"
+
+[[frame]]
+id = "competition.relegation.news.headline.report.1"
+event = "competition.relegation"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:relegate.past}[?to_tier: to the {to_tier}]"
+
+[[frame]]
+id = "competition.relegation.news.lede.report.1"
+event = "competition.relegation"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "position", "competition"]
+time = "past"
+text = "{club} {lex:relegate.past}[?to_tier: to the {to_tier}], finishing {position:ord} in the {competition} {date}"
+
+[[frame]]
+id = "competition.relegation.news.lede.report.2"
+event = "competition.relegation"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:relegate.past}[?to_tier: to the {to_tier}] {date}"
+
+[[frame]]
+id = "competition.relegation.social.post.report.1"
+event = "competition.relegation"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:relegate.past}[?to_tier: to the {to_tier}]"
+
+[[frame]]
+id = "competition.relegation.inbox.subject.report.1"
+event = "competition.relegation"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club}: relegation"
+
+[[frame]]
+id = "competition.relegation.inbox.situation.report.1"
+event = "competition.relegation"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["club"]
+time = "past"
+text = "{club} {lex:relegate.past}[?to_tier: to the {to_tier}] {date}"
+
+[[frame]]
+id = "match.result.news.headline.report.1"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}"
+
+[[frame]]
+id = "match.result.news.headline.report.2"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["winner", "loser"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} {lex:beat.past} {loser}"
+
+[[frame]]
+id = "match.result.news.headline.report.3"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["home", "away", "home_goals", "away_goals", "result_kind"]
+when = "result_kind == 'draw'"
+time = "past"
+text = "{home} {lex:draw.past} {away} {home_goals}-{away_goals}"
+
+[[frame]]
+id = "match.result.news.lede.report.1"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}[?competition: in the {competition}][?venue: at {venue}] {date}"
+
+[[frame]]
+id = "match.result.news.lede.report.2"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["winner", "winner_goals", "loser_goals", "loser"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} {~recorded|registered|secured} a {col:win.adj} {winner_goals}-{loser_goals} {lex:win.sing} over {loser}[?competition: in the {competition}] {date}"
+
+[[frame]]
+id = "match.result.news.lede.report.3"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["home", "away", "home_goals", "away_goals", "result_kind"]
+when = "result_kind == 'draw'"
+time = "past"
+text = "{home} {lex:draw.past} {away} {home_goals}-{away_goals}[?competition: in the {competition}][?venue: at {venue}] {date}"
+
+[[frame]]
+id = "match.result.news.detail.scorers.1"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "scorers"
+needs = ["scorers"]
+text = "Goals came from {scorers}."
+
+[[frame]]
+id = "match.result.news.detail.star.1"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "{star} was the pick of the performers."
+
+[[frame]]
+id = "match.result.news.detail.star.2"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "{star} stood out on the day."
+
+[[frame]]
+id = "match.result.news.detail.star.3"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "The match belonged to {star}."
+
+[[frame]]
+id = "match.result.news.detail.star.4"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "star"
+needs = ["star"]
+text = "{star} made the difference."
+
+[[frame]]
+id = "match.result.news.detail.attendance.1"
+event = "match.result"
+channel = "news"
+slot = "detail"
+topic = "attendance"
+needs = ["attendance"]
+text = "The attendance was {attendance:grouped}."
+
+[[frame]]
+id = "match.result.social.post.report.1"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["home", "home_goals", "away_goals", "away"]
+register = "informal"
+text = "FT: {home:short} {home_goals}-{away_goals} {away:short}"
+
+[[frame]]
+id = "match.result.social.post.report.2"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}"
+
+[[frame]]
+id = "match.result.social.post.report.3"
+event = "match.result"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["home", "away", "home_goals", "away_goals", "result_kind"]
+when = "result_kind == 'draw'"
+time = "past"
+text = "{home} {lex:draw.past} {away} {home_goals}-{away_goals}"
+
+[[frame]]
+id = "match.result.inbox.subject.report.1"
+event = "match.result"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["home", "home_goals", "away_goals", "away"]
+text = "Result: {home:short} {home_goals}-{away_goals} {away:short}"
+
+[[frame]]
+id = "match.result.inbox.situation.report.1"
+event = "match.result"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["home", "home_goals", "away_goals", "away"]
+time = "past"
+text = "{home} {home_goals}-{away_goals} {away}[?competition: in the {competition}] {date}"
+
+[[frame]]
+id = "record.broken.news.headline.report.1"
+event = "record.broken"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["person", "record"]
+time = "past"
+text = "{person} {lex:set_record.past} {record}"
+
+[[frame]]
+id = "record.broken.news.lede.report.1"
+event = "record.broken"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["person", "record"]
+time = "past"
+text = "{person:desc} {lex:set_record.past} the {record}[?value: with {value}] {date}"
+
+[[frame]]
+id = "record.broken.news.detail.background.1"
+event = "record.broken"
+channel = "news"
+slot = "detail"
+topic = "background"
+needs = ["previous_holder"]
+text = "The previous best belonged to {previous_holder}."
+
+[[frame]]
+id = "record.broken.social.post.report.1"
+event = "record.broken"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["person", "record"]
+time = "past"
+text = "{person} {lex:set_record.past} the {record}"
+
+[[frame]]
+id = "record.broken.inbox.situation.report.1"
+event = "record.broken"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["person", "record"]
+time = "past"
+text = "{person} {lex:set_record.past} the {record} {date}"
+
+[[frame]]
+id = "scout.assessment.scout.heading.report.1"
+event = "scout.assessment"
+channel = "scout"
+slot = "heading"
+topic = "report"
+needs = ["player", "position", "age"]
+text = "{player}: {position}, {age}"
+
+[[frame]]
+id = "scout.assessment.scout.summary.seen.1"
+event = "scout.assessment"
+channel = "scout"
+slot = "summary"
+topic = "seen"
+needs = ["matches_seen"]
+form = "full"
+certainty = ["fact", "verified_report"]
+text = "Seen in {matches_seen:n=match}."
+
+[[frame]]
+id = "scout.assessment.scout.summary.caution.1"
+event = "scout.assessment"
+channel = "scout"
+slot = "summary"
+topic = "caution"
+needs = ["matches_seen"]
+form = "full"
+certainty = ["fact", "verified_report"]
+when = "matches_seen <= 2"
+text = "Small sample: only {matches_seen:n=match} watched."
+
+[[frame]]
+id = "scout.assessment.scout.strengths.report.1"
+event = "scout.assessment"
+channel = "scout"
+slot = "strengths"
+topic = "report"
+needs = ["strengths"]
+text = "Strengths: {strengths}."
+
+[[frame]]
+id = "scout.assessment.scout.concerns.report.1"
+event = "scout.assessment"
+channel = "scout"
+slot = "concerns"
+topic = "report"
+needs = ["concerns"]
+text = "Concerns: {concerns}."
+
+[[frame]]
+id = "scout.assessment.scout.verdict.report.1"
+event = "scout.assessment"
+channel = "scout"
+slot = "verdict"
+topic = "report"
+needs = ["player", "level"]
+form = "full"
+certainty = ["speculation"]
+text = "My view: {player:short} could become a {level}."
+
+[[frame]]
+id = "ui.unknown_value.ui.label.unknown.1"
+event = "ui.unknown_value"
+channel = "ui"
+slot = "label"
+topic = "unknown"
+needs = ["label"]
+form = "full"
+certainty = ["fact"]
+when = "matches_seen != 0"
+text = "{label}: not known yet"
+
+[[frame]]
+id = "ui.unknown_value.ui.label.unknown.2"
+event = "ui.unknown_value"
+channel = "ui"
+slot = "label"
+topic = "unknown"
+needs = ["label"]
+form = "full"
+certainty = ["fact"]
+when = "matches_seen == 0"
+text = "{label}: not scouted yet"
+
+[[frame]]
+id = "ui.unknown_value.ui.hint.basis.1"
+event = "ui.unknown_value"
+channel = "ui"
+slot = "hint"
+topic = "basis"
+needs = ["matches_seen"]
+form = "full"
+certainty = ["fact"]
+when = "matches_seen >= 1"
+text = "Based on {matches_seen:n=match} watched so far"

@@ -1,0 +1,161 @@
+[meta]
+dataset = "languages"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Languages relevant to Indian football media and regions."
+gaps = ["Region-level language environment (as opposed to per-person) is only recorded per state in geography/states.toml."]
+
+[[language]]
+id = "lang.en"
+code = "en"
+name = "English"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.hi"
+code = "hi"
+name = "Hindi"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.bn"
+code = "bn"
+name = "Bengali"
+script = "Bengali"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.ml"
+code = "ml"
+name = "Malayalam"
+script = "Malayalam"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.kok"
+code = "kok"
+name = "Konkani"
+script = "Devanagari/Latin"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.pa"
+code = "pa"
+name = "Punjabi"
+script = "Gurmukhi"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.or"
+code = "or"
+name = "Odia"
+script = "Odia"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.ta"
+code = "ta"
+name = "Tamil"
+script = "Tamil"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.te"
+code = "te"
+name = "Telugu"
+script = "Telugu"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.mr"
+code = "mr"
+name = "Marathi"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.as"
+code = "as"
+name = "Assamese"
+script = "Bengali-Assamese"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.mni"
+code = "mni"
+name = "Manipuri (Meitei)"
+script = "Meitei Mayek/Bengali"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.lus"
+code = "lus"
+name = "Mizo"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.kha"
+code = "kha"
+name = "Khasi"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.ne"
+code = "ne"
+name = "Nepali"
+script = "Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.kn"
+code = "kn"
+name = "Kannada"
+script = "Kannada"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.gu"
+code = "gu"
+name = "Gujarati"
+script = "Gujarati"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.ur"
+code = "ur"
+name = "Urdu"
+script = "Perso-Arabic"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.ks"
+code = "ks"
+name = "Kashmiri"
+script = "Perso-Arabic/Devanagari"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.sat"
+code = "sat"
+name = "Santali"
+script = "Ol Chiki"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.grt"
+code = "grt"
+name = "Garo"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[language]]
+id = "lang.njz"
+code = "njz"
+name = "Nyishi/Arunachal languages"
+script = "Latin"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

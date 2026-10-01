@@ -1,0 +1,682 @@
+[meta]
+dataset = "rules.registration_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Rules records on registration and transfer windows, foreign players by competition, age groups and young-player quotas, contracts, loans, agents, dual registration (club/state/university/school), sports quota and NOC conventions, squad and salary rules, youth development participation, dispute committee, club licensing and promotion/relegation. All from model knowledge, not re-checked."
+gaps = [
+  "No source URLs: all records are model knowledge, not re-checked (brief v2). Volatile numbers (foreign-player caps, squad sizes, salary cap, young-player minutes, transfer dates) are mostly left OUT on purpose and the note says so.",
+  "The recorded ISL squad limit of seven foreign players is recalled for 2023-24 to 2024-25 only; ISL 2025-26 was disrupted and the 2026-27 ISL regulations and operator may change any ISL rule.",
+  "I-League, I-League 2, I-League 3, IWL and IWL 2 foreign caps, squad sizes, young-player quotas and promotion counts are NOT known.",
+  "State-league rules differ by state association; only generic patterns are recorded, and per-league rules are not.",
+  "Optional extra field applies_to (list of comp/assoc ids) is used on rules that apply to several entities, and the single competition field only where one competition applies. Optional extra field sub (short text) refines topic.",
+  "SCHEMA GAP: rule.topic has no values for contract, agent, dispute_resolution, youth_development, sports_quota, discipline or age_verification, so those records use the closest topic and a sub tag.",
+  "SCHEMA GAP: rule has no note field, so caveats are carried in prov.note.",
+  "SCHEMA GAP: rule.competition holds one id only, so multi-competition rules use the optional applies_to list.",
+  "Football-federation-level rules in the FIFA RSTP are summarised from memory and the numbers should be checked against the current edition before use."
+]
+
+[[rule]]
+id = "rule.aiff-player-registration"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl", "comp.iwl2"]
+topic = "registration"
+sub = "player_registration"
+statement = "A player must be registered with the AIFF, through his or her club and state association on the AIFF registration system, before being fielded in an AIFF-run competition."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Platform name and whether a FIFA Connect ID is issued at registration are recalled, not checked." }
+
+[[rule]]
+id = "rule.aiff-professional-amateur-status"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "status"
+statement = "A player counts as a professional if he or she has a written contract with a club and is paid more than the expenses actually incurred; everyone else is an amateur."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). This is the FIFA Regulations on the Status and Transfer of Players (RSTP) definition, which the AIFF regulations follow. Indian state-league players are often amateurs on paper while receiving informal match payments; that practice is not a rule." }
+
+[[rule]]
+id = "rule.fifa-registration-period-ceilings"
+applies_to = ["assoc.aiff"]
+topic = "transfer_window"
+sub = "window_length"
+statement = "Under the FIFA rules that bind the AIFF, a men's club can register players in only two periods a season, a main period after the season ends of at most twelve weeks and a mid-season period of at most four weeks."
+params = { max_weeks_main_period = 12, max_weeks_midseason_period = 4 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP maximums recalled from memory. AIFF fixes the actual dates by circular each year; the dates are deliberately left out." }
+
+[[rule]]
+id = "rule.aiff-transfer-windows-2026-27"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl", "comp.iwl2"]
+topic = "transfer_window"
+statement = "The AIFF opens a main summer registration window and a shorter mid-season window in January, with exact dates set by circular for each season; clubs may not register new players outside them except in narrow cases."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Exact 2026-27 open and close dates NOT known; number left out on purpose. In recent years the summer window has opened around June or July and closed around the end of August or early September, and the winter window ran for about a month in January. ISL and I-League usually share the AIFF windows; state leagues and IFL 3 may use state-association dates." }
+
+[[rule]]
+id = "rule.aiff-out-of-window-registration"
+applies_to = ["assoc.aiff"]
+topic = "transfer_window"
+sub = "free_agents"
+statement = "A player whose contract has ended or was terminated, and who is therefore without a club, can normally still be registered outside a window, but a club that already holds a contract on him or her cannot re-register him or her elsewhere until the next window."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Follows the FIFA RSTP approach to unattached players; AIFF application of it to domestic free agents and emergency goalkeeper cover is not confirmed." }
+
+[[rule]]
+id = "rule.aiff-international-transfer-tms"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl"]
+topic = "transfer_window"
+sub = "itc_tms"
+statement = "A men's international transfer in or out of an Indian club runs through the FIFA Transfer Matching System and needs an International Transfer Certificate released by the AIFF, and the incoming player can only be registered inside a window."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA TMS compulsory for professional men's international transfers; applies to the ISL, I-League and IWL clubs alike. AIFF may need to issue a no-objection or release for Indian players going on trial or loan abroad; format not confirmed." }
+
+[[rule]]
+id = "rule.aiff-domestic-transfer-consent"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "registration"
+sub = "noc"
+statement = "Inside India a player under contract can move to another club only with the current club's agreement, while a player whose contract has ended can sign freely and the old NOC (no-objection) convention no longer blocks him."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Historically Indian clubs demanded a NOC or release letter from the old club and state association even for out-of-contract players, which caused disputes. Whether that survives in the current AIFF regulations is not confirmed. Treat as a convention, not a rule." }
+
+[[rule]]
+id = "rule.aiff-training-compensation"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "training_compensation"
+statement = "Clubs that trained a young player can claim training compensation and solidarity payments on the player's first professional contract and later transfers, following the FIFA formula."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP training compensation and solidarity mechanism; AIFF domestic scale (rupee amounts by club category) is NOT known, so no number is given." }
+
+[[rule]]
+id = "rule.aiff-registration-ban-arrears"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "registration"
+sub = "sanction"
+statement = "A club that fails to pay a final decision on money owed to players, staff or other clubs can be barred from registering new players until the debt is cleared."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA and AIFF registration-ban mechanism; specific cases against Indian clubs are not listed here. Ban lengths not known." }
+
+[[rule]]
+id = "rule.isl-asian-slot"
+competition = "comp.isl"
+topic = "foreign_players"
+statement = "One of the foreign places in an ISL squad has, in some seasons, been reserved for a player from an AFC member association."
+season = "2024-25"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The '4+1 AFC' style rule was used in earlier ISL seasons; whether it still applies in 2026-27 is not known. No number kept." }
+
+[[rule]]
+id = "rule.ifl2-foreign-players"
+competition = "comp.ifl2"
+topic = "foreign_players"
+statement = "Foreign players in the Indian Football League 2 are allowed only in a small number set by the season's regulations."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Cap NOT known and might be zero to three; number left out. Scenario seed for how the simulation restricts foreigners at the third tier." }
+
+[[rule]]
+id = "rule.ifl3-foreign-players"
+competition = "comp.ifl3"
+topic = "foreign_players"
+statement = "The fourth-tier Indian Football League 3 is intended for Indian players and, as far as is known, does not allow or heavily restricts foreign players."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Not confirmed. Scenario seed." }
+
+[[rule]]
+id = "rule.iwl-foreign-players"
+competition = "comp.iwl"
+topic = "foreign_players"
+statement = "Indian Women's League clubs may include a small number of foreign players, capped by the season's regulations."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Cap NOT known (a limit of around four registered was recalled but unreliable), so no number is given. Same for the on-pitch limit." }
+
+[[rule]]
+id = "rule.iwl2-foreign-players"
+competition = "comp.iwl2"
+topic = "foreign_players"
+statement = "Foreign players in the second-tier women's league are not expected to be allowed, or only in a very small number."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Not confirmed. Scenario seed." }
+
+[[rule]]
+id = "rule.state-leagues-foreign-players"
+applies_to = ["comp.kl.kerala-premier-league", "comp.kl.super-league-kerala", "comp.ga.goa-professional-league", "comp.mn.manipur-state-league", "comp.mz.mizoram-premier-league", "comp.ml.shillong-premier-league", "comp.as.assam-state-premier-league", "comp.ka.bdfa-super-division", "comp.mh.mdfa-elite-division", "comp.pb.punjab-state-super-football-league", "comp.tn.chennai-league-premier-division", "comp.sk.sikkim-premier-division-league", "comp.dl.delhi-premier-league", "comp.rj.rajasthan-state-premier-league", "comp.od.odisha-premier-league", "comp.ts.hyderabad-football-league", "comp.ap.andhra-pradesh-state-league", "comp.jh.jharkhand-state-premier-league", "comp.ar.arunachal-premier-league", "comp.nl.nagaland-premier-league", "comp.tr.tripura-premier-league", "comp.jk.jk-premier-league", "comp.uk.uttarakhand-premier-league", "comp.gj.gujarat-state-premier-league", "comp.wb.cfl-premier", "comp.wb.cfl-1st-div", "comp.wb.cfl-2nd-div", "comp.wb.cfl-3rd-div", "comp.wb.cfl-4th-div", "comp.wb.cfl-5th-div"]
+topic = "foreign_players"
+statement = "Each state association sets its own foreign-player rule for its league: Kolkata, Kerala, Goa and some north-eastern leagues have let clubs use a few foreigners, while many other state leagues are Indian-only."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Per-league numbers NOT known, none given. Kerala, Goa and West Bengal leagues are the ones recalled as allowing foreigners; treat everything else as unknown. Scenario seed for the simulation to override per league." }
+
+[[rule]]
+id = "rule.super-cup-durand-foreign-players"
+applies_to = ["comp.super-cup", "comp.durand-cup"]
+topic = "foreign_players"
+statement = "The Super Cup and the Durand Cup use the foreign-player limits of the clubs' own league or a limit fixed in the tournament regulations, and the Durand Cup also includes armed-forces and some overseas teams."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Not confirmed; numbers left out. Durand Cup has recently included teams from neighbouring countries (from memory)." }
+
+[[rule]]
+id = "rule.oci-pio-domestic-status"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "foreign_players"
+statement = "Whether a player of Indian origin holding an OCI or foreign passport counts as an Indian player or a foreign player in AIFF leagues has been treated differently across seasons, and the current position is not known."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Left as unknown on purpose; do not assume. Simulation should keep this as a per-season switch." }
+
+[[rule]]
+id = "rule.indian-nationality-national-team"
+applies_to = ["assoc.aiff"]
+topic = "national_eligibility"
+sub = "citizenship"
+statement = "Only an Indian citizen can play for India, India does not allow dual citizenship, and a foreign-born player could qualify only through naturalisation plus the FIFA residence test of five years' continuous residence after age 18."
+params = { residence_years_after_18 = 5 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA Statutes Article 9 test (as amended 2020) recalled; the Indian citizenship side is general legal knowledge. Rare in practice." }
+
+[[rule]]
+id = "rule.aiff-age-cutoff-birth-year"
+applies_to = ["comp.youth-league-u17", "comp.youth-league-u15", "comp.youth-league-u13", "comp.rfdl", "comp.junior-nfc", "comp.sub-junior-nfc", "comp.kiyg"]
+topic = "eligibility"
+sub = "age_cutoff"
+statement = "AIFF age-group competitions set eligibility by year of birth, meaning a player is eligible for an age group if born on or after 1 January of the cut-off year for that season."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Follows FIFA/AFC practice; the actual birth years shift every season and are not listed. Which competition uses which band is in the competition records." }
+
+[[rule]]
+id = "rule.aiff-age-verification"
+applies_to = ["comp.youth-league-u17", "comp.youth-league-u15", "comp.youth-league-u13", "comp.rfdl", "comp.junior-nfc", "comp.sub-junior-nfc"]
+topic = "eligibility"
+sub = "age_verification"
+statement = "Age is checked at AIFF youth and junior competitions using birth certificate and school or identity records, and bone-age testing such as an MRI or wrist X-ray scan can be required to catch over-age players."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). MRI-based age checks used by the AIFF in past junior campaigns are recalled; whether they are compulsory in every youth league is not confirmed." }
+
+[[rule]]
+id = "rule.youth-league-u13-eligibility"
+competition = "comp.youth-league-u13"
+topic = "eligibility"
+statement = "The U13 Youth League is open to players in the U13 birth-year band who are registered with the AIFF through a participating club academy."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Band shifts every season; no year given. Participants historically include ISL and I-League club academies and accredited academies." }
+
+[[rule]]
+id = "rule.youth-league-u15-eligibility"
+competition = "comp.youth-league-u15"
+topic = "eligibility"
+statement = "The U15 Elite Youth League is open to players in the U15 birth-year band registered with the AIFF through a participating club academy."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Band shifts every season. Whether a few over-age players are allowed is not known." }
+
+[[rule]]
+id = "rule.youth-league-u17-eligibility"
+competition = "comp.youth-league-u17"
+topic = "eligibility"
+statement = "The U17 Elite Youth League is open to players in the U17 birth-year band registered through a participating club academy, and it succeeded the earlier U18 age group."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The earlier AIFF Youth League age group was U18 (recalled; the switch to U17 is not exactly dated). Over-age allowance not known." }
+
+[[rule]]
+id = "rule.rfdl-eligibility"
+competition = "comp.rfdl"
+topic = "u21"
+statement = "The development league for ISL and I-League clubs is meant for young players of about U21 age, and the club sides may include a limited number of older players."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The competition record lists it as U21; the exact age band and over-age allowance are NOT known, so no number is given." }
+
+[[rule]]
+id = "rule.junior-nfc-eligibility"
+competition = "comp.junior-nfc"
+topic = "state_eligibility"
+statement = "In the Junior National Football Championship, teams represent state associations and players must be in the age band and registered with that state."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Age band follows the competition record (U19); older editions used a lower age. Residence or birth test for state selection not known." }
+
+[[rule]]
+id = "rule.sub-junior-nfc-eligibility"
+competition = "comp.sub-junior-nfc"
+topic = "state_eligibility"
+statement = "In the Sub-Junior National Football Championship, teams represent state associations and players must be in the U-age band and registered with that state."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Age band follows the competition record (U16); older editions used U14 or U15. Not confirmed for 2026-27." }
+
+[[rule]]
+id = "rule.isl-young-indian-player-quota"
+competition = "comp.isl"
+topic = "u21"
+statement = "ISL clubs must carry a minimum number of young Indian players in the squad and give them a set amount of match time each season."
+season = "2024-25"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The rule exists in some form (called an Emerging Players or young-player requirement) but the age (U21 or U23), squad count and minute totals are NOT certain, so no number is given." }
+
+[[rule]]
+id = "rule.ifl-young-indian-player-quota"
+competition = "comp.ifl"
+topic = "u22"
+statement = "I-League clubs have had to name young Indian players in the matchday squad and start some of them, with the age limit and counts set in the season regulations."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The old I-League rule used an Under-22 or Under-21 limit; the current age band and counts are not known, so no number is given." }
+
+[[rule]]
+id = "rule.aiff-no-formal-homegrown-rule"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "homegrown"
+statement = "There is no European-style homegrown-trained quota in AIFF competitions; academy graduates are pushed through the young-player quotas, club licensing academy duties and the development league instead."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Absence of a rule is my recollection and not confirmed. If a domestic-ascription or homegrown definition has been adopted since, it is not captured here." }
+
+[[rule]]
+id = "rule.fifa-minor-protection"
+applies_to = ["assoc.aiff"]
+topic = "eligibility"
+sub = "minors"
+statement = "Under the FIFA rules that bind the AIFF, players under 18 cannot move internationally except in narrow cases, such as parents moving for non-football reasons, and Indian youth academies cannot sell minors abroad outside those cases."
+params = { minor_age_below = 18 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 19 protection of minors; the exceptions are stated in short form." }
+
+[[rule]]
+id = "rule.contract-max-five-years"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl"]
+topic = "registration"
+sub = "contract_length"
+statement = "A professional player's contract can run for at most five years, and cannot be shorter than the time to the end of the season it is signed in."
+params = { max_years = 5 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 18; AIFF regulations mirror it." }
+
+[[rule]]
+id = "rule.contract-minor-max-three-years"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "contract_length"
+statement = "A player under 18 can sign a professional contract for no more than three years, and a longer term counts only up to three years."
+params = { max_years = 3 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 18(2). No AIFF-specific variation known." }
+
+[[rule]]
+id = "rule.contract-pre-contract-window"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "registration"
+sub = "pre_contract"
+statement = "A player in the last six months of a contract may open talks and sign a pre-contract with another club, unless the current contract says otherwise."
+params = { months = 6 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 18(3). Indian clubs often extend rather than let players run down deals; that is behaviour, not a rule." }
+
+[[rule]]
+id = "rule.contract-protected-period"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "protected_period"
+statement = "A contract cannot be ended by either side without just cause during a protected period, which is three years or three seasons for a player who signed at 28 or younger and two for an older signing."
+params = { protected_seasons_signed_at_28_or_under = 3, protected_seasons_signed_after_28 = 2, age_threshold = 28 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 13-17; compensation and sporting sanctions apply for breach." }
+
+[[rule]]
+id = "rule.contract-overdue-salary-termination"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "registration"
+sub = "just_cause"
+statement = "A player who is owed at least two months of pay can give notice and end the contract for just cause."
+params = { months_overdue = 2 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 14bis; regularly relevant to lower-tier Indian clubs." }
+
+[[rule]]
+id = "rule.aiff-standard-player-contract"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl"]
+topic = "registration"
+sub = "standard_contract"
+statement = "Professional contracts registered with the AIFF should follow the AIFF standard player contract, with local additions agreed between player and club."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). AIFF standard contract form and any wage floor are NOT known; no minimum salary is given." }
+
+[[rule]]
+id = "rule.loan-fifa-terms"
+applies_to = ["assoc.aiff", "comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl"]
+topic = "loan"
+sub = "loan_terms"
+statement = "A loan needs a written agreement between the parent club, the borrowing club and the player, and it cannot last longer than one year or run past the parent contract."
+params = { max_months = 12 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 10; AIFF applies it. International loan-count limits exist under FIFA transitional rules but their numbers are not certain and are left out." }
+
+[[rule]]
+id = "rule.loan-domestic-registration"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.rfdl"]
+topic = "loan"
+statement = "A domestic loan is registered with the AIFF inside a registration window and the player counts as registered to the borrowing club for the loan period."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Common practice, with ISL clubs lending prospects to I-League, I-League 2 and development-league sides; per-club loan-in or loan-out ceilings are not known, so no number is given." }
+
+[[rule]]
+id = "rule.clubs-per-season-limit"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "one_club_at_a_time"
+statement = "A player can be on the books of at most three clubs in a season but can play official matches for only two of them."
+params = { max_clubs_registered = 3, max_clubs_played_for = 2 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA RSTP Article 5; also limits loan hopping. AIFF competitions apply it in the same way." }
+
+[[rule]]
+id = "rule.fifa-football-agent-regulations"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "agents"
+statement = "Agents who represent players or clubs in transfers involving Indian clubs must be licensed under the FIFA Football Agent Regulations, which apply through the AIFF."
+season = "2026-27"
+effective_from = "2023-10-01"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA Football Agent Regulations took effect around 1 October 2023 (licensing exam, registration, conflict-of-interest and fee rules). Fee caps have been in legal dispute and are left out. AIFF-level agent registration procedure not known." }
+
+[[rule]]
+id = "rule.agent-dual-representation"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "agents"
+statement = "An agent cannot act for both sides of the same deal without written consent of all parties, and every agent deal must be disclosed on the FIFA system."
+season = "2026-27"
+effective_from = "2023-10-01"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). FIFA agent rules summarised from memory; percentages and caps not known and left out." }
+
+[[rule]]
+id = "rule.club-state-dual-registration"
+competition = "comp.santosh-trophy"
+topic = "state_eligibility"
+statement = "A player is registered with a club through one state association at a time, and playing for the state team in the Santosh Trophy or a national championship requires being registered with that state."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). State-of-registration rule from memory. The state can be the birth state, the residence state or the state of the club; what test applies in 2026-27 is not known." }
+
+[[rule]]
+id = "rule.santosh-trophy-one-state-per-edition"
+competition = "comp.santosh-trophy"
+topic = "state_eligibility"
+statement = "A player can represent only one state association in a given Santosh Trophy edition, and armed-forces or railways teams pick their own eligible personnel."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). General rule recalled; Services and Railways as non-state entrants is recalled but not checked against 2026-27 regulations." }
+
+[[rule]]
+id = "rule.inter-state-transfer-release"
+applies_to = ["assoc.aiff", "comp.santosh-trophy", "comp.junior-nfc", "comp.sub-junior-nfc"]
+topic = "state_eligibility"
+sub = "noc"
+statement = "A player moving from one state association to another needs a release from the old association and may face a waiting period before representing the new state."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Convention rather than a confirmed rule; length of any waiting period is unknown so no number is given." }
+
+[[rule]]
+id = "rule.aiu-university-eligibility"
+applies_to = ["comp.aiu-north", "comp.aiu-south", "comp.aiu-east", "comp.aiu-west", "comp.aiu-inter-zone", "assoc.aiu"]
+topic = "eligibility"
+sub = "university_age"
+statement = "A player at an inter-university championship must be a regular student of a member university, must not exceed the upper age limit, and takes part through that university's team."
+params = { upper_age_years = 25 }
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). AIU upper age limit of about 25 for team games is recalled; the AIU changes conditions yearly and other conditions (attendance, years of participation, pass in last exam) are not confirmed." }
+
+[[rule]]
+id = "rule.kiug-eligibility"
+competition = "comp.kiug"
+topic = "eligibility"
+statement = "Khelo India University Games football is limited to university teams that qualify through AIU competition and to students inside the games' age limit."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Exact age limit and qualification route are NOT confirmed; the number is left out. The fixed part is that universities, not clubs, are the entrants." }
+
+[[rule]]
+id = "rule.club-university-dual-use"
+applies_to = ["comp.aiu-inter-zone", "assoc.aiu"]
+topic = "eligibility"
+statement = "A student footballer can be registered with a club and also play for a university team, and colleges commonly give leave for both; ISL and I-League contracted players are unlikely to be released for AIU games."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Practice, not a written rule. Whether an AIU bar on professionals exists is not known." }
+
+[[rule]]
+id = "rule.school-games-eligibility"
+applies_to = ["comp.sgfi-u14", "comp.sgfi-u17", "comp.sgfi-u19"]
+topic = "eligibility"
+sub = "school_students"
+statement = "School Games Federation of India football is for bona fide students of recognised schools in the U14, U17 and U19 age bands, playing for their state or school team."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Age bands as in the competition records; enrolment-proof and class requirements are from memory and not confirmed." }
+
+[[rule]]
+id = "rule.subroto-cup-eligibility"
+competition = "comp.subroto-cup"
+topic = "eligibility"
+statement = "The Subroto Cup is for school teams, with age categories that have included U14 and U17 boys and U17 girls."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Age categories recalled; the 2026-27 categories are not confirmed. Entry is by school, and players must be students of that school." }
+
+[[rule]]
+id = "rule.kiyg-eligibility"
+competition = "comp.kiyg"
+topic = "eligibility"
+statement = "Football at the Khelo India Youth Games is played by state and union-territory squads, and players must be inside the age band and hold an approved age proof."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Competition record lists it as U18; earlier games used U17. Not confirmed for 2026-27." }
+
+[[rule]]
+id = "rule.sports-quota-employment"
+applies_to = ["assoc.aiff", "comp.santosh-trophy"]
+topic = "eligibility"
+sub = "sports_quota"
+statement = "Indian footballers with state or national representation can be hired into government departments, public-sector firms, the armed forces and banks through a sports quota, and the employer's side then plays in state leagues and championships."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The share of posts set aside varies by state and employer, and no percentage is given. Historical departmental sides include Railways and Services; how many remain active in 2026-27 is not known." }
+
+[[rule]]
+id = "rule.sports-quota-education"
+applies_to = ["assoc.aiu", "comp.aiu-inter-zone"]
+topic = "eligibility"
+sub = "sports_quota"
+statement = "Colleges and universities in many states reserve seats for sports-quota admissions, awarded on district, state or national representation certificates."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Seat share and certificate hierarchy vary by state or institution and are NOT given." }
+
+[[rule]]
+id = "rule.noc-abroad-trial-release"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "noc"
+statement = "An Indian player leaving to join a foreign club or attend a foreign trial is expected to obtain a release or no-objection from the AIFF and his club, and a foreign club will need the International Transfer Certificate."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). NOC part is a convention; ITC part is FIFA rule." }
+
+[[rule]]
+id = "rule.ifl-squad-size"
+competition = "comp.ifl"
+topic = "squad_size"
+statement = "I-League clubs are bound by squad minimums and maximums set in the season regulations."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Counts NOT known and left out." }
+
+[[rule]]
+id = "rule.isl-salary-cap"
+competition = "comp.isl"
+topic = "salary_cap"
+statement = "ISL has had a per-club salary cap and a minimum spend on Indian players, both set in the league regulations."
+season = "2024-25"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Existence of a cap recalled; the amount, and how it splits between Indian and foreign players, is NOT known. Amounts changed by season and are left out. The 2026-27 model may differ after the change in league operator." }
+
+[[rule]]
+id = "rule.ifl-salary-floor"
+applies_to = ["comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "salary_cap"
+statement = "Lower-tier Indian leagues have no known salary cap and pay is set club by club, with only contract-registration checks by the AIFF."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). No cap known; not a claim that none exists. Minimum-wage rules, if any, are unknown." }
+
+[[rule]]
+id = "rule.matchday-substitutions"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3", "comp.iwl", "comp.super-cup", "comp.durand-cup"]
+topic = "substitutions"
+statement = "AIFF senior competitions follow the IFAB Laws, allow five substitutions per team across three stoppages plus half time, and use extra concussion changes as the Laws permit."
+params = { substitutions_allowed = 5, starting_players = 11 }
+season = "2024-25"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Five-substitution model recalled for ISL and I-League; the count of named substitutes is NOT certain and is left out." }
+
+[[rule]]
+id = "rule.youth-small-sided-formats"
+applies_to = ["comp.youth-league-u13"]
+topic = "squad_size"
+sub = "small_sided"
+statement = "Grassroots age groups use smaller sides and pitch sizes than 11-a-side, and the youngest bands play without league tables."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). AIFF Baby League formats (5-a-side to 9-a-side by band) recalled; exact numbers per age band are NOT confirmed and left out." }
+
+[[rule]]
+id = "rule.aiff-baby-league-participation"
+applies_to = ["assoc.aiff"]
+topic = "eligibility"
+sub = "baby_league"
+statement = "The AIFF Baby Leagues are open to boys and girls in the under-eight to under-twelve bands, entered through accredited academies, clubs, schools and state associations, and the youngest bands do not have a title."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Programme record is prog.aiff-baby-league; the bands (U6 to U12) are recalled, not checked. Whether U6 is included is not sure." }
+
+[[rule]]
+id = "rule.elite-youth-league-participation"
+applies_to = ["comp.youth-league-u17", "comp.youth-league-u15", "comp.youth-league-u13", "comp.rfdl"]
+topic = "eligibility"
+sub = "accredited_academy"
+statement = "Entry to the Elite Youth Leagues is limited to clubs with AIFF-accredited academies, and ISL and I-League clubs are expected to enter age-group teams."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Star-rating scheme (one to three stars, then Elite) recalled; which tier gets Elite League entry is NOT confirmed." }
+
+[[rule]]
+id = "rule.licensing-youth-teams"
+applies_to = ["comp.isl", "comp.ifl", "comp.youth-league-u17", "comp.youth-league-u15", "comp.youth-league-u13", "comp.rfdl"]
+topic = "licensing"
+statement = "Club licensing requires ISL and I-League clubs to run a recognised academy with age-group sides that play in the AIFF youth leagues."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Age groups required (U13, U15, U17 and a reserve or development side) recalled; official criteria list not checked." }
+
+[[rule]]
+id = "rule.aiff-player-status-committee"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "dispute_resolution"
+statement = "The AIFF Player Status Committee hears contract, registration and compensation disputes between players and clubs, and its decisions can be appealed inside the AIFF and then to the Court of Arbitration for Sport."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Committee's existence and role recalled from the AIFF statutes; appeal route and the number of members not confirmed. The AIFF statutes have been reworked in recent years, so the name and composition may change." }
+
+[[rule]]
+id = "rule.aiff-disciplinary-appeal-committees"
+applies_to = ["assoc.aiff"]
+topic = "registration"
+sub = "discipline"
+statement = "AIFF disciplinary and appeal committees handle bans and ineligibility, and a suspension carries across AIFF competitions."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Structure recalled only; how a state league treats an AIFF ban is not known." }
+
+[[rule]]
+id = "rule.aiff-club-licensing-framework"
+applies_to = ["comp.isl", "comp.ifl", "assoc.aiff"]
+topic = "licensing"
+statement = "A club needs an AIFF club licence, built on the AFC licensing model, to play in the ISL or I-League and to enter AFC club competitions."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The AFC model has five areas: sporting, infrastructure, personnel and administrative, legal, and financial. AIFF criteria and versions for 2026-27 are not verified." }
+
+[[rule]]
+id = "rule.licensing-criteria-grades"
+applies_to = ["assoc.aiff"]
+topic = "licensing"
+statement = "Licensing criteria are graded so that missing an A criterion means no licence, missing a B criterion brings a sanction, and C criteria are only recommendations."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The A, B, C grading is the AFC scheme; whether the AIFF copies it letter for letter is recalled, not checked." }
+
+[[rule]]
+id = "rule.licensing-stadium-standards"
+applies_to = ["comp.isl", "comp.ifl"]
+topic = "licensing"
+statement = "A licence needs a home stadium that meets pitch, floodlight, seating, safety, media and medical standards, and clubs can share a stadium with the state association's approval."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Minimum seating counts and lux levels are NOT confirmed and left out. Licensed stadium lists are in the stadium files." }
+
+[[rule]]
+id = "rule.licensing-financial-criteria"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2"]
+topic = "licensing"
+statement = "Financial criteria include filing audited accounts, showing no overdue payments to players, staff or other clubs, and proving the club can finish the season."
+season = "2026-27"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked (brief v2, no web access). AFC-derived summary; exact deadlines and amounts are not known." }
+
+[[rule]]
+id = "rule.licensing-tiered-by-division"
+applies_to = ["comp.isl", "comp.ifl", "comp.ifl2", "comp.ifl3"]
+topic = "licensing"
+statement = "Licensing requirements are lighter for lower divisions, with ISL clubs held to the fullest set and I-League 2 and IFL 3 clubs to a reduced set."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). The AIFF has used category or tier names for club licensing; the actual names and thresholds are NOT known, so this is a scenario simplification." }
+
+[[rule]]
+id = "rule.licensing-women-clubs"
+applies_to = ["comp.iwl", "comp.iwl2"]
+topic = "licensing"
+statement = "Clubs in the Indian Women's League need a licence covering a women's team, coaching and a suitable ground, with reduced financial criteria."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Scenario seed. IWL licensing criteria are not known." }
+
+[[rule]]
+id = "rule.isl-ifl-promotion"
+applies_to = ["comp.isl", "comp.ifl"]
+topic = "promotion"
+statement = "The champion of the second tier can be promoted to the ISL, provided it holds the licence and meets the ISL conditions, and the promotion has been introduced in stages."
+season = "2024-25"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). One I-League champion (Mohammedan SC, 2023-24) was recalled as promoted for 2024-25; later years' outcomes and whether promotion is automatic in 2026-27 are NOT confirmed." }
+
+[[rule]]
+id = "rule.isl-relegation"
+competition = "comp.isl"
+topic = "promotion"
+statement = "As far as is known, the ISL had no relegation through 2024-25, and relegation to the second tier has been a stated aim but is not confirmed for 2026-27."
+season = "2024-25"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Absence of relegation recalled for 2024-25. 2026-27 unknown; the ISL is described as 13 clubs in the competition record." }
+
+[[rule]]
+id = "rule.ifl-ifl2-promotion"
+applies_to = ["comp.ifl", "comp.ifl2"]
+topic = "promotion"
+statement = "The winner of the IFL 2 final round is promoted to the I-League if licensed, and the bottom of the I-League can be relegated when the regulations for that season say so."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Number promoted (one or two) and relegated is NOT known and left out." }
+
+[[rule]]
+id = "rule.ifl2-ifl3-promotion"
+applies_to = ["comp.ifl2", "comp.ifl3"]
+topic = "promotion"
+statement = "The IFL 3 winners can rise to IFL 2 and the weakest IFL 2 clubs can drop to IFL 3, with numbers set by the season's regulations."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). IFL 3 is described as clubs nominated by state associations in the competition record. Numbers unknown." }
+
+[[rule]]
+id = "rule.state-league-ifl3-entry"
+applies_to = ["comp.ifl3", "comp.kl.kerala-premier-league", "comp.kl.super-league-kerala", "comp.ga.goa-professional-league", "comp.mn.manipur-state-league", "comp.mz.mizoram-premier-league", "comp.ml.shillong-premier-league", "comp.as.assam-state-premier-league", "comp.ka.bdfa-super-division", "comp.mh.mdfa-elite-division", "comp.pb.punjab-state-super-football-league", "comp.tn.chennai-league-premier-division", "comp.sk.sikkim-premier-division-league", "comp.dl.delhi-premier-league", "comp.rj.rajasthan-state-premier-league", "comp.od.odisha-premier-league", "comp.ts.hyderabad-football-league", "comp.ap.andhra-pradesh-state-league", "comp.jh.jharkhand-state-premier-league", "comp.ar.arunachal-premier-league", "comp.nl.nagaland-premier-league", "comp.tr.tripura-premier-league", "comp.jk.jk-premier-league", "comp.uk.uttarakhand-premier-league", "comp.gj.gujarat-state-premier-league", "comp.wb.cfl-premier", "comp.wb.cfl-1st-div", "comp.wb.cfl-2nd-div", "comp.wb.cfl-3rd-div", "comp.wb.cfl-4th-div", "comp.wb.cfl-5th-div"]
+topic = "promotion"
+statement = "State associations nominate clubs to the IFL 3, usually from their top state league finishers, subject to AIFF entry checks."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Nomination criteria and slots per state are NOT known." }
+
+[[rule]]
+id = "rule.state-league-internal-promotion"
+applies_to = ["comp.wb.cfl-premier", "comp.wb.cfl-1st-div", "comp.wb.cfl-2nd-div", "comp.wb.cfl-3rd-div", "comp.wb.cfl-4th-div", "comp.wb.cfl-5th-div", "assoc.ifa"]
+topic = "promotion"
+statement = "Inside a state league pyramid, such as the Calcutta Football League divisions, promotion and relegation follows the state association's rules, with the top clubs going up and the bottom coming down."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Numbers per division not known. Applies especially to the six-division CFL structure; other states' pyramids are thinner." }
+
+[[rule]]
+id = "rule.iwl-promotion"
+applies_to = ["comp.iwl", "comp.iwl2"]
+topic = "promotion"
+statement = "The winner of the second-tier women's league can be promoted into the Indian Women's League, subject to licence checks."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). Number promoted and any relegation unknown." }
+
+[[rule]]
+id = "rule.state-league-registration"
+applies_to = ["comp.kl.kerala-premier-league", "comp.kl.super-league-kerala", "comp.ga.goa-professional-league", "comp.mn.manipur-state-league", "comp.mz.mizoram-premier-league", "comp.ml.shillong-premier-league", "comp.as.assam-state-premier-league", "comp.ka.bdfa-super-division", "comp.mh.mdfa-elite-division", "comp.pb.punjab-state-super-football-league", "comp.tn.chennai-league-premier-division", "comp.sk.sikkim-premier-division-league", "comp.dl.delhi-premier-league", "comp.rj.rajasthan-state-premier-league", "comp.od.odisha-premier-league", "comp.ts.hyderabad-football-league", "comp.ap.andhra-pradesh-state-league", "comp.jh.jharkhand-state-premier-league", "comp.ar.arunachal-premier-league", "comp.nl.nagaland-premier-league", "comp.tr.tripura-premier-league", "comp.jk.jk-premier-league", "comp.uk.uttarakhand-premier-league", "comp.gj.gujarat-state-premier-league", "comp.wb.cfl-premier", "comp.wb.cfl-1st-div", "comp.wb.cfl-2nd-div", "comp.wb.cfl-3rd-div", "comp.wb.cfl-4th-div", "comp.wb.cfl-5th-div"]
+topic = "registration"
+sub = "state_affiliation"
+statement = "State-league clubs must be affiliated to their state association, and players are registered with the association for the season, with association fees."
+season = "2026-27"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked (brief v2, no web access). General pattern; amounts and dates vary by association and are not given." }

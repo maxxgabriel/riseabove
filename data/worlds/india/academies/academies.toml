@@ -1,0 +1,109 @@
+[meta]
+dataset = "academies"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "9 well-known academies (identity, parent, kind, residential flag, approximate founding note). Club academies of ISL/I-League clubs are in academies_b.toml."
+gaps = ["AIFF accreditation (Elite/star ratings) lists not researched.", "Age groups and current status are model knowledge, not re-checked.", "AIFF Elite Academy city/state left out: its base has moved over the years and the 2026-27 location is not known with confidence.", "Founding years are carried in notes because the academy shape has no founded field."]
+
+[[academy]]
+id = "academy.rf-young-champs"
+name = "Reliance Foundation Young Champs"
+city = "Navi Mumbai"
+state = "state.mh"
+parent = "club.reliance-foundation-young-champs"
+parent_name = "Reliance Foundation"
+kind = "corporate"
+residential = true
+age_groups = ["U13", "U15", "U17", "U21"]
+competitions = ["comp.rfdl"]
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. Corporate residential football programme of Reliance Foundation, started around 2013; its teams play the national youth pathway and the RFDL. Age-group list is approximate; accreditation not recorded." }
+
+[[academy]]
+id = "academy.minerva-academy"
+name = "Minerva Academy"
+city = "Mohali"
+state = "state.pb"
+parent = "club.minerva-academy"
+kind = "independent"
+residential = true
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. Founded around 2005 by Ranjit Bajaj; its senior side won the I-League in 2016-17 (as Minerva Punjab) and the ownership later rebranded the senior club as RoundGlass Punjab and then Punjab FC (club.punjab). Whether the youth academy still trades under the Minerva name in 2026-27 is not confirmed. City may be given as Chandigarh/Mohali in sources." }
+
+[[academy]]
+id = "academy.rkm-narendrapur"
+name = "Ramakrishna Mission Football Academy (Narendrapur)"
+city = "Narendrapur"
+state = "state.wb"
+parent = "club.rkm-football-academy"
+parent_name = "Ramakrishna Mission Vidyalaya, Narendrapur"
+kind = "independent"
+residential = true
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. Attached to the residential Ramakrishna Mission school at Narendrapur, south of Kolkata; it has long fed Bengal clubs. Age groups and current accreditation not recorded." }
+
+[[academy]]
+id = "academy.pune-krida-prabodhini"
+name = "Pune Krida Prabodhini"
+city = "Pune"
+state = "state.mh"
+parent = "club.pune-krida-prabodhini"
+parent_name = "Maharashtra government sports body (Krida Prabodhini)"
+kind = "state"
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. The institution is real; its present football activity and structure in 2026-27 are unconfirmed, so status stays unknown." }
+
+[[academy]]
+id = "academy.bhaichung-bhutia-schools"
+name = "Bhaichung Bhutia Football Schools"
+city = "Gangtok"
+state = "state.sk"
+parent = "club.bhaichung-bhutia-football-schools"
+kind = "independent"
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. The brand is real (started around 2009 by Bhaichung Bhutia); it has run centres in more than one city, so Gangtok is the pack's base, not necessarily the only site. Current status unconfirmed." }
+
+[[academy]]
+id = "academy.aiff-elite-academy"
+name = "AIFF Elite Academy"
+parent_name = "All India Football Federation"
+kind = "state"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. The AIFF national residential academy squads (youth national pathway) exist, but the physical base has moved and its 2026-27 arrangement is not known to me; city and state left out on purpose." }
+
+[[academy]]
+id = "academy.tata-football-academy"
+name = "Tata Football Academy"
+city = "Jamshedpur"
+state = "state.jh"
+parent_name = "Tata Steel"
+kind = "corporate"
+residential = true
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. Founded by Tata Steel in 1987, widely regarded as India's first modern residential football academy; located at Jamshedpur. Age groups not recorded." }
+
+[[academy]]
+id = "academy.zinc-football-academy"
+name = "Zinc Football Academy"
+city = "Udaipur"
+state = "state.rj"
+parent = "club.zinc-football-academy"
+parent_name = "Hindustan Zinc (Vedanta group)"
+kind = "corporate"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. Corporate residential academy of Hindustan Zinc around Udaipur (mining area at Zawar), founded around 2010 and later an I-League 2nd/3rd Division participant. Current activity unconfirmed." }
+
+[[academy]]
+id = "academy.sesa-football-academy"
+name = "SESA Football Academy"
+city = "Sanquelim"
+state = "state.ga"
+parent = "club.sesa-football-academy"
+parent_name = "Sesa Goa (Vedanta group)"
+kind = "corporate"
+residential = true
+status = "unknown"
+prov = { status = "inferred", q = "C", src = [], note = "Model knowledge, not re-checked. Corporate residential academy of the Sesa mining company in Goa, founded around the turn of the century (exact year not known to me). Current activity unconfirmed." }

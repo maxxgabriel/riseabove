@@ -1,0 +1,37 @@
+.database-standalone { height: 100%; overflow: auto; }
+.database-page { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.database-page > * { min-width: 0; }
+.database-connect { max-width: 900px; margin: 10px 0; }
+.database-connect input { flex: 1; min-width: 160px; }
+.database-source { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.database-source label { display: flex; gap: 10px; align-items: center; min-width: 0; }
+.database-source select { max-width: min(760px, 65vw); }
+.database-layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); border-top: 1px solid var(--line); }
+.database-tables { border-right: 1px solid var(--line); padding: 12px 12px 12px 0; max-height: 78vh; overflow: auto; }
+.database-tables button, .database-list button { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--text); cursor: pointer; }
+.database-tables button[aria-current], .database-list button[aria-pressed=true] { background: var(--hover); box-shadow: inset 2px 0 var(--accent); }
+.database-tables button:hover, .database-list button:hover { background: var(--hover); }
+.database-tables small, .database-list small { color: var(--text-3); }
+.database-content { min-width: 0; padding: 18px 0 0 20px; }
+.database-table-head h2 { margin: 0; text-transform: capitalize; }
+.database-table-head p { margin: 6px 0 18px; }
+.database-filter { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.database-filter label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.database-filter input, .database-filter select { min-width: 120px; max-width: 240px; }
+.database-results-meta { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; margin: 20px 0 10px; color: var(--text-3); font-size: 12px; }
+.database-records { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(280px, 1.4fr); border-top: 1px solid var(--line); }
+.database-list { max-height: 68vh; overflow: auto; border-right: 1px solid var(--line); }
+.database-list strong { font-size: 13px; overflow-wrap: anywhere; }
+.database-detail { padding: 16px 20px; min-width: 0; }
+.database-detail h3 { margin: 0 0 6px; font-size: 20px; }
+.database-detail dl { margin: 20px 0 0; }
+.database-detail dl > div { display: grid; grid-template-columns: minmax(100px, .65fr) minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.database-detail dt { color: var(--text-3); text-transform: capitalize; }
+.database-detail dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.database-links { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; }
+.database-links button { padding: 0; border: 0; background: transparent; color: var(--accent); font: inherit; cursor: pointer; }
+.database-links a { color: var(--accent); }
+.database-pagination { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding: 14px 0; }
+.database-empty { padding: 36px 0; color: var(--text-3); }
+@media (max-width: 950px) { .database-layout { grid-template-columns: 150px minmax(0, 1fr); } .database-records { grid-template-columns: 1fr; } .database-list { max-height: 250px; border-right: 0; } .database-detail { padding: 20px 0; } }
+@media (max-width: 600px) { .database-layout { display: block; } .database-tables { display: flex; overflow: auto; max-height: none; border-right: 0; } .database-tables button { width: 170px; flex-shrink: 0; } .database-content { padding-left: 0; } .database-detail dl > div { grid-template-columns: 1fr; gap: 5px; } }

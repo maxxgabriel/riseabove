@@ -47,14 +47,7 @@ pub struct Health {
 
 impl Default for Health {
     fn default() -> Self {
-        Self {
-            match_exposure: 0.00034,
-            training_session: 0.00045,
-            illness_daily: 0.0009,
-            acwr_safe_low: 0.8,
-            acwr_safe_high: 1.3,
-            condition_recovery: 24.0,
-        }
+        Self { match_exposure: 0.00034, training_session: 0.005, illness_daily: 0.0009, acwr_safe_low: 0.8, acwr_safe_high: 1.3, condition_recovery: 24.0 }
     }
 }
 
@@ -90,6 +83,9 @@ pub struct MatchTuning {
     pub finish_bias: f32,
     /// Injury probability per contact/sprint exposure at neutral risk.
     pub injury_exposure: f32,
+    /// OFM backend: chance per 90 minutes of a non-contact injury at neutral risk. OFM's own
+    /// injuries are contact-only (a fouled player), blind to workload, fatigue and history.
+    pub ofm_noncontact_injury: f32,
     /// OFM backend: probability an on-target shot beats the keeper.
     pub ofm_conversion: f32,
     /// OFM backend: condition lost per minute (drives fatigue substitutions).
@@ -113,7 +109,8 @@ impl Default for MatchTuning {
             rating_scale: 2.2,
             shot_bias: 1.0,
             finish_bias: 1.0,
-            injury_exposure: 0.0009,
+            injury_exposure: 0.0005,
+            ofm_noncontact_injury: 0.0032,
             ofm_conversion: 0.225,
             ofm_fatigue: 0.45,
         }
@@ -136,8 +133,10 @@ pub struct Market {
 impl Default for Market {
     fn default() -> Self {
         Self {
-            value_base: 1_000_000.0,
-            value_exp: 0.042,
+            // Calibrated to the price scale of the imported data (a prime, mid-contract player of ability 100 is worth about 0.6m and
+            // each ten points of ability multiplies the price by about 2.0); `pw-import` checks the round trip.
+            value_base: 620_000.0,
+            value_exp: 0.068,
             max_transfers_per_club_window: 4,
             rebid_cooldown_days: 10,
             search_interval_days: 4,
@@ -173,11 +172,15 @@ pub struct Finance {
     pub wage_share: f32,
     pub ticket_price_top: f32,
     pub prize_pool_share: f32,
+    /// Share of revenue spent on running the club other than player and staff wages (ground, matchday, administration, academy).
+    pub operating_share: f32,
+    /// Cash a club keeps in reserve, in years of revenue; owners take, or put back into the club, what lies above it.
+    pub reserve_years: f32,
 }
 
 impl Default for Finance {
     fn default() -> Self {
-        Self { revenue_top: 650_000_000.0, wage_share: 0.62, ticket_price_top: 75.0, prize_pool_share: 0.25 }
+        Self { revenue_top: 650_000_000.0, wage_share: 0.62, ticket_price_top: 75.0, prize_pool_share: 0.25, operating_share: 0.17, reserve_years: 0.75 }
     }
 }
 

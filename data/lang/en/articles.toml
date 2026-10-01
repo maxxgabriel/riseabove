@@ -1,0 +1,201 @@
+# Article structures: which slot:topic items make up a text, in order, per event and channel. An item with no frame that the speaker can honestly
+# write is skipped; `required` items make the rendering report itself incomplete. `tail:$behaviour` takes the request's behaviour (omitted when none).
+
+[[article]]
+event = "transfer.bid_rejected"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:fee", "detail:round", "detail:minimum", "context:background"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "transfer.bid_rejected"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "situation:minimum", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "transfer.interest"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:fee"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "interview.quote"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "milestone.reached"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "transfer.record"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "player.unhappy"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "player.praise"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "award.won"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "injury.suffered"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "situation:duration", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "callup.national"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "academy.invitation"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "university.scholarship"
+channel = "inbox"
+structure = ["subject:report", "opening:greet", "situation:report", "ask:choice", "closing:sign"]
+required = ["subject:report", "situation:report"]
+
+[[article]]
+event = "match.result"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:star", "detail:scorers", "detail:attendance"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "injury.suffered"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:duration"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "callup.national"
+channel = "news"
+structure = ["headline:report", "lede:report", "detail:first", "detail:caps", "detail:camp"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "scout.assessment"
+channel = "scout"
+structure = ["heading:report", "summary:seen", "summary:caution", "strengths:report", "concerns:report", "verdict:report"]
+required = ["heading:report"]
+
+[[article]]
+event = "ui.unknown_value"
+channel = "ui"
+structure = ["label:unknown", "hint:basis"]
+required = ["label:unknown"]
+
+[[article]]
+event = "player.reading"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "manager.pressure"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "player.discipline"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "player.criticism"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "fans.reaction"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "incident.reported"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "match.analysis"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+# An answer to someone else's post is its stance alone (the request's behaviour): there is no report line.
+[[article]]
+event = "social.reaction"
+channel = "social"
+structure = ["post:$behaviour"]
+required = ["post:$behaviour"]
+
+[[article]]
+event = "interview.quote"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.unhappy"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.praise"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.discipline"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "player.criticism"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "incident.reported"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]
+
+[[article]]
+event = "transfer.interest"
+channel = "social"
+structure = ["bulletin:report", "tail:$behaviour"]
+required = ["bulletin:report"]

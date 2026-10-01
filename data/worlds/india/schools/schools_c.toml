@@ -1,0 +1,670 @@
+[meta]
+dataset = "schools.c"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "72 further real football-relevant educational institutions and training centres not in schools_b.toml: SAI regional centres and national institutes, state sports schools and hostels, school and Khelo India networks, Sainik and other residential schools, and schools with a football tradition in Kolkata, Darjeeling, the north-east, Goa, Bengaluru, Chennai, Mumbai, Pune, Delhi and elsewhere."
+gaps = [
+  "All records are model knowledge (brief v2: no web access), q D except a few well-known institutions at q C. No source URLs. Institution existence is generally sure; football programme, intake and strength are not.",
+  "Which schools enter Subroto Cup, SGFI or other competitions in 2026-27 is not recorded; the competitions field is left out throughout.",
+  "State sports hostels in Manipur, Mizoram, Meghalaya, Nagaland, Assam, Goa, Kerala, Jharkhand and Rajasthan are recorded as scheme-level entries whose exact site and football intake are unconfirmed.",
+  "Networks (KVS, JNV, Odisha Adarsha Vidyalaya, Khelo India Centres, Kerala Sports Council hostels) are single records; individual member schools or centres are not itemised. SCHEMA GAP: a network/scheme kind, and a member-of link, would avoid this.",
+  "SAI records: kind sai_centre is also used for NIS Patiala, LNIPE and LNCPE, which are higher-education or coaching institutions rather than training centres; SAI's individual football training centres are not itemised.",
+  "Schools with football tradition are sampled from well-known names; a systematic census (for example SGFI football champions by year) was not possible without sources.",
+  "Girls' schools and women's football school programmes are not covered.",
+]
+
+[[school]]
+id = "school.nis-patiala"
+name = "Netaji Subhas National Institute of Sports (NIS Patiala)"
+city = "Patiala"
+state = "state.pb"
+kind = "sai_centre"
+operator = "Sports Authority of India"
+programme = "National institute for sports coaching and sports science; runs coaching diplomas."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Real SAI institute; trains coaches (including football coaching diplomas) rather than schoolchildren; football relevance is through coach education." }
+
+[[school]]
+id = "school.sai-nssc-bengaluru"
+name = "SAI Netaji Subhas Southern Centre, Bengaluru"
+city = "Bengaluru"
+state = "state.ka"
+kind = "sai_centre"
+residential = true
+operator = "Sports Authority of India"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real SAI regional centre; which disciplines including football it hosts now is unconfirmed." }
+
+[[school]]
+id = "school.sai-nsec-kolkata"
+name = "SAI Netaji Subhas Eastern Centre, Kolkata"
+city = "Kolkata"
+state = "state.wb"
+kind = "sai_centre"
+residential = true
+operator = "Sports Authority of India"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real SAI regional centre near Salt Lake; football disciplines unconfirmed." }
+
+[[school]]
+id = "school.sai-western-gandhinagar"
+name = "SAI Western Centre, Gandhinagar"
+city = "Gandhinagar"
+state = "state.gj"
+kind = "sai_centre"
+residential = true
+operator = "Sports Authority of India"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real SAI regional centre; football disciplines unconfirmed." }
+
+[[school]]
+id = "school.sai-nerc-guwahati"
+name = "SAI North East Regional Centre, Guwahati"
+city = "Guwahati"
+state = "state.as"
+kind = "sai_centre"
+residential = true
+operator = "Sports Authority of India"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real SAI centre at the Sarusajai sports complex; football disciplines unconfirmed." }
+
+[[school]]
+id = "school.sai-imphal"
+name = "SAI Centre, Imphal"
+city = "Imphal"
+state = "state.mn"
+kind = "sai_centre"
+operator = "Sports Authority of India"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; SAI presence in Imphal recalled; exact centre name and football disciplines unsure." }
+
+[[school]]
+id = "school.sai-ncoe-bengaluru"
+name = "SAI National Centre of Excellence, Bengaluru"
+city = "Bengaluru"
+state = "state.ka"
+kind = "sai_centre"
+operator = "Sports Authority of India"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; NCOE scheme is real; overlaps with the SAI Bengaluru campus record; discipline list unconfirmed." }
+
+[[school]]
+id = "school.lnipe-gwalior"
+name = "Lakshmibai National Institute of Physical Education (LNIPE)"
+city = "Gwalior"
+state = "state.mp"
+kind = "sai_centre"
+residential = true
+operator = "Ministry of Youth Affairs and Sports"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Real institute under the sports ministry; a degree institution not a school; football via physical-education courses." }
+
+[[school]]
+id = "school.lncpe-thiruvananthapuram"
+name = "LNCPE (Lakshmibai National College of Physical Education)"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "sai_centre"
+operator = "Sports Authority of India"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked; Real SAI-linked college at Kariavattom; football relevance through Kerala inter-varsity teams." }
+
+[[school]]
+id = "school.khelo-india-centres-network"
+name = "Khelo India Centres (network)"
+city = "New Delhi"
+state = "state.dl"
+kind = "sai_centre"
+operator = "Ministry of Youth Affairs and Sports (Khelo India)"
+programme = "District-level training centres with some football centres."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Network of Khelo India centres across districts, football among the disciplines; kept as a single network record because individual centres are not known; city is the headquarters." }
+
+[[school]]
+id = "school.sports-hostel-kalinga-bhubaneswar"
+name = "Sports Hostel, Kalinga Stadium"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Odisha (Sports and Youth Services)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Odisha government sports hostel at the Kalinga Stadium complex; football intake unconfirmed." }
+
+[[school]]
+id = "school.sports-hostel-rourkela"
+name = "Sports Hostel, Rourkela"
+city = "Rourkela"
+state = "state.od"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Odisha (Sports and Youth Services)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Odisha government hostel, best known for hockey; football intake unconfirmed." }
+
+[[school]]
+id = "school.odisha-adarsha-vidyalaya-network"
+name = "Odisha Adarsha Vidyalaya (network)"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "school"
+operator = "Government of Odisha"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State school network; football via inter-school competitions; a single record for the network." }
+
+[[school]]
+id = "school.sdat-sports-hostel-chennai"
+name = "SDAT Sports Hostel, Chennai"
+city = "Chennai"
+state = "state.tn"
+kind = "sports_hostel"
+residential = true
+operator = "Sports Development Authority of Tamil Nadu"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Sports Development Authority of Tamil Nadu runs residential hostels; football is one discipline; exact site unsure." }
+
+[[school]]
+id = "school.hakimpet-sports-school"
+name = "Telangana Sports School, Hakimpet"
+city = "Hyderabad"
+state = "state.ts"
+kind = "sports_school"
+residential = true
+operator = "Government of Telangana (Sports Authority)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real state sports school; football is among the disciplines to my recollection." }
+
+[[school]]
+id = "school.mp-sports-college-dehradun"
+name = "Maharana Pratap Sports College"
+city = "Dehradun"
+state = "state.uk"
+kind = "sports_school"
+residential = true
+operator = "Government of Uttarakhand"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real state sports college; football offered to my recollection." }
+
+[[school]]
+id = "school.vbs-sports-college-gorakhpur"
+name = "Veer Bahadur Singh Sports College"
+city = "Gorakhpur"
+state = "state.up"
+kind = "sports_school"
+residential = true
+operator = "Government of Uttar Pradesh"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real UP sports college; football offered to my recollection." }
+
+[[school]]
+id = "school.punjab-institute-of-sports-mohali"
+name = "Punjab Institute of Sport"
+city = "Mohali"
+state = "state.pb"
+kind = "sports_school"
+residential = true
+operator = "Government of Punjab"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real state sports institute; football coverage unsure." }
+
+[[school]]
+id = "school.govt-sports-college-jalandhar"
+name = "Government Sports College, Jalandhar"
+city = "Jalandhar"
+state = "state.pb"
+kind = "sports_school"
+residential = true
+operator = "Government of Punjab"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real state sports college; strongest in hockey and athletics; football unconfirmed." }
+
+[[school]]
+id = "school.sports-hostel-khuman-lampak"
+name = "Sports Hostel, Khuman Lampak"
+city = "Imphal"
+state = "state.mn"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Manipur (Youth Affairs and Sports)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Manipur government sports hostel at the Khuman Lampak complex; football intake recalled with low confidence." }
+
+[[school]]
+id = "school.sports-hostel-aizawl"
+name = "Mizoram Government Sports Hostel"
+city = "Aizawl"
+state = "state.mz"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Mizoram (Sports and Youth Services)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel at Rajiv Gandhi Stadium; existence and football intake recalled with low confidence." }
+
+[[school]]
+id = "school.sports-hostel-shillong"
+name = "Meghalaya Government Sports Hostel"
+city = "Shillong"
+state = "state.ml"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Meghalaya (Sports and Youth Affairs)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel at Jawaharlal Nehru Stadium; existence and football intake recalled with low confidence." }
+
+[[school]]
+id = "school.sports-hostel-kohima"
+name = "Nagaland Government Sports Hostel"
+city = "Kohima"
+state = "state.nl"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Nagaland (Youth Resources and Sports)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel; existence and football intake recalled with low confidence." }
+
+[[school]]
+id = "school.sports-hostel-guwahati"
+name = "Assam Government Sports Hostel"
+city = "Guwahati"
+state = "state.as"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Assam (Sports and Youth Welfare)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel at the Sarusajai complex; football intake recalled with low confidence." }
+
+[[school]]
+id = "school.sports-hostel-salt-lake"
+name = "West Bengal Sports Hostel, Salt Lake"
+city = "Kolkata"
+state = "state.wb"
+kind = "sports_hostel"
+residential = true
+operator = "Government of West Bengal (Sports and Youth Services)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel near Salt Lake Stadium; football intake recalled with low confidence." }
+
+[[school]]
+id = "school.sports-hostel-goa"
+name = "Goa Government Sports Hostel"
+city = "Panaji"
+state = "state.ga"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Goa (Directorate of Sports and Youth Affairs)"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel scheme; site and football intake unsure." }
+
+[[school]]
+id = "school.sports-hostel-kerala-council"
+name = "Kerala Sports Council Sports Hostels (network)"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "sports_hostel"
+residential = true
+operator = "Kerala State Sports Council"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State council runs division-level sports hostels; one record for the scheme; football among disciplines." }
+
+[[school]]
+id = "school.sports-hostel-ranchi"
+name = "Jharkhand Sports Hostel, Ranchi"
+city = "Ranchi"
+state = "state.jh"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Jharkhand"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State sports hostel scheme; football intake unsure." }
+
+[[school]]
+id = "school.jaipur-sports-school"
+name = "Rajasthan State Sports Hostel, Jaipur"
+city = "Jaipur"
+state = "state.rj"
+kind = "sports_hostel"
+residential = true
+operator = "Government of Rajasthan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; State hostel scheme; football intake unsure." }
+
+[[school]]
+id = "school.kvs-network"
+name = "Kendriya Vidyalaya Sangathan (network)"
+city = "New Delhi"
+state = "state.dl"
+kind = "school"
+operator = "Kendriya Vidyalaya Sangathan"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Central school network with regional sports meets including football; single record for the network." }
+
+[[school]]
+id = "school.jnv-network"
+name = "Jawahar Navodaya Vidyalaya (network)"
+city = "Noida"
+state = "state.up"
+kind = "school"
+residential = true
+operator = "Navodaya Vidyalaya Samiti"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Central residential school network with cluster and national sports meets including football; HQ city as recalled." }
+
+[[school]]
+id = "school.sainik-school-imphal"
+name = "Sainik School Imphal"
+city = "Imphal"
+state = "state.mn"
+kind = "military"
+residential = true
+operator = "Sainik Schools Society"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real Sainik school in Manipur; football culture through the state's strength." }
+
+[[school]]
+id = "school.sainik-school-punglwa"
+name = "Sainik School Punglwa"
+city = "Punglwa"
+state = "state.nl"
+kind = "military"
+residential = true
+operator = "Sainik Schools Society"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real Sainik school in Nagaland." }
+
+[[school]]
+id = "school.sainik-school-kodagu"
+name = "Sainik School Kodagu"
+city = "Kudige"
+state = "state.ka"
+kind = "military"
+residential = true
+operator = "Sainik Schools Society"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real Sainik school in Kodagu; the district has strong hockey and football culture." }
+
+[[school]]
+id = "school.sainik-school-purulia"
+name = "Sainik School Purulia"
+city = "Purulia"
+state = "state.wb"
+kind = "military"
+residential = true
+operator = "Sainik Schools Society"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real Sainik school in West Bengal." }
+
+[[school]]
+id = "school.sainik-school-goalpara"
+name = "Sainik School Goalpara"
+city = "Goalpara"
+state = "state.as"
+kind = "military"
+residential = true
+operator = "Sainik Schools Society"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real Sainik school in Assam." }
+
+[[school]]
+id = "school.rimc-dehradun"
+name = "Rashtriya Indian Military College"
+city = "Dehradun"
+state = "state.uk"
+kind = "military"
+residential = true
+operator = "Ministry of Defence"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real feeder school to NDA; football among team games." }
+
+[[school]]
+id = "school.rkm-vidyapith-purulia"
+name = "Ramakrishna Mission Vidyapith, Purulia"
+city = "Purulia"
+state = "state.wb"
+kind = "academy_school"
+residential = true
+operator = "Ramakrishna Mission"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Real residential school of the Ramakrishna Mission; football extent unknown; distinct from Narendrapur." }
+
+[[school]]
+id = "school.st-xaviers-collegiate-kolkata"
+name = "St. Xavier's Collegiate School"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kolkata school with a football tradition through inter-school leagues; details unsure." }
+
+[[school]]
+id = "school.la-martiniere-boys-kolkata"
+name = "La Martiniere for Boys"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kolkata school known for sports; football part of the inter-school circuit." }
+
+[[school]]
+id = "school.st-jamess-kolkata"
+name = "St. James' School"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kolkata school in inter-school leagues; football strength unsure." }
+
+[[school]]
+id = "school.don-bosco-park-circus"
+name = "Don Bosco School, Park Circus"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kolkata Salesian school; participates in Kolkata inter-school football." }
+
+[[school]]
+id = "school.hare-school-kolkata"
+name = "Hare School"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Kolkata school; football heritage in the Maidan circuit recalled loosely." }
+
+[[school]]
+id = "school.hindu-school-kolkata"
+name = "Hindu School"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Kolkata school; football heritage recalled loosely." }
+
+[[school]]
+id = "school.st-lawrence-kolkata"
+name = "St. Lawrence High School"
+city = "Kolkata"
+state = "state.wb"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Kolkata school in the Maidan schools circuit." }
+
+[[school]]
+id = "school.st-josephs-north-point-darjeeling"
+name = "St. Joseph's School, North Point"
+city = "Darjeeling"
+state = "state.wb"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Hill school known for sports and a football culture; details unsure." }
+
+[[school]]
+id = "school.st-pauls-darjeeling"
+name = "St. Paul's School, Darjeeling"
+city = "Darjeeling"
+state = "state.wb"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Boarding school; football among school sports." }
+
+[[school]]
+id = "school.mount-hermon-darjeeling"
+name = "Mount Hermon School"
+city = "Darjeeling"
+state = "state.wb"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Boarding school in Darjeeling; football among school sports." }
+
+[[school]]
+id = "school.st-edmunds-shillong"
+name = "St. Edmund's School"
+city = "Shillong"
+state = "state.ml"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Shillong school with sports tradition; football among school sports." }
+
+[[school]]
+id = "school.don-bosco-shillong"
+name = "Don Bosco School, Shillong"
+city = "Shillong"
+state = "state.ml"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Salesian school in Shillong; football in local school circuit." }
+
+[[school]]
+id = "school.don-bosco-guwahati"
+name = "Don Bosco School, Guwahati"
+city = "Guwahati"
+state = "state.as"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Salesian school in Guwahati; football in local school circuit." }
+
+[[school]]
+id = "school.loyola-high-school-margao"
+name = "Loyola High School"
+city = "Margao"
+state = "state.ga"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Goan school with football tradition in the local school leagues; details unsure." }
+
+[[school]]
+id = "school.fr-agnel-pilar"
+name = "Fr. Agnel School, Pilar"
+city = "Pilar"
+state = "state.ga"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Goan school known for sports including football; details unsure." }
+
+[[school]]
+id = "school.bishop-cotton-bengaluru"
+name = "Bishop Cotton Boys' School"
+city = "Bengaluru"
+state = "state.ka"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Bengaluru school with football tradition; details unsure." }
+
+[[school]]
+id = "school.baldwin-boys-bengaluru"
+name = "Baldwin Boys' High School"
+city = "Bengaluru"
+state = "state.ka"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Bengaluru school with football tradition; details unsure." }
+
+[[school]]
+id = "school.st-josephs-boys-bengaluru"
+name = "St. Joseph's Boys' High School"
+city = "Bengaluru"
+state = "state.ka"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Bengaluru school in city leagues; football strength unsure." }
+
+[[school]]
+id = "school.don-bosco-egmore-chennai"
+name = "Don Bosco Matriculation Higher Secondary, Egmore"
+city = "Chennai"
+state = "state.tn"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Chennai Salesian school; football in city school leagues." }
+
+[[school]]
+id = "school.st-bedes-chennai"
+name = "St. Bede's Anglo-Indian Higher Secondary School"
+city = "Chennai"
+state = "state.tn"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Chennai school with sports tradition; football strength unsure." }
+
+[[school]]
+id = "school.bombay-scottish-mumbai"
+name = "Bombay Scottish School"
+city = "Mumbai"
+state = "state.mh"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Mumbai school in Giles Shield style inter-school football; details unsure." }
+
+[[school]]
+id = "school.campion-school-mumbai"
+name = "Campion School"
+city = "Mumbai"
+state = "state.mh"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Mumbai school in inter-school football; details unsure." }
+
+[[school]]
+id = "school.don-bosco-matunga"
+name = "Don Bosco High School, Matunga"
+city = "Mumbai"
+state = "state.mh"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Mumbai Salesian school; football in city school leagues." }
+
+[[school]]
+id = "school.bishops-school-pune"
+name = "The Bishop's School"
+city = "Pune"
+state = "state.mh"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Pune school with football in inter-school circuit; details unsure." }
+
+[[school]]
+id = "school.modern-school-delhi"
+name = "Modern School, Barakhamba Road"
+city = "New Delhi"
+state = "state.dl"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Delhi school in school football circuits; details unsure." }
+
+[[school]]
+id = "school.st-columbas-delhi"
+name = "St. Columba's School"
+city = "New Delhi"
+state = "state.dl"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Delhi school known for sports; football among them; details unsure." }
+
+[[school]]
+id = "school.dps-rk-puram"
+name = "Delhi Public School, R. K. Puram"
+city = "New Delhi"
+state = "state.dl"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Delhi school in SGFI and CBSE football circuits; details unsure." }
+
+[[school]]
+id = "school.tyndale-biscoe-srinagar"
+name = "Tyndale Biscoe School"
+city = "Srinagar"
+state = "state.jk"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Historic Srinagar mission school known for sports; football among them." }
+
+[[school]]
+id = "school.burn-hall-srinagar"
+name = "Burn Hall School"
+city = "Srinagar"
+state = "state.jk"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Srinagar school in the local school circuit; football strength unsure." }
+
+[[school]]
+id = "school.doon-school-dehradun"
+name = "The Doon School"
+city = "Dehradun"
+state = "state.uk"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Boarding school in Dehradun; football among school sports." }
+
+[[school]]
+id = "school.hyderabad-public-school"
+name = "Hyderabad Public School, Begumpet"
+city = "Hyderabad"
+state = "state.ts"
+kind = "school"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Hyderabad school; football among school sports; details unsure." }
+
+[[school]]
+id = "school.mayo-college-ajmer"
+name = "Mayo College"
+city = "Ajmer"
+state = "state.rj"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Boarding school; football among school sports; details unsure." }
+
+[[school]]
+id = "school.sanawar-lawrence-school"
+name = "The Lawrence School, Sanawar"
+city = "Sanawar"
+state = "state.hp"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Boarding school; football among school sports." }
+
+[[school]]
+id = "school.bishop-cotton-shimla"
+name = "Bishop Cotton School, Shimla"
+city = "Shimla"
+state = "state.hp"
+kind = "school"
+residential = true
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; Boarding school; football among school sports." }

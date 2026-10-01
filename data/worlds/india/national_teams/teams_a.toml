@@ -1,0 +1,112 @@
+[meta]
+dataset = "national_teams"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "10 team structures. No squads on purpose."
+gaps = ["Age cut-offs per tournament cycle, U15/U16 programmes, women's youth structure detail, and the actual 2025-26 Santosh Trophy participants are not recorded."]
+
+[[team]]
+id = "team.india-men"
+name = "India men's national team"
+kind = "national"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+competitions = ["FIFA World Cup qualifying (AFC)", "AFC Asian Cup and qualifying", "SAFF Championship", "friendlies"]
+eligibility = "Indian citizenship plus FIFA eligibility rules; India does not allow dual citizenship in law, which constrains who can be selected."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.india-u23-men"
+name = "India men's U23 team"
+kind = "national"
+gender = "men"
+age = "u23"
+association = "assoc.aiff"
+competitions = ["AFC U23 Asian Cup and qualifying", "Asian Games (when held)"]
+eligibility = "Age band set by each competition's regulations."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.india-u20-men"
+name = "India men's U20 team"
+kind = "national"
+gender = "men"
+age = "u20"
+association = "assoc.aiff"
+competitions = ["AFC U20 Asian Cup and qualifying", "SAFF U20 Championship"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.india-u17-men"
+name = "India men's U17 team"
+kind = "national"
+gender = "men"
+age = "u17"
+association = "assoc.aiff"
+competitions = ["AFC U17 Asian Cup and qualifying", "SAFF U17 Championship"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.india-women"
+name = "India women's national team"
+kind = "national"
+gender = "women"
+age = "senior"
+association = "assoc.aiff"
+competitions = ["AFC Women's Asian Cup and qualifying", "SAFF Women's Championship"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.india-u20-women"
+name = "India women's U20 team"
+kind = "national"
+gender = "women"
+age = "u20"
+association = "assoc.aiff"
+competitions = ["AFC U20 Women's Asian Cup and qualifying"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.india-u17-women"
+name = "India women's U17 team"
+kind = "national"
+gender = "women"
+age = "u17"
+association = "assoc.aiff"
+competitions = ["AFC U17 Women's Asian Cup and qualifying"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.services"
+name = "Services (Indian armed forces team)"
+kind = "institutional"
+gender = "men"
+age = "senior"
+association = "assoc.sscb"
+competitions = ["comp.santosh-trophy"]
+eligibility = "Institutional team: personnel of the armed forces, not a geographic association team."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.railways"
+name = "Railways (Indian Railways team)"
+kind = "institutional"
+gender = "men"
+age = "senior"
+association = "assoc.rspb"
+competitions = ["comp.santosh-trophy"]
+eligibility = "Institutional team: Railways employees, not a geographic association team."
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[team]]
+id = "team.state-representative"
+name = "State association representative teams"
+kind = "state_representative"
+gender = "men"
+age = "senior"
+association = "assoc.aiff"
+competitions = ["comp.santosh-trophy", "comp.junior-nfc", "comp.sub-junior-nfc"]
+eligibility = "Each state or UT association fields a team. Which registration or residence basis qualifies a player is NOT verified; the simulation's current default is in pack.toml [eligibility] and is a scenario setting."
+prov = { status = "scenario_seed", q = "D", src = [], note = "Structure from general knowledge; eligibility left as scenario setting." }

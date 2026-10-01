@@ -19,6 +19,8 @@ pub struct Scale {
 }
 
 impl Scale {
+    /// Four clubs in one division: the smallest world with a league, a cup, contracts and season rollover. For smoke tests.
+    pub const MICRO: Scale = Scale { nations: 1, divisions: 1, clubs_per_division: 4, youth_teams: false };
     pub const TINY: Scale = Scale { nations: 1, divisions: 1, clubs_per_division: 8, youth_teams: false };
     pub const SMALL: Scale = Scale { nations: 2, divisions: 2, clubs_per_division: 16, youth_teams: true };
     /// Roughly 300k players: 40 nations × 4 divisions × 22 clubs × (26 + 20 + 20).
@@ -109,7 +111,7 @@ pub fn build(pack: DataPack, seed: u64, scale: Scale) -> World {
                             yearly_rise: 3,
                             ..Default::default()
                         };
-                        let np = pw_sim::people::NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team: t, contract };
+                        let np = pw_sim::people::NewPlayer { nation, dob, pos, ca, pa: pa as u8, club, team: t, contract, source: pw_world::player::PlayerSource::SyntheticFixture };
                         let p = pw_sim::people::spawn_player(&mut w, np, &mut rng);
                         let first = word(&mut rng, 2);
                         let last = word(&mut rng, 3);
@@ -127,7 +129,22 @@ pub fn build(pack: DataPack, seed: u64, scale: Scale) -> World {
         }
     }
     if scale.nations >= 4 {
-        builder::add_comp(&mut w, "Champions Cup", "CC", pw_core::NationId::NONE, Some(Confed::Uefa), CompKind::Continental, 1, TeamKind::First, 32, 0, 0, 9500, Format::Groups { groups: 8, size: 4, advance: 2, legs: 2, ko_legs: 2, final_legs: 1 }, 400_000_000);
+        builder::add_comp(
+            &mut w,
+            "Champions Cup",
+            "CC",
+            pw_core::NationId::NONE,
+            Some(Confed::Uefa),
+            CompKind::Continental,
+            1,
+            TeamKind::First,
+            32,
+            0,
+            0,
+            9500,
+            Format::Groups { groups: 8, size: 4, advance: 2, legs: 2, ko_legs: 2, final_legs: 1 },
+            400_000_000,
+        );
     }
     builder::finalize(&mut w);
     builder::ensure_staff(&mut w);

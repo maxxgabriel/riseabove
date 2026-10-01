@@ -8,6 +8,10 @@ license.workspace = true
 name = "pathway-sim"
 path = "src/main.rs"
 
+[[bin]]
+name = "pathway"
+path = "src/play.rs"
+
 [dependencies]
 pw-core.workspace = true
 pw-data.workspace = true
@@ -15,3 +19,9 @@ pw-world.workspace = true
 pw-match.workspace = true
 pw-sim.workspace = true
 pw-import.workspace = true
+pw-career.workspace = true
+pw-narrate.workspace = true
+pw-lang.workspace = true
+
+[dev-dependencies]
+proptest = "1"

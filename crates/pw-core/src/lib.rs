@@ -12,11 +12,11 @@ pub mod serde_arr;
 pub mod tactics;
 pub mod traits;
 
-pub use attr::{Attr, AttrGroup, Attrs, Hidden, HiddenAttrs, StaffAttr, StaffAttrs, N_ATTR, N_HIDDEN, N_STAFF_ATTR};
+pub use attr::{Attr, AttrGroup, Attrs, Hidden, HiddenAttrs, N_ATTR, N_HIDDEN, N_STAFF_ATTR, StaffAttr, StaffAttrs};
 pub use date::{Date, Weekday};
 pub use ids::*;
 pub use idvec::{Id, IdVec};
-pub use pos::{Foot, Pos, PosGroup, Role, N_POS};
+pub use pos::{Foot, N_POS, Pos, PosGroup, Role};
 pub use rng::Rng;
 pub use tactics::{Mentality, Slot, Tactics};
 pub use traits::PlayerTraits;

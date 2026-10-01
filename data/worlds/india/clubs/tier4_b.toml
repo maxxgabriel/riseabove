@@ -1,0 +1,812 @@
+[meta]
+dataset = "clubs.tier4_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "77 real state-league clubs (game tier 4 = state premier divisions) in Kerala, Goa, Manipur, Mizoram, Meghalaya, Assam, Karnataka (Bengaluru), Maharashtra (Mumbai), Punjab, Tamil Nadu (Chennai), Sikkim, Delhi, Odisha, Jharkhand, Nagaland and J&K. Identity, city, state, kind; ground name where fairly sure."
+gaps = [
+ "Model knowledge only (no web access): every club is real to the best of recollection but its 2025-26/2026-27 league participation is NOT verified. q = C where the club is well known to have played its state premier division in recent years, q = D where unsure.",
+ "No club records for Arunachal Pradesh, Tripura, Uttarakhand (only Corbett FC in clubs/tier3_b.toml), Gujarat (only ARA FC in national.toml), Rajasthan (only Rajasthan United and Zinc FA in national.toml) or Andhra Pradesh: club names for these leagues could not be recalled reliably and were not invented.",
+ "Founded year given only for Tata Football Academy (1987); all others omitted as not sure. Club colours omitted (no field).",
+ "SCHEMA GAP: home_ground must be a stadium id but data/worlds/india has no stadium records yet; ground names are given as optional extra field home_ground_name (plain text, unverified), same convention as clubs/tier3_b.toml.",
+ "Departmental (police/bank/railway/customs) clubs may have been renamed, merged or wound up; official names are not checked.",
+ "Clubs already recorded in clubs/national.toml or clubs/tier3_b.toml are NOT repeated here (their state-league play is in competitions/membership_t4_b.toml as concurrent memberships).",
+]
+
+[[club]]
+id = "club.kerala-police"
+name = "Kerala Police FC"
+short = "Kerala Police"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Departmental side of the Kerala Police; long-standing Kerala state team, regular in KPL and Santosh Trophy feeder squads." }
+
+[[club]]
+id = "club.luca-sc"
+name = "Luca SC"
+short = "Luca"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Thiruvananthapuram club that has played the KPL." }
+
+[[club]]
+id = "club.muthoot-fc"
+name = "Muthoot FC"
+short = "Muthoot"
+city = "Kochi"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Backed by the Muthoot group; city and exact form (academy vs first team) uncertain." }
+
+[[club]]
+id = "club.quartz-fc"
+name = "Quartz FC"
+short = "Quartz"
+city = "Kozhikode"
+state = "state.kl"
+kind = "amateur"
+home_ground_name = "EMS Corporation Stadium, Kozhikode"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Kozhikode club; ground given is the city's main football stadium, not confirmed as their designated home." }
+
+[[club]]
+id = "club.sat-tirur"
+name = "Sports Academy Tirur"
+short = "SAT Tirur"
+aliases = ["SAT Tirur"]
+city = "Tirur"
+state = "state.kl"
+kind = "academy"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Malappuram-district academy side, usually shortened to SAT Tirur." }
+
+[[club]]
+id = "club.golden-threads"
+name = "Golden Threads FC"
+short = "Golden Threads"
+city = "Kochi"
+state = "state.kl"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Kochi club that has played the KPL." }
+
+[[club]]
+id = "club.basco-otthapalam"
+name = "Basco Otthapalam FC"
+short = "Basco"
+city = "Ottapalam"
+state = "state.kl"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Palakkad-district club; KPL participation recalled but not re-checked." }
+
+[[club]]
+id = "club.wayanad-united"
+name = "Wayanad United FC"
+short = "Wayanad United"
+city = "Kalpetta"
+state = "state.kl"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Wayanad district side; city/participation uncertain." }
+
+[[club]]
+id = "club.kseb-fc"
+name = "KSEB FC"
+official_name = "Kerala State Electricity Board FC"
+short = "KSEB"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Kerala State Electricity Board departmental side, historically strong in Kerala football; current KPL status uncertain." }
+
+[[club]]
+id = "club.travancore-royals"
+name = "Travancore Royals FC"
+short = "Travancore Royals"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "professional"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Thiruvananthapuram club; participation level uncertain." }
+
+[[club]]
+id = "club.calicut-fc"
+name = "Calicut FC"
+short = "Calicut"
+city = "Kozhikode"
+state = "state.kl"
+kind = "professional"
+home_ground_name = "EMS Corporation Stadium, Kozhikode"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: One of six Super League Kerala franchises (2025 launch season)." }
+
+[[club]]
+id = "club.kannur-warriors"
+name = "Kannur Warriors FC"
+short = "Kannur Warriors"
+city = "Kannur"
+state = "state.kl"
+kind = "professional"
+home_ground_name = "Jawaharlal Nehru Stadium (Kannur)"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Super League Kerala franchise; home ground given from recollection." }
+
+[[club]]
+id = "club.forca-kochi"
+name = "Forca Kochi FC"
+short = "Forca Kochi"
+aliases = ["Kochi Forca"]
+city = "Kochi"
+state = "state.kl"
+kind = "professional"
+home_ground_name = "Jawaharlal Nehru Stadium, Kochi"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Super League Kerala franchise." }
+
+[[club]]
+id = "club.malappuram-fc"
+name = "Malappuram FC"
+short = "Malappuram"
+city = "Malappuram"
+state = "state.kl"
+kind = "professional"
+home_ground_name = "Payyanad Stadium, Manjeri"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Super League Kerala franchise." }
+
+[[club]]
+id = "club.thrissur-magic"
+name = "Thrissur Magic FC"
+short = "Thrissur Magic"
+city = "Thrissur"
+state = "state.kl"
+kind = "professional"
+home_ground_name = "Thrissur Corporation Stadium"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Super League Kerala franchise; ground from recollection." }
+
+[[club]]
+id = "club.thiruvananthapuram-kombans"
+name = "Thiruvananthapuram Kombans FC"
+short = "Kombans"
+aliases = ["Trivandrum Kombans"]
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "professional"
+home_ground_name = "Chandrasekharan Nair Stadium"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Super League Kerala franchise; ground from recollection." }
+
+[[club]]
+id = "club.calangute-association"
+name = "Calangute Association"
+short = "Calangute"
+city = "Calangute"
+state = "state.ga"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: North Goa village club that has played the GFA Professional League." }
+
+[[club]]
+id = "club.guardian-angel"
+name = "Guardian Angel SC"
+short = "Guardian Angel"
+city = "Margao"
+state = "state.ga"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Goa club; city uncertain." }
+
+[[club]]
+id = "club.panjim-footballers"
+name = "Panjim Footballers"
+short = "Panjim Footballers"
+city = "Panaji"
+state = "state.ga"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Panaji club that has played the GFA league." }
+
+[[club]]
+id = "club.ribandar-sc"
+name = "Ribandar Sports Club"
+short = "Ribandar"
+city = "Ribandar"
+state = "state.ga"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Tiswadi (Ribandar) club; GFA league participation recalled but not re-checked." }
+
+[[club]]
+id = "club.sagolband-united"
+name = "Sagolband United FC"
+short = "Sagolband United"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Imphal local club, regular in the Manipur State League." }
+
+[[club]]
+id = "club.langjing-achouba"
+name = "Langjing Achouba FC"
+short = "Langjing Achouba"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Imphal local club." }
+
+[[club]]
+id = "club.klasic"
+name = "KLASIC FC"
+short = "KLASIC"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Imphal local club; expansion of abbreviation not known." }
+
+[[club]]
+id = "club.southern-sporting-union"
+name = "Southern Sporting Union"
+short = "Southern Sporting"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Imphal club." }
+
+[[club]]
+id = "club.eastern-sporting-union"
+name = "Eastern Sporting Union"
+short = "Eastern Sporting"
+city = "Imphal"
+state = "state.mn"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Imphal club." }
+
+[[club]]
+id = "club.manipur-police"
+name = "Manipur Police SC"
+short = "Manipur Police"
+city = "Imphal"
+state = "state.mn"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Departmental side of the Manipur Police." }
+
+[[club]]
+id = "club.mizoram-police"
+name = "Mizoram Police FC"
+short = "Mizoram Police"
+city = "Aizawl"
+state = "state.mz"
+kind = "departmental"
+home_ground_name = "Rajiv Gandhi Stadium, Aizawl"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Departmental side; Mizoram league staple." }
+
+[[club]]
+id = "club.electric-veng"
+name = "Electric Veng FC"
+short = "Electric Veng"
+city = "Aizawl"
+state = "state.mz"
+kind = "amateur"
+home_ground_name = "Rajiv Gandhi Stadium, Aizawl"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Aizawl locality (veng) club." }
+
+[[club]]
+id = "club.dinthar"
+name = "Dinthar FC"
+short = "Dinthar"
+city = "Aizawl"
+state = "state.mz"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Aizawl locality club." }
+
+[[club]]
+id = "club.ramhlun-north"
+name = "Ramhlun North FC"
+short = "Ramhlun North"
+city = "Aizawl"
+state = "state.mz"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Aizawl locality club." }
+
+[[club]]
+id = "club.saitual"
+name = "Saitual FC"
+short = "Saitual"
+city = "Saitual"
+state = "state.mz"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Mizoram district-town club." }
+
+[[club]]
+id = "club.luangmual"
+name = "Luangmual FC"
+short = "Luangmual"
+city = "Aizawl"
+state = "state.mz"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Aizawl locality club." }
+
+[[club]]
+id = "club.kulikawn"
+name = "Kulikawn FC"
+short = "Kulikawn"
+city = "Aizawl"
+state = "state.mz"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Aizawl locality club." }
+
+[[club]]
+id = "club.mawlai-sc"
+name = "Mawlai SC"
+short = "Mawlai"
+city = "Shillong"
+state = "state.ml"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Shillong locality club." }
+
+[[club]]
+id = "club.laitumkhrah-sc"
+name = "Laitumkhrah SC"
+short = "Laitumkhrah"
+city = "Shillong"
+state = "state.ml"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Shillong locality club." }
+
+[[club]]
+id = "club.sohra-fc"
+name = "Sohra FC"
+short = "Sohra"
+city = "Sohra"
+state = "state.ml"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Cherrapunji-based side." }
+
+[[club]]
+id = "club.malki-sc"
+name = "Malki SC"
+short = "Malki"
+city = "Shillong"
+state = "state.ml"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Shillong locality club." }
+
+[[club]]
+id = "club.brothers-union"
+name = "Brothers Union"
+short = "Brothers Union"
+city = "Guwahati"
+state = "state.as"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Guwahati club with a long history in Assam football." }
+
+[[club]]
+id = "club.gauhati-town-club"
+name = "Gauhati Town Club"
+short = "Gauhati Town"
+city = "Guwahati"
+state = "state.as"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Guwahati institution club; league participation not re-checked." }
+
+[[club]]
+id = "club.assam-police"
+name = "Assam Police FC"
+short = "Assam Police"
+city = "Guwahati"
+state = "state.as"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Departmental side." }
+
+[[club]]
+id = "club.nf-railway"
+name = "NF Railway FC"
+short = "NF Railway"
+city = "Guwahati"
+state = "state.as"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Northeast Frontier Railway departmental side." }
+
+[[club]]
+id = "club.hal-sc"
+name = "HAL SC"
+official_name = "Hindustan Aeronautics Limited Sports Club"
+short = "HAL"
+city = "Bengaluru"
+state = "state.ka"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Hindustan Aeronautics Limited departmental side; long-standing Bengaluru club." }
+
+[[club]]
+id = "club.students-union"
+name = "Students Union"
+short = "Students Union"
+city = "Bengaluru"
+state = "state.ka"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Bengaluru club, BDFA Super Division regular." }
+
+[[club]]
+id = "club.bangalore-independents"
+name = "Bangalore Independents FC"
+short = "Independents"
+city = "Bengaluru"
+state = "state.ka"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Bengaluru club; participation recalled but not re-checked." }
+
+[[club]]
+id = "club.agorc"
+name = "AGORC"
+official_name = "Accountant General's Office Recreation Club"
+short = "AGORC"
+city = "Bengaluru"
+state = "state.ka"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Accountant General's Office Recreation Club departmental side." }
+
+[[club]]
+id = "club.ade-fc"
+name = "ADE FC"
+short = "ADE"
+city = "Bengaluru"
+state = "state.ka"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Aeronautical Development Establishment departmental side." }
+
+[[club]]
+id = "club.asc-centre"
+name = "ASC & Centre"
+official_name = "Army Service Corps and Centre (Bangalore)"
+short = "ASC"
+city = "Bengaluru"
+state = "state.ka"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Army Service Corps departmental side." }
+
+[[club]]
+id = "club.bangalore-muslims"
+name = "Bangalore Muslims FC"
+short = "Bangalore Muslims"
+city = "Bengaluru"
+state = "state.ka"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Historic Bengaluru club." }
+
+[[club]]
+id = "club.kodagu-fc"
+name = "Kodagu FC"
+short = "Kodagu"
+city = "Madikeri"
+state = "state.ka"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Kodagu-district side; city uncertain." }
+
+[[club]]
+id = "club.air-india-fc"
+name = "Air India FC"
+short = "Air India"
+city = "Mumbai"
+state = "state.mh"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Former national-level departmental side; stayed in Mumbai leagues." }
+
+[[club]]
+id = "club.mumbai-fc"
+name = "Mumbai FC"
+short = "Mumbai FC"
+city = "Mumbai"
+state = "state.mh"
+kind = "professional"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Mumbai club, once at national level; current status uncertain." }
+
+[[club]]
+id = "club.bengal-mumbai-fc"
+name = "Bengal Mumbai FC"
+short = "Bengal Mumbai"
+city = "Mumbai"
+state = "state.mh"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Mumbai Bengali community club." }
+
+[[club]]
+id = "club.central-railway-mumbai"
+name = "Central Railway SC"
+short = "Central Railway"
+city = "Mumbai"
+state = "state.mh"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Central Railway departmental side; league participation not re-checked." }
+
+[[club]]
+id = "club.maharashtra-oranje"
+name = "Maharashtra Oranje FC"
+short = "Maharashtra Oranje"
+city = "Mumbai"
+state = "state.mh"
+kind = "amateur"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Mumbai side with links to a Dutch-inspired project; details uncertain." }
+
+[[club]]
+id = "club.punjab-police-fc"
+name = "Punjab Police FC"
+short = "Punjab Police"
+city = "Jalandhar"
+state = "state.pb"
+kind = "departmental"
+home_ground_name = "Guru Gobind Singh Stadium, Jalandhar"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Long-standing departmental side; formerly national league level." }
+
+[[club]]
+id = "club.bsf-jalandhar"
+name = "BSF Jalandhar"
+short = "BSF"
+city = "Jalandhar"
+state = "state.pb"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Border Security Force side." }
+
+[[club]]
+id = "club.punjab-sind-bank"
+name = "Punjab & Sind Bank FC"
+short = "Punjab & Sind Bank"
+city = "Jalandhar"
+state = "state.pb"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Bank departmental side; city uncertain." }
+
+[[club]]
+id = "club.indian-bank-fc"
+name = "Indian Bank FC"
+short = "Indian Bank"
+city = "Chennai"
+state = "state.tn"
+kind = "departmental"
+home_ground_name = "Jawaharlal Nehru Stadium, Chennai"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Bank departmental side; Chennai league staple." }
+
+[[club]]
+id = "club.iob-fc"
+name = "Indian Overseas Bank FC"
+short = "IOB"
+city = "Chennai"
+state = "state.tn"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Bank departmental side." }
+
+[[club]]
+id = "club.chennai-customs"
+name = "Chennai Customs FC"
+short = "Customs"
+city = "Chennai"
+state = "state.tn"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Customs departmental side." }
+
+[[club]]
+id = "club.tamil-nadu-police"
+name = "Tamil Nadu Police FC"
+short = "TN Police"
+city = "Chennai"
+state = "state.tn"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Police departmental side." }
+
+[[club]]
+id = "club.icf-fc"
+name = "ICF FC"
+official_name = "Integral Coach Factory FC"
+short = "ICF"
+city = "Chennai"
+state = "state.tn"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Integral Coach Factory (Railways) departmental side." }
+
+[[club]]
+id = "club.chennai-city-fc"
+name = "Chennai City FC"
+short = "Chennai City"
+city = "Chennai"
+state = "state.tn"
+kind = "professional"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Former I-League club (champions 2018-19); current activity uncertain, so status left unknown." }
+
+[[club]]
+id = "club.sikkim-aakraman"
+name = "Sikkim Aakraman FC"
+short = "Aakraman"
+city = "Gangtok"
+state = "state.sk"
+kind = "amateur"
+home_ground_name = "Paljor Stadium, Gangtok"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Gangtok club." }
+
+[[club]]
+id = "club.united-sikkim"
+name = "United Sikkim FC"
+short = "United Sikkim"
+city = "Gangtok"
+state = "state.sk"
+kind = "amateur"
+home_ground_name = "Paljor Stadium, Gangtok"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Gangtok club." }
+
+[[club]]
+id = "club.sikkim-police"
+name = "Sikkim Police FC"
+short = "Sikkim Police"
+city = "Gangtok"
+state = "state.sk"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Departmental side." }
+
+[[club]]
+id = "club.hindustan-fc"
+name = "Hindustan FC"
+short = "Hindustan"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+home_ground_name = "Ambedkar Stadium, Delhi"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Delhi club." }
+
+[[club]]
+id = "club.royal-rangers"
+name = "Royal Rangers FC"
+short = "Royal Rangers"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+home_ground_name = "Ambedkar Stadium, Delhi"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Delhi club." }
+
+[[club]]
+id = "club.friends-united"
+name = "Friends United FC"
+short = "Friends United"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Delhi club." }
+
+[[club]]
+id = "club.new-delhi-heroes"
+name = "New Delhi Heroes FC"
+short = "Heroes"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Delhi club." }
+
+[[club]]
+id = "club.ahbab-fc"
+name = "Ahbab FC"
+short = "Ahbab"
+city = "Delhi"
+state = "state.dl"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Delhi club." }
+
+[[club]]
+id = "club.rising-student-club"
+name = "Rising Student Club"
+short = "Rising Student"
+city = "Cuttack"
+state = "state.od"
+kind = "amateur"
+home_ground_name = "Barabati Stadium, Cuttack"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Cuttack club with a long history." }
+
+[[club]]
+id = "club.tata-football-academy"
+name = "Tata Football Academy"
+short = "TFA"
+city = "Jamshedpur"
+state = "state.jh"
+founded = 1987
+kind = "academy"
+home_ground_name = "JRD Tata Sports Complex, Jamshedpur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Historic Tata Steel academy (Jamshedpur); Tata Steel was the operator." }
+
+[[club]]
+id = "club.kohima-komets"
+name = "Kohima Komets FC"
+short = "Kohima Komets"
+city = "Kohima"
+state = "state.nl"
+kind = "amateur"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Kohima club." }
+
+[[club]]
+id = "club.downtown-heroes"
+name = "Downtown Heroes FC"
+short = "Downtown Heroes"
+city = "Srinagar"
+state = "state.jk"
+kind = "amateur"
+home_ground_name = "TRC Turf Ground, Srinagar"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Srinagar club." }
+
+[[club]]
+id = "club.jk-bank-fc"
+name = "J&K Bank FC"
+short = "J&K Bank"
+city = "Srinagar"
+state = "state.jk"
+kind = "departmental"
+status = "active"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked: Bank departmental side." }
+
+[[club]]
+id = "club.jk-police-fc"
+name = "J&K Police FC"
+short = "J&K Police"
+city = "Srinagar"
+state = "state.jk"
+kind = "departmental"
+status = "unknown"
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked; unsure of details or current participation: Departmental side." }

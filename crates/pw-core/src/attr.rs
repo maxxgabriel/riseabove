@@ -274,14 +274,7 @@ impl HiddenAttrs {
     /// Personality label as coaches and agents describe it (derived, never stored).
     pub fn personality_label(&self) -> &'static str {
         let g = |h| self.get(h);
-        let (prof, amb, loy, temp, press, sport) = (
-            g(Hidden::Professionalism),
-            g(Hidden::Ambition),
-            g(Hidden::Loyalty),
-            g(Hidden::Temperament),
-            g(Hidden::Pressure),
-            g(Hidden::Sportsmanship),
-        );
+        let (prof, amb, loy, temp, press, sport) = (g(Hidden::Professionalism), g(Hidden::Ambition), g(Hidden::Loyalty), g(Hidden::Temperament), g(Hidden::Pressure), g(Hidden::Sportsmanship));
         match () {
             _ if prof >= 18 && amb >= 15 => "Model Professional",
             _ if prof >= 15 && amb >= 16 => "Driven",

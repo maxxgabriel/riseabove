@@ -1,0 +1,762 @@
+[meta]
+dataset = "universities_b"
+quality = "D"
+effective = "2026-07-01"
+last_checked = "2026-09-30"
+coverage = "Additional real Indian universities (41) and affiliated colleges (45) with football relevance, by AIU zone: Karnataka, Kerala, Bengal, Odisha, Assam and the North East, Maharashtra, Punjab, Haryana, Delhi (including DU colleges), Tamil Nadu. Complements universities/universities.toml (33 identity-only records) and competitions/inter_university_b.toml."
+gaps = [
+ "Model knowledge only (no web verification). Football participation is recorded as general understanding: the AIU zone tournament and, for colleges, the parent university's inter-college championship. No achievements are recorded (the field is verified-only).",
+ "No sports-quota percentages or scholarship amounts recorded: none was known with enough confidence. Where the note says a sports category, quota or scholarship exists the fact is real in general form (DU sports category with trials, Amity, SRM, Symbiosis, Christ scholarships advertised) but details are unverified.",
+ "Colleges use kind = 'affiliated_college' and an optional parent_university field. SCHEMA GAP: kind enum has no college value; smallest addition is kind 'college' plus optional parent (uni id).",
+ "zone enum lacks 'central' (AIU has a fifth Central zone, likely UP/MP/Chhattisgarh); Amity Noida is tagged north only for convenience and LNIPE has no zone.",
+ "Existing universities.toml records (Calicut, MG, Kerala, Kannur, Calcutta, Jadavpur, GNDU, LPU, Mumbai, Pune, Goa, Manipur, NEHU, Mizoram, Delhi and others) were not edited (add-only). They should later be upgraded with kind, zone and football fields; suggested values are in the task report.",
+ "Not attempted: colleges in Uttar Pradesh, Madhya Pradesh, Chhattisgarh, Gujarat, Rajasthan, Bihar, Jharkhand and Telangana beyond Osmania (already present); nothing on Jadavpur University's football profile beyond its existing identity record.",
+]
+
+[[university]]
+id = "uni.mysore"
+name = "University of Mysore"
+city = "Mysuru"
+state = "state.ka"
+kind = "state"
+football = ["comp.aiu-south", "comp.mysore-univ-intercollegiate"]
+zone = "south"
+sports_note = "State university (Manasagangotri) with a physical education directorate; plays AIU South Zone football."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.christ"
+name = "CHRIST (Deemed to be University)"
+short = "CHRIST"
+city = "Bengaluru"
+state = "state.ka"
+kind = "deemed"
+football = ["comp.aiu-south", "comp.aiu-women-south"]
+zone = "south"
+sports_note = "Private deemed university with an active football side in Bengaluru university and inter-college tournaments; admits sportspersons through a sports category (details and percentage not recorded)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.jain"
+name = "JAIN (Deemed-to-be University)"
+short = "Jain University"
+city = "Bengaluru"
+state = "state.ka"
+kind = "deemed"
+football = ["comp.aiu-south", "comp.kiug-men"]
+zone = "south"
+sports_note = "Lead host institution of the Khelo India University Games edition held in Bengaluru in April 2022 (2021 edition), as recalled. Runs sports excellence programmes; scholarship details not recorded."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.sree-sankaracharya"
+name = "Sree Sankaracharya University of Sanskrit"
+city = "Kalady"
+state = "state.kl"
+kind = "state"
+football = ["comp.aiu-south"]
+zone = "south"
+sports_note = "Kerala state university; sometimes listed among Kerala universities in AIU football (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.srm"
+name = "SRM Institute of Science and Technology"
+short = "SRMIST"
+city = "Kattankulathur"
+state = "state.tn"
+kind = "deemed"
+football = ["comp.aiu-south"]
+zone = "south"
+sports_note = "Private deemed university with sports scholarships advertised (details unverified) and a football team in South Zone events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.tnpesu"
+name = "Tamil Nadu Physical Education and Sports University"
+city = "Chennai"
+state = "state.tn"
+kind = "state"
+football = ["comp.aiu-south"]
+zone = "south"
+sports_note = "State university specialising in physical education and sports; football is among the sports taught and trained (recollection)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.north-bengal"
+name = "University of North Bengal"
+short = "NBU"
+city = "Siliguri"
+state = "state.wb"
+kind = "state"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "North Bengal state university in a football-loving region; East Zone football participant (understanding)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.presidency-kolkata"
+name = "Presidency University"
+city = "Kolkata"
+state = "state.wb"
+kind = "state"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "Kolkata state university (formerly Presidency College); modest sports profile, plays East Zone football when it enters a team."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.kiss"
+name = "Kalinga Institute of Social Sciences (KISS) Deemed University"
+short = "KISS"
+city = "Bhubaneswar"
+state = "state.od"
+kind = "deemed"
+football = ["comp.aiu-east", "comp.kiug-men"]
+zone = "east"
+residential = true
+sports_note = "Residential institution for tribal students with a strong sports focus; co-host of the first Khelo India University Games (Bhubaneswar, 2020) with KIIT, as recalled. Free education and sports coaching are part of its model."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Identity, city and type are reliable; football participation is general understanding, not verified; no quota or scholarship figures recorded." }
+
+[[university]]
+id = "uni.assam-university"
+name = "Assam University, Silchar"
+city = "Silchar"
+state = "state.as"
+kind = "central"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "Central university in Barak Valley; East Zone football participant (understanding)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.cotton"
+name = "Cotton University"
+city = "Guwahati"
+state = "state.as"
+kind = "state"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "Guwahati state university (formerly Cotton College); East Zone football participant (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.dhanamanjuri"
+name = "Dhanamanjuri University"
+city = "Imphal"
+state = "state.mn"
+kind = "state"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "Manipur state university (established 2018) that took over many Imphal colleges; football is popular in its colleges."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.national-sports-university"
+name = "National Sports University"
+short = "NSU"
+city = "Imphal"
+state = "state.mn"
+kind = "central"
+football = ["comp.aiu-east"]
+zone = "east"
+residential = true
+sports_note = "Central sports university established by Act of Parliament in 2018, campus in Imphal; trains athletes and coaches, including football-related sports education courses (details of football programmes not verified)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.manipur-sports-university"
+name = "Manipur Sports University"
+city = "Imphal"
+state = "state.mn"
+kind = "state"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "State-level sports university (Manipur) established in the late 2010s; football is a core sport in Manipur so it is relevant to the pathway (details unverified)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.rajiv-gandhi"
+name = "Rajiv Gandhi University"
+city = "Itanagar"
+state = "state.ar"
+kind = "central"
+football = ["comp.aiu-east"]
+zone = "east"
+sports_note = "Central university in Arunachal Pradesh; East Zone football participant (understanding)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.symbiosis"
+name = "Symbiosis International (Deemed University)"
+city = "Pune"
+state = "state.mh"
+kind = "deemed"
+football = ["comp.aiu-west"]
+zone = "west"
+sports_note = "Private deemed university with active inter-university football teams and sports scholarships advertised (details unverified)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.amity"
+name = "Amity University Uttar Pradesh"
+short = "Amity Noida"
+city = "Noida"
+state = "state.up"
+kind = "private"
+football = ["comp.aiu-north"]
+zone = "north"
+sports_note = "Private university whose sports scholarship scheme is advertised; fields football teams in inter-university events. Zone left as North for convenience only: Uttar Pradesh may belong to the Central zone (not verified)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.lnipe"
+name = "Lakshmibai National Institute of Physical Education"
+short = "LNIPE"
+city = "Gwalior"
+state = "state.mp"
+kind = "deemed"
+zone = "north"
+sports_note = "Institute for physical education and sports; deemed university, football is among trained sports. Zone left out because MP is likely Central."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.mar-athanasius-kothamangalam"
+name = "Mar Athanasius College, Kothamangalam"
+short = "MA College"
+city = "Kothamangalam"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.mg-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.mahatma-gandhi"
+sports_note = "Kerala college with a well-known football tradition in MG University tournaments; state and Santosh Trophy players are recalled among alumni (names not recorded)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.farook"
+name = "Farook College"
+city = "Kozhikode (Feroke)"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.calicut-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.calicut"
+sports_note = "Malabar college with a strong football culture in Calicut University tournaments."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-thomas-thrissur"
+name = "St. Thomas College, Thrissur"
+city = "Thrissur"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.calicut-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.calicut"
+sports_note = "Old Thrissur college with a football tradition in Calicut University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.mes-mampad"
+name = "MES Mampad College"
+city = "Mampad, Malappuram"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.calicut-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.calicut"
+sports_note = "Malappuram college; the district's football culture feeds its team in Calicut University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.kalladi-college"
+name = "MES Kalladi College"
+city = "Mannarkkad"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.calicut-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.calicut"
+sports_note = "Palakkad-district college; football side in Calicut University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.sree-kerala-varma"
+name = "Sree Kerala Varma College"
+city = "Thrissur"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.calicut-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.calicut"
+sports_note = "Thrissur college with a sports tradition; football team in Calicut University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.christ-irinjalakuda"
+name = "Christ College, Irinjalakuda"
+city = "Irinjalakuda"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.calicut-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.calicut"
+sports_note = "Thrissur-district college with football in Calicut University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.brennen-thalassery"
+name = "Government Brennen College, Thalassery"
+city = "Thalassery"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.kannur-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.kannur"
+sports_note = "Kannur-region government college; Thalassery has a strong football and sports tradition."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.payyanur-college"
+name = "Payyanur College"
+city = "Payyanur"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.kannur-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.kannur"
+sports_note = "Kannur University college with an active football side."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.government-college-kasaragod"
+name = "Government College, Kasaragod"
+city = "Kasaragod"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.kannur-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.kannur"
+sports_note = "Kasaragod college with a football team in Kannur University events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.sacred-heart-thevara"
+name = "Sacred Heart College, Thevara"
+city = "Kochi"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.mg-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.mahatma-gandhi"
+sports_note = "Kochi college with football in MG University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-alberts-ernakulam"
+name = "St. Albert's College"
+city = "Ernakulam"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.mg-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.mahatma-gandhi"
+sports_note = "Ernakulam college with football in MG University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.maharajas-ernakulam"
+name = "Maharaja's College"
+city = "Ernakulam"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.mg-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.mahatma-gandhi"
+sports_note = "Government college in Kochi with football in MG University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.cms-kottayam"
+name = "CMS College, Kottayam"
+city = "Kottayam"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.mg-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.mahatma-gandhi"
+sports_note = "Kottayam college with football in MG University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.uc-aluva"
+name = "Union Christian College, Aluva"
+city = "Aluva"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.mg-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.mahatma-gandhi"
+sports_note = "Aluva college with football in MG University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.university-college-tvm"
+name = "University College, Thiruvananthapuram"
+city = "Thiruvananthapuram"
+state = "state.kl"
+kind = "affiliated_college"
+football = ["comp.kerala-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.kerala"
+sports_note = "Government college of the University of Kerala; football in Kerala University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-xaviers-kolkata"
+name = "St. Xavier's College, Kolkata"
+city = "Kolkata"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "Autonomous Jesuit college; participates in Calcutta University inter-college football and Kolkata tournaments."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.scottish-church"
+name = "Scottish Church College"
+city = "Kolkata"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "Kolkata college; football team in Calcutta University inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.asutosh-college"
+name = "Asutosh College"
+city = "Kolkata"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "South Kolkata college with a football tradition in Calcutta University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.maulana-azad-college"
+name = "Maulana Azad College"
+city = "Kolkata"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "Central Kolkata college with football in Calcutta University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.dinabandhu-andrews"
+name = "Dinabandhu Andrews College"
+city = "Kolkata (Garia)"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "South Kolkata college known for football and cricket in the local college circuit."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.city-college-kolkata"
+name = "City College"
+city = "Kolkata"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "Central Kolkata college; football team in Calcutta University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.surendranath-college"
+name = "Surendranath College"
+city = "Kolkata"
+state = "state.wb"
+kind = "affiliated_college"
+football = ["comp.calcutta-univ-intercollegiate"]
+zone = "east"
+parent_university = "uni.calcutta"
+sports_note = "Kolkata college; football team in Calcutta University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.hansraj"
+name = "Hansraj College"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "University of Delhi college with a football team in DU inter-college events; DU colleges admit sportspersons through a sports category with trials (quota size and rules vary by year, not recorded)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.khalsa-du"
+name = "Khalsa College, University of Delhi"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "DU college with a strong football team in DU inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.hindu-college"
+name = "Hindu College"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "DU college with a football team in inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.kirori-mal"
+name = "Kirori Mal College"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "DU college known for a wide sports programme; football team in inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-stephens-delhi"
+name = "St. Stephen's College"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "DU college with a football tradition in inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.ramjas"
+name = "Ramjas College"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "DU college with a football team in inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.zakir-husain-delhi"
+name = "Zakir Husain Delhi College"
+city = "New Delhi"
+state = "state.dl"
+kind = "affiliated_college"
+football = ["comp.du-inter-college"]
+zone = "north"
+parent_university = "uni.delhi"
+sports_note = "DU college with football in inter-college events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-xaviers-mumbai"
+name = "St. Xavier's College, Mumbai"
+city = "Mumbai"
+state = "state.mh"
+kind = "affiliated_college"
+football = ["comp.mumbai-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.mumbai"
+sports_note = "Autonomous Jesuit college; participates in University of Mumbai inter-collegiate football."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.khalsa-mumbai"
+name = "Khalsa College, Mumbai"
+city = "Mumbai (Matunga)"
+state = "state.mh"
+kind = "affiliated_college"
+football = ["comp.mumbai-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.mumbai"
+sports_note = "Mumbai college with a sports focus; football in inter-collegiate events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.rizvi-mumbai"
+name = "Rizvi College of Arts, Science and Commerce"
+city = "Mumbai (Bandra)"
+state = "state.mh"
+kind = "affiliated_college"
+football = ["comp.mumbai-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.mumbai"
+sports_note = "Bandra college; football in inter-collegiate events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.fergusson-pune"
+name = "Fergusson College"
+city = "Pune"
+state = "state.mh"
+kind = "affiliated_college"
+football = ["comp.pune-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.savitribai-phule-pune"
+sports_note = "Pune's historic autonomous college; football in SPPU inter-collegiate events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.abeda-inamdar"
+name = "Abeda Inamdar Senior College"
+city = "Pune"
+state = "state.mh"
+kind = "affiliated_college"
+football = ["comp.pune-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.savitribai-phule-pune"
+sports_note = "Pune Camp college; known locally for football (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.dhempe-goa"
+name = "Dhempe College of Arts and Science"
+city = "Miramar, Panaji"
+state = "state.ga"
+kind = "affiliated_college"
+football = ["comp.goa-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.goa"
+sports_note = "Goa college with a football team in Goa University inter-collegiate events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.chowgule-goa"
+name = "Parvatibai Chowgule College"
+city = "Margao"
+state = "state.ga"
+kind = "affiliated_college"
+football = ["comp.goa-univ-intercollegiate"]
+zone = "west"
+parent_university = "uni.goa"
+sports_note = "Margao college with a football team in Goa University inter-collegiate events (low confidence)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.loyola-chennai"
+name = "Loyola College, Chennai"
+city = "Chennai"
+state = "state.tn"
+kind = "affiliated_college"
+football = ["comp.madras-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.madras"
+sports_note = "Autonomous Jesuit college with a long football tradition in the Madras University inter-collegiate and Chennai circuits; sports quota admissions exist (share not recorded)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.mcc-chennai"
+name = "Madras Christian College"
+city = "Chennai (Tambaram)"
+state = "state.tn"
+kind = "affiliated_college"
+football = ["comp.madras-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.madras"
+sports_note = "Autonomous college with football in Madras University events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-josephs-bengaluru"
+name = "St. Joseph's College (Autonomous), Bengaluru"
+city = "Bengaluru"
+state = "state.ka"
+kind = "affiliated_college"
+football = ["comp.bangalore-univ-intercollegiate"]
+zone = "south"
+parent_university = "uni.bengaluru-city"
+sports_note = "Bengaluru college with football in city inter-collegiate tournaments; university affiliation moved from Bangalore University to Bengaluru City University (recollection)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.khalsa-amritsar"
+name = "Khalsa College, Amritsar"
+city = "Amritsar"
+state = "state.pb"
+kind = "affiliated_college"
+football = ["comp.gndu-intercollege"]
+zone = "north"
+parent_university = "uni.guru-nanak-dev"
+sports_note = "Historic Amritsar college with sports focus; football side in GNDU inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.lyallpur-khalsa"
+name = "Lyallpur Khalsa College"
+city = "Jalandhar"
+state = "state.pb"
+kind = "affiliated_college"
+football = ["comp.gndu-intercollege"]
+zone = "north"
+parent_university = "uni.guru-nanak-dev"
+sports_note = "Jalandhar college with a strong sports culture including football (Punjab football tradition)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-edmunds-shillong"
+name = "St. Edmund's College, Shillong"
+city = "Shillong"
+state = "state.ml"
+kind = "affiliated_college"
+football = ["comp.nehu-intercollege"]
+zone = "east"
+parent_university = "uni.north-eastern-hill"
+sports_note = "Shillong college; football in NEHU inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.st-anthonys-shillong"
+name = "St. Anthony's College, Shillong"
+city = "Shillong"
+state = "state.ml"
+kind = "affiliated_college"
+football = ["comp.nehu-intercollege"]
+zone = "east"
+parent_university = "uni.north-eastern-hill"
+sports_note = "Shillong college; football in NEHU inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }
+
+[[university]]
+id = "uni.pachhunga-aizawl"
+name = "Pachhunga University College"
+city = "Aizawl"
+state = "state.mz"
+kind = "affiliated_college"
+football = ["comp.mizoram-univ-intercollege"]
+zone = "east"
+parent_university = "uni.mizoram"
+sports_note = "Aizawl college affiliated to Mizoram University; football in inter-college events."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Institution is real; football involvement and details are a low-confidence seed, verify before relying on it." }

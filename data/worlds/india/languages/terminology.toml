@@ -1,0 +1,61 @@
+[meta]
+dataset = "languages.terminology"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "Seed vocabulary only."
+gaps = ["Region/language-specific vocabulary not researched."]
+
+[[term]]
+id = "term.competition.top"
+concept = "competition.top"
+canonical = "Indian Super League"
+synonyms = ["ISL", "the Super League"]
+register = "headline"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[term]]
+id = "term.competition.state-team"
+concept = "competition.state-team"
+canonical = "Santosh Trophy"
+synonyms = ["National Football Championship", "Santosh"]
+register = "neutral"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[term]]
+id = "term.competition.youth-dev"
+concept = "competition.youth-dev"
+canonical = "Reliance Foundation Development League"
+synonyms = ["RFDL", "Development League"]
+register = "neutral"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[term]]
+id = "term.org.federation"
+concept = "org.federation"
+canonical = "AIFF"
+synonyms = ["All India Football Federation", "the federation"]
+register = "neutral"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[term]]
+id = "term.org.state-assoc"
+concept = "org.state-assoc"
+canonical = "state association"
+synonyms = ["state football association", "state FA"]
+register = "neutral"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[term]]
+id = "term.org.academy"
+concept = "org.academy"
+canonical = "academy"
+synonyms = ["development centre", "residential academy"]
+register = "neutral"
+lang = "lang.en"
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

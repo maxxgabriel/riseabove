@@ -1,0 +1,184 @@
+# Posts: a report line and the speaker's attitude, or an attitude alone in answer to another post. Facts the account does not hold never appear, and an attitude
+# is never firmer than the report line it follows.
+
+[[case]]
+id = "social.late_winner.cheer"
+summary = "A supporter celebrates a late winner."
+now = "2026-05-02"
+channel = "social"
+behaviour = "cheer"
+seeds = 12
+[case.event]
+kind = "match.moment"
+date = "2026-05-02"
+[case.event.facts]
+kind = "late_winner"
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "age_role", text = "19-year-old winger" }, { kind = "role", text = "winger" }] }
+club = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+opponent = { id = "club.mohun-bagan-sg", full = "Mohun Bagan SG", short = "Mohun Bagan", plural = true }
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+witness = true
+[case.expect]
+must_contain = ["Rahul"]
+certainty = "fact"
+min_distinct = 3
+
+[[case]]
+id = "social.red_card.grumble"
+summary = "A supporter of the other side has something to say about a sending off."
+now = "2026-05-02"
+channel = "social"
+behaviour = "grumble"
+seeds = 12
+[case.event]
+kind = "match.moment"
+date = "2026-05-02"
+[case.event.facts]
+kind = "red_card"
+player = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "role", text = "midfielder" }] }
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+opponent = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+[case.speaker]
+role = "fan"
+voice = "fan_sceptic"
+witness = true
+[case.expect]
+must_contain = ["Asha"]
+must_not_contain = ["confirmed", "official"]
+certainty = "fact"
+
+[[case]]
+id = "social.rumour.worry"
+summary = "A supporter worries about a rumour: the post is no firmer than the rumour."
+now = "2026-05-02"
+channel = "social"
+behaviour = "worry"
+seeds = 12
+[case.event]
+kind = "transfer.bid_made"
+date = "2026-05-01"
+[case.event.facts]
+buyer = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+seller = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "role", text = "winger" }] }
+fee = { money = 25000000 }
+[case.speaker]
+role = "fan"
+voice = "fan_sceptic"
+[case.speaker.knows]
+buyer = "rumour"
+player = "rumour"
+seller = "rumour"
+[case.expect]
+must_not_contain = ["confirmed", "completed", "official", "25"]
+certainty = "rumour"
+
+[[case]]
+id = "social.reply.agree"
+summary = "An answer to someone else's post is its attitude alone."
+now = "2026-05-02"
+channel = "social"
+behaviour = "agree"
+seeds = 12
+[case.event]
+kind = "social.reaction"
+date = "2026-05-02"
+[case.event.facts]
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+witness = true
+[case.expect]
+min_distinct = 3
+
+[[case]]
+id = "social.reply.jibe.club"
+summary = "A rival's jibe names the club it is about."
+now = "2026-05-02"
+channel = "social"
+behaviour = "jibe"
+seeds = 12
+[case.event]
+kind = "social.reaction"
+date = "2026-05-02"
+[case.event.facts]
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+witness = true
+[case.expect]
+min_distinct = 2
+
+[[case]]
+id = "social.transfer_request"
+summary = "A transfer request, as a post."
+now = "2026-05-02"
+channel = "social"
+behaviour = "defend"
+seeds = 12
+[case.event]
+kind = "player.transfer_request"
+date = "2026-05-02"
+[case.event.facts]
+player = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "role", text = "winger" }] }
+club = { id = "club.kerala-blasters", full = "Kerala Blasters", short = "Blasters", plural = true }
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+witness = true
+[case.expect]
+must_contain = ["Rahul"]
+certainty = "fact"
+
+[[case]]
+id = "social.incident.rumour.bulletin"
+summary = "A reported incident passed on by an account that only heard it: attributed as a rumour, never as plain fact."
+now = "2026-05-02"
+channel = "social"
+behaviour = "worry"
+seeds = 12
+[case.event]
+kind = "incident.reported"
+date = "2026-05-01"
+[case.event.facts]
+kind = "training_clash"
+club = { id = "club.east-bengal", full = "East Bengal", short = "East Bengal", plural = true }
+who = { id = "person.asha-devi", full = "Asha Devi", short = "Asha", plural = false, descriptors = [{ kind = "role", text = "midfielder" }] }
+other = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "role", text = "winger" }] }
+[case.speaker]
+role = "fan"
+voice = "fan_sceptic"
+[case.speaker.knows]
+kind = "rumour"
+club = "rumour"
+who = "rumour"
+other = "rumour"
+[case.expect]
+must_not_contain = ["confirmed", "official"]
+certainty = "rumour"
+
+[[case]]
+id = "social.interview.praise"
+summary = "A supporter's take on something a manager said: the stance is known, never the words."
+now = "2026-05-02"
+channel = "social"
+behaviour = "praise"
+seeds = 12
+[case.event]
+kind = "interview.quote"
+date = "2026-05-02"
+[case.event.facts]
+speaker = { id = "person.manolo-gomez", full = "Manolo Gomez", short = "Gomez", plural = false, descriptors = [{ kind = "title", text = "head coach" }] }
+about = { id = "person.rahul-kumar", full = "Rahul Kumar", short = "Rahul", plural = false, descriptors = [{ kind = "role", text = "winger" }] }
+stance = "praise"
+[case.speaker]
+role = "fan"
+voice = "fan_hype"
+witness = true
+[case.expect]
+must_contain = ["Gomez"]
+certainty = "fact"

@@ -1,0 +1,101 @@
+/* Design tokens: a neutral near-black canvas, thin-bordered panels and one magenta accent.
+   Context tint belongs in an entity hero, never in the whole application canvas. */
+:root { --tint: #173d78; }
+:root,
+:root[data-theme="dark"],
+:root[data-theme="dark"] .stage,
+:root[data-theme="light"] .stage {
+  color-scheme: dark;
+  --bg: #0b0b0e;
+  --panel: #141418;
+  --raised: #1b1b21;
+  --hover: #23232b;
+  --pressed: #2b2b34;
+  --head: #18181d;
+  --panel-2: #17171c;
+  --panel-3: #1e1e25;
+  --shell: #0f0f13;
+  --line: rgba(255, 255, 255, 0.075);
+  --line-2: rgba(255, 255, 255, 0.15);
+  --edge: rgba(255, 255, 255, 0.11);
+  --text: #ededf2;
+  --text-2: #aaaab6;
+  --text-3: #71717e;
+  --accent: #e5267f;
+  --accent-strong: #ff4f9e;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(229, 38, 127, 0.15);
+  --pos: #52d98a;
+  --neg: #f47a7a;
+  --warn: #f0b93f;
+  --info: #6aa8f5;
+  --you: #f15338;
+  --you-soft: rgba(241, 83, 56, 0.16);
+  --pos-soft: rgba(82, 217, 138, 0.15);
+  --neg-soft: rgba(244, 122, 122, 0.15);
+  --warn-soft: rgba(240, 185, 63, 0.15);
+  --info-soft: rgba(106, 168, 245, 0.15);
+  --shadow: 0 14px 38px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --scroll: rgba(255, 255, 255, 0.16);
+  --sel: rgba(229, 38, 127, 0.14);
+  --zebra: rgba(255, 255, 255, 0.028);
+  --space-1: 0.25rem;
+  --space-2: 0.45rem;
+  --space-3: 0.7rem;
+  --space-4: 1rem;
+  --space-5: 1.35rem;
+  --control-h: 1.9rem;
+  --row-h: 1.75rem;
+  --motion-fast: 120ms;
+  --motion-normal: 170ms;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --raised: #f7f8fa;
+  --panel-2: #f1f4f5;
+  --panel-3: #e9eef0;
+  --shell: #e8edef;
+  --hover: #eef0f3;
+  --pressed: #e4e7ec;
+  --line: #e2e5ea;
+  --line-2: #cdd2d9;
+  --text: #14171b;
+  --text-2: #4f5965;
+  --text-3: #808995;
+  --accent: #0e7c72;
+  --accent-strong: #0a6b62;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(14, 124, 114, 0.1);
+  --pos: #16803c;
+  --neg: #c22d2d;
+  --warn: #a5690a;
+  --info: #1e5fc4;
+  --you: #d63a1f;
+  --you-soft: rgba(214, 58, 31, 0.09);
+  --pos-soft: rgba(22, 128, 60, 0.1);
+  --neg-soft: rgba(194, 45, 45, 0.09);
+  --warn-soft: rgba(165, 105, 10, 0.11);
+  --info-soft: rgba(30, 95, 196, 0.09);
+  --shadow: 0 10px 30px rgba(20, 30, 50, 0.16), 0 0 0 1px rgba(20, 30, 50, 0.06);
+  --scroll: #c7ccd3;
+  --sel: rgba(14, 124, 114, 0.12);
+  --zebra: rgba(20, 30, 50, 0.04);
+  --head: #eceff3;
+  --edge: rgba(20, 30, 50, 0.22);
+}
+
+:root {
+  --text-scale: 1;
+  --radius: 3px;
+  --radius-lg: 4px;
+  --rail-w: 196px;
+  --top-h: 44px;
+  --display: var(--font);
+  --font-fallback: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Nirmala UI", "Noto Sans", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: calc(13px * var(--text-scale));
+}

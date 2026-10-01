@@ -1,0 +1,120 @@
+[meta]
+dataset = "partnerships"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "12 international development, federation and club-group links (model knowledge, mostly AFC/FIFA programmes plus a few clubs)."
+gaps = ["No source URLs: all entries are model knowledge, not re-checked (brief v2).", "Specific AIFF memoranda with foreign federations (JFA, LaLiga, Premier League and others) are believed but unconfirmed, q = D; signing dates and terms unknown.", "Foreign links of most ISL clubs (technical partners, academies, affiliation with European clubs) are not recorded because they could not be recalled with confidence.", "Domestic owner groups of ISL clubs belong in clubs/ownership.toml, not here; only owner links to a foreign body are recorded.", "foreign.kind values are free text: federation, confederation, league, club, club_group, ngo, government_cultural_body; no fixed enumeration in SCHEMA.md.", "foreign.nation for AFC and FIFA is the seat country code; they are not member-state bodies.", "SCHEMA GAP: partnership.indian lists ids of associations, clubs and programmes; one record here points at a prog. id (partner.slum-soccer-hwc) and another at a prog. id besides an assoc id."]
+
+[[partnership]]
+id = "partner.aiff-afc-grassroots"
+indian = ["assoc.aiff", "prog.afc-grassroots-charter"]
+foreign = [{ name = "Asian Football Confederation", nation = "MYS", kind = "confederation" }]
+status = "active"
+purpose = "AIFF participates in the AFC Grassroots Football Charter, with AFC funding, festivals and coach training for grassroots football."
+components = ["player_development", "coach_development"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Continuing membership relationship, no fixed start or end. AFC nation code is its Kuala Lumpur seat, not a member-state." }
+
+[[partnership]]
+id = "partner.aiff-afc-coach-education"
+indian = ["assoc.aiff"]
+foreign = [{ name = "Asian Football Confederation", nation = "MYS", kind = "confederation" }]
+status = "active"
+purpose = "AIFF coaching licences follow the AFC Coaching Convention, with AFC tutors and course approval for the ladder AFC C, B, A and Pro."
+components = ["coach_development"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Licence naming under AIFF changed over the years; see development/coach_education.toml for the ladder." }
+
+[[partnership]]
+id = "partner.aiff-afc-referees"
+indian = ["assoc.aiff"]
+foreign = [{ name = "Asian Football Confederation", nation = "MYS", kind = "confederation" }]
+status = "active"
+purpose = "AFC referee-development programme: instructor courses, elite-referee lists and exchange of referees to continental fixtures."
+components = ["technical", "exchange"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Continuing relationship; scale in 2026-27 not known." }
+
+[[partnership]]
+id = "partner.aiff-afc-women"
+indian = ["assoc.aiff"]
+foreign = [{ name = "Asian Football Confederation", nation = "MYS", kind = "confederation" }]
+status = "active"
+purpose = "AFC women's football development support, including girls' festivals, women's coaching courses and continental club and national-team competitions."
+components = ["women", "player_development"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Generic AFC support for member associations; specific AIFF-AFC women's agreements not confirmed." }
+
+[[partnership]]
+id = "partner.aiff-fifa-forward"
+indian = ["assoc.aiff"]
+foreign = [{ name = "FIFA", nation = "SUI", kind = "federation" }]
+status = "active"
+purpose = "FIFA Forward development funding paid to AIFF for administration, technical projects and infrastructure."
+components = ["technical", "player_development"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. All FIFA member associations receive Forward funding; amounts and project list not recorded." }
+
+[[partnership]]
+id = "partner.aiff-fifa-talent-development"
+indian = ["assoc.aiff"]
+foreign = [{ name = "FIFA", nation = "SUI", kind = "federation" }]
+status = "active"
+purpose = "FIFA talent-development support: identification methodology, technical development plan advice and age-group coaching content."
+components = ["scouting", "player_development"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. FIFA runs talent-development schemes for member associations; India's participation and current status are uncertain." }
+
+[[partnership]]
+id = "partner.aiff-premier-skills"
+indian = ["assoc.aiff"]
+foreign = [{ name = "Premier League", nation = "ENG", kind = "league" }, { name = "British Council", nation = "GBR", kind = "government_cultural_body" }]
+start = "2012"
+status = "active"
+purpose = "Premier Skills coach and referee education courses in India, run by Premier League with the British Council with local facilitators and state associations."
+components = ["coach_development", "technical"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. Premier Skills has been active in India; the AIFF link, current activity and start year are uncertain." }
+
+[[partnership]]
+id = "partner.aiff-laliga"
+indian = ["assoc.aiff"]
+foreign = [{ name = "LaLiga", nation = "ESP", kind = "league" }]
+status = "active"
+purpose = "LaLiga cooperation with Indian football: coach clinics, football-school branding and competition knowledge transfer."
+components = ["coach_development", "commercial", "exchange"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. LaLiga has an India presence; whether an AIFF memorandum exists and its dates are not confirmed." }
+
+[[partnership]]
+id = "partner.aiff-jfa"
+indian = ["assoc.aiff"]
+foreign = [{ name = "Japan Football Association", nation = "JPN", kind = "federation" }]
+status = "active"
+purpose = "Japan Football Association cooperation memorandum covering coach education, referee exchange and youth camps."
+components = ["coach_development", "exchange", "technical"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. JFA signs cooperation memoranda with many federations; an AIFF memorandum is believed but not verified, dates unknown." }
+
+[[partnership]]
+id = "partner.mumbai-city-cfg"
+indian = ["club.mumbai-city"]
+foreign = [{ name = "City Football Group", nation = "GBR", kind = "club_group" }]
+start = "2019"
+status = "active"
+purpose = "City Football Group holds a controlling stake in Mumbai City FC and links it to its global network for coaching, scouting and player pathways."
+components = ["commercial", "player_development", "scouting", "technical"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. CFG bought a majority stake in 2019. Still active at 2026-07-01 is assumed, not checked; the exact stake percentage is not recorded here." }
+
+[[partnership]]
+id = "partner.atk-atletico-madrid"
+indian = ["club.mohun-bagan-sg"]
+foreign = [{ name = "Atlético de Madrid", nation = "ESP", kind = "club" }]
+start = "2014"
+end = "2017"
+status = "expired"
+purpose = "Atlético de Madrid took a minority stake and technical role in the Kolkata ISL franchise that later became ATK and then Mohun Bagan Super Giant."
+components = ["commercial", "technical", "exchange"]
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Franchise history: Atlético de Kolkata (2014), renamed ATK after the Spanish club left (about 2017), merged with Mohun Bagan in 2020. Years approximate. The indian id points to the club where the lineage ends up." }
+
+[[partnership]]
+id = "partner.slum-soccer-hwc"
+indian = ["prog.slum-soccer"]
+foreign = [{ name = "Homeless World Cup Foundation", nation = "GBR", kind = "ngo" }]
+status = "active"
+purpose = "Slum Soccer selects and prepares India's team for the Homeless World Cup street-football tournament."
+components = ["exchange", "player_development"]
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked. The link is from memory; years of participation and current status are unverified." }

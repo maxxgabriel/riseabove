@@ -3,9 +3,11 @@
 //! holds only what defines *how* football works in Pathway (P7).
 
 mod pack;
+pub mod rules;
 mod tuning;
 
 pub use pack::*;
+pub use rules::{RuleProfile, RulesFile};
 pub use tuning::*;
 
 #[cfg(test)]

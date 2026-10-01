@@ -1,5 +1,5 @@
-use pw_core::{Attr, Attrs, ClubId, Date, IdVec, Money, N_POS, PersonId, PlayerId, PlayerTraits, Pos, TeamId};
 use pw_core::attr::AttrGroup;
+use pw_core::{Attr, Attrs, ClubId, Date, IdVec, Money, N_POS, PersonId, PlayerId, PlayerTraits, Pos, TeamId};
 use pw_data::{N_BODY_REGIONS, PositionWeights};
 use serde::{Deserialize, Serialize};
 
@@ -11,6 +11,9 @@ pub enum PlayerStatus {
     Active,
     FreeAgent,
     Retired,
+    /// Playing outside professional registration: grassroots children, and
+    /// adults in amateur and semi-professional football.
+    Amateur,
 }
 
 /// Fields touched every simulated day. Kept small and `Copy` so daily passes
@@ -46,6 +49,8 @@ pub struct PlayerHot {
     pub training: u8,
     /// Minutes over roughly the last four weeks (decayed daily).
     pub minutes_4w: u16,
+    /// Minutes since the last weekly social pass (promises count these).
+    pub minutes_week: u16,
     pub last_match: Date,
 }
 
@@ -72,6 +77,7 @@ impl Default for PlayerHot {
             form: [0; 5],
             training: 65,
             minutes_4w: 0,
+            minutes_week: 0,
             last_match: Date(i32::MIN / 2),
         }
     }
@@ -149,8 +155,20 @@ impl Focus {
     pub fn weight(&self, a: Attr) -> f32 {
         match *self {
             Focus::General | Focus::Position(_) => 1.0,
-            Focus::Group(g) => if a.group() == g { 1.35 } else { 0.9 },
-            Focus::Attribute(x) => if a == x { 1.8 } else { 0.92 },
+            Focus::Group(g) => {
+                if a.group() == g {
+                    1.35
+                } else {
+                    0.9
+                }
+            }
+            Focus::Attribute(x) => {
+                if a == x {
+                    1.8
+                } else {
+                    0.92
+                }
+            }
         }
     }
 }
@@ -278,31 +296,83 @@ pub fn familiarity_factor(f: u8) -> f32 {
     }
 }
 
-pub const FAMILIARITY_LABELS: [(u8, &str); 6] = [
-    (18, "Natural"),
-    (15, "Accomplished"),
-    (12, "Competent"),
-    (8, "Unconvincing"),
-    (5, "Awkward"),
-    (0, "Ineffectual"),
-];
+pub const FAMILIARITY_LABELS: [(u8, &str); 6] = [(18, "Natural"), (15, "Accomplished"), (12, "Competent"), (8, "Unconvincing"), (5, "Awkward"), (0, "Ineffectual")];
 
 pub fn familiarity_label(f: u8) -> &'static str {
     FAMILIARITY_LABELS.iter().find(|(min, _)| f >= *min).map_or("Ineffectual", |(_, l)| l)
+}
+
+/// Why a player exists. Every creation path names one; there is no way to add
+/// a player without it (`Players::push` requires an `Origin`), so population
+/// metrics can say exactly where every player came from.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub enum PlayerSource {
+    /// Read from the imported world data.
+    DatabaseImport,
+    /// Built by the synthetic test/benchmark world.
+    SyntheticFixture,
+    /// Spawned straight into a club's youth team at the yearly academy intake.
+    AcademyIntake,
+    /// A child born into a grassroots club's yearly cohort (the pipeline's start).
+    GrassrootsCohort,
+    /// Created for a human to inhabit.
+    HumanCreated,
+    /// Drawn from a region's aggregate participation pool when a child became competitive or noticed.
+    RegionalPool,
+    /// A player who entered organised football late (an adult from the amateur game).
+    LateEntry,
+}
+
+impl PlayerSource {
+    pub const ALL: [PlayerSource; 7] = [PlayerSource::DatabaseImport, PlayerSource::SyntheticFixture, PlayerSource::AcademyIntake, PlayerSource::GrassrootsCohort, PlayerSource::HumanCreated, PlayerSource::RegionalPool, PlayerSource::LateEntry];
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            PlayerSource::DatabaseImport => "database import",
+            PlayerSource::SyntheticFixture => "synthetic fixture",
+            PlayerSource::AcademyIntake => "academy intake",
+            PlayerSource::GrassrootsCohort => "grassroots cohort",
+            PlayerSource::HumanCreated => "created for a human",
+            PlayerSource::RegionalPool => "regional participation pool",
+            PlayerSource::LateEntry => "late entry",
+        }
+    }
+}
+
+/// When and why a player entered the world.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Origin {
+    pub source: PlayerSource,
+    pub date: Date,
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Players {
     pub hot: IdVec<PlayerId, PlayerHot>,
     pub cold: IdVec<PlayerId, PlayerCold>,
+    /// Aligned with `hot` and `cold`: how each player came to exist.
+    pub origin: IdVec<PlayerId, Origin>,
 }
 
 impl Players {
-    pub fn push(&mut self, hot: PlayerHot, cold: PlayerCold) -> PlayerId {
+    pub fn push(&mut self, hot: PlayerHot, cold: PlayerCold, origin: Origin) -> PlayerId {
         let id = self.hot.push(hot);
         let id2 = self.cold.push(cold);
-        debug_assert_eq!(id, id2);
+        let id3 = self.origin.push(origin);
+        debug_assert!(id == id2 && id == id3);
         id
+    }
+
+    /// Players created in `[from, to)` by source, in `PlayerSource::ALL` order.
+    pub fn created_by_source(&self, from: Date, to: Date) -> [u32; PlayerSource::ALL.len()] {
+        let mut out = [0u32; PlayerSource::ALL.len()];
+        for o in self.origin.iter() {
+            if o.date >= from && o.date < to {
+                let i = PlayerSource::ALL.iter().position(|&s| s == o.source).unwrap_or(0);
+                out[i] += 1;
+            }
+        }
+        out
     }
 
     #[inline]

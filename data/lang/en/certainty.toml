@@ -1,0 +1,291 @@
+# Certainty grammar. A `clause` frame states a proposition; the wrapper for the sentence's certainty turns it into what the speaker may honestly say.
+# The certainty of a sentence is the weakest certainty of the facts it needs. Nothing is promoted. {cert:source} is only available if the speaker holds a
+# source that may stand behind that certainty (see [[source]]); without one, wrappers that need it cannot be used.
+
+# --- FACT -----------------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "fact"
+certainty = "fact"
+text = "{clause}"
+
+# --- VERIFIED REPORT ------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "verified.said"
+certainty = "verified_report"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{cert:source} {lex:report.past} that {clause}"
+[[wrapper]]
+id = "verified.according"
+certainty = "verified_report"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{~According to|As reported by|Per} {cert:source}, {clause}"
+[[wrapper]]
+id = "verified.understood"
+certainty = "verified_report"
+slot = ["lede", "detail", "context"]
+register = "formal"
+text = "It is understood that {clause}, according to {cert:source}"
+[[wrapper]]
+id = "verified.headline"
+certainty = "verified_report"
+slot = ["headline", "heading", "bulletin"]
+text = "{clause}, {lex:report.third} {cert:source}"
+
+# --- SOURCE CLAIM ---------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "claim.according"
+certainty = "source_claim"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{~According to|Per} {cert:source}, {clause}"
+[[wrapper]]
+id = "claim.claimed"
+certainty = "source_claim"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{cert:source} {lex:claim.past} that {clause}"
+[[wrapper]]
+id = "claim.headline"
+certainty = "source_claim"
+slot = ["headline", "heading", "bulletin"]
+text = "{clause}, {lex:claim.third} {cert:source}"
+
+# --- RUMOUR ---------------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "rumour.talk"
+certainty = "rumour"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{~There is talk that|The word is that|Whispers suggest that} {clause}"
+[[wrapper]]
+id = "rumour.heard"
+certainty = "rumour"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{cert:source} {lex:hear.agr} that {clause}"
+[[wrapper]]
+id = "rumour.headline"
+certainty = "rumour"
+slot = ["headline", "heading", "bulletin"]
+text = "Rumour: {clause}"
+
+# --- SPECULATION ----------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "spec.maybe"
+certainty = "speculation"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context", "verdict"]
+text = "{~It may be that|Perhaps|One reading is that} {clause}"
+[[wrapper]]
+id = "spec.headline"
+certainty = "speculation"
+slot = ["headline", "heading", "bulletin"]
+text = "Speculation: {clause}"
+
+# --- DENIAL ---------------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "denial.denied"
+certainty = "denial"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{cert:source} {lex:deny.past} that {clause}"
+[[wrapper]]
+id = "denial.dismissed"
+certainty = "denial"
+slot = ["lede", "detail", "post", "situation", "line", "summary", "context"]
+text = "{cert:source} {lex:dismiss_claim.past} the claim that {clause}"
+[[wrapper]]
+id = "denial.headline"
+certainty = "denial"
+slot = ["headline", "heading", "bulletin"]
+text = "{cert:source} {lex:deny.agr}: {clause}"
+
+# --- CORRECTION -----------------------------------------------------------------------------------------------------------
+[[wrapper]]
+id = "correction.body"
+certainty = "correction"
+slot = ["lede", "post", "situation", "line", "summary"]
+text = "Correction: {clause}, not as first reported"
+[[wrapper]]
+id = "correction.detail"
+certainty = "correction"
+slot = ["detail", "context"]
+text = "Also corrected: {clause}"
+[[wrapper]]
+id = "correction.headline"
+certainty = "correction"
+slot = ["headline", "heading", "bulletin"]
+text = "Correction: {clause}"
+
+# --- UNKNOWN (used by clause frames that explicitly list `unknown`) -----------------------------------------------------------
+[[wrapper]]
+id = "unknown.unclear"
+certainty = "unknown"
+text = "It is not yet clear whether {clause}"
+
+# --- Sources: who can stand behind what ------------------------------------------------------------------------------------
+[[source]]
+kind = "club_statement"
+phrase = "a club statement"
+plural = false
+certainty = ["verified_report", "denial", "correction"]
+[[source]]
+kind = "club"
+phrase = "the club"
+plural = false
+certainty = ["verified_report", "denial", "correction"]
+[[source]]
+kind = "federation"
+phrase = "the federation"
+plural = false
+certainty = ["verified_report", "denial", "correction"]
+[[source]]
+kind = "agent"
+phrase = "the player's representatives"
+plural = true
+certainty = ["source_claim", "denial"]
+[[source]]
+kind = "unnamed"
+phrase = "sources close to the club"
+plural = true
+certainty = ["source_claim", "verified_report"]
+[[source]]
+kind = "unnamed_player"
+phrase = "sources close to the player"
+plural = true
+certainty = ["source_claim"]
+[[source]]
+kind = "reliable_outlet"
+phrase = "reliable reports"
+plural = true
+certainty = ["verified_report"]
+[[source]]
+kind = "wire"
+phrase = "the news agency"
+plural = false
+certainty = ["verified_report"]
+[[source]]
+kind = "grapevine"
+phrase = "supporters on social media"
+plural = true
+certainty = ["rumour"]
+[[source]]
+kind = "forums"
+phrase = "fan forums"
+plural = true
+certainty = ["rumour"]
+[[source]]
+kind = "coach"
+phrase = "the coach"
+plural = false
+certainty = ["source_claim", "verified_report", "denial"]
+
+# --- Continuations: the same attribution already opened the text, so later details do not repeat it ------------------------------
+[[wrapper]]
+id = "cont.verified.1"
+certainty = "verified_report"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "The same report adds that {clause}"
+[[wrapper]]
+id = "cont.verified.2"
+certainty = "verified_report"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "It is also reported that {clause}"
+[[wrapper]]
+id = "cont.verified.3"
+certainty = "verified_report"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "The report further says that {clause}"
+
+[[wrapper]]
+id = "cont.claim.1"
+certainty = "source_claim"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "It is also claimed that {clause}"
+[[wrapper]]
+id = "cont.claim.2"
+certainty = "source_claim"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "The same claim adds that {clause}"
+[[wrapper]]
+id = "cont.claim.3"
+certainty = "source_claim"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "It is further claimed that {clause}"
+
+[[wrapper]]
+id = "cont.rumour.1"
+certainty = "rumour"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "It is also said that {clause}"
+[[wrapper]]
+id = "cont.rumour.2"
+certainty = "rumour"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "The talk also has it that {clause}"
+[[wrapper]]
+id = "cont.rumour.3"
+certainty = "rumour"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "The chatter adds that {clause}"
+
+[[wrapper]]
+id = "cont.spec.1"
+certainty = "speculation"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "It may also be that {clause}"
+[[wrapper]]
+id = "cont.spec.2"
+certainty = "speculation"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "Perhaps too, {clause}"
+[[wrapper]]
+id = "cont.spec.3"
+certainty = "speculation"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "A further guess is that {clause}"
+
+[[wrapper]]
+id = "cont.denial"
+certainty = "denial"
+continuation = true
+slot = ["detail", "context", "situation", "summary", "line"]
+text = "Also denied: {clause}"
+
+# --- Subject lines are short: a prefix, never a long attribution -----------------------------------------------------------------
+[[wrapper]]
+id = "subj.verified"
+certainty = "verified_report"
+slot = ["subject"]
+text = "Report: {clause}"
+[[wrapper]]
+id = "subj.claim"
+certainty = "source_claim"
+slot = ["subject"]
+text = "Claim: {clause}"
+[[wrapper]]
+id = "subj.rumour"
+certainty = "rumour"
+slot = ["subject"]
+text = "Rumour: {clause}"
+[[wrapper]]
+id = "subj.spec"
+certainty = "speculation"
+slot = ["subject"]
+text = "Speculation: {clause}"
+[[wrapper]]
+id = "subj.denial"
+certainty = "denial"
+slot = ["subject"]
+text = "Denied: {clause}"
+[[wrapper]]
+id = "subj.correction"
+certainty = "correction"
+slot = ["subject"]
+text = "Correction: {clause}"

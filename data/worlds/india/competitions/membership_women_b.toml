@@ -1,0 +1,672 @@
+[meta]
+dataset = "competitions.membership_women_b"
+quality = "D"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Indian Women's League (comp.iwl) participants by season from recollection (2016-17 to 2024-25 partial, 2026-27 seed), a 2026-27 IWL 2 seed, and 12 state women's leagues (defined here, senior/women/tier 1 in-state) with seed memberships for the clubs in clubs/women_b.toml and for women's sides of clubs recorded elsewhere."
+gaps = [
+ "Model knowledge only (no web access), no source opened. Historical IWL rows are recollections and may be incomplete or off by a season; 2025-26 lineup NOT recorded (not known); 2026-27 rows are scenario seeds, not a real participant list.",
+ "Season labels for the IWL follow the AIFF season names as recalled; 2020-21 was not played per recollection and the 2021-22/2022-23 editions were compressed, so labels may be off.",
+ "Women's sides of men's clubs (Gokulam Kerala, Odisha FC, East Bengal, Kickstart, Mohun Bagan SG ...) reuse the parent club id: SCHEMA GAP, see clubs/women_b.toml (optional club `section` field or a separate women's team record).",
+ "SCHEMA GAP: the state women's competitions are defined in this membership file (the validator scans all files) because no state_leagues/<state>.toml exists for these states, same convention as competitions/membership_t4_b.toml.",
+ "State women's league names, organisers' exact titles, formats, team counts and dates are not verified; comp.mz.mizoram-womens-league and comp.ml.meghalaya-womens-league have no members because club names could not be recalled.",
+ "IWL 2 (comp.iwl2) membership is a pure seed; its existence and structure in 2026-27 are not verified.",
+ "Champions and results are deliberately not recorded (no scores; not sure enough).",
+]
+
+[[competition]]
+id = "comp.kl.kerala-womens-league"
+name = "Kerala Women's League"
+short = "KWL"
+organiser = "assoc.kfa"
+level = "state"
+tier = 1
+state = "state.kl"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Women's state league run by the Kerala Football Association; first edition recalled around 2019-20 (Gokulam Kerala winners). Format and team count not known." }
+
+[[competition]]
+id = "comp.wb.calcutta-womens-league"
+name = "Calcutta Women's Football League"
+short = "CWFL"
+organiser = "assoc.ifa"
+level = "state"
+tier = 1
+state = "state.wb"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: IFA women's league in Kolkata (Calcutta). Name, divisions and team count uncertain." }
+
+[[competition]]
+id = "comp.mn.manipur-womens-league"
+name = "Manipur Women's League"
+short = "MWL"
+organiser = "assoc.fam"
+level = "state"
+tier = 1
+state = "state.mn"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Manipur women's state league run by the Football Association of Manipur; Manipur is a main source of Indian women's players. Format and dates not known." }
+
+[[competition]]
+id = "comp.od.odisha-womens-league"
+name = "Odisha Women's League"
+short = "OWL"
+organiser = "assoc.fao"
+level = "state"
+tier = 1
+state = "state.od"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Odisha women's state league run by the Football Association of Odisha; official name uncertain." }
+
+[[competition]]
+id = "comp.tn.tamil-nadu-womens-league"
+name = "Tamil Nadu Women's League"
+short = "TNWL"
+organiser = "assoc.tnfa"
+level = "state"
+tier = 1
+state = "state.tn"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Tamil Nadu women's state league; official name and format uncertain." }
+
+[[competition]]
+id = "comp.dl.delhi-womens-league"
+name = "Delhi Women's League"
+short = "DWL"
+organiser = "assoc.fd"
+level = "state"
+tier = 1
+state = "state.dl"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Football Delhi women's league; name and format uncertain." }
+
+[[competition]]
+id = "comp.hr.haryana-womens-league"
+name = "Haryana Women's League"
+short = "HWL"
+organiser = "assoc.hfa"
+level = "state"
+tier = 1
+state = "state.hr"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Haryana women's state league; existence recalled only vaguely, name a guess." }
+
+[[competition]]
+id = "comp.mh.mumbai-womens-league"
+name = "Mumbai Women's League"
+short = "MWL-MUM"
+organiser = "assoc.wifa"
+level = "state"
+tier = 1
+state = "state.mh"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Mumbai District Football Association women's league under WIFA; name and format uncertain." }
+
+[[competition]]
+id = "comp.ka.karnataka-womens-league"
+name = "Karnataka Women's League"
+short = "KWL-KA"
+organiser = "assoc.ksfa"
+level = "state"
+tier = 1
+state = "state.ka"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Karnataka State Football Association women's league (Bengaluru based); name and format uncertain." }
+
+[[competition]]
+id = "comp.ga.goa-womens-league"
+name = "Goa Women's League"
+short = "GWL"
+organiser = "assoc.gfa"
+level = "state"
+tier = 1
+state = "state.ga"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Goa Football Association women's league; SESA Football Academy recalled as a strong side. Format not known." }
+
+[[competition]]
+id = "comp.mz.mizoram-womens-league"
+name = "Mizoram Women's League"
+short = "MZWL"
+organiser = "assoc.mfa"
+level = "state"
+tier = 1
+state = "state.mz"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Mizoram Football Association women's league; participating clubs could not be recalled reliably." }
+
+[[competition]]
+id = "comp.ml.meghalaya-womens-league"
+name = "Meghalaya Women's League"
+short = "MGWL"
+organiser = "assoc.mfa-ml"
+level = "state"
+tier = 1
+state = "state.ml"
+age = "senior"
+gender = "women"
+kind = "league"
+season = "2026-27"
+status = "unknown"
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked: Meghalaya Football Association women's league; participating clubs could not be recalled reliably." }
+
+[[membership]]
+club = "club.eastern-sporting-union"
+competition = "comp.iwl"
+season = "2016-17"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.iwl"
+season = "2016-17"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2016-17"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.alakhpura"
+competition = "comp.iwl"
+season = "2016-17"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.iwl"
+season = "2017-18"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.eastern-sporting-union"
+competition = "comp.iwl"
+season = "2017-18"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2017-18"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2018-19"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.iwl"
+season = "2018-19"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.iwl"
+season = "2019-20"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2019-20"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.iwl"
+season = "2019-20"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.iwl"
+season = "2019-20"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.iwl"
+season = "2019-20"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.iwl"
+season = "2022-23"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2022-23"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.iwl"
+season = "2022-23"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.iwl"
+season = "2022-23"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.hans-women"
+competition = "comp.iwl"
+season = "2022-23"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.odisha"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.hans-women"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sports-odisha"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sribhumi"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.misaka-united"
+competition = "comp.iwl"
+season = "2023-24"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.odisha"
+competition = "comp.iwl"
+season = "2024-25"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.iwl"
+season = "2024-25"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.iwl"
+season = "2024-25"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2024-25"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.iwl"
+season = "2024-25"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.nita-fa"
+competition = "comp.iwl"
+season = "2024-25"
+note = "Recollection of an Indian Women's League participant in this season; club may be the women's section of the club with this id."
+prov = { status = "inferred", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.odisha"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.nita-fa"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sports-odisha"
+competition = "comp.iwl"
+season = "2026-27"
+note = "Scenario seed: a plausible IWL lineup, not the real 2026-27 participant list (unknown)."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.hans-women"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.misaka-united"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sribhumi"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.alakhpura"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.lords-fa"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.eastern-sporting-union"
+competition = "comp.iwl2"
+season = "2026-27"
+note = "Scenario seed for the second-tier women's league; existence and lineup not verified."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.gokulam-kerala"
+competition = "comp.kl.kerala-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.lords-fa"
+competition = "comp.kl.kerala-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.east-bengal"
+competition = "comp.wb.calcutta-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.mohun-bagan-sg"
+competition = "comp.wb.calcutta-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sribhumi"
+competition = "comp.wb.calcutta-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kryphsa"
+competition = "comp.mn.manipur-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.eastern-sporting-union"
+competition = "comp.mn.manipur-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.misaka-united"
+competition = "comp.mn.manipur-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.manipur-police"
+competition = "comp.mn.manipur-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.odisha"
+competition = "comp.od.odisha-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sports-odisha"
+competition = "comp.od.odisha-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.rising-student-club"
+competition = "comp.od.odisha-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sethu-fc"
+competition = "comp.tn.tamil-nadu-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.hans-women"
+competition = "comp.dl.delhi-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.alakhpura"
+competition = "comp.hr.haryana-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.nita-fa"
+competition = "comp.mh.mumbai-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kenkre"
+competition = "comp.mh.mumbai-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.kickstart"
+competition = "comp.ka.karnataka-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }
+
+[[membership]]
+club = "club.sesa-football-academy"
+competition = "comp.ga.goa-womens-league"
+season = "2026-27"
+note = "Scenario seed: club believed to field a women's side in its home-state league; 2026-27 lineup unknown."
+prov = { status = "scenario_seed", q = "D", src = [], note = "model knowledge, not re-checked" }

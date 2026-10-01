@@ -1,0 +1,11 @@
+Rise Above development workflow (docs/DEV_WORKFLOW.md)
+
+  cargo xtask quick  [-p CRATE].. [FILTER].. [--all]   after every small change: unit tests of the crates you changed
+  cargo xtask test   <cargo test args>                 one targeted test, e.g.  -p pw-cli --test manager_ai selection
+  cargo xtask smoke  [FILTER]                          after a coherent block: micro-world integration checks
+  cargo xtask full                                     when a task is stable: all tests, checks, short multi-seed run
+  cargo xtask soak   [micro|tiny|small|DIR] [--years N] [--seeds 1,2,3] [--data DIR] [--real]
+                                                       at checkpoints: long-run balance analysis (release binary)
+  cargo xtask changed                                  which crates `quick` would test
+
+Failures stop the command immediately and their output is never hidden.

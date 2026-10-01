@@ -7,11 +7,18 @@ members = [
     "crates/pw-match",
     "crates/pw-sim",
     "crates/pw-import",
+    "crates/pw-narrate",
+    "crates/pw-lang",
     "crates/pw-career",
     "crates/pw-cli",
-    "app/src-tauri",
+    "crates/pw-view",
+    "crates/pw-serve",
     "vendor/ofm-engine",
+    "xtask",
 ]
+
+# The desktop shell needs the platform webview toolchain, so it builds on its own (see app/src-tauri).
+exclude = ["app/src-tauri"]
 
 [workspace.package]
 version = "0.1.0"
@@ -26,6 +33,9 @@ pw-match = { path = "crates/pw-match" }
 pw-sim = { path = "crates/pw-sim" }
 pw-import = { path = "crates/pw-import" }
 pw-career = { path = "crates/pw-career" }
+pw-view = { path = "crates/pw-view" }
+pw-narrate = { path = "crates/pw-narrate" }
+pw-lang = { path = "crates/pw-lang" }
 ofm-engine = { path = "vendor/ofm-engine" }
 rand = "0.10"
 
@@ -40,10 +50,31 @@ smallvec = { version = "1.13", features = ["serde", "union", "const_generics"] }
 bitflags = { version = "2.6", features = ["serde"] }
 thiserror = "2.0"
 
+[profile.dev.package."*"]
+opt-level = 3
+
+# Tests run simulations, so `dev` (and therefore `cargo test`) stays optimised: a season runs in about a second. What made every relink
+# slow was debug info. The same optimised build without it rebuilds the integration tests in about 8 s instead of about 2 minutes
+# (measured, docs/DEV_WORKFLOW.md). Cargo builds a test's dependencies with `dev`, so the setting has to live here. For a debugger use
+# `cargo build --profile debugging`.
 [profile.dev]
 opt-level = 1
+debug = 0
 
-[profile.dev.package."*"]
+[profile.debugging]
+inherits = "dev"
+debug = 2
+
+# The inner loop for unit tests: unoptimised workspace code, no debug info, incremental. Editing the biggest crate and re-running its
+# tests takes about 2 s. Do not use it for simulation-heavy tests (they run about 6x slower). Dependencies stay optimised: they compile
+# once and are cached. Used by `cargo xtask quick`.
+[profile.quick]
+inherits = "dev"
+opt-level = 0
+debug = 0
+incremental = true
+
+[profile.quick.package."*"]
 opt-level = 3
 
 [profile.release]

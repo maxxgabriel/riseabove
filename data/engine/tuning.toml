@@ -9,7 +9,7 @@ weekly_cap_youth = 0.20
 
 [health]
 match_exposure = 0.00034
-training_session = 0.00045
+training_session = 0.005
 
 [matches]
 contest_k = 0.32

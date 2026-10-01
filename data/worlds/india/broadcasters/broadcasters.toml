@@ -1,0 +1,63 @@
+[meta]
+dataset = "broadcasters"
+quality = "C"
+effective = "2026-07-01"
+season = "2026-27"
+last_checked = "2026-09-30"
+coverage = "Core national platforms that have carried Indian football (JioStar, Sony, DD Sports, FanCode, AIFF official streams). Additional broadcaster records and all [[rights]] rows are in rights_b.toml."
+gaps = [
+  "All records are model knowledge (no source URLs); nothing here has been checked against a primary source.",
+  "Language lists show languages the platform has offered for football at some point, not what any one competition gets in 2026-27.",
+  "JioStar corporate structure (Reliance/Disney JV formed late 2024) and the merger of JioCinema into JioHotstar (early 2025) are recalled, not re-checked.",
+  "DD Sports has no verified official website URL, so website is left out.",
+  "Rights holder for each competition in 2025-26 and 2026-27 is unverified; see rights_b.toml gaps.",
+]
+
+[[broadcaster]]
+id = "bcast.jiostar"
+name = "JioStar (Star Sports / JioHotstar)"
+owner = "JioStar (Reliance Industries and The Walt Disney Company joint venture; merger of Viacom18 and Star India)"
+medium = ["tv", "digital"]
+languages = ["lang.en", "lang.hi", "lang.bn", "lang.ml", "lang.ta", "lang.te", "lang.kn", "lang.mr"]
+region = "national"
+website = "https://www.jiohotstar.com"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Star Sports channels and the Hotstar streaming app (Star India) merged with Viacom18 (Sports18 channels, JioCinema) into JioStar in late 2024; JioCinema and Hotstar streaming were combined as JioHotstar in early 2025. Star India was formerly the ISL broadcaster (2014 onwards)." }
+
+[[broadcaster]]
+id = "bcast.sony-sports"
+name = "Sony Sports Network / SonyLIV"
+owner = "Sony Pictures Networks India (Culver Max Entertainment)"
+medium = ["tv", "digital"]
+languages = ["lang.en", "lang.hi", "lang.ta", "lang.te"]
+region = "national"
+website = "https://www.sonyliv.com"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Sony Sports Ten channels carry Hindi, English, Tamil and Telugu feeds; Bengali and other feeds are not claimed." }
+
+[[broadcaster]]
+id = "bcast.dd-sports"
+name = "DD Sports"
+medium = ["tv"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+owner = "Prasar Bharati"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Public-service sports channel of Doordarshan; also carries national feeds on the DD Free Dish platform. Regional Doordarshan Kendras (e.g. DD Bangla, DD Malayalam) sometimes carry local matches, not modelled here." }
+
+[[broadcaster]]
+id = "bcast.fancode"
+name = "FanCode"
+owner = "Dream Sports"
+medium = ["digital"]
+languages = ["lang.en", "lang.hi"]
+region = "national"
+website = "https://www.fancode.com"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. Sports streaming and commerce app owned by Dream Sports; has held rights for various overseas football leagues and cups at different times, uncertain which now." }
+
+[[broadcaster]]
+id = "bcast.aiff-tv"
+name = "AIFF YouTube / official streaming"
+owner = "All India Football Federation"
+medium = ["digital"]
+languages = ["lang.en"]
+region = "national"
+website = "https://www.the-aiff.com"
+prov = { status = "inferred", q = "C", src = [], note = "model knowledge, not re-checked. The federation streams selected matches (typically lower-profile competitions, women's and youth events) on its own YouTube channel; commentary is mainly English." }

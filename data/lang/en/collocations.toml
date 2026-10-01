@@ -1,0 +1,111 @@
+# Collocations: words that go with a head word, each valid only when the known facts support it. `{col:head.slot}` picks one for the speaker's voice, or
+# nothing if the slot is optional and no collocate is supported. Nothing here may claim more than its `when` condition establishes.
+
+[[collocation]]
+head = "bid"
+slot = "adj"
+optional = true
+[[collocation.item]]
+text = "opening"
+when = "round == 1"
+[[collocation.item]]
+text = "improved"
+states = true
+when = "improved == true"
+[[collocation.item]]
+text = "second"
+states = true
+when = "round == 2"
+[[collocation.item]]
+text = "third"
+states = true
+when = "round == 3"
+
+[[collocation]]
+head = "injury"
+slot = "adj"
+optional = true
+[[collocation.item]]
+text = "minor"
+when = "weeks_out <= 2"
+[[collocation.item]]
+text = "short-term"
+when = "weeks_out <= 4"
+register = "technical"
+[[collocation.item]]
+text = "serious"
+when = "weeks_out >= 8"
+[[collocation.item]]
+text = "lengthy"
+when = "weeks_out >= 12"
+[[collocation.item]]
+text = "long-term"
+when = "weeks_out >= 16"
+register = "technical"
+
+[[collocation]]
+head = "win"
+slot = "adj"
+optional = true
+[[collocation.item]]
+text = "narrow"
+when = "margin == 1"
+[[collocation.item]]
+text = "slender"
+when = "margin == 1"
+register = "formal"
+[[collocation.item]]
+text = "comfortable"
+when = "margin == 2"
+[[collocation.item]]
+text = "convincing"
+when = "margin >= 3"
+[[collocation.item]]
+text = "emphatic"
+when = "margin >= 4"
+register = "tabloid"
+[[collocation.item]]
+text = "resounding"
+when = "margin >= 4"
+register = "formal"
+
+[[collocation]]
+head = "draw"
+slot = "adj"
+optional = true
+[[collocation.item]]
+text = "goalless"
+when = "total == 0"
+[[collocation.item]]
+text = "high-scoring"
+when = "total >= 4"
+[[collocation.item]]
+text = "score"
+when = "total >= 2"
+register = "informal"
+
+[[collocation]]
+head = "callup"
+slot = "adj"
+optional = true
+[[collocation.item]]
+text = "maiden"
+when = "first_call == true"
+[[collocation.item]]
+text = "first"
+when = "first_call == true"
+
+[[collocation]]
+head = "contract"
+slot = "adj"
+optional = true
+[[collocation.item]]
+text = "long-term"
+when = "contract_years >= 4"
+[[collocation.item]]
+text = "multi-year"
+when = "contract_years >= 2"
+register = "formal"
+[[collocation.item]]
+text = "one-year"
+when = "contract_years == 1"

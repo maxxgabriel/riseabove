@@ -1,0 +1,331 @@
+[meta]
+dataset = "geography.states"
+quality = "C"
+effective = "2026-07-01"
+last_checked = "2026-09-29"
+coverage = "All 28 states and 8 union territories."
+gaps = ["Population and official-language claims are unverified; several states have more than one principal language."]
+
+[[state]]
+id = "state.ap"
+key = "AP"
+name = "Andhra Pradesh"
+kind = "state"
+capital = "Amaravati"
+languages = ["lang.te"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ar"
+key = "AR"
+name = "Arunachal Pradesh"
+kind = "state"
+capital = "Itanagar"
+languages = ["lang.en"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.as"
+key = "AS"
+name = "Assam"
+kind = "state"
+capital = "Dispur"
+languages = ["lang.as", "lang.bn"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.br"
+key = "BR"
+name = "Bihar"
+kind = "state"
+capital = "Patna"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.cg"
+key = "CG"
+name = "Chhattisgarh"
+kind = "state"
+capital = "Raipur"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ga"
+key = "GA"
+name = "Goa"
+kind = "state"
+capital = "Panaji"
+languages = ["lang.kok"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.gj"
+key = "GJ"
+name = "Gujarat"
+kind = "state"
+capital = "Gandhinagar"
+languages = ["lang.gu"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.hr"
+key = "HR"
+name = "Haryana"
+kind = "state"
+capital = "Chandigarh"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.hp"
+key = "HP"
+name = "Himachal Pradesh"
+kind = "state"
+capital = "Shimla"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.jh"
+key = "JH"
+name = "Jharkhand"
+kind = "state"
+capital = "Ranchi"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ka"
+key = "KA"
+name = "Karnataka"
+kind = "state"
+capital = "Bengaluru"
+languages = ["lang.kn"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.kl"
+key = "KL"
+name = "Kerala"
+kind = "state"
+capital = "Thiruvananthapuram"
+languages = ["lang.ml"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.mp"
+key = "MP"
+name = "Madhya Pradesh"
+kind = "state"
+capital = "Bhopal"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.mh"
+key = "MH"
+name = "Maharashtra"
+kind = "state"
+capital = "Mumbai"
+languages = ["lang.mr"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.mn"
+key = "MN"
+name = "Manipur"
+kind = "state"
+capital = "Imphal"
+languages = ["lang.mni"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ml"
+key = "ML"
+name = "Meghalaya"
+kind = "state"
+capital = "Shillong"
+languages = ["lang.en", "lang.kha", "lang.grt"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.mz"
+key = "MZ"
+name = "Mizoram"
+kind = "state"
+capital = "Aizawl"
+languages = ["lang.lus"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.nl"
+key = "NL"
+name = "Nagaland"
+kind = "state"
+capital = "Kohima"
+languages = ["lang.en"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.od"
+key = "OD"
+name = "Odisha"
+kind = "state"
+capital = "Bhubaneswar"
+languages = ["lang.or"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.pb"
+key = "PB"
+name = "Punjab"
+kind = "state"
+capital = "Chandigarh"
+languages = ["lang.pa"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.rj"
+key = "RJ"
+name = "Rajasthan"
+kind = "state"
+capital = "Jaipur"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.sk"
+key = "SK"
+name = "Sikkim"
+kind = "state"
+capital = "Gangtok"
+languages = ["lang.ne", "lang.en"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.tn"
+key = "TN"
+name = "Tamil Nadu"
+kind = "state"
+capital = "Chennai"
+languages = ["lang.ta"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ts"
+key = "TS"
+name = "Telangana"
+kind = "state"
+capital = "Hyderabad"
+languages = ["lang.te"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.tr"
+key = "TR"
+name = "Tripura"
+kind = "state"
+capital = "Agartala"
+languages = ["lang.bn"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.up"
+key = "UP"
+name = "Uttar Pradesh"
+kind = "state"
+capital = "Lucknow"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.uk"
+key = "UK"
+name = "Uttarakhand"
+kind = "state"
+capital = "Dehradun"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.wb"
+key = "WB"
+name = "West Bengal"
+kind = "state"
+capital = "Kolkata"
+languages = ["lang.bn"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.an"
+key = "AN"
+name = "Andaman and Nicobar Islands"
+kind = "union_territory"
+capital = "Port Blair"
+languages = ["lang.hi", "lang.en"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ch"
+key = "CH"
+name = "Chandigarh"
+kind = "union_territory"
+capital = "Chandigarh"
+languages = ["lang.hi", "lang.en"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.dn"
+key = "DN"
+name = "Dadra and Nagar Haveli and Daman and Diu"
+kind = "union_territory"
+capital = "Daman"
+languages = ["lang.gu", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.dl"
+key = "DL"
+name = "Delhi"
+kind = "union_territory"
+capital = "New Delhi"
+languages = ["lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.jk"
+key = "JK"
+name = "Jammu & Kashmir"
+kind = "union_territory"
+capital = "Srinagar/Jammu"
+languages = ["lang.ks", "lang.ur", "lang.hi"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.la"
+key = "LA"
+name = "Ladakh"
+kind = "union_territory"
+capital = "Leh"
+languages = ["lang.hi", "lang.en"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.ld"
+key = "LD"
+name = "Lakshadweep"
+kind = "union_territory"
+capital = "Kavaratti"
+languages = ["lang.ml"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }
+
+[[state]]
+id = "state.py"
+key = "PY"
+name = "Puducherry"
+kind = "union_territory"
+capital = "Puducherry"
+languages = ["lang.ta"]
+prov = { status = "inferred", q = "C", src = [], note = "general knowledge; not verified against a source" }

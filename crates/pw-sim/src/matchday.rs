@@ -2,18 +2,38 @@
 
 use pw_core::rng::{Rng, hash_key, stream};
 use pw_core::{ClubId, CompId, FixtureId, PlayerId, TeamId};
-use pw_match::{Ev, Lod, MatchInput, MatchResult, simulate};
+use pw_match::{Ev, Lod, MatchInput, MatchResult, simulate, simulate_with};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::{CompKind, FxHashSet, Score, TeamKind, World};
 use rayon::prelude::*;
 
+use crate::coach::{Logs, MatchCoach};
 use crate::health;
 use crate::selection::{self, Selection};
+use crate::tactics::{self, MatchCtx, Prep};
+
+/// What the people around a match thought and decided, kept until the result is applied.
+struct Thinking {
+    logs: Logs,
+    preps: [Option<Prep>; 2],
+    ctx: MatchCtx,
+    /// The instructions each side kicked off with, after its preparation.
+    kickoff: [pw_core::Tactics; 2],
+}
 
 enum Outcome {
-    Played { fixture: FixtureId, home: Selection, away: Selection, result: Box<MatchResult> },
+    Played {
+        fixture: FixtureId,
+        home: Box<Selection>,
+        away: Box<Selection>,
+        result: Box<MatchResult>,
+        thinking: Option<Box<Thinking>>,
+    },
     /// A side could not field eleven: awarded 3–0 (D2/D11 simplification).
-    Walkover { fixture: FixtureId, home_forfeits: bool },
+    Walkover {
+        fixture: FixtureId,
+        home_forfeits: bool,
+    },
 }
 
 pub fn importance(w: &World, comp: CompId, decisive: bool) -> f32 {
@@ -21,7 +41,13 @@ pub fn importance(w: &World, comp: CompId, decisive: bool) -> f32 {
     let base: f32 = match c.kind {
         CompKind::Continental => 0.8,
         CompKind::Cup | CompKind::SuperCup => 0.6,
-        CompKind::League => if c.team_kind == TeamKind::First { 0.5 } else { 0.25 },
+        CompKind::League => {
+            if c.team_kind == TeamKind::First {
+                0.5
+            } else {
+                0.25
+            }
+        }
     };
     (base + if decisive { 0.15 } else { 0.0 }).min(1.0)
 }
@@ -34,10 +60,10 @@ pub fn play_today(w: &mut World) {
     }
     let watched = w.watched_teams();
     let world: &World = w;
-    let outcomes: Vec<Outcome> = todo.par_iter().map(|&f| play_one(world, f, &watched)).collect();
+    let outcomes: Vec<Outcome> = prof!("matchday::play", todo.par_iter().map(|&f| play_one(world, f, &watched)).collect());
     for o in outcomes {
         match o {
-            Outcome::Played { fixture, home, away, result } => apply(w, fixture, &home, &away, *result, &watched),
+            Outcome::Played { fixture, home, away, result, thinking } => apply(w, fixture, &home, &away, *result, &watched, thinking),
             Outcome::Walkover { fixture, home_forfeits } => walkover(w, fixture, home_forfeits),
         }
     }
@@ -46,27 +72,36 @@ pub fn play_today(w: &mut World) {
 fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
     let fx = w.fixtures.get(f);
     let comp = &w.comps[fx.comp];
-    let imp = importance(w, fx.comp, fx.decisive);
-    let home = selection::select(w, fx.home, w.date, imp, comp.rules.bench, 0);
-    let away = selection::select(w, fx.away, w.date, imp, comp.rules.bench, 0);
-    let (home, away) = match (home, away) {
+    // Derbies, title races and relegation fights raise the stakes.
+    let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, fx)).min(1.0);
+    // Each manager knows who the opposition is and what his own next match is.
+    let home = selection::select_ctx(w, fx.home, fx.comp, w.date, &selection::context_for(w, fx, fx.home, imp), comp.rules.bench, 0);
+    let away = selection::select_ctx(w, fx.away, fx.comp, w.date, &selection::context_for(w, fx, fx.away, imp), comp.rules.bench, 0);
+    let (mut home, mut away) = match (home, away) {
         (Some(h), Some(a)) => (h, a),
         (None, _) => return Outcome::Walkover { fixture: f, home_forfeits: true },
         (_, None) => return Outcome::Walkover { fixture: f, home_forfeits: false },
     };
-    let first_leg = (fx.leg == 2).then(|| {
-        let t = &comp.state.ties[usize::from(fx.tie)];
-        // This match's home side is the tie's `b` (away in leg one).
-        (t.goals_b, t.goals_a)
-    });
-    let strict = 0.75 + 0.5 * (hash_key(&[w.seed, fx.uid, 0x7ef]) % 1000) as f32 / 1000.0;
+    // Whichever leg is played last decides the tie (a postponed first leg can follow the second), and it is played with the
+    // aggregate so far in front of both sides.
+    let tie = (fx.tie != u16::MAX).then(|| comp.state.ties.get(usize::from(fx.tie))).flatten();
+    let decisive = tie.map_or(fx.decisive, |t| t.played + 1 >= t.legs.max(1));
+    let first_leg = tie.filter(|t| t.played >= 1).map(|t| if fx.home == t.a { (t.goals_a, t.goals_b) } else { (t.goals_b, t.goals_a) });
+    // The appointed referee's strictness; unrefereed levels vary by match.
+    let strict = crate::officials::strictness(w, fx).unwrap_or_else(|| 0.75 + 0.5 * (hash_key(&[w.seed, fx.uid, 0x7ef]) % 1000) as f32 / 1000.0);
     let lod = if watched.contains(&fx.home) || watched.contains(&fx.away) { Lod::Full } else { Lod::Standard };
+    // First teams have people around them: managers prepare against what they believe of the opponent, players carry their lives onto
+    // the pitch, staff read the game and the manager answers. Other sides are played by the engine's own managers.
+    let coached = w.teams[fx.home].kind == TeamKind::First && w.teams[fx.away].kind == TeamKind::First;
+    let ctx = MatchCtx::for_fixture(w, fx, imp, decisive, first_leg, strict);
+    let preps = if coached { tactics::prepare(w, [&mut home, &mut away], &ctx) } else { [None, None] };
+    let kickoff = [home.tactics, away.tactics];
     let input = MatchInput {
         seed: hash_key(&[w.seed, stream::MATCH, fx.uid]),
         home: selection::team_sheet(w, &home),
         away: selection::team_sheet(w, &away),
         neutral: fx.neutral,
-        decisive: fx.decisive,
+        decisive,
         first_leg,
         away_goals_rule: comp.rules.away_goals,
         importance: imp,
@@ -75,8 +110,17 @@ fn play_one(w: &World, f: FixtureId, watched: &FxHashSet<TeamId>) -> Outcome {
         lod,
         tuning: &w.data.tuning.matches,
     };
-    let result = Box::new(simulate(&input));
-    Outcome::Played { fixture: f, home, away, result }
+    let mut input = input;
+    crate::ecosystem::travel_effects(w, fx.home, fx.away, &mut input);
+    if !coached {
+        let result = Box::new(simulate(&input));
+        return Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result, thinking: None };
+    }
+    let minds = crate::lifestate::minds_for(w, [&home, &away], fx, imp);
+    let mut coach = MatchCoach::new(w, fx, ctx, [&home, &away], minds);
+    let result = Box::new(simulate_with(&input, &mut coach));
+    let thinking = Box::new(Thinking { logs: coach.into_logs(), preps, ctx, kickoff });
+    Outcome::Played { fixture: f, home: Box::new(home), away: Box::new(away), result, thinking: Some(thinking) }
 }
 
 fn record_table(w: &mut World, comp: CompId, home: TeamId, away: TeamId, hg: u8, ag: u8) {
@@ -96,6 +140,11 @@ fn record_tie(w: &mut World, f: FixtureId, hg: u8, ag: u8, pens: Option<(u8, u8)
     }
     let away_rule = w.comps[fx.comp].rules.away_goals;
     let seed = w.seed;
+    // A fixture whose tie no longer exists cannot decide anything; the audit reports it rather than the world panicking.
+    if usize::from(fx.tie) >= w.comps[fx.comp].state.ties.len() {
+        debug_assert!(false, "fixture {} of {} refers to a tie that does not exist", fx.uid, w.comps[fx.comp].name);
+        return;
+    }
     let t = &mut w.comps[fx.comp].state.ties[usize::from(fx.tie)];
     if fx.leg <= 1 {
         t.goals_a += hg;
@@ -107,7 +156,8 @@ fn record_tie(w: &mut World, f: FixtureId, hg: u8, ag: u8, pens: Option<(u8, u8)
         t.away_a += ag;
     }
     t.played += 1;
-    if !fx.decisive {
+    // A tie is decided when its last leg is played, whichever leg that is: a postponed first leg can be played after the second.
+    if t.played < t.legs.max(1) {
         return;
     }
     let by_pens = |home_team: TeamId, away_team: TeamId| pens.map(|(h, a)| if h > a { home_team } else { away_team });
@@ -122,7 +172,7 @@ fn record_tie(w: &mut World, f: FixtureId, hg: u8, ag: u8, pens: Option<(u8, u8)
     } else if away_rule && t.away_a != t.away_b {
         if t.away_a > t.away_b { t.a } else { t.b }
     } else {
-        by_pens(fx.home, fx.away).unwrap_or(if hash_key(&[seed, fx.uid]) % 2 == 0 { t.a } else { t.b })
+        by_pens(fx.home, fx.away).unwrap_or(if hash_key(&[seed, fx.uid]).is_multiple_of(2) { t.a } else { t.b })
     };
 }
 
@@ -134,7 +184,7 @@ fn walkover(w: &mut World, f: FixtureId, home_forfeits: bool) {
     record_tie(w, f, hg, ag, None);
 }
 
-fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: MatchResult, watched: &FxHashSet<TeamId>) {
+fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: MatchResult, watched: &FxHashSet<TeamId>, thinking: Option<Box<Thinking>>) {
     let today = w.date;
     let fx = w.fixtures.get(f).clone();
     let (hg, ag) = (r.home_goals, r.away_goals);
@@ -153,12 +203,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
     let result_sign = [i32::from(hg).cmp(&i32::from(ag)) as i32, i32::from(ag).cmp(&i32::from(hg)) as i32];
     let mut rng = Rng::keyed(&[w.seed, stream::HEALTH, fx.uid]);
 
-    let red_players: Vec<(PlayerId, bool)> = r
-        .events
-        .iter()
-        .filter(|e| matches!(e.kind, Ev::Red | Ev::SecondYellow))
-        .map(|e| (e.player, e.kind == Ev::Red))
-        .collect();
+    let red_players: Vec<(PlayerId, bool)> = r.events.iter().filter(|e| matches!(e.kind, Ev::Red | Ev::SecondYellow)).map(|e| (e.player, e.kind == Ev::Red)).collect();
 
     for line in &r.lines {
         let p = line.player;
@@ -175,6 +220,7 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
             h.condition = line.condition_end;
             h.sharpness = (f32::from(h.sharpness) + f32::from(line.minutes) / 90.0 * 14.0).min(100.0) as u8;
             h.minutes_4w = h.minutes_4w.saturating_add(u16::from(line.minutes));
+            h.minutes_week = h.minutes_week.saturating_add(u16::from(line.minutes));
             h.push_rating(line.rating);
             h.last_match = today;
             let load = f32::from(line.minutes) * 9.0;
@@ -189,13 +235,18 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
                 h.ban = h.ban.saturating_add(1);
             }
         }
+        if senior[side] {
+            let conceded = if side == 0 { r.away_goals } else { r.home_goals };
+            crate::clauses::match_bonuses(w, p, line.minutes, line.goals, line.assists, conceded == 0);
+        }
         if let Some(&(_, straight)) = red_players.iter().find(|(x, _)| *x == p) {
-            let matches = if straight { 3 } else { 1 };
+            let prof = pw_world::rules::profile(w, w.clubs[club].nation);
+            let matches = if straight { prof.red_ban_straight } else { prof.red_ban_second_yellow };
             w.players.hot[p].ban = w.players.hot[p].ban.saturating_add(matches);
             w.events.push(today, Visibility::Public, EventKind::Suspended { player: p, matches });
         }
         if line.injured {
-            health::match_injury(w, p, &mut rng);
+            health::match_injury(w, p, &mut rng, line.injury_noncontact);
         }
         let pom = r.pom == p;
         w.stats.record(fx.comp, club, season, line, pom);
@@ -243,14 +294,24 @@ fn apply(w: &mut World, f: FixtureId, home: &Selection, away: &Selection, r: Mat
         let mood = &mut w.clubs[club].fan_mood;
         *mood = (i32::from(*mood) + result_sign[side] * 3).clamp(0, 100) as u8;
     }
-    gate_receipts(w, clubs[0], comp_kind, senior[0]);
+    gate_receipts(w, clubs[0], fx.comp, comp_kind, senior[0]);
+    let imp = (importance(w, fx.comp, fx.decisive) + crate::culture::stakes(w, &fx)).min(1.0);
+    crate::interpret::record(w, &fx, home, away, &r, imp);
+    crate::culture::after_result(w, &fx, hg, ag, r.pens, pw_core::EventId::NONE);
+    crate::facts::record(w, &fx, f, &r);
+    crate::officials::after_match(w, &fx, &r);
+    if let Some(t) = thinking {
+        let t = *t;
+        crate::lifestate::after_match(w, &fx, [home, away], &r, &t.ctx);
+        tactics::settle(w, &fx, t.logs, &t.preps, t.kickoff, &r);
+    }
 
     if watched.contains(&fx.home) || watched.contains(&fx.away) {
         w.reports.insert(fx.uid, r);
     }
 }
 
-fn gate_receipts(w: &mut World, club: ClubId, kind: CompKind, senior: bool) {
+fn gate_receipts(w: &mut World, club: ClubId, comp: pw_core::CompId, kind: CompKind, senior: bool) {
     if !senior {
         return;
     }
@@ -259,8 +320,10 @@ fn gate_receipts(w: &mut World, club: ClubId, kind: CompKind, senior: bool) {
     let rep = f64::from(c.reputation) / 10_000.0;
     let demand = (0.45 + 0.4 * rep + 0.15 * f64::from(c.fan_mood) / 100.0 + if kind == CompKind::Continental { 0.15 } else { 0.0 }).min(1.0);
     let price = f64::from(w.data.tuning.finance.ticket_price_top) * (0.25 + 0.75 * rep) * econ;
+    let spectators = (f64::from(c.capacity) * demand) as i64;
     let income = (f64::from(c.capacity) * demand * price) as i64;
     let f = &mut w.clubs[club].finance;
     f.balance += income;
     f.season_income += income;
+    crate::almanac::attendance(w, club, comp, spectators);
 }

@@ -1,0 +1,360 @@
+# Frames for records, discontent, praise and awards in the news. None of them describes how anyone played.
+
+[[frame]]
+id = "transfer.record.news.headline.report.signing.1"
+event = "transfer.record"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'signing'"
+time = "past"
+text = "{player} becomes {club} record signing"
+
+[[frame]]
+id = "transfer.record.news.headline.report.signing.2"
+event = "transfer.record"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'signing'"
+time = "past"
+text = "{club} break their transfer record for {player}"
+
+[[frame]]
+id = "transfer.record.news.lede.report.signing.1"
+event = "transfer.record"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'signing'"
+time = "past"
+text = "{club} paid {fee} for {player:desc}, the most in the club's history {date}"
+
+[[frame]]
+id = "transfer.record.news.lede.report.signing.2"
+event = "transfer.record"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'signing'"
+time = "past"
+text = "{player:desc} became {club}'s record signing at {fee} {date}"
+
+[[frame]]
+id = "transfer.record.news.headline.report.sale.1"
+event = "transfer.record"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'sale'"
+time = "past"
+text = "{club} record sale: {player}"
+
+[[frame]]
+id = "transfer.record.news.headline.report.sale.2"
+event = "transfer.record"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'sale'"
+time = "past"
+text = "{club} cash in on {player} in a club-record deal"
+
+[[frame]]
+id = "transfer.record.news.lede.report.sale.1"
+event = "transfer.record"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'sale'"
+time = "past"
+text = "{club} sold {player:desc} for {fee}, the most the club has ever received {date}"
+
+[[frame]]
+id = "transfer.record.news.lede.report.sale.2"
+event = "transfer.record"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'sale'"
+time = "past"
+text = "{player:desc} left {club} in a club-record {fee} deal {date}"
+
+[[frame]]
+id = "transfer.record.news.headline.report.world.1"
+event = "transfer.record"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'world'"
+time = "past"
+text = "Record fee: {player} for {fee}"
+
+[[frame]]
+id = "transfer.record.news.lede.report.world.1"
+event = "transfer.record"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club', 'fee']
+when = "kind == 'world'"
+time = "past"
+text = "{club} paid {fee} for {player:desc}, the highest fee the game has seen {date}"
+
+[[frame]]
+id = "player.unhappy.news.headline.report.any.1"
+event = "player.unhappy"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player} unsettled at {club}"
+
+[[frame]]
+id = "player.unhappy.news.headline.report.any.2"
+event = "player.unhappy"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player} frustrated at {club}"
+
+[[frame]]
+id = "player.unhappy.news.headline.report.any.4"
+event = "player.unhappy"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} unsettled"
+
+[[frame]]
+id = "player.unhappy.news.lede.report.any.1"
+event = "player.unhappy"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player:desc} is unhappy at {club}"
+
+[[frame]]
+id = "player.unhappy.news.lede.report.any.2"
+event = "player.unhappy"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player:desc} is not settled at {club}"
+
+[[frame]]
+id = "player.unhappy.news.lede.report.any.3"
+event = "player.unhappy"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player:desc} is unhappy with their situation"
+
+[[frame]]
+id = "player.praise.news.headline.report.any.1"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} earns plaudits"
+
+[[frame]]
+id = "player.praise.news.headline.report.any.2"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} catches the eye"
+
+[[frame]]
+id = "player.praise.news.headline.report.any.3"
+event = "player.praise"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "Praise for {player}"
+
+[[frame]]
+id = "player.praise.news.lede.report.any.1"
+event = "player.praise"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "The praise is flowing for {player:desc} at {club}"
+
+[[frame]]
+id = "player.praise.news.lede.report.any.2"
+event = "player.praise"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "The praise is flowing for {player:desc}"
+
+[[frame]]
+id = "player.praise.news.lede.report.any.3"
+event = "player.praise"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player:desc} has been catching the eye"
+
+[[frame]]
+id = "award.won.news.headline.report.any.1"
+event = "award.won"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{player} wins {award}"
+
+[[frame]]
+id = "award.won.news.headline.report.any.2"
+event = "award.won"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{player} honoured with {award}"
+
+[[frame]]
+id = "award.won.news.lede.report.any.1"
+event = "award.won"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{player:desc} won {award} {date}"
+
+[[frame]]
+id = "award.won.news.lede.report.any.2"
+event = "award.won"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'award']
+time = "past"
+text = "{award} went to {player:desc} {date}"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.1"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "Blow for {club}: {player} out injured"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.2"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{club} lose {player} to injury"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.3"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player} injured"
+
+[[frame]]
+id = "injury.suffered.news.headline.report.public.4"
+event = "injury.suffered"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player} picks up an injury"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.5"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{club} have lost {player:desc} to injury {date}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.6"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+when = "!injury"
+time = "past"
+text = "{player:desc} was injured {date}, a blow for {club}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.7"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player:desc} picked up an injury {date}"
+
+[[frame]]
+id = "injury.suffered.news.lede.report.public.8"
+event = "injury.suffered"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "!injury"
+time = "past"
+text = "{player:desc} was injured {date}"
+

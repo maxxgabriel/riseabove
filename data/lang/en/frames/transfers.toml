@@ -1,0 +1,694 @@
+# Frames for transfer and contract events. Clause frames are wrapped by certainty.toml; nothing here may use a fact outside `needs` (lint enforces it).
+
+[[frame]]
+id = "transfer.bid_made.news.headline.report.1"
+event = "transfer.bid_made"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer", "player"]
+time = "past"
+text = "{buyer} {lex:make_bid.past} a {lex:bid.sing} for {player}"
+
+[[frame]]
+id = "transfer.bid_made.news.headline.report.2"
+event = "transfer.bid_made"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "buyer"]
+time = "past"
+text = "{player} the subject of a {col:bid.adj} {lex:bid.sing} from {buyer}"
+
+[[frame]]
+id = "transfer.bid_made.news.lede.report.1"
+event = "transfer.bid_made"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer", "player"]
+time = "past"
+text = "{buyer} {lex:make_bid.past} a {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player:desc} {date}"
+
+[[frame]]
+id = "transfer.bid_made.news.lede.report.2"
+event = "transfer.bid_made"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["player", "buyer"]
+text = "{player:desc} has drawn a {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} from {buyer}"
+
+[[frame]]
+id = "transfer.bid_made.news.detail.fee.1"
+event = "transfer.bid_made"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ["fee"]
+when = "fee > 0"
+text = "The {lex:bid.sing} {~was|is} worth {fee}."
+
+[[frame]]
+id = "transfer.bid_made.news.detail.round.1"
+event = "transfer.bid_made"
+channel = "news"
+slot = "detail"
+topic = "round"
+needs = ["buyer", "round", "player"]
+when = "round >= 2"
+time = "past"
+text = "It was {buyer:poss} {round:ord} {lex:bid.sing} for {player}."
+
+[[frame]]
+id = "transfer.bid_made.social.post.report.1"
+event = "transfer.bid_made"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["buyer", "player"]
+time = "past"
+text = "{buyer} {lex:make_bid.past} a {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player}"
+
+[[frame]]
+id = "transfer.bid_made.social.post.report.2"
+event = "transfer.bid_made"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "buyer"]
+time = "past"
+certainty = ["fact"]
+register = "informal"
+text = "Bid in for {player} from {buyer}"
+
+[[frame]]
+id = "transfer.bid_made.inbox.subject.report.1"
+event = "transfer.bid_made"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player", "buyer"]
+when = "ours != true"
+time = "past"
+text = "{player}: {lex:bid.sing} from {buyer}"
+
+[[frame]]
+id = "transfer.bid_made.inbox.subject.report.2"
+event = "transfer.bid_made"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player", "ours"]
+when = "ours == true"
+time = "past"
+text = "{player}: our {lex:bid.sing} has been made"
+
+[[frame]]
+id = "transfer.bid_made.inbox.situation.report.1"
+event = "transfer.bid_made"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["buyer", "player"]
+when = "ours != true"
+time = "past"
+text = "{buyer} {lex:make_bid.past} a {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player} {date}"
+
+[[frame]]
+id = "transfer.bid_made.inbox.situation.report.2"
+event = "transfer.bid_made"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["player", "seller", "ours"]
+when = "ours == true"
+time = "past"
+text = "Our {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player} went to {seller} {date}"
+
+[[frame]]
+id = "transfer.bid_rejected.news.headline.report.1"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["seller", "buyer", "player"]
+time = "past"
+text = "{seller} {lex:reject.past} {buyer:poss} {lex:bid.sing} for {player}"
+
+[[frame]]
+id = "transfer.bid_rejected.news.headline.report.2"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "seller"]
+time = "past"
+register = "neutral"
+text = "{lex:bid.sing} for {player} {lex:reject.pp} by {seller}"
+
+[[frame]]
+id = "transfer.bid_rejected.news.headline.report.3"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["seller", "buyer", "fee", "player"]
+time = "past"
+register = "tabloid"
+text = "{seller} {lex:reject.past} {buyer:poss} {fee} {lex:bid.sing} for {player}"
+
+[[frame]]
+id = "transfer.bid_rejected.news.lede.report.1"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["seller", "buyer", "player"]
+time = "past"
+text = "{seller} {lex:reject.past} {buyer:poss} {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player:desc} {date}"
+
+[[frame]]
+id = "transfer.bid_rejected.news.lede.report.2"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer", "player", "seller"]
+time = "past"
+text = "{buyer} had a {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player:desc} {lex:reject.pp} by {seller} {date}"
+
+[[frame]]
+id = "transfer.bid_rejected.news.detail.fee.1"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ["fee"]
+when = "fee > 0"
+time = "past"
+text = "The {lex:bid.sing} was worth {fee}."
+
+[[frame]]
+id = "transfer.bid_rejected.news.detail.round.1"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "detail"
+topic = "round"
+needs = ["buyer", "round", "player"]
+when = "round >= 2"
+time = "past"
+text = "It was {buyer:poss} {round:ord} {lex:bid.sing} for {player}."
+
+[[frame]]
+id = "transfer.bid_rejected.news.detail.minimum.1"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "detail"
+topic = "minimum"
+needs = ["seller", "seller_minimum"]
+time = "past"
+text = "{seller} {seller:is} holding out for at least {seller_minimum}."
+
+[[frame]]
+id = "transfer.bid_rejected.news.detail.minimum.2"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "detail"
+topic = "minimum"
+needs = ["seller", "player", "seller_minimum"]
+form = "full"
+certainty = ["unknown"]
+text = "It is not known what {seller} would accept for {player}."
+
+[[frame]]
+id = "transfer.bid_rejected.news.context.background.1"
+event = "transfer.bid_rejected"
+channel = "news"
+slot = "context"
+topic = "background"
+needs = ["round", "buyer", "seller", "player"]
+when = "round >= 2"
+time = "past"
+text = "It was the {round:ord} time {buyer} had approached {seller} about {player}."
+
+[[frame]]
+id = "transfer.bid_rejected.social.post.report.1"
+event = "transfer.bid_rejected"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["seller", "buyer", "player"]
+time = "past"
+text = "{seller} {lex:reject.past} {buyer:poss} {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player}"
+
+[[frame]]
+id = "transfer.bid_rejected.social.post.report.2"
+event = "transfer.bid_rejected"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "seller"]
+time = "past"
+register = "informal"
+text = "the {lex:bid.sing} for {player} was {lex:reject.pp} by {seller}"
+
+[[frame]]
+id = "transfer.bid_rejected.social.post.report.3"
+event = "transfer.bid_rejected"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["buyer", "player"]
+time = "past"
+register = "informal"
+text = "{buyer} had a {lex:bid.sing} for {player} {lex:reject.pp}"
+
+[[frame]]
+id = "transfer.bid_rejected.inbox.subject.report.1"
+event = "transfer.bid_rejected"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player", "seller"]
+time = "past"
+text = "{player}: {lex:bid.sing} {lex:reject.pp} by {seller}"
+
+[[frame]]
+id = "transfer.bid_rejected.inbox.situation.report.1"
+event = "transfer.bid_rejected"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["seller", "player", "ours"]
+when = "ours == true"
+time = "past"
+text = "{seller} {lex:reject.past} our {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player} {date}"
+
+[[frame]]
+id = "transfer.bid_rejected.inbox.situation.report.2"
+event = "transfer.bid_rejected"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["seller", "buyer", "player"]
+when = "ours != true"
+time = "past"
+text = "{seller} {lex:reject.past} {buyer:poss} {col:bid.adj} [?fee:{fee} ]{lex:bid.sing} for {player} {date}"
+
+[[frame]]
+id = "transfer.bid_rejected.inbox.situation.minimum.1"
+event = "transfer.bid_rejected"
+channel = "inbox"
+slot = "situation"
+topic = "minimum"
+needs = ["seller", "player", "seller_minimum"]
+form = "full"
+certainty = ["unknown"]
+text = "We do not know what {seller} would accept for {player}."
+
+[[frame]]
+id = "transfer.bid_rejected.inbox.situation.minimum.2"
+event = "transfer.bid_rejected"
+channel = "inbox"
+slot = "situation"
+topic = "minimum"
+needs = ["seller", "seller_minimum"]
+time = "past"
+text = "{seller} {seller:is} holding out for at least {seller_minimum}."
+
+[[frame]]
+id = "transfer.completed.news.headline.report.1"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["to", "player", "from"]
+time = "past"
+text = "{to} {lex:sign.past} {player} from {from}"
+
+[[frame]]
+id = "transfer.completed.news.headline.report.2"
+event = "transfer.completed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["player", "to", "from"]
+time = "past"
+text = "{player} {lex:join.past} {to} from {from}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.1"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["to", "player", "from", "fee"]
+when = "fee > 0"
+time = "past"
+text = "{to} {lex:sign.past} {player:desc} from {from} for {fee} {date}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.2"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["to", "player", "from"]
+when = "fee == 0"
+time = "past"
+text = "{to} {lex:sign.past} {player:desc} from {from} on a free transfer {date}"
+
+[[frame]]
+id = "transfer.completed.news.lede.report.3"
+event = "transfer.completed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["to", "player", "from"]
+when = "!fee"
+time = "past"
+text = "{to} {lex:sign.past} {player:desc} from {from} {date}"
+
+[[frame]]
+id = "transfer.completed.news.detail.term.1"
+event = "transfer.completed"
+channel = "news"
+slot = "detail"
+topic = "term"
+needs = ["player", "contract_years"]
+text = "{player:short} has signed a {contract_years:words}-year {lex:deal.sing}."
+
+[[frame]]
+id = "transfer.completed.news.detail.fee.1"
+event = "transfer.completed"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ["fee"]
+when = "fee > 0"
+time = "past"
+text = "The fee was {fee}."
+
+[[frame]]
+id = "transfer.completed.social.post.report.1"
+event = "transfer.completed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["to", "player", "from"]
+time = "past"
+text = "{to} {lex:sign.past} {player} from {from}"
+
+[[frame]]
+id = "transfer.completed.social.post.report.2"
+event = "transfer.completed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["player", "to"]
+time = "past"
+register = "informal"
+text = "{player} {lex:join.past} {to}"
+
+[[frame]]
+id = "transfer.completed.inbox.subject.report.1"
+event = "transfer.completed"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player"]
+time = "past"
+text = "Signing complete: {player}"
+
+[[frame]]
+id = "transfer.completed.inbox.situation.report.1"
+event = "transfer.completed"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["to", "player", "from"]
+time = "past"
+text = "{to} {lex:sign.past} {player} from {from} {date}"
+
+[[frame]]
+id = "contract.renewed.news.headline.report.1"
+event = "contract.renewed"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:renew.past} {player:poss} {lex:deal.sing}"
+
+[[frame]]
+id = "contract.renewed.news.lede.report.1"
+event = "contract.renewed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:renew.past} {player:poss} [?contract_years:{contract_years:words}-year ]{lex:deal.sing} {date}"
+
+[[frame]]
+id = "contract.renewed.news.lede.report.2"
+event = "contract.renewed"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["player", "club"]
+text = "{player:desc} has signed a new [?contract_years:{contract_years:words}-year ]{lex:deal.sing} with {club}"
+
+[[frame]]
+id = "contract.renewed.news.detail.term.1"
+event = "contract.renewed"
+channel = "news"
+slot = "detail"
+topic = "term"
+needs = ["contract_years"]
+text = "The new {lex:deal.sing} runs for {contract_years:n=year}."
+
+[[frame]]
+id = "contract.renewed.social.post.report.1"
+event = "contract.renewed"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:renew.past} {player:poss} {lex:deal.sing}"
+
+[[frame]]
+id = "contract.renewed.inbox.subject.report.1"
+event = "contract.renewed"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player"]
+time = "past"
+text = "{player}: new {lex:deal.sing} signed"
+
+[[frame]]
+id = "contract.renewed.inbox.situation.report.1"
+event = "contract.renewed"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:renew.past} {player:poss} [?contract_years:{contract_years:words}-year ]{lex:deal.sing} {date}"
+
+[[frame]]
+id = "player.released.news.headline.report.1"
+event = "player.released"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:release.past} {player}"
+
+[[frame]]
+id = "player.released.news.lede.report.1"
+event = "player.released"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:release.past} {player:desc} {date}"
+
+[[frame]]
+id = "player.released.social.post.report.1"
+event = "player.released"
+channel = "social"
+slot = "post"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:release.past} {player}"
+
+[[frame]]
+id = "player.released.inbox.subject.report.1"
+event = "player.released"
+channel = "inbox"
+slot = "subject"
+topic = "report"
+needs = ["player", "club"]
+time = "past"
+text = "{player} released by {club}"
+
+[[frame]]
+id = "player.released.inbox.situation.report.1"
+event = "player.released"
+channel = "inbox"
+slot = "situation"
+topic = "report"
+needs = ["club", "player"]
+time = "past"
+text = "{club} {lex:release.past} {player} {date}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.1"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} are keeping tabs on {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.2"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{player} on the radar of {buyer}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.3"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are keen on {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.4"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are tracking {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.5"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are preparing a move for {player}"
+
+[[frame]]
+id = "transfer.interest.news.headline.report.6"
+event = "transfer.interest"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are lining up an offer for {player}"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.7"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} are monitoring {player:desc}[?seller: at {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.8"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'watching'"
+time = "present"
+text = "{buyer} have {player:desc} on their radar"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.9"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} are keen on {player:desc}[?seller: of {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.10"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'keen'"
+time = "present"
+text = "{buyer} have been tracking {player:desc}[?seller: at {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.11"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are preparing an offer for {player:desc}[?seller: of {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.lede.report.12"
+event = "transfer.interest"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["buyer","player"]
+when = "stage == 'preparing'"
+time = "present"
+text = "{buyer} are getting ready to move for {player:desc}[?seller: of {seller}]"
+
+[[frame]]
+id = "transfer.interest.news.detail.fee.13"
+event = "transfer.interest"
+channel = "news"
+slot = "detail"
+topic = "fee"
+needs = ["fee"]
+when = "fee > 0"
+time = "present"
+text = "The fee under discussion is around {fee}."
+

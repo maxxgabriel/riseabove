@@ -18,15 +18,16 @@ pub enum DataError {
     Io(#[from] std::io::Error),
 }
 
-const FILES: [&str; 6] = ["tuning.toml", "formations.toml", "weights.toml", "curves.toml", "injuries.toml", "calendar.toml"];
+const FILES: [&str; 7] = ["tuning.toml", "formations.toml", "weights.toml", "curves.toml", "injuries.toml", "calendar.toml", "rules.toml"];
 
-const BUILTIN: [&str; 6] = [
+const BUILTIN: [&str; 7] = [
     include_str!("../../../data/engine/tuning.toml"),
     include_str!("../../../data/engine/formations.toml"),
     include_str!("../../../data/engine/weights.toml"),
     include_str!("../../../data/engine/curves.toml"),
     include_str!("../../../data/engine/injuries.toml"),
     include_str!("../../../data/engine/calendar.toml"),
+    include_str!("../../../data/engine/rules.toml"),
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -38,6 +39,9 @@ pub struct DataPack {
     pub injuries: Vec<InjuryDef>,
     pub calendars: Vec<CalendarDef>,
     pub international_windows: Vec<DateSpan>,
+    /// Football rules profiles (registration, labour, loans, discipline).
+    #[serde(default)]
+    pub rules: crate::rules::RulesFile,
 }
 
 impl DataPack {
@@ -47,7 +51,7 @@ impl DataPack {
 
     /// Load from a directory; files missing there fall back to the builtin pack.
     pub fn load_dir(dir: &Path) -> Result<Self, DataError> {
-        let mut texts: [String; 6] = Default::default();
+        let mut texts: [String; 7] = Default::default();
         for (i, name) in FILES.iter().enumerate() {
             let p = dir.join(name);
             texts[i] = if p.exists() { std::fs::read_to_string(p)? } else { BUILTIN[i].to_string() };
@@ -55,7 +59,7 @@ impl DataPack {
         Self::from_sources(texts.each_ref().map(String::as_str))
     }
 
-    fn from_sources(src: [&str; 6]) -> Result<Self, DataError> {
+    fn from_sources(src: [&str; 7]) -> Result<Self, DataError> {
         fn parse<T: for<'de> Deserialize<'de>>(file: &'static str, s: &str) -> Result<T, DataError> {
             toml::from_str(s).map_err(|source| DataError::Parse { file, source })
         }
@@ -66,6 +70,7 @@ impl DataPack {
         let curves: CurvesFile = parse(FILES[3], src[3])?;
         let injuries: InjuriesFile = parse(FILES[4], src[4])?;
         let calendar: CalendarFile = parse(FILES[5], src[5])?;
+        let rules: crate::rules::RulesFile = parse(FILES[6], src[6])?;
 
         let formations = formations.formation.into_iter().map(Formation::try_from).collect::<Result<Vec<_>, _>>()?;
         if formations.is_empty() {
@@ -79,6 +84,7 @@ impl DataPack {
             injuries: injuries.injury,
             calendars: calendar.calendar,
             international_windows: calendar.international_windows,
+            rules,
         })
     }
 
@@ -162,11 +168,7 @@ impl PositionWeights {
             if sum > 1.0 + 1e-4 {
                 return Err(invalid(format!("{}: weights sum to {sum}", pos.code())));
             }
-            let eligible = |a: Attr| {
-                row[a.idx()] == 0.0
-                    && a != Attr::Eccentricity
-                    && (pos == Pos::GK || !a.is_goalkeeping())
-            };
+            let eligible = |a: Attr| row[a.idx()] == 0.0 && a != Attr::Eccentricity && (pos == Pos::GK || !a.is_goalkeeping());
             let rest: Vec<Attr> = Attr::ALL.into_iter().filter(|&a| eligible(a)).collect();
             let share = (1.0 - sum) / rest.len().max(1) as f32;
             for a in rest {
