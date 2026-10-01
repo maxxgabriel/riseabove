@@ -1,5 +1,7 @@
 # Consequential options offered with an inbox message. `effect` is the id of an action the simulation implements; `consequence` says in plain words what
 # that action does and must not promise more. New effects need a matching implementation before they ship (see docs/LANGUAGE.md).
+# Not offered, because nothing in the simulation does what they say (details in docs/LANGUAGE.md): transfer.open_bid and transfer.drop_target (nobody the player controls bids or keeps a
+# shortlist), medical.request_report (no reply that only asks for more detail exists, and a person's own diagnosis is already shown). `pw_narrate::lang::effect_choice` is the list of effects a decision can carry out.
 
 [[option]]
 event = "transfer.bid_rejected"
