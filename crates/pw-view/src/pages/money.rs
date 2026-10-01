@@ -6,9 +6,9 @@ use pw_core::Money;
 use pw_world::ledger::{Entry, Paid};
 use serde_json::Value;
 
-use crate::contract::{BonusRow, MoneyView, PayslipRow};
+use crate::contract::{BonusRow, MoneyView, PayslipRow, TrainingLogView, TrainingWeekRow};
 use crate::ctx::Ctx;
-use crate::model::{ApiError, ApiResult};
+use crate::model::{ApiError, ApiResult, Named, Part, Ref};
 
 fn paid_words(p: Paid) -> String {
     match p {
@@ -95,4 +95,54 @@ pub fn money(c: &Ctx) -> ApiResult<Value> {
         }
     }
     serde_json::to_value(MoneyView { per_week, months, bonuses, meaning }).map_err(|e| ApiError::Internal(e.to_string()))
+}
+
+/// `me.training`: the training ground, week by week (`pw_world::trainlog`), newest first.
+pub fn training(c: &Ctx) -> ApiResult<Value> {
+    use pw_world::trainlog::{Group, Trace, Week};
+    let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world; there is no training week to read.".into()))?;
+    let w = c.w;
+    let who = |p: pw_core::PersonId| if p.is_some() && w.people.get(p).is_some() { Part::l(Ref::person(p), c.person_name(p)) } else { Part::t("Someone") };
+    let weeks: Vec<TrainingWeekRow> = w
+        .ext
+        .trainlog
+        .of
+        .get(&me)
+        .map(|v| v.as_slice())
+        .unwrap_or(&[])
+        .iter()
+        .rev()
+        .take(26)
+        .map(|wk| TrainingWeekRow {
+            date: wk.date.0,
+            group: match wk.group {
+                Group::FirstTeam => "With the first-team group",
+                Group::Partial => "Back for parts of sessions with the group",
+                Group::Rehab => "Inside with the physio",
+            }
+            .into(),
+            week: match wk.week {
+                Week::Sharp => "A sharp week: you stood out",
+                Week::Ordinary => "An ordinary week",
+                Week::Flat => "A flat week: it did not come off",
+            }
+            .into(),
+            coach: (wk.coach.is_some() && w.people.get(wk.coach).is_some()).then(|| Named::new(Ref::person(wk.coach), c.person_name(wk.coach))),
+            traces: wk
+                .traces
+                .iter()
+                .map(|t| match *t {
+                    Trace::PulledAside { by, good: true } => vec![who(by), Part::t(" took you aside to say your work had been noticed")],
+                    Trace::PulledAside { by, good: false } => vec![who(by), Part::t(" took you aside about your training")],
+                    Trace::Flying { who: q } => vec![who(q), Part::t(" was flying all week")],
+                    Trace::OffThePace { who: q } => vec![who(q), Part::t(" looked off the pace")],
+                    Trace::StayedBehind { who: q } => vec![who(q), Part::t(" stayed behind for extra work")],
+                    Trace::Fined { who: q } => vec![who(q), Part::t(" was fined by the club")],
+                    Trace::BackInTraining { who: q } => vec![who(q), Part::t(" trained with the group again after injury")],
+                    Trace::Arrived { who: q } => vec![who(q), Part::t(" joined the squad")],
+                })
+                .collect(),
+        })
+        .collect();
+    serde_json::to_value(TrainingLogView { weeks }).map_err(|e| ApiError::Internal(e.to_string()))
 }

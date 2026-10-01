@@ -1187,6 +1187,20 @@ contract! {
         pub lines: Vec<ChatLine>,
     }
 
+    /// A week at the training ground.
+    pub struct TrainingWeekRow {
+        pub date: i32,
+        /// Where you trained and how your week went, in words.
+        pub group: String,
+        pub week: String,
+        pub coach: Option<Named>,
+        pub traces: Vec<Vec<crate::model::Part>>,
+    }
+
+    pub struct TrainingLogView {
+        pub weeks: Vec<TrainingWeekRow>,
+    }
+
     /// A month's payslip: what came in, what tax and living took, what went home, what was left; and the bonuses that month.
     pub struct PayslipRow {
         pub date: i32,
@@ -1510,6 +1524,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.chronicle"), None, "ChronicleView"),
         typed(q("me.chats"), None, "ChatsView"),
         typed(q("me.money"), None, "MoneyView"),
+        typed(q("me.training"), None, "TrainingLogView"),
         typed(q("me.matchday"), Some("MatchReq"), "MatchdayView"),
         typed(q("me.chat"), Some("IdReq"), "ChatView"),
         typed(c("me.chat_read"), Some("IdReq"), "Done"),
@@ -1681,6 +1696,8 @@ pub fn declarations() -> Vec<String> {
         ChronicleTie::declaration(),
         ChronicleReach::declaration(),
         ChronicleView::declaration(),
+        TrainingWeekRow::declaration(),
+        TrainingLogView::declaration(),
         PayslipRow::declaration(),
         BonusRow::declaration(),
         MoneyView::declaration(),

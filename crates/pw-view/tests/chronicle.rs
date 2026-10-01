@@ -256,3 +256,22 @@ fn api_synthetic() -> Api {
     wait(&api, "task");
     api
 }
+
+#[test]
+fn the_training_ground_leaves_a_week_by_week_trace() {
+    let api = lived(4, 60);
+    let t = api.call("me.training", json!({})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.training", &t) {
+        panic!("me.training is not its declared type: {e}");
+    }
+    let weeks = t["weeks"].as_array().unwrap();
+    assert!(weeks.len() >= 7, "two months leave a week per Monday: {}", weeks.len());
+    let dates: Vec<i64> = weeks.iter().map(|w| w["date"].as_i64().unwrap()).collect();
+    assert!(dates.windows(2).all(|d| d[0] - d[1] == 7), "one line a week, newest first: {dates:?}");
+    for w in weeks {
+        for tr in w["traces"].as_array().unwrap() {
+            let s = text(&json!({"parts": tr}));
+            assert!(!s.trim().is_empty() && !s.contains("  "), "clean: {s}");
+        }
+    }
+}

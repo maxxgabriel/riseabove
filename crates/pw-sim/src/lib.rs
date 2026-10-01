@@ -104,6 +104,7 @@ pub mod tactics;
 pub mod talk;
 pub mod validate;
 pub mod training;
+pub mod trainlog;
 pub mod university;
 pub mod youth;
 
@@ -348,6 +349,9 @@ impl Sim {
         // 11b. The chronicles of inhabited lives: after everything else today, so today's matches and stories are in them.
         prof!("chronicle::daily", chronicle::daily(w));
         prof!("chat::daily", chat::daily(w));
+        if today.weekday() == Weekday::Mon {
+            prof!("trainlog::weekly", trainlog::weekly(w));
+        }
 
         // 12. Archive.
         if first_of_month && today.month() == 8 {

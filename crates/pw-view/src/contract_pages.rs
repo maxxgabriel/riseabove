@@ -1190,8 +1190,21 @@ response! {
         pub mood: String,
         pub lines: Vec<String>,
     }
+    /// One part of settling in after a move, in words.
+    pub struct MeTodayViewSettlingPart {
+        pub label: String,
+        pub words: String,
+    }
+    /// Settling in after a move: since when, the manager's plan for you, and how each part of a new life is going.
+    pub struct MeTodayViewSettling {
+        pub club: NamedIn,
+        pub since: f64,
+        pub plan: String,
+        pub parts: Vec<MeTodayViewSettlingPart>,
+    }
     pub struct MeTodayView {
         pub availability: MeTodayViewAvailability,
+        pub settling: Option<MeTodayViewSettling>,
         pub atmosphere: Option<MeTodayViewAtmosphere>,
         pub buildup: Option<MeTodayViewBuildup>,
         pub known_faces: Vec<MeTodayViewKnownFace>,
@@ -2046,6 +2059,8 @@ pub fn declarations() -> Vec<String> {
         MeTodayViewWaitingOn::declaration(),
         MeTodayViewKnownFace::declaration(),
         MeTodayViewBuildup::declaration(),
+        MeTodayViewSettlingPart::declaration(),
+        MeTodayViewSettling::declaration(),
         MeTodayViewAtmosphere::declaration(),
         MeTodayViewMissed::declaration(),
         MeTodayViewRecovery::declaration(),

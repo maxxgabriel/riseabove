@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { EntityLink, Dt } from "../components/links";
+import { EntityLink, Dt, Parts } from "../components/links";
+import type { TrainingLogView } from "../contract.generated";
 import { OutcomeChip, focusText } from "./Today";
 import { cap, fmtInt } from "../format";
 import { href } from "../router";
@@ -44,6 +45,7 @@ export function Football() {
             <div className="split">
               <div className="stack">
                 <TrainingPlan f={f} reload={q.reload} />
+                <TrainingGround />
                 <Section title="Recent matches">
                   <div className="card list-card">
                     {f.usage.length === 0 ? (
@@ -193,6 +195,29 @@ function TrainingPlan({ f, reload }: { f: FootballResp; reload: () => void }) {
         </div>
         <p className="hint">The simulation applies this plan to your workload, tiredness and development. Club-wide programmes and coach approval are not simulated yet.</p>
       </div>
+    </Section>
+  );
+}
+
+/** The training ground, week by week: where you trained, how it went, who worked with you, and what the week left behind. */
+function TrainingGround() {
+  const q = useApi<TrainingLogView>("me.training");
+  const weeks = q.data?.weeks ?? [];
+  return (
+    <Section title="Training ground" aside={<span>week by week</span>}>
+      {weeks.length === 0 ? (
+        <p className="muted">The first week at the training ground is written down on Monday.</p>
+      ) : (
+        <ul className="trainweeks">
+          {weeks.slice(0, 8).map((w) => (
+            <li key={w.date}>
+              <div className="trainweek-head"><span className="hint num">Week to <Dt d={w.date} year={false} /></span> <strong>{w.week}</strong></div>
+              <div className="muted">{w.group}{w.coach && <>, working with <EntityLink r={w.coach}>{w.coach.name}</EntityLink></>}</div>
+              {w.traces.length > 0 && <ul className="traces">{w.traces.map((t, i) => <li key={i}><Parts parts={t} /></li>)}</ul>}
+            </li>
+          ))}
+        </ul>
+      )}
     </Section>
   );
 }

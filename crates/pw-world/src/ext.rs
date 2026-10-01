@@ -33,6 +33,7 @@ use crate::recog::Recog;
 use crate::scenario::{CalRule, DataOrigin, MarketDef, NationalRules, RecognitionTuning, Scenario, ScoutingTuning};
 use crate::ruling::DecisionMemory;
 use crate::stafflife::StaffExt;
+use crate::trainlog::TrainLogs;
 use crate::training::TrainingExt;
 
 /// Version of the `Extensions` layout written by this build. History: 1 = the layout at the introduction of the envelope; 2 = adds
@@ -42,8 +43,9 @@ use crate::training::TrainingExt;
 /// `lore` (names and labels from reference data), appended and empty in a save from layout 3; 5 = adds `chronicle` (the lives humans
 /// inhabit, as they were lived), appended and empty in a save from layout 4: a chronicle begins when someone is inhabited; 6 = adds
 /// `chats` (group chats and private messages around inhabited people), appended and empty in a save from layout 5; 7 = adds `ledger`
-/// (payslips and bonuses of inhabited lives), appended and empty in a save from layout 6.
-pub const EXT_VERSION: u32 = 7;
+/// (payslips and bonuses of inhabited lives), appended and empty in a save from layout 6; 8 = adds `training` log (the training
+/// ground week by week around inhabited people), appended and empty in a save from layout 7.
+pub const EXT_VERSION: u32 = 8;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -80,6 +82,9 @@ pub struct Extensions {
     // ---- layout 7: appended
     /// Owner: `pw_sim::life` and `pw_sim::clauses`. Where the money of each inhabited life went.
     pub ledger: Ledgers,
+    // ---- layout 8: appended
+    /// Owner: `pw_sim::trainlog`. The training ground, week by week, around inhabited people.
+    pub trainlog: TrainLogs,
     /// Set (never saved) when this value was upgraded from an older layout: the version it came from. `pw_sim::legacy::finish`
     /// consumes it after load.
     #[serde(skip)]
@@ -102,6 +107,7 @@ pub fn steps() -> &'static [ExtStep] {
         ExtStep { from: 4, name: "add career chronicles", apply: v4_to_v5 },
         ExtStep { from: 5, name: "add chats", apply: v5_to_v6 },
         ExtStep { from: 6, name: "add personal ledgers", apply: v6_to_v7 },
+        ExtStep { from: 7, name: "add training logs", apply: v7_to_v8 },
     ]
 }
 
@@ -231,6 +237,11 @@ fn v5_to_v6(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
 /// Layout 7 appends `ledger` at the end: no payslip was kept before ledgers existed.
 fn v6_to_v7(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
     append_default::<Ledgers>(bytes)
+}
+
+/// Layout 8 appends `trainlog` at the end: no training week was written down before it existed.
+fn v7_to_v8(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    append_default::<TrainLogs>(bytes)
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
@@ -412,6 +423,7 @@ mod tests {
         assert_eq!(e5.chronicle.lives.len(), 1, "the chronicle layout 5 held is kept");
         assert!(e5.chats.of.is_empty());
         assert!(e5.ledger.of.is_empty(), "no payslip is invented for an old save");
+        assert!(e5.trainlog.of.is_empty(), "no training week is invented for an old save");
         assert_eq!(e.ecosystem.last_year, 2032);
         assert_eq!(e.lore.competitions.len(), 1, "what layout 4 held is untouched");
         assert!(e.chronicle.lives.is_empty(), "no life is chronicled for an old save");

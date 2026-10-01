@@ -71,6 +71,7 @@ pub mod socialnet;
 pub mod staff;
 pub mod stafflife;
 pub mod training;
+pub mod trainlog;
 pub mod stats;
 pub mod tactics;
 pub mod window;

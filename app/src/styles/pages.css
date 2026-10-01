@@ -350,3 +350,8 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width:
 .matchday .md-injury { border-left-color: var(--neg); }
 .matchday .md-chat, .matchday .md-press { border-left-color: var(--info); }
 .meaning { display: grid; gap: 0.25rem; padding-left: 1rem; list-style: disc; color: var(--text-2); }
+.trainweeks { display: grid; }
+.trainweeks > li { display: grid; gap: 0.15rem; padding: 0.45rem 0; border-bottom: 1px solid var(--line); }
+.trainweeks > li:last-child { border-bottom: 0; }
+.trainweek-head { display: flex; gap: 0.6rem; align-items: baseline; }
+.traces { display: grid; gap: 0.1rem; padding-left: 0.6rem; border-left: 2px solid var(--line-2); margin-top: 0.15rem; }

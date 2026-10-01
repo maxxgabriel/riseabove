@@ -811,6 +811,18 @@ export interface ChronicleView {
   reach: ChronicleReach[];
 }
 
+export interface TrainingWeekRow {
+  date: number;
+  group: string;
+  week: string;
+  coach: Named | null;
+  traces: Part[][];
+}
+
+export interface TrainingLogView {
+  weeks: TrainingWeekRow[];
+}
+
 export interface PayslipRow {
   date: number;
   wage: number;
@@ -2264,6 +2276,18 @@ export interface MeTodayViewBuildup {
   lines: Part[][];
 }
 
+export interface MeTodayViewSettlingPart {
+  label: string;
+  words: string;
+}
+
+export interface MeTodayViewSettling {
+  club: Named;
+  since: number;
+  plan: string;
+  parts: MeTodayViewSettlingPart[];
+}
+
 export interface MeTodayViewAtmosphere {
   mood: string;
   lines: string[];
@@ -2294,6 +2318,7 @@ export interface MeTodayViewRecovery {
 
 export interface MeTodayView {
   availability: MeTodayViewAvailability;
+  settling: MeTodayViewSettling | null;
   atmosphere: MeTodayViewAtmosphere | null;
   buildup: MeTodayViewBuildup | null;
   known_faces: MeTodayViewKnownFace[];
@@ -2997,6 +3022,7 @@ export interface ApiMethods {
   "me.chronicle": { kind: "query"; req: Record<string, unknown>; res: ChronicleView };
   "me.chats": { kind: "query"; req: Record<string, unknown>; res: ChatsView };
   "me.money": { kind: "query"; req: Record<string, unknown>; res: MoneyView };
+  "me.training": { kind: "query"; req: Record<string, unknown>; res: TrainingLogView };
   "me.matchday": { kind: "query"; req: MatchReq; res: MatchdayView };
   "me.chat": { kind: "query"; req: IdReq; res: ChatView };
   "me.chat_read": { kind: "command"; req: IdReq; res: Done };
@@ -3089,6 +3115,7 @@ export type TypedMethod =
   | "me.chronicle"
   | "me.chats"
   | "me.money"
+  | "me.training"
   | "me.matchday"
   | "me.chat"
   | "me.chat_read"

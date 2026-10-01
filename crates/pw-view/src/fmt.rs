@@ -25,3 +25,9 @@ pub fn days_words(n: i32) -> String {
         _ => format!("{} weeks", (n + 3) / 7),
     }
 }
+
+/// "Climate and surroundings" from "climate and surroundings".
+pub fn capitalise(s: &str) -> String {
+    let mut c = s.chars();
+    c.next().map_or_else(String::new, |f| f.to_uppercase().collect::<String>() + c.as_str())
+}

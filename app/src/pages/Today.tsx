@@ -56,6 +56,7 @@ export interface TodayResp {
   known_faces: { who: Named; how: Part[]; role: string }[];
   buildup: null | { name: string | null; significance: number; lines: Part[][] };
   atmosphere: null | { mood: string; lines: string[] };
+  settling: null | { club: Named; since: number; plan: string; parts: { label: string; words: string }[] };
   recovery: null | {
     injury: string; since: number; treatment: string; estimate: number; sureness: string; stages: string[]; stage: number; setbacks: number;
     recurrence: boolean; rushed: boolean; physio: Named | null; missed: { uid: number; date: number; opponent: Named; score: string; outcome: string }[];

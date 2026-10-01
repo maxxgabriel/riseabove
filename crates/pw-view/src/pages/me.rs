@@ -258,6 +258,25 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         }
     }
     let atmosphere = atmosphere(c, h.club, team, &position_in_league);
+    // Settling in after a move: each part of the new life in words, only the parts the move made hard.
+    let settling = w.adaptation.current.get(&p).map_or(Value::Null, |a| {
+        use pw_world::adaptation::Channel;
+        let parts: Vec<Value> = Channel::ALL
+            .iter()
+            .filter(|ch| a.distance[ch.idx()] > 0.1)
+            .map(|ch| {
+                let x = a.progress[ch.idx()];
+                let words = match x {
+                    x if x < 0.3 => "a struggle",
+                    x if x < 0.6 => "getting there",
+                    x if x < 0.9 => "nearly there",
+                    _ => "settled",
+                };
+                json!({"label": crate::fmt::capitalise(ch.label()), "words": words})
+            })
+            .collect();
+        json!({"club": named(Ref::club(a.club), c.club_name(a.club)), "since": a.since.0, "plan": a.plan.label(), "parts": parts})
+    });
     let queued: Vec<String> = {
         let mut seen = std::collections::HashSet::new();
         c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).filter(|t| seen.insert(t.clone())).collect()
@@ -272,7 +291,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery, "buildup": buildup, "atmosphere": atmosphere,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery, "buildup": buildup, "atmosphere": atmosphere, "settling": settling,
         "promises": {"open": open_promises, "next_due": next_due},
         "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,

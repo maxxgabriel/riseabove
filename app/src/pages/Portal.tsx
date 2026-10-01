@@ -49,6 +49,12 @@ export function Portal() {
                 {t.atmosphere.lines.length > 0 ? <ul className="portal-waiting">{t.atmosphere.lines.map((l) => <li key={l}>{l}</li>)}</ul> : <p className="muted">Nothing much is being said. A normal week.</p>}
               </Section>
             )}
+            {t.settling && t.settling.parts.length > 0 && (
+              <Section title="Settling in" aside={<span>since <Dt d={t.settling.since} year={false} /></span>}>
+                <div className="hint">At <EntityLink r={t.settling.club}>{t.settling.club.name}</EntityLink>. The manager's plan: {t.settling.plan}.</div>
+                <ul className="portal-waiting">{t.settling.parts.map((p) => <li key={p.label}><span>{p.label}</span><small className={p.words === "a struggle" ? "tone-neg" : p.words === "settled" ? "tone-pos" : "hint"}>{p.words}</small></li>)}</ul>
+              </Section>
+            )}
             {t.waiting_on.length > 0 && (
               <Section title="Waiting to hear">
                 <ul className="portal-waiting">
