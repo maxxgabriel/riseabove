@@ -96,6 +96,9 @@ fn pages(api: &Api, people: &[u32], inhabited: bool) -> BTreeMap<String, Value> 
     put("comp.overview".into(), "comp.overview", json!({"id": 0}));
     put("insight.comp".into(), "insight.comp", json!({"id": 0}));
     put("nation".into(), "nation", json!({"id": 0}));
+    for i in 0..3 {
+        put(format!("institution/{i}"), "institution", json!({"id": i}));
+    }
     put("overview".into(), "overview", json!({}));
     put("world.pulse".into(), "world.pulse", json!({}));
     put("news.feed".into(), "news.feed", json!({}));

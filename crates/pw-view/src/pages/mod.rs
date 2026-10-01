@@ -3,6 +3,7 @@ pub mod club;
 pub mod compview;
 pub mod inbox;
 pub mod insights;
+pub mod institution;
 pub mod life;
 pub mod matchday;
 pub mod matchp;

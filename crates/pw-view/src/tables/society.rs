@@ -133,7 +133,7 @@ fn side_name(c: &Ctx, s: Side) -> (String, Option<Ref>) {
     match s {
         Side::Club(x) => (c.club_name(x), Some(Ref::club(x))),
         Side::Nation(n) => (c.nation_name(n), Some(Ref::nation(n))),
-        Side::Institution(i) => (pw_narrate::history::institution(c.w, i), None),
+        Side::Institution(i) => (pw_narrate::history::institution(c.w, i), Some(Ref::inst(i))),
     }
 }
 
@@ -966,10 +966,11 @@ pub fn institutions() -> Grid {
             c.w.minor
                 .institutions
                 .iter()
-                .filter(|i| kind.is_none_or(|k| pw_narrate::history::inst_kind(i.kind).eq_ignore_ascii_case(k)))
-                .map(|i| {
+                .enumerate()
+                .filter(|(_, i)| kind.is_none_or(|k| pw_narrate::history::inst_kind(i.kind).eq_ignore_ascii_case(k)))
+                .map(|(n, i)| {
                     Row::new()
-                        .text("name", i.name.clone())
+                        .cell("name", Cell::link(Ref::inst(n as u32), i.name.clone()), Key::text(i.name.clone()))
                         .text("kind", pw_narrate::history::inst_kind(i.kind))
                         .cell("nation", Cell::link(Ref::nation(i.nation), c.nation_name(i.nation)), Key::text(c.nation_name(i.nation)))
                         .text("city", i.city.clone())
@@ -978,7 +979,7 @@ pub fn institutions() -> Grid {
                         .num("members", i.members.len() as f64)
                         .num("alumni", i.alumni_pros.len() as f64)
                         .num("coaching", f64::from(i.coaching))
-                        .open(Ref::nation(i.nation))
+                        .open(Ref::inst(n as u32))
                 })
                 .collect()
         },

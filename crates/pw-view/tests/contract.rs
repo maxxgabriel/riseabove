@@ -617,6 +617,7 @@ fn queries_are_read_through_declared_requests_that_refuse_what_they_do_not_name(
         ("club.systems", json!({"id": 0}), Some("id")),
         ("comp", json!({"id": 0}), Some("id")),
         ("nation", json!({"id": 0}), Some("id")),
+        ("institution", json!({"id": 0}), Some("id")),
         ("match", json!({"uid": 1}), Some("uid")),
         ("match.watch", json!({"uid": 1}), Some("uid")),
         ("me.messages", json!({"limit": 20}), Some("limit")),
@@ -657,7 +658,7 @@ fn queries_are_read_through_declared_requests_that_refuse_what_they_do_not_name(
         }
     }
     // What is required is required.
-    for name in ["person", "club", "comp", "nation", "match", "me.thread", "me.message", "social.thread", "table.query", "world.inspect_import"] {
+    for name in ["person", "club", "comp", "nation", "institution", "match", "me.thread", "me.message", "social.thread", "table.query", "world.inspect_import"] {
         assert_eq!(kind(api.call(name, json!({}))), Err(ErrorKind::InvalidRequest), "{name} answered a request with no subject");
     }
     // The source browser is the debug view's: its request is read once the viewer is allowed it.

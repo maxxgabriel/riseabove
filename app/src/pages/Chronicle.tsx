@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Dt, EntityLink, Parts } from "../components/links";
+import { Dt, EntityLink, Money, Parts } from "../components/links";
 import { storyPath } from "../components/Newsroom";
-import type { ChronicleEntry, ChronicleView } from "../contract.generated";
+import type { ChronicleEntry, ChronicleView, Named } from "../contract.generated";
 import { monthName } from "../format";
 import { href } from "../router";
 import { useApi } from "../store";
@@ -98,23 +98,119 @@ function Timeline({ entries, born }: { entries: ChronicleEntry[]; born: number }
   );
 }
 
-function Scrapbook({ entries }: { entries: ChronicleEntry[] }) {
+/** A keepsake as the paper it was: the terms of a contract, a call-up notice, a medal, a cutting from the papers. What the story did
+ * not keep is said so, never shown as zero. */
+function Doc({ e, who }: { e: ChronicleEntry; who: Named }) {
+  const d = e.doc;
+  if (!d) return <p><Parts parts={e.parts} /></p>;
+  switch (d.kind) {
+    case "contract":
+      return (
+        <div className="doc doc-contract">
+          <div className="doc-title">Contract of employment</div>
+          <div className="doc-parties">
+            Between {d.club ? <EntityLink r={d.club}>{d.club.name}</EntityLink> : "the club"} and <EntityLink r={who}>{who.name}</EntityLink>
+          </div>
+          <dl className="doc-terms">
+            <div><dt>Weekly wage</dt><dd>{d.wage != null ? <Money v={d.wage} exact /> : <span className="muted">Not kept</span>}</dd></div>
+            <div><dt>Length</dt><dd>{d.years != null ? `${d.years} ${d.years === 1 ? "year" : "years"}` : <span className="muted">Not known</span>}</dd></div>
+            <div><dt>Until</dt><dd>{d.until != null ? <Dt d={d.until} /> : <span className="muted">Not known</span>}</dd></div>
+          </dl>
+          <div className="doc-sign"><span>Signed</span><span className="num"><Dt d={e.date} /></span></div>
+        </div>
+      );
+    case "call_up":
+      return (
+        <div className="doc doc-callup">
+          <div className="doc-title">Call-up notice</div>
+          <div className="doc-parties">To <EntityLink r={who}>{who.name}</EntityLink></div>
+          <p className="doc-body">
+            You have been selected for the {d.nation ? <EntityLink r={d.nation}>{d.squad ?? d.nation.name}</EntityLink> : (d.squad ?? "squad")}.
+          </p>
+          <dl className="doc-terms">
+            <div><dt>Report</dt><dd>{d.from != null ? <><Dt d={d.from} /> to <Dt d={d.to} /></> : <span className="muted">Dates not on record</span>}</dd></div>
+          </dl>
+        </div>
+      );
+    case "medal":
+      return (
+        <div className="doc doc-medal">
+          <div className="medal-disc" aria-hidden="true"><span>{(d.honour ?? "Medal").split(",")[0]}</span></div>
+          <div className="medal-text">
+            <div className="doc-title">{d.honour ?? "Medal"}</div>
+            <div>{d.comp ? <EntityLink r={d.comp}>{d.comp.name}</EntityLink> : (d.comp_name ?? "A competition")}</div>
+            <div className="hint">{d.season ?? "Season not known"}{d.club && <> · <EntityLink r={d.club}>{d.club.name}</EntityLink></>}</div>
+          </div>
+        </div>
+      );
+    case "clipping":
+      return (
+        <div className="doc doc-clipping">
+          <div className="clip-masthead">{d.outlet ?? "Unknown paper"}</div>
+          <div className="clip-date num"><Dt d={e.date} /></div>
+          <div className="clip-headline">{d.headline ?? "Headline not kept"}</div>
+        </div>
+      );
+    default:
+      return <p><Parts parts={e.parts} /></p>;
+  }
+}
+
+function Scrapbook({ entries, who }: { entries: ChronicleEntry[]; who: Named }) {
   const kept = entries.filter((e) => e.keepsake).slice().reverse();
   if (kept.length === 0) return <Empty title="Nothing kept yet" icon="bookmark">Contracts, letters, call-ups, medals and clippings are kept here as your career leaves them.</Empty>;
   return (
     <div className="scrapbook">
       {kept.map((e, i) => (
-        <article key={i} className={`keepsake k-${e.keepsake}`}>
+        <article key={i} className={`keepsake k-${e.keepsake}${e.doc ? " is-doc" : ""}`}>
           <header>
             <span className="keepsake-kind">{KEEPSAKE[e.keepsake ?? ""] ?? e.keepsake}</span>
             <span className="hint num"><Dt d={e.date} /></span>
           </header>
-          <p><Parts parts={e.parts} /></p>
+          <Doc e={e} who={who} />
+          {e.doc && <p className="hint keepsake-line"><Parts parts={e.parts} /></p>}
           {e.story != null && <a className="hint" href={href(storyPath(e.story))}>Read the piece</a>}
           {e.uid != null && <a className="hint" href={href(`/match/${e.uid}`)}>The match</a>}
         </article>
       ))}
     </div>
+  );
+}
+
+/** What became of the people from your past: public record only, furthest risen first. */
+function Became({ d }: { d: ChronicleView }) {
+  if (d.became.length === 0)
+    return <Empty title="Too soon to tell" icon="people">A year after your paths first crossed, teammates, coaches and the people who noticed you appear here with what became of them.</Empty>;
+  return (
+    <Section title="What became of them" aside={<span>{d.became.length}</span>}>
+      <ol className="became">
+        {d.became.map((b) => (
+          <li key={b.who.id} className={`became-row${b.retired ? " is-retired" : ""}`}>
+            <div className="became-who">
+              <EntityLink r={b.who}>{b.who.name}</EntityLink>
+              <span className="hint block"><Parts parts={b.how} />, since <Dt d={b.from} /></span>
+            </div>
+            <div className="became-now">
+              <strong>{b.summary}</strong>
+              <span className="block">
+                {b.role}
+                {b.club && <> at <EntityLink r={b.club}>{b.club.name}</EntityLink></>}
+                {b.league && <span className="hint"> · <EntityLink r={b.league}>{b.league.name}</EntityLink>{b.level ? `, ${b.level}` : ""}</span>}
+              </span>
+            </div>
+            <div className="became-facts">
+              {b.caps != null && b.caps_for ? (
+                <span><span className="num">{b.caps}</span> {b.caps === 1 ? "cap" : "caps"} for <EntityLink r={b.caps_for}>{b.caps_for.name}</EntityLink></span>
+              ) : (
+                <span className="muted">No senior caps</span>
+              )}
+              {b.managed > 0 && <span className="hint block">{b.managed} {b.managed === 1 ? "manager's job" : "manager's jobs"}</span>}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="hint">Ordered by how far they have risen: the level of their club, a manager's job, caps for their country. Public record only.</p>
+    </Section>
   );
 }
 
@@ -163,7 +259,7 @@ function Reach({ d }: { d: ChronicleView }) {
 export function Chronicle() {
   usePageTitle("Your story");
   const q = useApi<ChronicleView>("me.chronicle");
-  const [tab, setTab] = useState<"timeline" | "scrapbook" | "people">("timeline");
+  const [tab, setTab] = useState<"timeline" | "scrapbook" | "people" | "became">("timeline");
   return (
     <div className="page">
       <Async q={q}>
@@ -178,6 +274,7 @@ export function Chronicle() {
                 { id: "timeline", label: "Timeline", count: d.entries.length },
                 { id: "scrapbook", label: "Scrapbook", count: d.entries.filter((e) => e.keepsake).length },
                 { id: "people", label: "People from your past", count: d.people.length },
+                { id: "became", label: "What became of them", count: d.became.length },
               ]}
             />
             {tab === "timeline" && (
@@ -186,8 +283,9 @@ export function Chronicle() {
                 <aside className="stack"><Reach d={d} /></aside>
               </div>
             )}
-            {tab === "scrapbook" && <Scrapbook entries={d.entries} />}
+            {tab === "scrapbook" && <Scrapbook entries={d.entries} who={d.person} />}
             {tab === "people" && <People d={d} />}
+            {tab === "became" && <Became d={d} />}
           </>
         )}
       </Async>

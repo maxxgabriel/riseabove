@@ -78,6 +78,8 @@ export function refPath(r: Ref): string {
       return `/nation/${r.id}`;
     case "match":
       return `/match/${r.id}`;
+    case "inst":
+      return `/institution/${r.id}`;
     default:
       return `/club/${r.id}`;
   }

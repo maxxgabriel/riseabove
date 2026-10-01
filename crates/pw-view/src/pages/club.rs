@@ -101,7 +101,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "fan_mood": club.fan_mood,
         "league": league_json, "manager": manager, "teams": teams, "relation": relation, "followed": followed,
         "staff_counts": staff_counts,
-        "also_known": also_known, "academy": academy, "partners": partners, "channels": channels, "place": place(c, id),
+        "also_known": also_known, "academy": academy, "partners": partners, "channels": channels, "place": place(c, id), "country": country(c, id),
         "finance": if internals { json!({
             "balance": club.finance.balance, "transfer_budget": club.finance.transfer_budget,
             "wage_budget": club.finance.wage_budget, "wage_bill": club.finance.wage_bill,
@@ -407,7 +407,7 @@ pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
             let (name, target) = match other {
                 Side::Club(x) => (c.club_name(x), Some(Ref::club(x))),
                 Side::Nation(n) => (c.nation_name(n), Some(Ref::nation(n))),
-                Side::Institution(i) => (pw_narrate::history::institution(w, i), None),
+                Side::Institution(i) => (pw_narrate::history::institution(w, i), Some(Ref::inst(i))),
             };
             json!({
                 "with": target.map_or_else(|| Value::String(name.clone()), |t| named(t, name.clone())), "intensity": r.intensity,
@@ -467,16 +467,29 @@ fn place(c: &Ctx, id: ClubId) -> Value {
     let mut nearby: Vec<(u16, ClubId)> = eco.club_region.iter().filter(|(k, rr)| **k != id && eco.state_of(**rr) == state).map(|(k, _)| (w.clubs[*k].reputation, *k)).collect();
     nearby.sort_by_key(|(rep, k)| (std::cmp::Reverse(*rep), *k));
     let nearby: Vec<Value> = nearby.into_iter().take(6).map(|(_, k)| named(Ref::club(k), c.club_name(k))).collect();
-    let mut unis: Vec<(u16, String)> = eco
+    let mut unis: Vec<(u16, String, u32)> = eco
         .inst
         .iter()
         .filter(|(_, p)| eco.state_of(p.region) == state)
-        .filter_map(|(i, _)| w.minor.institutions.get(*i as usize))
-        .filter(|i| i.kind == pw_world::minor::InstKind::University)
-        .map(|i| (i.prestige, i.name.clone()))
+        .filter_map(|(i, _)| w.minor.institutions.get(*i as usize).map(|x| (*i, x)))
+        .filter(|(_, i)| i.kind == pw_world::minor::InstKind::University)
+        .map(|(id, i)| (i.prestige, i.name.clone(), id))
         .collect();
     unis.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
-    let universities: Vec<String> = unis.into_iter().take(4).map(|(_, n)| n).collect();
+    let universities: Vec<Value> = unis.into_iter().take(4).map(|(_, n, i)| named(Ref::inst(i), n)).collect();
+    // The papers and channels of the place: those that lean to the club, and those based in its state (reference data).
+    let media: Vec<Value> = {
+        let lore = &w.ext.lore;
+        let mut list: Vec<(bool, u8, pw_core::OutletId)> = w
+            .media
+            .outlets
+            .iter_enumerated()
+            .filter(|(oid, o)| o.leaning == id || lore.outlets.get(oid).is_some_and(|l| l.home.is_some() && (l.home == state || l.home == rid)))
+            .map(|(oid, o)| (o.leaning == id, o.reach, oid))
+            .collect();
+        list.sort_by_key(|(own, reach, oid)| (std::cmp::Reverse(*own), std::cmp::Reverse(*reach), *oid));
+        list.into_iter().take(8).map(|(_, _, oid)| outlet_json(c, oid, id)).collect()
+    };
     // How far it is from home, for the person you live as.
     let from_home = c.my_player().and_then(|p| eco.story.get(&p)).and_then(|s| eco.regions.get(s.home)).map(|h| {
         let (dx, dy) = (f32::from(h.x) - f32::from(r.x), f32::from(h.y) - f32::from(r.y));
@@ -497,6 +510,184 @@ fn place(c: &Ctx, id: ClubId) -> Value {
     json!({
         "region": r.name, "state": state_name, "climate": climate, "language": eco.languages.get(usize::from(r.language)).cloned(),
         "population": population, "football": football, "nearby": nearby, "universities": universities, "from_home": from_home,
-        "training": training, "ground": ground,
+        "training": training, "ground": ground, "media": media,
+    })
+}
+
+fn outlet_kind_words(k: pw_world::media::OutletKind) -> &'static str {
+    use pw_world::media::OutletKind as K;
+    match k {
+        K::National => "National paper",
+        K::Local => "Local paper",
+        K::Tabloid => "Tabloid",
+        K::Broadcaster => "Broadcaster",
+        K::DataSite => "Data site",
+        K::FanChannel => "Fan channel",
+    }
+}
+
+/// A language code of the reference data, by name where it is a common one.
+fn language_name(code: &str) -> String {
+    match code {
+        "en" => "English",
+        "hi" => "Hindi",
+        "bn" => "Bengali",
+        "ml" => "Malayalam",
+        "ta" => "Tamil",
+        "te" => "Telugu",
+        "kn" => "Kannada",
+        "mr" => "Marathi",
+        "gu" => "Gujarati",
+        "pa" => "Punjabi",
+        "or" => "Odia",
+        "as" => "Assamese",
+        "ur" => "Urdu",
+        "kok" => "Konkani",
+        "mni" => "Manipuri",
+        "lus" => "Mizo",
+        "ne" => "Nepali",
+        "es" => "Spanish",
+        "pt" => "Portuguese",
+        "fr" => "French",
+        "de" => "German",
+        "it" => "Italian",
+        "ja" => "Japanese",
+        "ar" => "Arabic",
+        other => return other.to_uppercase(),
+    }
+    .to_string()
+}
+
+/// An outlet as a reader meets it: what it is, how far it reaches, the languages it writes in (reference data), and its latest piece
+/// about the club, to open.
+fn outlet_json(c: &Ctx, oid: pw_core::OutletId, club: ClubId) -> Value {
+    let w = c.w;
+    let o = &w.media.outlets[oid];
+    let lore = w.ext.lore.outlets.get(&oid);
+    let reach = match lore.map(|l| l.reach.as_str()) {
+        Some("national") => "Read across the country",
+        Some("multi_state") => "Read in several states",
+        Some("state") => "Read across the state",
+        Some("local") => "Read locally",
+        _ => match o.reach {
+            15.. => "A big audience",
+            8..=14 => "A fair audience",
+            _ => "A small audience",
+        },
+    };
+    let languages = lore.filter(|l| !l.languages.is_empty()).map(|l| l.languages.iter().map(|x| language_name(x)).collect::<Vec<_>>().join(", "));
+    let latest = w.media.stories.iter().filter(|s| s.outlet == oid && s.club == club && !c.story_spoils(s)).max_by_key(|s| (s.date, s.id));
+    json!({
+        "name": o.name, "kind": outlet_kind_words(o.kind), "reach": reach, "languages": languages, "own": o.leaning == club,
+        "origin": if lore.is_some() { "Imported" } else { "Generated" },
+        "story": latest.map(|s| s.id.0), "headline": latest.map(|s| c.headline(s)),
+    })
+}
+
+/// The country a club is in, as a place to live: for a club abroad from the person you live as (or, for an observer, a club with no
+/// region on the map). The nation's environment is reference data when `known`, otherwise an inference from its region.
+fn country(c: &Ctx, id: ClubId) -> Value {
+    let w = c.w;
+    let k = &w.clubs[id];
+    let Some(n) = w.nations.get(k.nation) else { return Value::Null };
+    let home = c.me().map(|me| w.people[me].nation).filter(|h| h.is_some() && w.nations.get(*h).is_some());
+    match home {
+        Some(h) if h == k.nation => return Value::Null,
+        None if w.ext.ecosystem.club_region.contains_key(&id) => return Value::Null,
+        _ => {}
+    }
+    let e = &n.env;
+    let mut climate = match e.climate {
+        i8::MIN..=-3 => "Very cold winters",
+        -2 => "Cold",
+        -1 => "Cool",
+        0 => "Mild",
+        1 => "Warm",
+        2 => "Hot",
+        _ => "Very hot",
+    }
+    .to_string();
+    if e.humidity >= 70 {
+        climate.push_str(" and humid");
+    } else if e.humidity <= 30 {
+        climate.push_str(" and dry");
+    }
+    let altitude = (e.altitude >= 1_200).then(|| format!("High up: football is played about {} m above the sea", crate::fmt::thousands(u32::from(e.altitude / 100 * 100))));
+    let football = {
+        let mut bits = Vec::new();
+        if e.pace >= 62 {
+            bits.push("quick");
+        }
+        if e.physical >= 62 {
+            bits.push("physical");
+        }
+        if e.tempo >= 62 {
+            bits.push("played at a high tempo");
+        } else if e.tempo <= 38 {
+            bits.push("patient on the ball");
+        }
+        if bits.is_empty() { "A balanced kind of football".to_string() } else { format!("The football is {}", bits.join(", ")) }
+    };
+    let mut living = format!("Income tax about {}%", e.tax);
+    let (mut language, mut clock, mut from_home) = (None, None, None);
+    if let (Some(h), Some(me)) = (home, c.me()) {
+        let he = &w.nations[h].env;
+        let (a, b) = (i32::from(e.climate), i32::from(he.climate));
+        if a > b {
+            climate.push_str(", warmer than home");
+        } else if a < b {
+            climate.push_str(", colder than home");
+        }
+        living.push_str(match i32::from(e.living) - i32::from(he.living) {
+            d if d >= 15 => "; living costs more than at home",
+            d if d <= -15 => "; living costs less than at home",
+            _ => "; living costs about what they do at home",
+        });
+        // Your own languages: how well you speak the one spoken there.
+        let fluent = w.lives.get(me).map_or(0, |l| {
+            l.languages.iter().filter(|(x, _)| *x == k.nation || w.nations.get(*x).is_some_and(|y| y.env.language == e.language)).map(|(_, f)| *f).max().unwrap_or(0)
+        });
+        language = Some(
+            if e.language == he.language {
+                "The language of home: you will be understood"
+            } else {
+                match fluent {
+                    80.. => "Another language from home, and you speak it well",
+                    40..=79 => "Another language from home; you get by in it",
+                    1..=39 => "Another language from home; you have a few words",
+                    _ => "Another language from home, and you do not speak it yet",
+                }
+            }
+            .to_string(),
+        );
+        let gap = i32::from(e.tz) - i32::from(he.tz);
+        clock = Some(match gap {
+            0 => "The same time as home".to_string(),
+            g if g > 0 => format!("{g} hour{} ahead of home", if g == 1 { "" } else { "s" }),
+            g => format!("{} hour{} behind home", -g, if g == -1 { "" } else { "s" }),
+        });
+        let same_confed = w.nations[h].confed == n.confed;
+        from_home = Some(
+            match (same_confed, gap.abs()) {
+                (true, 0..=1) => "Not far: a short flight from home",
+                (true, _) => "The same part of the world, a long flight from home",
+                (false, 0..=3) => "Another continent, though the clock is close to home's",
+                (false, _) => "Another continent: far from home, and a long way round the clock",
+            }
+            .to_string(),
+        );
+    }
+    let mut national: Vec<(u8, pw_core::OutletId)> = w
+        .media
+        .outlets
+        .iter_enumerated()
+        .filter(|(_, o)| o.nation == k.nation && matches!(o.kind, pw_world::media::OutletKind::National | pw_world::media::OutletKind::Broadcaster))
+        .map(|(oid, o)| (o.reach, oid))
+        .collect();
+    national.sort_by_key(|(r, oid)| (std::cmp::Reverse(*r), *oid));
+    let media: Vec<Value> = national.into_iter().take(4).map(|(_, oid)| outlet_json(c, oid, id)).collect();
+    json!({
+        "nation": named(Ref::nation(k.nation), n.name.clone()), "climate": climate, "altitude": altitude, "language": language, "clock": clock,
+        "from_home": from_home, "football": football, "living": living, "media": media, "origin": if e.known { "Imported" } else { "Inferred" },
     })
 }

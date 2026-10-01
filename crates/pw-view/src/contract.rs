@@ -306,7 +306,7 @@ impl Ts for crate::model::Tone {
 
 /// Wire types whose Rust definition carries serde attributes the generator does not read. They are written here once, and
 /// `tests/contract.rs` checks real responses against these declarations field by field.
-pub const CORE_TS: &str = r#"export type Kind = "person" | "club" | "comp" | "nation" | "match" | "team";
+pub const CORE_TS: &str = r#"export type Kind = "person" | "club" | "comp" | "nation" | "match" | "team" | "inst";
 export interface Ref {
   k: Kind;
   id: number;
@@ -1134,6 +1134,57 @@ contract! {
         /// The keepsake it left, for the scrapbook: contract, scholarship, trial, call_up, cap, medal, clipping, team_sheet,
         /// certificate or transfer.
         pub keepsake: Option<String>,
+        /// The keepsake as a document, for the kinds that are one (a contract, a call-up notice, a medal, a press clipping).
+        pub doc: Option<ChronicleDoc>,
+    }
+
+    /// A keepsake as the paper it was: what is printed on it. Only what the line kept; a field it did not keep is null, never zero.
+    pub struct ChronicleDoc {
+        /// contract, call_up, medal or clipping.
+        pub kind: String,
+        pub club: Option<Named>,
+        pub nation: Option<Named>,
+        pub comp: Option<Named>,
+        /// A competition with no page of its own (school, university, state football), by name.
+        pub comp_name: Option<String>,
+        /// The weekly wage of a contract, before tax.
+        pub wage: Option<i64>,
+        pub until: Option<i32>,
+        /// Length of a contract, in years (to the half year).
+        pub years: Option<f32>,
+        /// The squad of a call-up ("India senior squad", "Kerala state team").
+        pub squad: Option<String>,
+        /// The window a call-up was for.
+        pub from: Option<i32>,
+        pub to: Option<i32>,
+        pub season: Option<String>,
+        /// What a medal was for ("Champions", "Top scorer", an award).
+        pub honour: Option<String>,
+        pub headline: Option<String>,
+        pub outlet: Option<String>,
+    }
+
+    /// What became of someone from your past, as public record has it.
+    pub struct ChronicleBecame {
+        pub who: Named,
+        pub how: Vec<crate::model::Part>,
+        /// When your paths first crossed.
+        pub from: i32,
+        /// Player, manager, a staff role, retired, gave up playing, without a club, or not known.
+        pub role: String,
+        pub club: Option<Named>,
+        /// The league the club's first team plays in.
+        pub league: Option<Named>,
+        /// How high that is, in words ("top division of India").
+        pub level: Option<String>,
+        /// Senior caps, and for whom; null when none are on record.
+        pub caps: Option<u32>,
+        pub caps_for: Option<Named>,
+        pub retired: bool,
+        /// Manager's jobs taken since you knew them (each one the story told you of, and the one they hold now).
+        pub managed: u32,
+        /// How far they rose, in a few words.
+        pub summary: String,
     }
 
     /// Someone whose path crossed yours.
@@ -1253,6 +1304,61 @@ contract! {
         pub reach: Vec<ChronicleReach>,
         /// Date of birth (days), so each year of the story can say how old you were.
         pub born: i32,
+        /// What became of the people from your past whose paths crossed yours more than a year ago, furthest risen first.
+        pub became: Vec<ChronicleBecame>,
+    }
+
+    /// A school or university and its football: public facts and what the record books say.
+    pub struct InstitutionView {
+        pub id: u32,
+        pub name: String,
+        /// School, sports school, university or residential university.
+        pub kind: String,
+        pub nation: Named,
+        pub city: Option<String>,
+        pub region: Option<String>,
+        pub state: Option<String>,
+        pub founded: Option<i32>,
+        /// Its standing, in words.
+        pub standing: String,
+        /// How its football has gone lately, in words, when the world keeps it.
+        pub football: Option<String>,
+        pub facilities: Option<String>,
+        /// Scholarship places it funds a year, when known.
+        pub scholarships: Option<u32>,
+        /// Imported (a real institution, named from reference data) or Generated.
+        pub origin: String,
+        /// Its teams' competitions this season.
+        pub teams: Vec<InstitutionTeam>,
+        pub players: Vec<InstitutionPerson>,
+        /// Former players who went on to play professionally.
+        pub alumni: Vec<InstitutionPerson>,
+        pub titles: Vec<InstitutionTitle>,
+        /// The viewer's own connection to it, in words.
+        pub yours: Option<String>,
+    }
+
+    pub struct InstitutionTeam {
+        pub comp: String,
+        pub season: String,
+        /// Place in the table, or "still in it" / "knocked out" for a cup.
+        pub standing: Option<String>,
+        pub played: Option<u32>,
+        pub points: Option<u32>,
+    }
+
+    pub struct InstitutionPerson {
+        pub who: Named,
+        pub age: u32,
+        /// Where they are now ("Kerala Blasters", "Retired") or their year group.
+        pub now: Option<String>,
+    }
+
+    pub struct InstitutionTitle {
+        pub comp: String,
+        pub season: String,
+        /// won or runner_up.
+        pub finish: String,
     }
 
     pub struct AgentRow {
@@ -1524,6 +1630,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.agent"), None, "AgentView"),
         typed(q("me.journal"), None, "JournalView"),
         typed(q("me.chronicle"), None, "ChronicleView"),
+        typed(q("institution"), Some("IdReq"), "InstitutionView"),
         typed(q("me.chats"), None, "ChatsView"),
         typed(q("me.money"), None, "MoneyView"),
         typed(q("me.training"), None, "TrainingLogView"),
@@ -1694,10 +1801,16 @@ pub fn declarations() -> Vec<String> {
         NoteRow::declaration(),
         InhabitedRow::declaration(),
         JournalView::declaration(),
+        ChronicleDoc::declaration(),
         ChronicleEntry::declaration(),
+        ChronicleBecame::declaration(),
         ChronicleTie::declaration(),
         ChronicleReach::declaration(),
         ChronicleView::declaration(),
+        InstitutionTeam::declaration(),
+        InstitutionPerson::declaration(),
+        InstitutionTitle::declaration(),
+        InstitutionView::declaration(),
         TrainingWeekRow::declaration(),
         TrainingLogView::declaration(),
         PayslipRow::declaration(),

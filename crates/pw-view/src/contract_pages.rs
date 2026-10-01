@@ -605,16 +605,46 @@ response! {
         pub population: String,
         pub football: String,
         pub nearby: Vec<NamedIn>,
-        pub universities: Vec<String>,
+        pub universities: Vec<NamedIn>,
         pub from_home: Option<String>,
         /// The training ground, in words.
         pub training: String,
         /// The stadium and its size, if the club has one on record.
         pub ground: Option<String>,
+        /// The local media: outlets that lean to the club and those based in its state.
+        pub media: Vec<ClubViewMedia>,
+    }
+    /// A paper or channel, as a reader meets it, with its latest piece about the club.
+    pub struct ClubViewMedia {
+        pub name: String,
+        pub kind: String,
+        pub reach: String,
+        pub languages: Option<String>,
+        /// It leans to this club.
+        pub own: bool,
+        /// Imported (reference data) or Generated.
+        pub origin: String,
+        pub story: Option<f64>,
+        pub headline: Option<String>,
+    }
+    /// The country, as a place to live, for a club abroad: climate, language, the clock and the distance from home, its football and
+    /// its papers. `origin` says whether the country's environment is reference data or inferred from its region.
+    pub struct ClubViewCountry {
+        pub nation: NamedIn,
+        pub climate: String,
+        pub altitude: Option<String>,
+        pub language: Option<String>,
+        pub clock: Option<String>,
+        pub from_home: Option<String>,
+        pub football: String,
+        pub living: String,
+        pub media: Vec<ClubViewMedia>,
+        pub origin: String,
     }
     pub struct ClubView {
         pub academy: Option<ClubViewAcademy>,
         pub place: Option<ClubViewPlace>,
+        pub country: Option<ClubViewCountry>,
         pub also_known: Vec<ClubViewAlsoKnown>,
         pub board: Option<ClubViewBoard>,
         pub capacity: f64,
@@ -2016,7 +2046,9 @@ pub fn declarations() -> Vec<String> {
         ClubViewPartner::declaration(),
         ClubViewStaffCount::declaration(),
         ClubViewTeam::declaration(),
+        ClubViewMedia::declaration(),
         ClubViewPlace::declaration(),
+        ClubViewCountry::declaration(),
         ClubView::declaration(),
         ClubSystemsViewBoardConcern::declaration(),
         ClubSystemsViewBoardOwnerTraits::declaration(),
@@ -2494,7 +2526,7 @@ mod tests {
         // An interface with a nested link, a list and a nullable object.
         let club = json!({"academy": null, "also_known": [], "board": null, "capacity": 0, "channels": [], "city": "", "colors": ["#fff"], "facilities": null,
             "fan_mood": 50, "finance": null, "followed": false, "founded": 1900, "id": 1, "league": null, "manager": null, "name": "A", "nation": {"k": "nation", "id": 0, "name": "N"},
-            "needs": null, "ownership": "", "partners": [], "place": null, "relation": "", "reputation": 1, "short": "A", "stadium": "", "staff_counts": [], "teams": []});
+            "needs": null, "ownership": "", "partners": [], "place": null, "country": null, "relation": "", "reputation": 1, "short": "A", "stadium": "", "staff_counts": [], "teams": []});
         assert_eq!(conforms("ClubView", &club, "club"), Ok(()));
         let mut extra = club.clone();
         extra["secret"] = json!(1);

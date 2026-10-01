@@ -11,5 +11,6 @@ describe("router paths", () => {
     expect(refPath({ k: "comp", id: 0 })).toBe("/comp/0");
     expect(refPath({ k: "nation", id: 1 })).toBe("/nation/1");
     expect(refPath({ k: "match", id: 12 })).toBe("/match/12");
+    expect(refPath({ k: "inst", id: 4 })).toBe("/institution/4");
   });
 });

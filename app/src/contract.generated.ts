@@ -12,7 +12,7 @@ export type ErrorKind =
   | "internal_error"
 ;
 
-export type Kind = "person" | "club" | "comp" | "nation" | "match" | "team";
+export type Kind = "person" | "club" | "comp" | "nation" | "match" | "team" | "inst";
 export interface Ref {
   k: Kind;
   id: number;
@@ -778,6 +778,24 @@ export interface JournalView {
   history: InhabitedRow[];
 }
 
+export interface ChronicleDoc {
+  kind: string;
+  club: Named | null;
+  nation: Named | null;
+  comp: Named | null;
+  comp_name: string | null;
+  wage: number | null;
+  until: number | null;
+  years: number | null;
+  squad: string | null;
+  from: number | null;
+  to: number | null;
+  season: string | null;
+  honour: string | null;
+  headline: string | null;
+  outlet: string | null;
+}
+
 export interface ChronicleEntry {
   date: number;
   cat: string;
@@ -786,6 +804,22 @@ export interface ChronicleEntry {
   story: number | null;
   learned: number | null;
   keepsake: string | null;
+  doc: ChronicleDoc | null;
+}
+
+export interface ChronicleBecame {
+  who: Named;
+  how: Part[];
+  from: number;
+  role: string;
+  club: Named | null;
+  league: Named | null;
+  level: string | null;
+  caps: number | null;
+  caps_for: Named | null;
+  retired: boolean;
+  managed: number;
+  summary: string;
 }
 
 export interface ChronicleTie {
@@ -810,6 +844,48 @@ export interface ChronicleView {
   people: ChronicleTie[];
   reach: ChronicleReach[];
   born: number;
+  became: ChronicleBecame[];
+}
+
+export interface InstitutionTeam {
+  comp: string;
+  season: string;
+  standing: string | null;
+  played: number | null;
+  points: number | null;
+}
+
+export interface InstitutionPerson {
+  who: Named;
+  age: number;
+  now: string | null;
+}
+
+export interface InstitutionTitle {
+  comp: string;
+  season: string;
+  finish: string;
+}
+
+export interface InstitutionView {
+  id: number;
+  name: string;
+  kind: string;
+  nation: Named;
+  city: string | null;
+  region: string | null;
+  state: string | null;
+  founded: number | null;
+  standing: string;
+  football: string | null;
+  facilities: string | null;
+  scholarships: number | null;
+  origin: string;
+  teams: InstitutionTeam[];
+  players: InstitutionPerson[];
+  alumni: InstitutionPerson[];
+  titles: InstitutionTitle[];
+  yours: string | null;
 }
 
 export interface TrainingWeekRow {
@@ -1659,6 +1735,17 @@ export interface ClubViewTeam {
   team: number;
 }
 
+export interface ClubViewMedia {
+  name: string;
+  kind: string;
+  reach: string;
+  languages: string | null;
+  own: boolean;
+  origin: string;
+  story: number | null;
+  headline: string | null;
+}
+
 export interface ClubViewPlace {
   region: string;
   state: string | null;
@@ -1667,15 +1754,30 @@ export interface ClubViewPlace {
   population: string;
   football: string;
   nearby: Named[];
-  universities: string[];
+  universities: Named[];
   from_home: string | null;
   training: string;
   ground: string | null;
+  media: ClubViewMedia[];
+}
+
+export interface ClubViewCountry {
+  nation: Named;
+  climate: string;
+  altitude: string | null;
+  language: string | null;
+  clock: string | null;
+  from_home: string | null;
+  football: string;
+  living: string;
+  media: ClubViewMedia[];
+  origin: string;
 }
 
 export interface ClubView {
   academy: ClubViewAcademy | null;
   place: ClubViewPlace | null;
+  country: ClubViewCountry | null;
   also_known: ClubViewAlsoKnown[];
   board: ClubViewBoard | null;
   capacity: number;
@@ -3037,6 +3139,7 @@ export interface ApiMethods {
   "me.agent": { kind: "query"; req: Record<string, unknown>; res: AgentView };
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: JournalView };
   "me.chronicle": { kind: "query"; req: Record<string, unknown>; res: ChronicleView };
+  "institution": { kind: "query"; req: IdReq; res: InstitutionView };
   "me.chats": { kind: "query"; req: Record<string, unknown>; res: ChatsView };
   "me.money": { kind: "query"; req: Record<string, unknown>; res: MoneyView };
   "me.training": { kind: "query"; req: Record<string, unknown>; res: TrainingLogView };
@@ -3130,6 +3233,7 @@ export type TypedMethod =
   | "me.agent"
   | "me.journal"
   | "me.chronicle"
+  | "institution"
   | "me.chats"
   | "me.money"
   | "me.training"

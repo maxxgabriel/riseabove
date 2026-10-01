@@ -267,6 +267,7 @@ impl Api {
             "me.agent" => self.with(pages::life::agent),
             "me.journal" => self.with(pages::life::journal),
             "me.chronicle" => self.with(pages::chronicle::chronicle),
+            "institution" => self.with(|c| pages::institution::get(c, &args)),
             "me.chats" => self.with(pages::chat::rooms),
             "me.money" => self.with(pages::money::money),
             "me.training" => self.with(pages::money::training),

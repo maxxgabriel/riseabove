@@ -1,6 +1,7 @@
 import { Component, useEffect, type ReactNode } from "react";
 import { Shell } from "./components/Shell";
 import { Club } from "./pages/Club";
+import { Institution } from "./pages/Institution";
 import { Comp, Nation } from "./pages/Comp";
 import { Clubs, Comps, Events, Fixtures, History, Nations, Staff, Transfers } from "./pages/Directories";
 import { Match } from "./pages/Match";
@@ -119,6 +120,8 @@ function Page() {
       return <Match />;
     case "club":
       return <Club />;
+    case "institution":
+      return <Institution />;
     case "comp":
       return <Comp />;
     case "nation":

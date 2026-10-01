@@ -10,12 +10,14 @@ use pw_world::recog::Learned;
 use serde_json::Value;
 
 use super::pathway::org_words;
-use crate::contract::{ChronicleEntry, ChronicleReach, ChronicleTie, ChronicleView};
+use crate::contract::{ChronicleBecame, ChronicleDoc, ChronicleEntry, ChronicleReach, ChronicleTie, ChronicleView};
 use crate::ctx::Ctx;
 use crate::model::{ApiError, ApiResult, Named, Part, Ref};
 
 /// Shortest shared spell (days) for a teammate to be listed among the people from your past.
 const LISTED_DAYS: i32 = 120;
+/// How long ago paths must have first crossed for someone to be in "What became of them".
+const DIGEST_DAYS: i32 = 365;
 
 struct S<'a> {
     c: &'a Ctx<'a>,
@@ -62,9 +64,12 @@ impl<'a> S<'a> {
         }
         self
     }
-    fn inst(self, i: u32) -> Self {
-        let name = inst_name(self.c, i);
-        self.t(name)
+    fn inst(mut self, i: u32) -> Self {
+        match self.c.w.minor.institutions.get(i as usize) {
+            Some(x) => self.v.push(Part::l(Ref::inst(i), x.name.clone())),
+            None => self.v.push(Part::t(inst_name(self.c, i))),
+        }
+        self
     }
     fn region(self, r: RegionId) -> Self {
         let name = region_name(self.c, r);
@@ -499,8 +504,222 @@ fn line_uid(l: Line) -> Option<u64> {
     }
 }
 
+fn blank_doc(kind: &str) -> ChronicleDoc {
+    ChronicleDoc {
+        kind: kind.into(),
+        club: None,
+        nation: None,
+        comp: None,
+        comp_name: None,
+        wage: None,
+        until: None,
+        years: None,
+        squad: None,
+        from: None,
+        to: None,
+        season: None,
+        honour: None,
+        headline: None,
+        outlet: None,
+    }
+}
+
+/// A keepsake as a document: a contract's terms, a call-up's squad and dates, a medal's competition and season, a clipping's headline
+/// and outlet. Everything comes from the line (and the event it was written from); nothing is filled in that the line did not keep.
+fn doc_of(c: &Ctx, life: &pw_world::chronicle::Life, e: &pw_world::chronicle::Entry) -> Option<ChronicleDoc> {
+    let w = c.w;
+    let club = |k: ClubId| (k.is_some() && w.clubs.get(k).is_some()).then(|| Named::new(Ref::club(k), c.club_name(k)));
+    let comp = |k: CompId| (k.is_some() && w.comps.get(k).is_some()).then(|| Named::new(Ref::comp(k), c.comp_name(k)));
+    let nation = |n: NationId| (n.is_some() && w.nations.get(n).is_some()).then(|| Named::new(Ref::nation(n), c.nation_name(n)));
+    Some(match e.line {
+        Line::Contract { club: k, until, .. } => {
+            let mut d = blank_doc("contract");
+            d.club = club(k);
+            d.until = Some(until.0);
+            d.wage = life.entries.iter().find_map(|x| match x.line {
+                Line::Terms { club: kk, until: u, wage } if kk == k && u == until && wage > 0 => Some(wage),
+                _ => None,
+            });
+            let days = e.date.days_until(until);
+            d.years = (days > 30).then(|| ((days as f32 / 365.25) * 2.0).round().max(1.0) / 2.0);
+            d
+        }
+        Line::NationalSquad { nation: n } => {
+            let mut d = blank_doc("call_up");
+            d.nation = nation(n);
+            let level = w.events.get(e.event).and_then(|ev| match ev.kind {
+                pw_world::event::EventKind::NationalSquad { level, .. } => Some(level),
+                _ => None,
+            });
+            d.squad = Some(match level {
+                Some(l) => format!("{} {} squad", c.nation_name(n), l.label()),
+                None => format!("{} squad", c.nation_name(n)),
+            });
+            // The international window the call-up was for: the first one that has not ended by the day it was announced.
+            let y = e.date.year();
+            let window = pw_sim::schedule::windows_label(w, y)
+                .into_iter()
+                .chain(pw_sim::schedule::windows_label(w, y + 1))
+                .filter(|(s, t)| t.0 >= e.date.0 && s.0 - e.date.0 <= 60)
+                .min_by_key(|(s, _)| s.0);
+            if let Some((s, t)) = window {
+                d.from = Some(s.0);
+                d.to = Some(t.0);
+            }
+            d
+        }
+        Line::StateSide { state } => {
+            let mut d = blank_doc("call_up");
+            d.squad = Some(format!("{} state team", region_name(c, state)));
+            d
+        }
+        Line::Step { why: Why::StateSelection { state }, .. } => {
+            let mut d = blank_doc("call_up");
+            d.squad = Some(format!("{} state squad", region_name(c, state)));
+            d
+        }
+        Line::Step { why: Why::CampCall, .. } => {
+            let mut d = blank_doc("call_up");
+            d.squad = Some("National identification camp".into());
+            d
+        }
+        Line::Title { comp: k, club: cl, season } => {
+            let mut d = blank_doc("medal");
+            d.comp = comp(k);
+            d.club = club(cl);
+            d.season = Some(c.season_label(k, season));
+            d.honour = Some("Champions".into());
+            d
+        }
+        Line::Honour { award, comp: k, season } => {
+            let mut d = blank_doc("medal");
+            d.comp = comp(k);
+            d.season = Some(if k.is_some() && w.comps.get(k).is_some() { c.season_label(k, season) } else { season.to_string() });
+            d.honour = Some(award_words(award));
+            d
+        }
+        Line::MinorSeason { history, won, top_scorer, best, .. } => {
+            let h = w.minor.history.get(history as usize)?;
+            let mut d = blank_doc("medal");
+            d.comp_name = Some(pw_narrate::history::comp_name(w, h.kind, h.nation, &h.region));
+            d.season = Some(format!("{}/{:02}", h.season, (h.season + 1) % 100));
+            let mut what = Vec::new();
+            if won {
+                what.push("Champions");
+            }
+            if top_scorer {
+                what.push("Top scorer");
+            }
+            if best {
+                what.push("Best player");
+            }
+            d.honour = (!what.is_empty()).then(|| what.join(", "));
+            d
+        }
+        Line::Press { story, .. } => {
+            let st = w.media.stories.get(story)?;
+            let mut d = blank_doc("clipping");
+            d.headline = Some(c.headline(st));
+            d.outlet = Some(pw_narrate::press::outlet_name(w, st));
+            d
+        }
+        _ => return None,
+    })
+}
+
+/// "the top division of India", "the third tier of Spain".
+fn level_words(c: &Ctx, comp: CompId) -> Option<String> {
+    let k = c.w.comps.get(comp)?;
+    let of = if k.nation.is_some() { format!(" of {}", c.nation_name(k.nation)) } else { String::new() };
+    Some(match k.tier {
+        0 | 1 => format!("the top division{of}"),
+        2 => format!("the second tier{of}"),
+        3 => format!("the third tier{of}"),
+        n => format!("tier {n}{of}"),
+    })
+}
+
+/// What became of someone from your past, from public record: their role and club now, the level they play or work at, senior caps,
+/// and the manager's jobs the story has told of. The key orders the digest: how far they rose (the club's standing, a manager above a
+/// player, an international above both), never a hidden number.
+fn became(c: &Ctx, life: &pw_world::chronicle::Life, t: &Tie) -> (i64, ChronicleBecame) {
+    let w = c.w;
+    let who = t.person;
+    let p = &w.people[who];
+    let named_club = |k: ClubId| Named::new(Ref::club(k), c.club_name(k));
+    let mut managed: Vec<ClubId> = life
+        .entries
+        .iter()
+        .filter_map(|e| match e.line {
+            Line::Meanwhile { who: q, then: Then::BecameManager { club }, .. } if q == who => Some(club),
+            _ => None,
+        })
+        .collect();
+    let (mut role, mut club, mut retired, mut key) = ("Not known".to_string(), ClubId::NONE, false, 0i64);
+    let staff = (p.staff.is_some()).then(|| &w.staff[p.staff]).filter(|s| s.employed());
+    let player = p.player.is_some().then_some(p.player);
+    if let Some(s) = staff {
+        club = s.club;
+        role = s.role.label().to_string();
+        let manager = s.role == pw_world::StaffRole::Manager;
+        if manager && !managed.contains(&s.club) {
+            managed.push(s.club);
+        }
+        key = i64::from(w.clubs[s.club].reputation) + if manager { 2_500 } else { 500 };
+    } else if let Some(pl) = player {
+        let h = &w.players.hot[pl];
+        if h.status == pw_world::PlayerStatus::Retired {
+            retired = true;
+            role = if p.age(w.date) < 30 { "Gave up playing".into() } else { "Retired".into() };
+        } else if h.club.is_some() {
+            club = h.club;
+            role = "Player".into();
+            key = i64::from(w.clubs[h.club].reputation);
+        } else {
+            role = "Without a club".into();
+        }
+    }
+    let caps = player.and_then(|pl| w.intl.caps.get(&pl)).and_then(|v| v.iter().filter(|x| x.level == pw_world::intl::Level::Senior && x.caps > 0).max_by_key(|x| x.caps)).copied();
+    if let Some(cap) = caps {
+        key += 3_000 + i64::from(cap.caps.min(100)) * 40;
+    }
+    key += i64::from(managed.len() as u32) * 300;
+    let league = club.get().and_then(|k| w.league_of(w.clubs[k].first_team()));
+    let level = league.and_then(|l| level_words(c, l));
+    let top = league.is_some_and(|l| w.comps[l].tier <= 1);
+    let summary = match () {
+        _ if caps.is_some() && retired => "Retired an international",
+        _ if caps.is_some() => "An international",
+        _ if role == "Manager" => "A manager now",
+        _ if staff.is_some() => "Working in the game",
+        _ if top => "Made it to the top division",
+        _ if club.is_some() && league.is_some_and(|l| w.comps[l].tier == 2) => "A professional, a step below the top",
+        _ if club.is_some() => "Playing lower down",
+        _ if retired => "Out of the game",
+        _ if role == "Without a club" => "Without a club",
+        _ => "Not known",
+    };
+    (
+        key,
+        ChronicleBecame {
+            who: Named::new(Ref::person(who), c.person_name(who)),
+            how: tie_parts(c, t, false),
+            from: t.from.0,
+            role,
+            club: club.get().map(named_club),
+            league: league.map(|l| Named::new(Ref::comp(l), c.comp_name(l))),
+            level,
+            caps: caps.map(|x| u32::from(x.caps)),
+            caps_for: caps.map(|x| Named::new(Ref::nation(x.nation), c.nation_name(x.nation))),
+            retired,
+            managed: managed.len() as u32,
+            summary: summary.into(),
+        },
+    )
+}
+
 /// Where someone is now, in a few words.
-fn now_words(c: &Ctx, who: PersonId) -> Option<String> {
+pub(crate) fn now_words(c: &Ctx, who: PersonId) -> Option<String> {
     let w = c.w;
     let p = w.people.get(who)?;
     if p.staff.is_some() {
@@ -546,6 +765,7 @@ pub fn chronicle(c: &Ctx) -> ApiResult<Value> {
             },
             learned: e.learned.map(|d| d.0),
             keepsake: keep.map(Into::into),
+            doc: keep.and_then(|_| doc_of(c, life, e)),
         });
     }
     entries.sort_by_key(|e| e.date);
@@ -553,6 +773,7 @@ pub fn chronicle(c: &Ctx) -> ApiResult<Value> {
     // The people from your past: anyone but a brief teammate, the most significant crossing for each person, latest first.
     let mut seen: std::collections::HashSet<PersonId> = std::collections::HashSet::new();
     let mut people: Vec<(i32, ChronicleTie)> = Vec::new();
+    let mut digest: Vec<(i64, ChronicleBecame)> = Vec::new();
     for (i, t) in life.ties.iter().enumerate() {
         if t.person == me || seen.contains(&t.person) || w.people.get(t.person).is_none() {
             continue;
@@ -566,9 +787,16 @@ pub fn chronicle(c: &Ctx) -> ApiResult<Value> {
         }
         seen.insert(t.person);
         let now = current(c, me, t);
+        // What became of them, for those whose paths crossed yours more than a year ago and have since parted.
+        let first = life.ties.iter().filter(|x| x.person == t.person).map(|x| x.from.0).min().unwrap_or(t.from.0);
+        if !now && w.date.0 - first >= DIGEST_DAYS {
+            digest.push(became(c, life, t));
+        }
         people.push((t.to.0, ChronicleTie { who: Named::new(Ref::person(t.person), c.person_name(t.person)), how: tie_parts(c, t, now), from: t.from.0, to: t.to.0, now: now_words(c, t.person) }));
     }
     people.sort_by_key(|(to, _)| std::cmp::Reverse(*to));
+    // Furthest risen first; among equals, the longest known.
+    digest.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.from.cmp(&b.1.from)).then(a.1.who.id.cmp(&b.1.who.id)));
 
     // How far the name has travelled: every kept story about you, by reach.
     let home = w.people[me].nation;
@@ -604,6 +832,7 @@ pub fn chronicle(c: &Ctx) -> ApiResult<Value> {
         people: people.into_iter().map(|(_, t)| t).collect(),
         reach,
         born: w.people[me].dob.0,
+        became: digest.into_iter().map(|(_, b)| b).collect(),
     };
     serde_json::to_value(view).map_err(|e| ApiError::Internal(e.to_string()))
 }

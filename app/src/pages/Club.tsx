@@ -6,10 +6,11 @@ import { toggleBookmark, useIsBookmarked } from "../bookmarks";
 import { cap, fmtInt, ordinal, plural } from "../format";
 import { href, navigate, useRoute } from "../router";
 import { act, notify, useApi, useStatus } from "../store";
-import type { ClubView } from "../contract.generated";
+import type { ClubView, ClubViewMedia } from "../contract.generated";
 import { Badge, Button, ErrorState, IconButton, KeyVal, Meter, Metric, Section, SideCard, Skeleton, StatStrip } from "../ui/ui";
 import { Insights } from "../components/Insights";
 import { Async, usePageTitle } from "./common";
+import { storyPath } from "../components/Newsroom";
 import { tintOf } from "../color";
 import { Crest } from "../components/Crest";
 import { DEFAULT_TINT, Stage, StageHeader, StageTabs, type MetaBit } from "../components/Stage";
@@ -185,6 +186,7 @@ function Overview({ c }: { c: ClubResp }) {
             />
         </SideCard>
         <Place c={c} />
+        <Country c={c} />
         <Identity c={c} />
         <Section title="Squads">
           <div className="card">
@@ -403,9 +405,69 @@ function Place({ c }: { c: ClubResp }) {
           ...(p.ground ? [{ k: "Ground", v: p.ground }] : []),
           { k: "Training", v: p.training },
           ...(p.nearby.length ? [{ k: "Neighbours", v: <>{p.nearby.map((n, i) => <span key={n.id}>{i > 0 && ", "}<EntityLink r={n}>{n.name}</EntityLink></span>)}</> }] : []),
-          ...(p.universities.length ? [{ k: "Universities", v: p.universities.join(", ") }] : []),
+          ...(p.universities.length ? [{ k: "Universities", v: <>{p.universities.map((u, i) => <span key={u.id}>{i > 0 && ", "}<EntityLink r={u}>{u.name}</EntityLink></span>)}</> }] : []),
         ]}
       />
+      {p.media.length > 0 && (
+        <>
+          <div className="subhead">Local media</div>
+          <MediaList media={p.media} />
+        </>
+      )}
+    </Section>
+  );
+}
+
+/** Papers and channels, each with its latest piece about the club to open. */
+function MediaList({ media }: { media: ClubViewMedia[] }) {
+  return (
+    <ul className="rows compact media-list">
+      {media.map((m, i) => (
+        <li key={i}>
+          <div className="grow">
+            <div>
+              {m.name} <span className="faint">· {m.kind}{m.own ? " · follows the club" : ""}</span>
+            </div>
+            <div className="hint">
+              {m.reach}
+              {m.languages ? ` · ${m.languages}` : ""}
+            </div>
+            {m.story != null && m.headline && (
+              <a className="hint block" href={href(storyPath(m.story))}>
+                Latest: {"\u201c"}{m.headline}{"\u201d"}
+              </a>
+            )}
+          </div>
+          <Badge tone={m.origin === "Imported" ? "pos" : "muted"}>{m.origin}</Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The country a club abroad is in, as a place to live: its climate, its language, the clock and the distance from home. */
+function Country({ c }: { c: ClubResp }) {
+  const k = c.country;
+  if (!k) return null;
+  return (
+    <Section title={<>Life in <EntityLink r={k.nation}>{k.nation.name}</EntityLink></>} aside={<Badge tone={k.origin === "Imported" ? "pos" : "muted"} title="Whether the country's climate and customs are reference data or inferred from its region">{k.origin}</Badge>}>
+      <KeyVal
+        rows={[
+          ...(k.from_home ? [{ k: "From home", v: k.from_home }] : []),
+          ...(k.clock ? [{ k: "The clock", v: k.clock }] : []),
+          { k: "Climate", v: k.climate },
+          ...(k.altitude ? [{ k: "Altitude", v: k.altitude }] : []),
+          ...(k.language ? [{ k: "Language", v: k.language }] : []),
+          { k: "Football", v: k.football },
+          { k: "Living", v: k.living },
+        ]}
+      />
+      {k.media.length > 0 && (
+        <>
+          <div className="subhead">The papers there</div>
+          <MediaList media={k.media} />
+        </>
+      )}
     </Section>
   );
 }
