@@ -19,7 +19,8 @@ let r = eng.render(&Request::new(&ev, &sp, "news", today, seed), &mut tracker); 
 
 ## Data (`data/lang/en/`)
 
-`events.toml` (facts, `hidden` ones), `channels.toml` (slots, style, limits, forbidden marks), `articles.toml` (slot:topic order per event), `certainty.toml` (wrappers per certainty and the `[[source]]` table), `lexicon/*.toml` (concepts, variants, register, `when`/`requires`/`not_certainty`), `collocations.toml`, `frames/*.toml` (`clause` frames are wrapped by certainty; `full` frames carry their own), `options.toml`, `voices.toml` (13 voice dimensions, outlet profiles), `corpus/*.toml` (test states). Add words and frames by editing TOML only.
+`events.toml` (facts, `hidden` ones), `channels.toml` (slots, style, limits, forbidden marks), `articles.toml` (slot:topic order per event), `certainty.toml` (wrappers per certainty and the `[[source]]` table), `lexicon/*.toml` (concepts, variants, register, `when`/`requires`/`not_certainty`), `collocations.toml`, `frames/*.toml` (`clause` frames are wrapped by certainty; `full` frames carry their own), `options.toml`, `voices.toml` (13 voice dimensions, outlet profiles), `corpus/*.toml` (test states). Add words and frames by editing TOML only. A frame's optional `weight` is added to its fit: a frame that can say something the others cannot
+(a derby's name) is preferred whenever its facts are there; the repetition penalty still rotates the wording.
 
 Template syntax is documented at the top of `crates/pw-lang/src/template.rs`.
 
@@ -42,7 +43,7 @@ ever half written.
 | injury story | `injury.suffered` (player and club only) | press |
 | manager sacked / appointed | `manager.departed` / `manager.appointed` | press |
 | promotion / relegation, renewal | `competition.*`, `contract.renewed` | press |
-| match report | `match.result` (with the standout player when the story has one) | press |
+| match report | `match.result` (with the standout player when the story has one, and `occasion` when the reference names the meeting a derby) | press |
 | interview | `interview.quote` (stance only) | press |
 | milestone, record | `milestone.reached`, `record.broken`, `transfer.record` | press |
 | unhappy, praise, award stories | `player.unhappy`, `player.praise`, `award.won` | press |

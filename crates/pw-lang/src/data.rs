@@ -159,6 +159,9 @@ pub struct Frame {
     pub register: String,
     #[serde(default)]
     pub voice: BTreeMap<String, f32>,
+    /// Added to the frame's fit: a frame that says something the others cannot (a derby's name) is preferred when it can be used.
+    #[serde(default)]
+    pub weight: f32,
     pub text: String,
 }
 

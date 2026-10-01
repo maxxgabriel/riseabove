@@ -10,6 +10,7 @@ topic = "report"
 needs = ["occasion", "winner", "loser", "winner_goals", "loser_goals"]
 when = "result_kind == 'win'"
 time = "past"
+weight = 0.2
 text = "{occasion}: {winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}"
 
 [[frame]]
@@ -21,6 +22,7 @@ topic = "report"
 needs = ["occasion", "home", "away", "home_goals", "away_goals", "result_kind"]
 when = "result_kind == 'draw'"
 time = "past"
+weight = 0.2
 text = "{occasion} ends level: {home} {home_goals}-{away_goals} {away}"
 
 [[frame]]
@@ -32,6 +34,7 @@ topic = "report"
 needs = ["occasion", "winner", "loser", "winner_goals", "loser_goals"]
 when = "result_kind == 'win'"
 time = "past"
+weight = 0.2
 text = "{winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals} in {occasion} {date}"
 
 [[frame]]
@@ -42,4 +45,5 @@ slot = "headline"
 topic = "report"
 needs = ["occasion", "home", "away"]
 time = "past"
+weight = 0.2
 text = "The morning after {occasion}"

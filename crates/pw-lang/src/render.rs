@@ -340,7 +340,7 @@ impl Engine {
             if f.form == "full" && self.needs_source(&self.lang.frame_nodes[fi]) && source.is_none() {
                 continue;
             }
-            let score = fit(&req.speaker.voice, &f.register, &f.voice) - tr.penalty_frame(&f.id) + if f.topic == topic { 0.02 } else { 0.0 };
+            let score = fit(&req.speaker.voice, &f.register, &f.voice) - tr.penalty_frame(&f.id) + f.weight + if f.topic == topic { 0.02 } else { 0.0 };
             cands.push((fi, cert, source, score));
         }
         if cands.is_empty() {
