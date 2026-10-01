@@ -249,6 +249,18 @@ pub fn intake_pa(youth_facilities: f32, nation_youth_rating: f32, club_rep: f32,
     pa.clamp(35.0, 200.0)
 }
 
+/// A fifteen-year-old an academy takes from its region's children, whose potential centres on `pool` (`ecosystem::pool_talent`): the
+/// academy sees more of them the better its youth set-up and the bigger its name, and keeps the better ones, so its intake sits
+/// somewhat above the region's children and spreads less.
+pub fn academy_pick(pool: f32, youth_facilities: f32, club_rep: f32, rng: &mut Rng) -> f32 {
+    let mean_pa = pool + 0.6 * youth_facilities + club_rep / 1000.0;
+    let mut pa = rng.normal_ms(mean_pa, 17.0);
+    if rng.chance(0.004) {
+        pa += rng.range_f32(25.0, 60.0);
+    }
+    pa.clamp(30.0, 190.0)
+}
+
 /// Season's end: every AI-minded player weighs whether to carry on
 /// (`mind::retirement_choice`). An external mind retires when its human
 /// decides to, through the same `Retire` intent — the choice is the only

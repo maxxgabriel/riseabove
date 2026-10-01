@@ -163,7 +163,12 @@ pub fn weekly(w: &mut World) {
         let match_f = (minutes / 360.0).min(1.2) * level_fit * (0.8 + 0.04 * (rating - 6.0));
         let wellness = 0.8 + 0.2 * f32::from(h.wellbeing) / 100.0;
         let prof = 0.7 + 0.03 * person.hidden.f(Hidden::Professionalism) + 0.015 * c.attrs.get(Attr::Determination);
-        let room = (f32::from(c.pa) - f32::from(c.ca)).max(0.0) / 200.0;
+        // Room to grow is what is left of potential; for the young, growth also slows to nothing as they near what their age allows
+        // (`maturity_ceiling`). The brake works only near the ceiling: a teenager well below it grows as before.
+        let pa = f32::from(c.pa);
+        let ceiling = pa * crate::generate::maturity_ceiling(age);
+        let brake = ((ceiling - f32::from(c.ca)) / (0.1 * pa).max(1.0)).clamp(0.0, 1.0);
+        let room = (pa - f32::from(c.ca)).max(0.0) / 200.0 * brake;
         let injured = if h.injury != 0 { 0.35 } else { 1.0 };
         let keeper = c.best_pos == Pos::GK;
         let row = weights.row(c.best_pos);

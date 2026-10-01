@@ -176,12 +176,19 @@ pub fn academy_intake(w: &mut World, n: NationId) {
         let Some(team) = team else { continue };
         let rep = f32::from(c.reputation);
         let youth_fac = f32::from(c.facilities.youth);
+        // A club in a world of regions recruits from the children of its region (`ecosystem::pool_talent`), picking the better of
+        // them, and from nowhere else: minors do not cross borders to join an academy. Elsewhere the national formula stands.
+        let region = w.ext.ecosystem.region_of_club(club);
+        let pool = region.is_some().then(|| crate::ecosystem::pool_talent(&w.ext.ecosystem.regions[region]));
         for _ in 0..count {
-            let foreign = rng.chance(0.08);
+            let foreign = pool.is_none() && rng.chance(0.08);
             let nation = if foreign { NationId(rng.below(w.nations.len() as u32)) } else { n };
             let age_days = rng.range_i32(15 * 365 + 30, 16 * 365 + 200);
             let dob = today.add_days(-age_days);
-            let pa = crate::people::intake_pa(youth_fac, youth_rating, rep, &mut rng);
+            let pa = match pool {
+                Some(centre) => crate::people::academy_pick(centre, youth_fac, rep, &mut rng),
+                None => crate::people::intake_pa(youth_fac, youth_rating, rep, &mut rng),
+            };
             let age = age_days as f32 / 365.25;
             let ca = (pa * gen_::ca_share_at(age) * rng.normal_ms(1.0, 0.08)).clamp(15.0, pa);
             let contract = Contract { club, kind: ContractKind::Youth, wage: (80.0 + rep / 40.0) as i64, start: today, end: dob.add_months(12 * 18 + 12), ..Default::default() };

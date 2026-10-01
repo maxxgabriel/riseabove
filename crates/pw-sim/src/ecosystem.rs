@@ -358,9 +358,15 @@ fn pools(w: &mut World, year: i32, first: bool) {
     }
 }
 
+/// The mean potential of the children a region's football produces: the centre of `draw_talent`, and the level an academy in the
+/// region recruits around.
+pub fn pool_talent(reg: &pw_world::ecosystem::Region) -> f32 {
+    68.0 + 0.06 * reg.culture + 0.05 * reg.coach_density
+}
+
 /// Potential and current ability for someone drawn from a region's pool: the same draw for everyone, human or not.
 fn draw_talent(reg: &pw_world::ecosystem::Region, years: f32, rng: &mut Rng) -> (f32, f32) {
-    let mut pa = rng.normal_ms(68.0 + 0.06 * reg.culture + 0.05 * reg.coach_density, 20.0);
+    let mut pa = rng.normal_ms(pool_talent(reg), 20.0);
     if rng.chance(0.004) {
         pa += rng.range_f32(25.0, 60.0);
     }
