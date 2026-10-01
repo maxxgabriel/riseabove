@@ -54,7 +54,7 @@ function NewsDetail({ id, stories }: { id: number; stories: NewsStory[] }) {
       <article>
         <a className="hint" href={href("/news")}>← All news</a>
         <StoryGraphic story={s} />
-        <div className="editorial-meta"><span>{s.outlet}</span><Dt d={s.date} /><Badge tone={s.claim === "rumour" || s.claim === "speculation" ? "warn" : "info"}>{s.claim}</Badge></div>
+        <div className="editorial-meta"><span>{s.outlet}</span>{s.translated_from && <span className="hint">translated from {s.translated_from}</span>}<Dt d={s.date} /><Badge tone={s.claim === "rumour" || s.claim === "speculation" ? "warn" : "info"}>{s.claim}</Badge></div>
         <h1>{s.headline}</h1>
         <p>{s.body}</p>
         {s.subject && <p className="hint">About <EntityLink r={s.subject}>{s.subject.name}</EntityLink></p>}

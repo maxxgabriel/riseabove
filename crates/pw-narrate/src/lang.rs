@@ -278,6 +278,9 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     if star.is_some() {
                         ev = ev.ent("star", player_ref(w, *star, s.date));
                     }
+                    if let Some(o) = occasion(w, *home, *away) {
+                        ev = ev.text("occasion", &o);
+                    }
                     ev
                 },
             ),
@@ -422,6 +425,9 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                 if star.is_some() {
                     ev = ev.ent("star", player_ref(w, *star, s.date));
                 }
+                if let Some(o) = occasion(w, *home, *away) {
+                    ev = ev.text("occasion", &o);
+                }
                 Some(ev)
             }
             _ => None,
@@ -455,6 +461,16 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
         StoryKind::TransferNews | StoryKind::ManagerChange | StoryKind::Injury | StoryKind::Season | StoryKind::Contract => None,
         _ => None,
     }
+}
+
+/// The name the reference data gives a meeting of these two clubs (a derby), with its article: "the Kolkata Derby".
+fn occasion(w: &World, home: ClubId, away: ClubId) -> Option<String> {
+    let d = w.ext.scenario.known_derbies.iter().find(|d| (d.a == home && d.b == away) || (d.a == away && d.b == home))?;
+    let name = d.name.trim();
+    if name.is_empty() {
+        return None;
+    }
+    Some(if name.to_lowercase().starts_with("the ") { name.to_string() } else { format!("the {name}") })
 }
 
 /// The engine's name for an incident a story may report (`incident.reported`'s `kind`). Private matters and nation-wide ones keep the

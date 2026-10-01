@@ -561,3 +561,23 @@ fn page_payloads_match_their_declarations_in_a_synthetic_world() {
         assert!(checked.get(m).copied().unwrap_or(0) > 0, "{m} was never checked: {checked:?}");
     }
 }
+
+/// A story from a paper that does not publish in English says it is a translation, and from what.
+#[test]
+fn a_story_from_a_paper_in_another_language_says_it_is_translated() {
+    let api = api();
+    api.call("world.new", json!({"kind": "india", "scale": "tiny", "seed": 5})).unwrap();
+    wait(&api, "task");
+    api.call("advance.start", json!({"mode": "days", "n": 90})).unwrap();
+    wait(&api, "job");
+    let ts = contract::typescript();
+    let feed = api.call("news.feed", json!({"filter": "world", "limit": 200})).unwrap();
+    let stories = feed["stories"].as_array().unwrap();
+    let translated: Vec<&Value> = stories.iter().filter(|s| s["translated_from"].is_string()).collect();
+    assert!(!translated.is_empty(), "no translated story among {}", stories.len());
+    assert!(translated.iter().all(|s| s["translated_from"].as_str().is_some_and(|l| !l.is_empty() && l != "English")));
+    assert!(stories.iter().any(|s| s["translated_from"].is_null()), "English-language papers are not marked");
+    let full = api.call("news.story", json!({"id": translated[0]["id"]})).unwrap();
+    assert_eq!(full["translated_from"], translated[0]["translated_from"]);
+    check_against(&ts, "StoryFull", &full);
+}

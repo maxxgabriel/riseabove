@@ -1,0 +1,45 @@
+# A named occasion: the reference data's name for a derby between the two clubs ("the Kolkata Derby"). Names only; how much it means
+# comes from what happens in this world.
+
+[[frame]]
+id = "match.result.news.headline.report.occasion.1"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["occasion", "winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{occasion}: {winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals}"
+
+[[frame]]
+id = "match.result.news.headline.report.occasion.2"
+event = "match.result"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["occasion", "home", "away", "home_goals", "away_goals", "result_kind"]
+when = "result_kind == 'draw'"
+time = "past"
+text = "{occasion} ends level: {home} {home_goals}-{away_goals} {away}"
+
+[[frame]]
+id = "match.result.news.lede.report.occasion.1"
+event = "match.result"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ["occasion", "winner", "loser", "winner_goals", "loser_goals"]
+when = "result_kind == 'win'"
+time = "past"
+text = "{winner} {lex:beat.past} {loser} {winner_goals}-{loser_goals} in {occasion} {date}"
+
+[[frame]]
+id = "match.analysis.news.headline.report.occasion.1"
+event = "match.analysis"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ["occasion", "home", "away"]
+time = "past"
+text = "The morning after {occasion}"

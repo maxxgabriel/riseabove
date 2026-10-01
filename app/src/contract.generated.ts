@@ -764,6 +764,7 @@ export interface StorySummary {
   following: boolean;
   graphic: StoryGraphic;
   subject: Named | null;
+  translated_from: string | null;
 }
 
 export interface StoryFull {
@@ -777,6 +778,7 @@ export interface StoryFull {
   following: boolean;
   graphic: StoryGraphic;
   subject: Named | null;
+  translated_from: string | null;
   body: string;
 }
 

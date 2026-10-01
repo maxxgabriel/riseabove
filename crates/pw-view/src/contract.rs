@@ -1139,6 +1139,8 @@ contract! {
         pub following: bool,
         pub graphic: StoryGraphic,
         pub subject: Option<Named>,
+        /// The language the paper publishes in, when it does not publish in English: what is shown is a translation.
+        pub translated_from: Option<String>,
     }
 
     /// A story in full: the summary and its text.
@@ -1153,6 +1155,7 @@ contract! {
         pub following: bool,
         pub graphic: StoryGraphic,
         pub subject: Option<Named>,
+        pub translated_from: Option<String>,
         pub body: String,
     }
 

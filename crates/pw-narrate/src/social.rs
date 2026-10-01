@@ -162,11 +162,43 @@ pub fn post(w: &World, p: &Post) -> String {
     let s = s.trim().to_string();
     let positive = matches!(p.concept, Concept::Praise | Concept::Celebrate | Concept::ConcedeWrong | Concept::Defend | Concept::ReluctantPraise);
     let s = if matches!(p.concept, Concept::Celebrate | Concept::Mock) && v.register == Register::Terrace { loud(&Voice { register: Register::Tabloid, ..v }, &s) } else { s };
+    // A local supporter celebrates in the club's own language as often as not: the word for a win after a result, for a goal after a
+    // late winner or a hat-trick, as the reference data writes it.
+    let s = match (p.concept, a.kind, p.frame) {
+        (Concept::Celebrate, AccountKind::Supporter | AccountKind::Hardcore | AccountKind::Ultra | AccountKind::Local, f) if key.rotate_left(29) % 2 == 0 => {
+            let concept = match f {
+                pw_world::socialnet::Frame::Result { .. } => Some("match.win"),
+                pw_world::socialnet::Frame::LateWinner { .. } | pw_world::socialnet::Frame::HatTrick { .. } => Some("match.goal"),
+                _ => None,
+            };
+            match concept.and_then(|c| local_word(w, a.club, c)) {
+                Some(word) => format!("{word}! {s}"),
+                None => s,
+            }
+        }
+        _ => s,
+    };
     // A post whose subject has been forgotten says nothing, and an emoji alone would be a post of nothing.
     if s.trim().is_empty() {
         return String::new();
     }
     format!("{s}{}", emoji(&v, positive, key))
+}
+
+/// A football word in the language of the club's state (`match.win`, `match.goal`), in its own script, when the reference data has it.
+pub fn local_word(w: &World, club: pw_core::ClubId, concept: &str) -> Option<String> {
+    let eco = &w.ext.ecosystem;
+    let region = eco.region_of_club(club);
+    if region.is_none() {
+        return None;
+    }
+    let state = eco.state_of(region);
+    let name = eco.languages.get(usize::from(eco.regions[state].language))?;
+    let code = w.ext.lore.language_code(name)?;
+    if code == "en" {
+        return None;
+    }
+    w.ext.lore.terms(concept, code).map(|t| t.text.clone()).find(|t| !t.trim().is_empty())
 }
 
 /// "You wanted them gone two weeks ago" — only when that post exists.

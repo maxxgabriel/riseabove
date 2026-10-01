@@ -42,7 +42,7 @@ export function StoryCard({ story, featured = false }: { story: NewsStory; featu
     <article className={`editorial-card ${featured ? "featured" : ""}`}>
       <StoryGraphic story={story} compact={!featured} />
       <div className="editorial-copy">
-        <div className="editorial-meta"><span>{story.outlet}</span><span>·</span><Dt d={story.date} year={false} /><Badge tone={story.claim === "rumour" || story.claim === "speculation" ? "warn" : "info"}>{story.claim}</Badge></div>
+        <div className="editorial-meta"><span>{story.outlet}</span>{story.translated_from && <span className="hint">translated from {story.translated_from}</span>}<span>·</span><Dt d={story.date} year={false} /><Badge tone={story.claim === "rumour" || story.claim === "speculation" ? "warn" : "info"}>{story.claim}</Badge></div>
         <h3><a href={href(storyPath(story.id))}>{story.headline}</a></h3>
         <div className="editorial-foot"><span>{kindText(story.kind)}</span>{story.subject && <EntityLink r={story.subject}>{story.subject.name}</EntityLink>}{story.about_you && <Badge tone="you">About you</Badge>}</div>
       </div>

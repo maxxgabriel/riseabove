@@ -419,3 +419,40 @@ fn money_takes_the_worlds_form_rupees_in_india_and_a_symbol_elsewhere() {
     let pounds = w.media.stories.iter_enumerated().filter_map(|(_, st)| lang::story(w, st)).filter(|t| t.body.contains('£') || t.headline.contains('£')).count();
     assert!(rupees > 0 && pounds == 0, "India: {rupees} stories in rupees, {pounds} in pounds");
 }
+
+#[test]
+fn supporters_celebrate_in_their_own_language_and_reports_name_the_derby() {
+    let s = india_world(58, 500);
+    let w = &s.world;
+    // The word for a win in the language of the club's state, in its own script.
+    let bagan = w.clubs.ids().find(|&c| w.clubs[c].name == "Mohun Bagan Super Giant").expect("Mohun Bagan is in the tiny world");
+    assert_eq!(pw_narrate::social::local_word(w, bagan, "match.win").as_deref(), Some("জয়"));
+    // Some supporters' celebrations open with such a word; nobody else's posts do.
+    let mut local = 0;
+    for p in &w.net.posts {
+        let text = pw_narrate::social::post(w, p);
+        if text.chars().any(|c| ('\u{0980}'..='\u{0D7F}').contains(&c) || ('\u{0900}'..='\u{097F}').contains(&c)) {
+            assert_eq!(p.concept, pw_world::socialnet::Concept::Celebrate, "only a celebration uses the local word: {text}");
+            local += 1;
+        }
+    }
+    assert!(local > 0, "no supporter celebrated in their own language in {} posts", w.net.posts.len());
+    // A report of a derby the reference names says so, at least sometimes; no other report does.
+    let derbies = &w.ext.scenario.known_derbies;
+    let (mut named, mut derby_reports) = (0, 0);
+    for (_, st) in w.media.stories.iter_enumerated() {
+        let Some(pw_world::media::StoryLink::Fixture { home, away, .. }) = w.media.links.get(&st.id) else { continue };
+        let Some(t) = lang::story(w, st) else { continue };
+        let text = format!("{} {}", t.headline, t.body);
+        match derbies.iter().find(|d| (d.a == *home && d.b == *away) || (d.a == *away && d.b == *home)) {
+            Some(d) => {
+                derby_reports += 1;
+                if text.contains(d.name.trim_start_matches("The ").trim_start_matches("the ")) {
+                    named += 1;
+                }
+            }
+            None => assert!(!derbies.iter().any(|d| text.contains(&d.name)), "a derby name on another match: {text}"),
+        }
+    }
+    assert!(derby_reports > 0 && named > 0, "{derby_reports} derby reports, {named} named the derby");
+}

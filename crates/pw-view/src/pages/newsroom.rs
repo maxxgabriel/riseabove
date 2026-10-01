@@ -55,7 +55,19 @@ fn summary(c: &Ctx, s: &Story) -> StorySummary {
         } else {
             None
         },
+        translated_from: translated_from(c, s),
     }
+}
+
+/// The language of a paper that does not publish in English, from the reference record of the real outlet it is.
+fn translated_from(c: &Ctx, s: &Story) -> Option<String> {
+    let lore = &c.w.ext.lore;
+    let o = lore.outlets.get(&s.outlet)?;
+    if o.languages.is_empty() || o.languages.iter().any(|l| l == "en") {
+        return None;
+    }
+    let code = &o.languages[0];
+    Some(lore.languages.iter().find(|l| &l.code == code).map_or_else(|| code.clone(), |l| l.name.clone()))
 }
 
 /// Ranked public stories; no hidden-result story enters the response at all.
@@ -120,6 +132,7 @@ pub fn story(c: &Ctx, args: &Value) -> ApiResult<Value> {
         following: m.following,
         graphic: m.graphic,
         subject: m.subject,
+        translated_from: m.translated_from,
         body: c.story_body(s),
     }))
 }

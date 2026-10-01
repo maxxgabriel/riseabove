@@ -379,6 +379,9 @@ type = "num"
 [[event.fact]]
 key = "star"
 type = "person"
+[[event.fact]]
+key = "occasion"
+type = "text"
 
 [[event]]
 kind = "interview.quote"
@@ -596,3 +599,6 @@ type = "num"
 [[event.fact]]
 key = "star"
 type = "person"
+[[event.fact]]
+key = "occasion"
+type = "text"
