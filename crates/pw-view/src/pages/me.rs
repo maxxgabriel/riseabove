@@ -348,7 +348,19 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
                 json!({"label": crate::fmt::capitalise(ch.label()), "words": words})
             })
             .collect();
-        json!({"club": named(Ref::club(a.club), c.club_name(a.club)), "since": a.since.0, "plan": a.plan.label(), "parts": parts})
+        // Where you live since the move, and how the clock at home stands against yours.
+        let home = {
+            use pw_world::affairs::HomeKind as H;
+            let (kind, q) = pw_sim::chronicle::place_after_move(w, me, a.since);
+            match kind {
+                H::Family => "With a host family the club found".to_string(),
+                H::Digs => "In the club's digs, until you find a place of your own".to_string(),
+                H::Rented => crate::fmt::capitalise(&format!("a {}rented place", super::chronicle::quality_word(q))),
+                H::Owned => format!("Your own {}home", super::chronicle::quality_word(q)),
+            }
+        };
+        let clock = w.lives.get(me).and_then(|l| super::chronicle::clock_words(c, pw_world::chat::family_nation(w, me), l.home));
+        json!({"club": named(Ref::club(a.club), c.club_name(a.club)), "since": a.since.0, "plan": a.plan.label(), "parts": parts, "home": home, "clock": clock})
     });
     let queued: Vec<String> = {
         let mut seen = std::collections::HashSet::new();

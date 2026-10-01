@@ -182,6 +182,40 @@ pub enum Line {
     /// Not picked: went to the open trials for the `region` district side (`stage` District), or the selectors of the `region` state
     /// who knew you named their squad for the championship without you (`stage` StateTeam).
     LeftOut { stage: StageKind, region: RegionId },
+    // ---- appended after layout 9: older chronicles never hold these
+    /// Recognised in public, the first time of each kind (an autograph in the street, at the training ground, a photo at an
+    /// airport). `club` is the club the trip or the move was to (an away match, a new club), `nation` the national side you were
+    /// travelling to join; either is NONE when it does not apply.
+    Spotted { spot: Spot, club: ClubId, nation: NationId },
+    /// Where you lived after a move to another state or country: the kind of place, and its quality (1–5) when you chose it
+    /// yourself (0 when the club found it: digs, or a host family for someone young).
+    NewPlace { club: ClubId, home: crate::affairs::HomeKind, quality: u8 },
+}
+
+/// How a person was recognised in public.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum Spot {
+    /// Asked for an autograph in the street.
+    Street,
+    /// Asked for an autograph by people waiting outside training.
+    Training,
+    /// Photographed at the airport on the way to an away match.
+    AwayTrip,
+    /// Photographed at the airport on the way to join the national squad.
+    SquadTrip,
+    /// Photographed at the airport on the way to a new club.
+    Moving,
+}
+
+impl Spot {
+    pub fn airport(self) -> bool {
+        matches!(self, Spot::AwayTrip | Spot::SquadTrip | Spot::Moving)
+    }
+
+    /// Two moments of the same kind: an autograph in the street, at training, or any photo at an airport.
+    pub fn same_kind(self, other: Spot) -> bool {
+        self == other || (self.airport() && other.airport())
+    }
 }
 
 /// How far from home the people talking about you are.

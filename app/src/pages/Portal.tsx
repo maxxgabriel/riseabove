@@ -52,6 +52,7 @@ export function Portal() {
             {t.settling && t.settling.parts.length > 0 && (
               <Section title="Settling in" aside={<span>since <Dt d={t.settling.since} year={false} /></span>}>
                 <div className="hint">At <EntityLink r={t.settling.club}>{t.settling.club.name}</EntityLink>. The manager's plan: {t.settling.plan}.</div>
+                <div className="hint">{t.settling.home}.{t.settling.clock ? ` ${t.settling.clock}.` : ""}</div>
                 <ul className="portal-waiting">{t.settling.parts.map((p) => <li key={p.label}><span>{p.label}</span><small className={p.words === "a struggle" ? "tone-neg" : p.words === "settled" ? "tone-pos" : "hint"}>{p.words}</small></li>)}</ul>
               </Section>
             )}

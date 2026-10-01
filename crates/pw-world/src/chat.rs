@@ -81,6 +81,39 @@ pub enum Said {
     GoodToHaveYouBack { uid: u64 },
     /// The old squad's chat when one of its former members does something big (a first cap, a manager's job).
     OldTeamNews { who: PersonId, then: crate::chronicle::Then },
+    // ---- appended after layout 9
+    /// Someone who heard you were recognised in public: an autograph asked for, a photo at the airport.
+    Spotted { spot: crate::chronicle::Spot },
+    /// Your partner deciding about a move abroad: coming with you, or staying behind.
+    PartnerMove { coming: bool },
+    /// The family after a move far from home (`abroad`, or to another state): someone coming for the first weeks to help you
+    /// settle, or nobody able to.
+    FamilyMove { coming: bool, abroad: bool },
+    /// The family after your match, watched from home `ahead` hours ahead of where you play (negative: behind); `result` from your
+    /// side.
+    WatchedFromHome { uid: u64, result: i8, ahead: i8 },
+    /// The family missing you across a time difference of `ahead` hours (home ahead of where you live; negative: behind).
+    MissingFar { ahead: i8 },
+}
+
+/// Where the family is: the parents' nation, or the person's own when that is not known.
+pub fn family_nation(w: &crate::World, who: PersonId) -> NationId {
+    let own = w.people.get(who).map_or(NationId::NONE, |x| x.nation);
+    w.lives.get(who).map(|l| l.household.parents.nation).filter(|n| n.is_some()).unwrap_or(own)
+}
+
+/// How many hours home (where the family is, `family_nation`) is ahead of where the person lives now; negative when behind.
+/// `None` when either place is unknown or both keep the same hours. The second value says whether both clocks are real data
+/// (`Environment::known`) rather than inferred.
+pub fn home_ahead(w: &crate::World, who: PersonId) -> Option<(i8, bool)> {
+    let home = family_nation(w, who);
+    let here = w.lives.get(who).map(|l| l.home).filter(|n| n.is_some())?;
+    if home.is_none() || here == home {
+        return None;
+    }
+    let (a, b) = (&w.nations.get(home)?.env, &w.nations.get(here)?.env);
+    let ahead = a.tz - b.tz;
+    (ahead != 0).then_some((ahead, a.known && b.known))
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
