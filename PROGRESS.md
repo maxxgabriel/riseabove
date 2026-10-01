@@ -1,11 +1,124 @@
 # Pathway — Progress, Next Steps, and What's Needed From You
 
-Last updated: 2026-10-01 (see §0 for the latest pass). This is the living log for the project: what the game is, what is built,
+Last updated: 2026-10-01 (see §0 for the latest pass, §0b for the one before). This is the living log for the project: what the game is, what is built,
 what state each piece is in, what comes next (in order), and what is blocked on you.
 
 ---
 
-## 0. Latest pass (2026-10-01) — what was done, what was not, what is unverified
+## 0. Latest pass (2026-10-01, second) — the lived career: making what the world knows felt
+
+Branch `local/pathway-integration`, commits `88356d1` to `efe0ea1` (all pushed). Brief: the next immersion gains come from making the existing
+world feel lived in, not from new giant systems. Status table with evidence: `docs/IMPLEMENTATION_STATUS.md` §17.
+
+### Done
+
+**Pattern used throughout** (follow it for everything below): new state goes in the extension envelope (`crates/pw-world/src/ext.rs`), one
+appended field per domain, `EXT_VERSION` bumped, a step `vN_to_vN+1` that is `append_default::<T>` and a test in `ext.rs`'s tests (layouts 5-8
+were added this way). New enum variants are appended at the end, so saved data stays readable. A record is kept only for people with a chronicle
+(`w.ext.chronicle.lives`, begun by `pw_career::Game::take_control` and on load), so the simulation never asks who is behind a mind and the cost
+is one person, not the world. The sim side writes ids and facts, never prose; the view (`crates/pw-view/src/pages/*.rs`) words them. Every new
+method has a typed contract in `crates/pw-view/src/contract.rs` (or `contract_pages.rs` for `me.today`), is listed in `manifest()`, and has its
+declaration registered; regenerate the TS with `UPDATE_CONTRACT=1 cargo test -p pw-view --test contract`. New sim modules go on the
+`MUST_STAY_CLEAN` list in `crates/pw-sim/tests/qa_truth_scan.rs`; a view file that reads private data must be justified on the reviewed list in
+`crates/pw-view/tests/firewall.rs`.
+
+- **Career Chronicle** (`pw-world/src/chronicle.rs`, `pw-sim/src/chronicle.rs`, `pw-view/src/pages/chronicle.rs`, `app/src/pages/Chronicle.tsx`, route
+  `#/story`, "Your story" in the rail). Backfill from creation, pathway reasons, scholarships, the event log and closed season lines; daily lines from
+  events, appearances that were occasions, university/school seasons (`minor`), exams, coverage (first story at local/national/abroad reach, features,
+  first time each club is linked with you), club news. Ties to people (teammates, classmates, coaches, scouts, the manager who let you go, mentor,
+  first finder); their public moves become "Meanwhile" lines; facing them is a line; joining a club whose manager is from your past is a line.
+  Timeline with filters, a scrapbook of keepsakes, people from your past with where they are now, how far your name has travelled.
+- **Callbacks in play**: Today lists people you know at the next opponent; "Waiting to hear" (trial with no verdict, clubs linked by the press in
+  the outlet's own strength of claim, agent sounding out a move, diagnosis as a date range).
+- **Relationships as episodes**: People around you shows what you shared and remembered episodes from your side ("Gave you a chance"); the old
+  "They was dropped" text is gone; trust/respect moved underneath.
+- **Group chats** (`pw-world/src/chat.rs`, `pw-sim/src/chat.rs`, `pages/chat.rs`, Messages > Chats): squad group after matches (scorer named, derby
+  felt, captain after a defeat), birthdays, arrivals/departures, club news, teammates' weddings/children; teammates, family (parents/siblings as
+  household roles), partner, captain and agent react to call-ups, debuts, injuries, release, contracts, moves; quiet check-in after being left out.
+- **Match day** (`pages/matchday.rs`, "Your match day" on the match page): trip measured on the regions' map, climate in season, selection, the captain,
+  half-time, your minutes/goals/cards/rating, result, treatment room, two squad-chat lines, the papers, the next morning. Hidden results stop at kick-off.
+- **Injury as an experience** (Today "Your recovery"): diagnosis and sureness, setbacks, recurrence, rushed clearance, six return steps, the physio,
+  results watched from the stands.
+- **Money** (`pw-world/src/ledger.rs`, hooks in `pw-sim/src/life.rs::finances` and `pw-sim/src/clauses.rs::pay`, `pages/money.rs`, Life > Money):
+  payslips, bonuses net of tax and the agent, plain sentences. `world.status` carries the world's currency; the client shows ₹ with lakh/crore in an
+  India world by default. The Money tab's old "per year" labels were monthly figures, now say "last month".
+- **Living competitions** (Today build-up), **club atmosphere** (Today "Around the club"), **sense of place** (club page "The place"), **training
+  ground** (`pw-world/src/trainlog.rs`, `pw-sim/src/trainlog.rs`, Football > Training ground), **settling in** (Today, from `w.adaptation`).
+- **Tests**: `crates/pw-view/tests/chronicle.rs` (8 tests: linked dated story that survives a reload, determinism, observers have none, chats keep
+  their words, match day and hidden results, payslip arithmetic and rupees, place and mood, a training week per Monday); ext layout tests 4→5→6→7→8.
+- **Fixed on the way**: the translated-story contract test failed on the pulled commit too (fewer stories now); its premise now looks month by month
+  for up to a year. `e2e/smoke.mjs` sent a field `persp.inhabit` no longer accepts; it now makes the two calls the app makes.
+
+### Verified
+`cargo test -p pw-view` suites chronicle, contract, api, firewall, route; `pw-sim` qa_truth_scan; `pw-world` lib; `npx tsc --noEmit`, `npx vitest run`,
+`npm run build`; `node app/e2e/india.mjs` (all pages, now including `#/story` and Messages > Chats) and `node app/e2e/smoke.mjs`; screenshots of each new page.
+
+### Unverified
+- `cargo xtask full` was **running when this was written** and its result is not recorded here. The new daily systems only run for chronicled people and
+  use their own keyed RNG, so other systems' outcomes should not move, but run `cargo xtask full` and the long playthrough
+  (`cargo test -p pw-view --test playthrough three_seasons -- --ignored`) before trusting a long career.
+- Cost over 15 seasons: chronicle, chats (240 messages per room), ledger (600 lines) and training log (104 weeks) are bounded or small, but save size and
+  per-day time with an inhabited person were not measured. Measure with `pathway-sim growth` and the `prof!` timings (`chronicle::daily`, `chat::daily`).
+
+### What is left, and how to do each
+
+1. **A goal that won the match is not an occasion yet.** `pw-sim/src/chronicle.rs::on_app` only writes a match line for a hat-trick, a *late* winner, a
+   goal in a decisive tie or derby, a brace, a goal in a match of significance ≥ 80, or best on the pitch when significance ≥ 60. A young player's
+   only goal in a 1-0 is missing. Add a `Big::Decider` (append it to `Big` in `pw-world/src/chronicle.rs`): when the player scored and the margin was
+   one and the side won, and his goal was the last of his side's goals (`m.goals` has minutes and sides). Word it in `pages/chronicle.rs::render`
+   ("Scored the winner against ..."). Consider also one line per season for "first goal at a new club".
+2. **Recognition with geography beyond the press.** The reach panel only counts stories. Add fans: `w.net` (socialnet) accounts that mention or follow
+   the player, grouped by the account's region/state/nation (supporter accounts lean to a club; the club's region gives the state). Add a
+   `Line::Recognised { layer: Layer, what }` the first time state fans, national accounts and foreign accounts talk about you (scan
+   `socialnet` posts about the person in `chronicle::daily`, or the `AttentionSurge` events, whose `cause` carries the event). Later: autograph
+   requests and airport photos as chat/press lines driven by `renown` (local/continental/celebrity standing), and brand offers already exist
+   (`Endorsed`).
+3. **Injury moments.** Add to the chronicle and chats: the manager asking whether you are ready (`pw-sim/src/returns.rs::consider_rush` is where a
+   manager decides to rush someone back; push a `Said::AskedIfReady` from the manager and a chronicle line when it involves a chronicled person), the
+   first outdoor session (when `ReturnStage` first reaches `PartialTeam`, detect in `trainlog::weekly` by comparing with last week's group), and the
+   first game back with applause (first appearance after a `Recovered` line: in `on_app`, if the previous appearance predates the last `Injury` line,
+   write `Line::Comeback`). Fear of recurrence is in the medical case (`recurrence`, hazard via `returns::hazard_factor`).
+4. **Travel and relocation texture.** After a permanent move abroad or to another state: housing (`affairs` home kinds, `MovedHome`), family deciding
+   to follow (`LifeEventKind::PartnerJoinedMove/StayedBehind` exist: put them in the chats and a "Settling in" line), learning the language
+   (`lives[..].routine.language` hours and the adaptation `Social` channel: say when it moves a band). Long away trips across a season: sum the
+   km from `pages/matchday.rs::km` over a season's away fixtures and show "You travelled N km this season" on the season line. Time zones only matter
+   for moves abroad (nations have no zones yet: add to `Nation::env` if wanted).
+5. **Ambient world news worth clicking.** `world.pulse` and the news feed exist. Add a "Around the country" panel that picks a few public events by
+   kind and rarity, not by recency: `Breakout` of a teenager (age from `people[..].dob`), `ManagerResigned/Sacked` at high-reputation clubs, a
+   university title won by an underdog (`MinorTitle` with low prestige winner), `OwnerInvestment`/`ProjectCompleted`, `Administration`,
+   `RecordBroken`. Score = kind weight × club/person reputation, one per kind per week, link each to its page.
+6. **Background careers, more of them.** The chronicle tells moves of people with ties. Add a "What became of them" digest on the story page: for
+   ties older than a year, their current club/role, caps, and whether they retired (all public), sorted by how far they rose. Also deliver one chat
+   message when a former teammate gets a first cap or becomes a manager (`Said::Congrats` from you is not possible, so make it the old squad group:
+   post in the old club's `Room::Squad` if it exists).
+7. **Tiny imperfections.** The press already has truth categories and misleading stories (`Story::truth`). Surface them: when a story about you is
+   `misleading` or `false` (only after it is shown to be: a `Denial`/`Correction` story, or the event it claimed did not happen within N days),
+   add a chronicle line "X wrote that ...; it was not true". Rumours that die: a `TransferRumour` with no `Transfer` within 90 days → the "Waiting
+   to hear" line disappears (already) and the chronicle can say "Nothing came of it". Scouts disagreeing: dossiers have per-evaluator opinions
+   (`pw-world/src/dossier.rs`), but they are club-private: only tell what a club tells you (at a trial verdict, the head coach's and scout's views
+   in words), never numbers.
+8. **Time passing visibly.** Ageing: show age on the story page per year; teammates' marriages and children are in the chats; add club history
+   lines when the stadium capacity changes (`ProjectCompleted Stadium`) or the owner changes (done). A "Ten years ago today" line on Today from
+   the chronicle (entries whose date is today minus N years) is cheap and strong.
+9. **Sense of place, deeper.** "The place" exists for clubs in a world of regions. Missing: a training-ground description (from
+   `clubs[..].facilities.training` in words, and the club's `academy` lore), stadium words (capacity, the reference stadium name and its age if the
+   reference data has it), local media (the outlets whose `leaning` is the club, already listed on the club page as channels), and the same block for
+   universities and academies (an institution page does not exist yet: add `institution {id}` in `pw-view` reading `w.minor.institutions` and
+   `w.ext.ecosystem.inst`). For clubs abroad (Japan, Spain), add a nation-level place (`Nation::env` climate, language, distance) so a move
+   abroad reads as one.
+10. **Scrapbook as documents.** Keepsakes are cards. A contract card could show the real terms (`players.cold[..].contract` at signing is gone later:
+   store the wage/years on `Line::Contract` when it is written; append fields by adding a new variant `ContractTerms` rather than changing
+   `Contract`), a call-up notice the squad and dates, a medal the competition and season, a clipping the headline and outlet. Pure client work once
+   the data is on the line.
+11. **Waiting, more of it.** Add: university application windows (the recruiting rounds in `pw-sim/src/university.rs` have dates: tell an inhabited
+   player who has an open offer when the next round closes), state selection days (`Scenario` calendar rules `due*`), contract talks waiting for
+   the other side (`w.talks` where the person is a party and it is the club's turn).
+12. **Docs and checks after any of the above**: add the item to `docs/IMPLEMENTATION_STATUS.md` §17, a test in `crates/pw-view/tests/chronicle.rs`,
+   and run `cargo xtask smoke`, then `cargo xtask full` when it is stable.
+
+---
+
+## 0b. Previous pass (2026-10-01) — what was done, what was not, what is unverified
 
 Branch `local/pathway-integration`. Work on the five open items of `docs/IMPLEMENTATION_STATUS.md` (§8-§10, §13, §15, §16). Details and evidence are in that file.
 
