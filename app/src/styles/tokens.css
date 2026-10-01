@@ -1,29 +1,30 @@
-/* Design tokens. Context tint belongs in an entity hero, never in the whole application canvas. */
+/* Design tokens: a neutral near-black canvas, thin-bordered panels and one magenta accent.
+   Context tint belongs in an entity hero, never in the whole application canvas. */
 :root { --tint: #173d78; }
 :root,
 :root[data-theme="dark"],
 :root[data-theme="dark"] .stage,
 :root[data-theme="light"] .stage {
   color-scheme: dark;
-  --bg: #060b16;
-  --panel: #0d1625;
-  --raised: #111d2f;
-  --hover: #162440;
-  --pressed: #1c2d4d;
-  --head: #091224;
-  --panel-2: #101b2d;
-  --panel-3: #15233a;
-  --shell: #050913;
-  --line: rgba(183, 200, 235, 0.09);
-  --line-2: rgba(183, 200, 235, 0.18);
-  --edge: rgba(192, 119, 255, 0.46);
-  --text: #f2f5ff;
-  --text-2: #bdc8dd;
-  --text-3: #7d8ba9;
-  --accent: #b64cf4;
-  --accent-strong: #d78bff;
-  --accent-fg: #160322;
-  --accent-soft: rgba(182, 76, 244, 0.17);
+  --bg: #0b0b0e;
+  --panel: #141418;
+  --raised: #1b1b21;
+  --hover: #23232b;
+  --pressed: #2b2b34;
+  --head: #18181d;
+  --panel-2: #17171c;
+  --panel-3: #1e1e25;
+  --shell: #0f0f13;
+  --line: rgba(255, 255, 255, 0.075);
+  --line-2: rgba(255, 255, 255, 0.15);
+  --edge: rgba(255, 255, 255, 0.11);
+  --text: #ededf2;
+  --text-2: #aaaab6;
+  --text-3: #71717e;
+  --accent: #e5267f;
+  --accent-strong: #ff4f9e;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(229, 38, 127, 0.15);
   --pos: #52d98a;
   --neg: #f47a7a;
   --warn: #f0b93f;
@@ -34,17 +35,17 @@
   --neg-soft: rgba(244, 122, 122, 0.15);
   --warn-soft: rgba(240, 185, 63, 0.15);
   --info-soft: rgba(106, 168, 245, 0.15);
-  --shadow: 0 14px 38px rgba(0, 0, 0, 0.44);
-  --scroll: rgba(255, 255, 255, 0.18);
-  --sel: rgba(182, 76, 244, 0.18);
-  --zebra: rgba(141, 162, 210, 0.06);
+  --shadow: 0 14px 38px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --scroll: rgba(255, 255, 255, 0.16);
+  --sel: rgba(229, 38, 127, 0.14);
+  --zebra: rgba(255, 255, 255, 0.028);
   --space-1: 0.25rem;
   --space-2: 0.45rem;
   --space-3: 0.7rem;
   --space-4: 1rem;
   --space-5: 1.35rem;
   --control-h: 1.9rem;
-  --row-h: 2rem;
+  --row-h: 1.75rem;
   --motion-fast: 120ms;
   --motion-normal: 170ms;
 }
@@ -88,11 +89,11 @@
 
 :root {
   --text-scale: 1;
-  --radius: 4px;
-  --radius-lg: 6px;
+  --radius: 3px;
+  --radius-lg: 4px;
   --rail-w: 196px;
-  --top-h: 42px;
-  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", var(--font-fallback);
+  --top-h: 44px;
+  --display: var(--font);
   --font-fallback: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Nirmala UI", "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;

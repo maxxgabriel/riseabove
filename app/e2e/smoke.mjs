@@ -47,7 +47,8 @@ async function visit(route) {
   if (problems.length) bad++;
 }
 for (const r of observer) await visit(r);
-await api("persp.inhabit", { person: player, conceal_mine: true });
+await api("persp.inhabit", { person: player });
+await api("settings.set", { conceal_mine: true });
 for (const r of inhabited) await visit(r);
 await api("advance.start", { mode: "until_match" });
 await waitIdle();

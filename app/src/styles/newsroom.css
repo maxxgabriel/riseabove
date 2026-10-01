@@ -1,19 +1,13 @@
 /* Editorial surfaces use real world data and remain legible without an image library. */
-.portal-intro { display: flex; align-items: center; gap: 0.48rem; min-height: 2rem; padding: 0 1.15rem; border-bottom: 1px solid var(--line); background: rgba(10, 24, 47, 0.75); color: var(--text-3); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.09em; }
+.portal-intro { display: flex; align-items: center; gap: 0.48rem; min-height: 2rem; padding: 0 1.15rem; border-bottom: 1px solid var(--line); background: var(--shell); color: var(--text-3); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.09em; }
 .portal-intro strong { margin-left: auto; color: var(--text-2); font-size: 0.8rem; letter-spacing: 0; font-weight: 540; }
 .portal-live-dot { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .portal-body { padding-top: 0.7rem; }
-.portal-grid { display: grid; grid-template-columns: minmax(17rem, 0.9fr) minmax(25rem, 1.7fr) minmax(18rem, 0.85fr); gap: 0.9rem; align-items: start; }
+.portal-grid { display: grid; grid-template-columns: minmax(17rem, 0.9fr) minmax(25rem, 1.7fr) minmax(18rem, 0.85fr); gap: 0.6rem; align-items: start; }
 .portal-grid > * { min-width: 0; }
 .portal-grid .section { gap: 0.35rem; }
-.portal-grid .section-head h2 { font-family: var(--font); font-size: 0.91rem; font-weight: 720; letter-spacing: -0.015em; }
-.portal-grid .section-head { min-height: 1.4rem; border-bottom: 0; }
-.portal-grid .section-head h2 { padding-bottom: 0; }
-.portal-grid .section-strong .section-head h2 { box-shadow: none; }
 .portal-grid .section-aside a { text-decoration: none; }
 .portal-grid .section-aside a:hover { text-decoration: underline; }
-.portal-attention, .portal-context { border-top: 2px solid rgba(155, 104, 230, 0.7); }
-.portal-editorial { border-top: 2px solid rgba(84, 168, 255, 0.75); }
 .portal-decisions { display: grid; gap: 0.35rem; }
 .portal-decisions > a { display: grid; gap: 0.18rem; padding: 0.55rem 0.65rem; border: 1px solid rgba(235, 177, 82, 0.32); background: rgba(128, 82, 18, 0.11); color: var(--text); text-decoration: none; }
 .portal-decisions > a:hover { background: rgba(128, 82, 18, 0.2); }
@@ -35,9 +29,9 @@
 .portal-plan-mark.queued { background: var(--accent); }
 .portal-plan small { margin-left: auto; color: var(--text-3); }
 .portal-story-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; }
-.portal-next { display: grid; gap: 0.18rem; padding: 0.6rem 0.65rem; color: var(--text); text-decoration: none; background: linear-gradient(115deg, color-mix(in srgb, var(--tint) 24%, var(--panel)), var(--panel)); border-top: 1px solid var(--accent); }
+.portal-next { display: grid; gap: 0.18rem; padding: 0.6rem 0.65rem; color: var(--text); text-decoration: none; background: var(--raised); border-radius: var(--radius); }
 .portal-next:hover { background: var(--hover); }
-.portal-next strong { font-family: var(--display); font-size: 1.6rem; line-height: 1.15; }
+.portal-next strong { font-size: 1.3rem; line-height: 1.2; }
 .portal-next small { color: var(--text-3); }
 .portal-alert { padding: 0.4rem 0.55rem; background: var(--neg-soft); color: var(--neg); }
 .portal-results { display: grid; border-top: 1px solid var(--line); }
@@ -54,7 +48,7 @@
 .portal-status .meter { display: grid; grid-template-columns: minmax(2.2rem, 1fr) minmax(4.8rem, auto); gap: 0.45rem; min-width: 0; }
 .portal-status .meter-track { width: 100%; }
 .portal-status .meter-label { white-space: nowrap; text-align: right; }
-.story-graphic { position: relative; display: grid; place-items: center; height: 10.8rem; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 45% -30%, rgba(65, 160, 235, 0.29), transparent 75%), linear-gradient(125deg, #103457, #101b38 46%, #22143b); border-bottom: 1px solid rgba(190, 205, 255, 0.16); }
+.story-graphic { position: relative; display: grid; place-items: center; height: 10.8rem; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 45% -30%, rgba(229, 38, 127, 0.16), transparent 75%), linear-gradient(125deg, #1d1d24, #141418 50%, #201722); border-bottom: 1px solid var(--line); }
 .story-graphic::after { content: ""; position: absolute; inset: auto 0 0; height: 40%; background: linear-gradient(transparent, rgba(3, 9, 24, 0.33)); z-index: -1; }
 .story-graphic.compact { height: 5.6rem; }
 .graphic-grid { position: absolute; inset: 0; opacity: 0.2; background-image: linear-gradient(rgba(170, 198, 247, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(170, 198, 247, 0.16) 1px, transparent 1px); background-size: 25px 25px; transform: perspective(150px) rotateX(17deg) scale(1.3); }
@@ -72,9 +66,8 @@
 .graphic-monogram { display: grid; place-items: center; width: 4.7rem; height: 4.7rem; flex: none; border: 2px solid rgba(205, 214, 255, 0.6); border-radius: 50%; font-family: var(--display); font-size: 1.9rem; font-weight: 700; }
 .story-graphic.compact .graphic-monogram { width: 3rem; height: 3rem; font-size: 1.35rem; }
 .graphic-kind { position: absolute; right: 0.55rem; bottom: 0.4rem; color: rgba(235, 244, 255, 0.7); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
-.editorial-card { min-width: 0; display: grid; align-content: start; overflow: hidden; border: 1px solid var(--line-2); background: var(--panel); }
+.editorial-card { min-width: 0; display: grid; align-content: start; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--raised); }
 .editorial-card:hover { border-color: var(--edge); }
-.editorial-card.featured { border-top: 2px solid var(--accent); }
 .editorial-copy { display: grid; gap: 0.38rem; padding: 0.58rem 0.7rem 0.7rem; }
 .editorial-meta { display: flex; align-items: center; gap: 0.36rem; flex-wrap: wrap; color: var(--text-3); font-size: 0.78rem; }
 .editorial-meta .badge { margin-left: auto; height: 1.05rem; font-size: 0.72rem; text-transform: uppercase; }
@@ -89,8 +82,8 @@
 .news-front, .news-detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem); gap: 1rem; align-items: start; }
 .news-main { display: grid; gap: 0.75rem; min-width: 0; }
 .news-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
-.news-briefs { display: grid; align-content: start; border-top: 2px solid var(--accent); }
-.news-briefs h2 { font-family: var(--display); font-size: 1.3rem; padding: 0.5rem 0; }
+.news-briefs { display: grid; align-content: start; padding: 0 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.news-briefs h2 { color: var(--accent-strong); padding: 0.55rem 0 0.3rem; }
 .news-briefs > a { display: grid; gap: 0.12rem; padding: 0.55rem 0; border-top: 1px solid var(--line); text-decoration: none; }
 .news-briefs > a:hover strong { color: var(--accent-strong); }
 .news-briefs > a strong { font-weight: 580; line-height: 1.3; }

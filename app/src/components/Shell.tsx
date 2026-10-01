@@ -1,11 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { back, forward, href, navigate, useRoute } from "../router";
 import { setSettings, useSettings } from "../settings";
-import { dismissNotice, notify, save, useDirty, useNotice, useStatus, act } from "../store";
-import { dateLong } from "../format";
+import { dismissNotice, notify, save, useApi, useDirty, useNotice, useStatus, act } from "../store";
+import { dateLong, relativeDays } from "../format";
+import type { MeTodayView } from "../contract.generated";
 import { Icon, type IconName } from "../ui/Icon";
 import { Button, IconButton, Kbd, Menu } from "../ui/ui";
 import { AdvanceControl, useAdvance } from "./Advance";
+import { ClubCrest } from "./Crest";
 import { SearchPalette } from "./Search";
 
 interface NavItem {
@@ -100,19 +102,40 @@ function Rail() {
         <span className="rail-mark"><Icon name="up" size={16} strokeWidth={2.4} /></span>
         <span className="rail-brand-name">Rise Above</span>
       </div>
-      {nav.groups.map((g) => (
-        <div key={g.label}>
-          <div className="rail-group">{g.label}</div>
+      {nav.groups.map((g, i) => (
+        <div key={g.label} role="group" aria-label={g.label}>
+          {i > 0 && <div className="rail-sep" />}
           {g.items.map(renderItem)}
         </div>
       ))}
       <div className="rail-spacer" />
+      {inhabitingId != null && <RailNext key={st.job.running ? "running" : st.revision} />}
+      <div className="rail-sep" />
       {nav.bottom.map(renderItem)}
       <button className="rail-item rail-collapse" onClick={() => setSettings({ railCollapsed: !s.railCollapsed })} title={s.railCollapsed ? "Expand sidebar" : "Collapse sidebar"} aria-label={s.railCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
         <Icon name={s.railCollapsed ? "right" : "left"} />
         <span className="rail-label">Collapse</span>
       </button>
     </nav>
+  );
+}
+
+/** The next match, read once per change in the world (not while time runs). */
+function RailNext() {
+  const t = useApi<MeTodayView>("me.today", {}, { live: false }).data;
+  const nm = t?.next_match;
+  if (!t || !nm) return null;
+  return (
+    <a className="rail-next" href={href(`/match/${nm.uid}`)}>
+      <span className="rail-next-label">Next match</span>
+      <span className="rail-next-body">
+        <ClubCrest id={nm.opponent.id} name={nm.opponent.name} size={22} />
+        <span>
+          <span className="rail-next-opp">{nm.home ? "v" : "at"} {nm.opponent.name}</span>
+          <span className="rail-next-when">{nm.comp.name} · {relativeDays(nm.date, t.date)}</span>
+        </span>
+      </span>
+    </a>
   );
 }
 
