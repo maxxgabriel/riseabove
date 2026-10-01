@@ -135,13 +135,22 @@ fn people_who_left_the_game_stop_generating_life_events() {
     let w = &s.world;
     let gone = w.people.ids().filter(|&p| pw_sim::retention::left_the_game(w, p, w.date)).count();
     assert!(gone > 20, "only {gone} people had left the game after eight years");
+    // When each person retired, from the log: `left_the_game` reads today's status, so a person who retired after an event (an amateur
+    // who stopped playing years after his last professional match) must not be counted as gone at that event.
+    let mut retired_on: std::collections::HashMap<pw_core::PersonId, pw_core::Date> = std::collections::HashMap::new();
+    for e in w.events.all() {
+        if let E::Retired { person } = e.kind {
+            retired_on.entry(person).or_insert(e.date);
+        }
+    }
     let mut after_leaving = Vec::new();
     for e in w.events.all() {
         // The events of a person's own month (money, parents): a partner's step can still mark a shared event such as a wedding.
         if let E::Life { person, kind: kind @ (L::FinancialTrouble | L::ParentUnwell | L::ParentRecovered | L::Bereavement) } = &e.kind {
             let player = w.people[*person].player;
             // `gone` is read at the event's date, for someone who really had played (and then retired) before it.
-            if player.is_some() && w.players.hot[player].last_match.0 > 0 && pw_sim::retention::left_the_game(w, *person, e.date) {
+            let retired_before = retired_on.get(person).is_some_and(|&d| d < e.date);
+            if player.is_some() && w.players.hot[player].last_match.0 > 0 && retired_before && pw_sim::retention::left_the_game(w, *person, e.date) {
                 after_leaving.push((e.date, *person, format!("{kind:?}")));
             }
         }

@@ -454,6 +454,11 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             (s.t(format!("{outlet} wrote \u{201c}{head}\u{201d}{tail}")).done(), "recognition", None)
         }
         Line::Terms { .. } => return None,
+        Line::TrialViews { club, keen, doubtful } => {
+            let role = |q: PersonId| w.people.get(q).filter(|x| x.staff.is_some()).map(|x| w.staff[x.staff].role.label().to_lowercase()).unwrap_or_else(|| "staff".into());
+            let s = s.club(club).t(" told you their people had not seen you the same way: ").person(keen).t(format!(", their {}, rated you higher than ", role(keen))).person(doubtful).t(format!(", their {}", role(doubtful)));
+            (s.done(), "recognition", None)
+        }
         Line::Language { nation, level } => {
             // Nations carry a language family, not a name for it: say what it is to live in it.
             let how = match level {

@@ -385,6 +385,9 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
         }
         E::TrialEnded { player, club, offered } if mine(player) => {
             push(life, Line::TrialOutcome { club, offered });
+            if let Some(line) = trial_views(w, club, p) {
+                push(life, line);
+            }
             if !offered {
                 let m = w.clubs.get(club).map_or(pw_core::StaffId::NONE, |c| c.manager);
                 if m.is_some() {
@@ -468,6 +471,23 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
             meanwhile(w, life, who, p, e);
         }
     }
+}
+
+/// What a club tells you at a trial's verdict about how its people saw you: only that the coaching side and the scouting side
+/// disagreed, and which way, when they did by a clear margin. Never a number.
+fn trial_views(w: &World, club: ClubId, p: PlayerId) -> Option<Line> {
+    use pw_world::staff::StaffRole as R;
+    let d = w.dossiers.get(club, p)?;
+    let best = |roles: &[R]| d.opinions.iter().filter(|o| roles.contains(&o.role)).max_by(|a, b| a.weight.total_cmp(&b.weight).then(b.by.cmp(&a.by)));
+    let coach = best(&[R::Manager, R::Assistant, R::Coach, R::HeadOfYouth])?;
+    let scout = best(&[R::Scout, R::Analyst])?;
+    let gap = coach.ca.mid - scout.ca.mid; // truth-ok: two evaluators' readings (beliefs, not truth), told only as who rated you higher
+    if gap.abs() < 6.0 {
+        return None;
+    }
+    let person = |s: pw_core::StaffId| w.staff.get(s).map(|x| x.person).filter(|q| q.is_some());
+    let (keen, doubtful) = if gap > 0.0 { (person(coach.by)?, person(scout.by)?) } else { (person(scout.by)?, person(coach.by)?) };
+    Some(Line::TrialViews { club, keen, doubtful })
 }
 
 /// Arriving at a club whose manager is someone from the past: the coach who let you go elsewhere, a former teammate.

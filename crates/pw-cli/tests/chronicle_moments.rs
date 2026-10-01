@@ -173,3 +173,30 @@ fn playing_abroad_the_language_comes_in_steps_each_told_once() {
     sim.run(8);
     assert_eq!(told(&sim.world), vec![1, 3], "fluent, told once");
 }
+
+#[test]
+fn at_a_trial_verdict_the_club_says_when_its_coach_and_its_scout_saw_you_differently() {
+    use pw_world::dossier::{Opinion, Span};
+    use pw_world::staff::StaffRole;
+    let (mut sim, p, who) = chronicled(45);
+    let w = &mut sim.world;
+    let club = w.clubs.ids().find(|&k| k != w.players.hot[p].club && w.clubs[k].manager.is_some()).unwrap();
+    let coach = w.clubs[club].manager.get().unwrap();
+    let scout = w.staff.ids().find(|&s| s != coach && w.staff[s].person.is_some()).unwrap();
+    let mut d = w.dossiers.map.values().next().cloned().expect("a dossier to borrow");
+    d.player = p;
+    d.club = club;
+    d.opinions.clear();
+    d.opinions.push(Opinion { by: coach, role: StaffRole::Manager, ca: Span { mid: 120.0, band: 5.0 }, pa: Span { mid: 140.0, band: 8.0 }, weight: 0.6, trust: 0.7 });
+    d.opinions.push(Opinion { by: scout, role: StaffRole::Scout, ca: Span { mid: 104.0, band: 5.0 }, pa: Span { mid: 125.0, band: 8.0 }, weight: 0.4, trust: 0.6 });
+    w.dossiers.map.insert((club, p), d);
+    let today = w.date;
+    w.events.push(today, pw_world::event::Visibility::Person(who), pw_world::EventKind::TrialEnded { player: p, club, offered: true });
+    sim.run(1);
+    let views: Vec<Line> = lines(&sim.world, who).into_iter().filter(|x| matches!(x, Line::TrialViews { .. })).collect();
+    assert_eq!(views.len(), 1, "{views:?}");
+    let Line::TrialViews { keen, doubtful, club: k } = views[0] else { unreachable!() };
+    assert_eq!(k, club);
+    assert_eq!(keen, sim.world.staff[coach].person, "the coach rated him higher");
+    assert_eq!(doubtful, sim.world.staff[scout].person);
+}

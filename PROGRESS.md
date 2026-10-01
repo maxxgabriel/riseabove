@@ -1,11 +1,64 @@
 # Pathway — Progress, Next Steps, and What's Needed From You
 
-Last updated: 2026-10-01 (see §0 for the latest pass, §0b for the one before). This is the living log for the project: what the game is, what is built,
+Last updated: 2026-10-01 (see §0 for the latest pass, §0a and §0b for the ones before). This is the living log for the project: what the game is, what is built,
 what state each piece is in, what comes next (in order), and what is blocked on you.
 
 ---
 
-## 0. Latest pass (2026-10-01, second) — the lived career: making what the world knows felt
+## 0. Latest pass (2026-10-01, third) — the lived career, continued from §0a's list
+
+Branch `local/pathway-integration`. Followed the pattern in §0a (ext envelope append, appended enum variants, sim writes ids, view words them,
+typed contracts regenerated). Status with evidence: `docs/IMPLEMENTATION_STATUS.md` §17.
+
+### Done (numbers are §0a's "What is left")
+1. **The winner and new clubs**: `Big::Decider` (the goal that won a match by one: the side's goal that took it past the other side's total;
+   unit-tested in `pw-sim/src/chronicle.rs`), `Line::FirstGoalFor` (first goal for each new club after scoring elsewhere).
+2. **Recognition beyond the press**: `Line::Talked { reach }`: the first time your own club's supporters, another club's, people in another
+   state and fans abroad talk about you (social posts read by the account's club, its club's state, its nation).
+3. **Injury moments**: `Line::BackWithGroup` (the stage the training ground uses), `EventKind::AskedIfReady` (the manager asks a human who
+   has not said where he stands, once a case; not asked of computer-run players, whose stance comes from who they are) with a chronicle line
+   and a direct message, `Line::Comeback` (first match back) with a teammate's welcome in the squad chat.
+4. **Travel (part)**: ext layout 9 `journeys`: km of away matches by year and club, shown on season lines; `chronicle::club_km` is now the
+   one distance function (the match-day page uses it). Abroad, `Line::Language` when the language reaches getting by / comfortable / fluent.
+5. **Ambient news**: Today's "Around the country" (`me.today.around`): up to four public stories of the week from your country, one per
+   kind, by rarity and size.
+6. **Background careers (part)**: where people from your past are now includes senior caps; the old squad's chat talks about a former
+   teammate's first cap or manager's job (`Said::OldTeamNews`).
+7. **Imperfections**: `Line::NothingCameOfIt` four months after a club was first linked with you and never came; `Line::Answered`
+   when a story about you is corrected (by its outlet) or denied; `Line::TrialViews` at a trial verdict when the club's coaching side and
+   scouting side read you differently (who rated you higher, never a number).
+8. **Time passing**: Today's "On this day" (`me.today.on_this_day`), age heading each year of the story (`ChronicleView.born`).
+9. **Place (part)**: the club's ground and capacity and the training ground in words on "The place".
+10. **Scrapbook (part)**: `Line::Terms` keeps the weekly wage of each contract; the contract line reads it in the world's money.
+11. **Waiting (part)**: contract talks where the club owes you an answer.
+
+Fixed on the way: Today's new panel called `narrative::describe` on a team record with no person, which panics; team records are left out
+(the underlying `describe` still assumes a person for `RecordBroken`). `cargo xtask full` (first complete run since §0b) found three
+failures, all fixed: `qa_retention::people_who_left_the_game_stop_generating_life_events` read retirement from today's state, so an
+amateur who retired after an event counted as gone at it (premise fixed: the retirement date comes from the log); the hand-built club
+sample in `contract_pages` lacked the `place` field added in §0a; the truth scan flagged the trial-verdict line's read of evaluators'
+readings (beliefs, marked `truth-ok`).
+
+### Verified
+`cargo xtask smoke`; `cargo test -p pw-cli --test chronicle_moments --test returns`; `cargo test -p pw-view --test chronicle --test contract
+--test firewall`; `pw-sim` `qa_truth_scan`; `cargo xtask quick -p pw-sim chronicle`, `-p pw-world ext`; `npx tsc --noEmit`, `npx vitest run`.
+`cargo xtask full` was started at the end of this pass: see the line below for its result.
+
+### What is left
+- **2 (rest)**: autograph requests and airport photos driven by `renown` standing.
+- **4 (rest)**: housing after a move abroad or to another state (`affairs` home kinds), family deciding to follow as chats (the life
+  events exist and are already chronicle lines), time zones (nations have `env.tz`, unused).
+- **6 (rest)**: a "What became of them" digest sorted by how far people rose (today the people list shows where they are now, with caps).
+- **9 (rest)**: institution pages (`institution {id}` over `w.minor.institutions` and `w.ext.ecosystem.inst`), local media per place,
+  a nation-level place for clubs abroad (`Nation::env`).
+- **10 (rest)**: call-up notices (squad and dates), medals (competition and season), clippings (headline and outlet) as documents: the
+  data is on the lines; client work.
+- **11 (rest)**: state selection days (`Scenario` calendar rules) and the next university recruiting round for an open offer.
+- **Unverified**: cost over 15 seasons with an inhabited person (`pathway-sim growth`, `prof!` timings for `chronicle::daily`, `chat::daily`).
+
+---
+
+## 0a. Previous pass (2026-10-01, second) — the lived career: making what the world knows felt
 
 Branch `local/pathway-integration`, commits `88356d1` to `efe0ea1` (all pushed). Brief: the next immersion gains come from making the existing
 world feel lived in, not from new giant systems. Status table with evidence: `docs/IMPLEMENTATION_STATUS.md` §17.

@@ -177,6 +177,8 @@ pub enum Line {
     Terms { club: ClubId, until: Date, wage: i64 },
     /// Playing abroad, the language of `nation` reached a new level: 1 getting by, 2 comfortable, 3 fluent.
     Language { nation: NationId, level: u8 },
+    /// At a trial's verdict, the club told you its people had not seen you the same way: `keen` rated you higher than `doubtful`.
+    TrialViews { club: ClubId, keen: PersonId, doubtful: PersonId },
 }
 
 /// How far from home the people talking about you are.
