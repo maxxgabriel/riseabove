@@ -136,13 +136,21 @@ fn relegated(w: &mut World, team: pw_core::TeamId) {
 
 // ------------------------------------------------------------------ options and extensions
 
+/// The newest signing of this player (a transfer, a new contract or a renewal): the event that every later clause, option, promise
+/// and review of that contract rests on. Empty when the signing is older than the event log remembers.
+pub fn deal_behind(w: &World, p: PlayerId) -> pw_world::event::Causes {
+    let found = w.events.latest_where(20_000, |e| matches!(e.kind, EventKind::ContractSigned { player, .. } | EventKind::Transfer { player, .. } if player == p));
+    found.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)])
+}
+
 fn extend(w: &mut World, p: PlayerId, years: u8, how: pw_world::event::OptionKind) {
     let today = w.date;
     let c = &mut w.players.cold[p].contract;
     c.end = c.end.add_months(12 * i32::from(years));
     c.options.used = true;
     let club = c.club;
-    w.events.push(today, Visibility::Public, EventKind::ContractOption { player: p, club, kind: how, taken: true });
+    let because = deal_behind(w, p);
+    w.events.push_caused(today, Visibility::Public, EventKind::ContractOption { player: p, club, kind: how, taken: true }, because);
 }
 
 /// An automatic extension whose trigger has been met (`None` checks the counting ones).
@@ -218,7 +226,8 @@ fn resolve_options(w: &mut World) {
             let kind = if opts.club_years > 0 { pw_world::event::OptionKind::Club } else if opts.player_years > 0 { pw_world::event::OptionKind::Player } else { pw_world::event::OptionKind::Mutual };
             let c = &mut w.players.cold[p].contract;
             c.options.used = true;
-            w.events.push(today, Visibility::Public, EventKind::ContractOption { player: p, club, kind, taken: false });
+            let because = deal_behind(w, p);
+            w.events.push_caused(today, Visibility::Public, EventKind::ContractOption { player: p, club, kind, taken: false }, because);
         }
     }
 }
@@ -343,7 +352,8 @@ pub fn promise_status(w: &mut World, club: ClubId, p: PlayerId, s: SquadStatus) 
         return;
     }
     let id = w.social.make_promise(mgr, who, club, PromiseKind::Status(s), today, today.add_days(365), EventId::NONE);
-    w.events.push(today, Visibility::Between(mgr, who), EventKind::PromiseMade { promise: id, from: mgr, to: who });
+    let because = deal_behind(w, p);
+    w.events.push_caused(today, Visibility::Between(mgr, who), EventKind::PromiseMade { promise: id, from: mgr, to: who }, because);
 }
 
 /// Judge important contracts a season on, by what was known at the time and by how they turned out; a burden that did not pay off
@@ -385,7 +395,8 @@ pub fn review_contracts(w: &mut World) {
                 *e = (*e - 0.05).clamp(-0.3, 0.3);
             }
             let vis = if f.burden_pct >= 15 { Visibility::Public } else { Visibility::Club(f.club) };
-            w.events.push(today, vis, EventKind::SigningReviewed { player: p, club: f.club, verdict, overruled: false });
+            let because = deal_behind(w, p);
+            w.events.push_caused(today, vis, EventKind::SigningReviewed { player: p, club: f.club, verdict, overruled: false }, because);
         }
     }
     w.boardroom.contracts.retain(|f| f.outcome.is_none() || f.outcome.is_some_and(|o| o.date.days_until(today) < 4 * 365));

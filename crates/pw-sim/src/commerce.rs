@@ -245,7 +245,14 @@ pub fn sign(w: &mut World, who: PersonId, brand: u32, fee_year: Money, years: u8
     w.commerce.endorsements.push(Endorsement { brand, person: who, fee_year, start: today, end: today.add_months(12 * i32::from(years)), days, club_share, ended: None });
     w.commerce.by_person.entry(who).or_default().push(idx);
     w.commerce.brands[brand as usize].committed += fee_year;
-    w.events.push(today, Visibility::Public, EventKind::Endorsed { person: who, brand, fee_year });
+    // Brands come for attention: the surge or milestone that put him in front of them, when there was one.
+    let noticed = w.events.latest_where(5_000, |e| match e.kind {
+        EventKind::AttentionSurge { person, .. } => person == who,
+        EventKind::Milestone { player, .. } => w.players.cold.get(player).is_some_and(|c| c.person == who),
+        _ => false,
+    });
+    let because = noticed.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+    w.events.push_caused(today, Visibility::Public, EventKind::Endorsed { person: who, brand, fee_year }, because);
     let r = w.renown.people.entry(who).or_default();
     r.fame = r.fame.saturating_add(100).min(10_000);
 }
@@ -294,7 +301,14 @@ fn review(w: &mut World) {
             let star = p.is_some() && w.players.cold[p].status == SquadStatus::Star;
             let key = hash_key(&[w.seed, u64::from(e.person.0), i as u64, today.year() as u64]);
             if key.is_multiple_of(3) {
-                w.events.push(today, Visibility::Public, EventKind::SponsorClash { person: e.person, brand: e.brand, club });
+                // The clash is between his own deal and the club's: the newer of the two signings is what brought it about.
+                let signed = w.events.latest_where(20_000, |x| match x.kind {
+                    EventKind::Endorsed { person, brand, .. } => person == e.person && brand == e.brand,
+                    EventKind::ClubSponsor { club: c, .. } => c == club,
+                    _ => false,
+                });
+                let because = signed.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+                w.events.push_caused(today, Visibility::Public, EventKind::SponsorClash { person: e.person, brand: e.brand, club }, because);
             }
             // Stars are tolerated; others are told to drop the deal.
             if star { None } else { Some(DealEnd::Conflict) }
@@ -305,7 +319,19 @@ fn review(w: &mut World) {
             if let Some(v) = w.commerce.by_person.get_mut(&e.person) {
                 v.retain(|&x| x != i as u32);
             }
-            w.events.push(today, Visibility::Public, EventKind::EndorsementEnded { person: e.person, brand: e.brand, why });
+            // Why it ended is an event of its own where one exists: the scandal that sank his image, the retirement, the club's rival
+            // sponsor, or the signing whose term simply ran out.
+            let ended_by = w.events.latest_where(20_000, |x| match (why, &x.kind) {
+                (DealEnd::Scandal, EventKind::Incident { .. }) => x.kind.people().contains(&e.person),
+                (DealEnd::Scandal, EventKind::MediaGrudge { subject, .. }) => *subject == e.person,
+                (DealEnd::Retired, EventKind::Retired { person }) => *person == e.person,
+                (DealEnd::Conflict, EventKind::SponsorClash { person, brand, .. }) => *person == e.person && *brand == e.brand,
+                (DealEnd::Conflict, EventKind::ClubSponsor { club: c, .. }) => *c == club,
+                (DealEnd::Expired | DealEnd::Faded, EventKind::Endorsed { person, brand, .. }) => *person == e.person && *brand == e.brand,
+                _ => false,
+            });
+            let because = ended_by.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+            w.events.push_caused(today, Visibility::Public, EventKind::EndorsementEnded { person: e.person, brand: e.brand, why }, because);
             if why == DealEnd::Conflict && p.is_some() {
                 let h = &mut w.players.hot[p];
                 h.morale = h.morale.saturating_sub(3);

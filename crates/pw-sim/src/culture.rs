@@ -11,7 +11,7 @@
 use pw_core::rng::{noise, stream};
 use pw_core::{ClubId, CompId, Date, EventId, NationId, PersonId, PlayerId, StaffId, TeamId};
 use pw_world::culture::{ClubCulture, Identity, MatchMeaning, Moment, MomentKind, NationCulture, RivalryKind, Side};
-use pw_world::event::EventKind;
+use pw_world::event::{Cause, Causes, EventKind, Visibility};
 use pw_world::{CompKind, Fixture, FxHashMap, TeamKind, World};
 
 fn n01(w: &World, keys: &[u64]) -> f32 {
@@ -154,6 +154,17 @@ fn sync_media(w: &mut World) {
 // History moves rivalries
 // ---------------------------------------------------------------------------
 
+/// A rivalry begins, or takes on a character it did not have: an event of its own, caused by what made it (the tie, the title race, the
+/// scrap), so that what the press and the supporters later say about it traces back to something that happened.
+fn kindle(w: &mut World, a: Side, b: Side, kind: RivalryKind, intensity: u8, because: Causes) {
+    let today = w.date;
+    let new = w.culture.rivalries.get(a, b).is_none_or(|r| !r.kinds.contains(&kind));
+    w.culture.rivalries.ensure(a, b, kind, intensity, today);
+    if new {
+        w.events.push_caused(today, Visibility::Public, EventKind::RivalryKindled { a, b, kind }, because);
+    }
+}
+
 fn remember(w: &mut World, a: Side, b: Side, m: Moment) {
     if let Some(r) = w.culture.rivalries.get_mut(a, b) {
         r.moments.push(m);
@@ -182,7 +193,8 @@ pub fn after_result(w: &mut World, fx: &Fixture, hg: u8, ag: u8, pens: Option<(u
         matches!((h, a), (Side::Club(x), Side::Club(y)) if big(x) && big(y))
     };
     if knockout && winner.is_some() && both_big(w) && w.culture.rivalries.get(h, a).is_none() {
-        w.culture.rivalries.ensure(h, a, RivalryKind::CupRevenge, 20, today);
+        let because = if ev.is_some() { pw_world::causes![Cause::Event(ev)] } else { Causes::new() };
+        kindle(w, h, a, RivalryKind::CupRevenge, 20, because);
     }
     let Some(r) = w.culture.rivalries.get_mut(h, a) else { return };
     let a_is_home = r.a == h;
@@ -283,6 +295,9 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
     if first.points - second.points <= 3 {
         let kind = if tier == 1 { RivalryKind::TitleRace } else { RivalryKind::Promotion };
         let (a, b) = (Side::Club(club(first.team)), Side::Club(club(second.team)));
+        let decided = w.events.latest_where(2_000, |e| matches!(e.kind, EventKind::Champion { comp: c, .. } if c == comp));
+        let because = decided.map_or_else(Causes::new, |id| pw_world::causes![Cause::Event(id)]);
+        kindle(w, a, b, kind, 30, because);
         let r = w.culture.rivalries.ensure(a, b, kind, 30, today);
         r.intensity = r.intensity.saturating_add(8).min(100);
         remember(w, a, b, Moment { date: today, kind: MomentKind::TitleDecided { winner: a }, event: EventId::NONE });
@@ -295,6 +310,9 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         let down = rows[n - relegate];
         if safe.points - down.points <= 2 {
             let (a, b) = (Side::Club(club(safe.team)), Side::Club(club(down.team)));
+            let dropped = w.events.latest_where(2_000, |e| matches!(e.kind, EventKind::Relegated { team, .. } if team == down.team));
+            let because = dropped.map_or_else(Causes::new, |id| pw_world::causes![Cause::Event(id)]);
+            kindle(w, a, b, RivalryKind::Relegation, 25, because);
             let r = w.culture.rivalries.ensure(a, b, RivalryKind::Relegation, 25, today);
             r.intensity = r.intensity.saturating_add(6).min(100);
         }

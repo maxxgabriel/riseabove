@@ -497,6 +497,9 @@ fn landing_team(w: &World, p: PlayerId, club: ClubId) -> TeamId {
 
 pub fn execute_transfer(w: &mut World, p: PlayerId, buyer: ClubId, seller: ClubId, fee: Money, contract: Contract) {
     let today = w.date;
+    if seller.is_some() {
+        crate::metrics::note_deal(w.players.cold[p].value, fee, w.players.cold[p].contract.days_left(w.date) as f32 / 365.0, asking_factor(w, p));
+    }
     // He starts settling from where he is now, before the move changes what he knows.
     crate::adaptation::begin(w, p, seller, buyer);
     remove_from_team(w, p);

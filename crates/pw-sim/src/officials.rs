@@ -282,6 +282,13 @@ pub fn after_match(w: &mut World, fx: &Fixture, r: &MatchResult) {
     }
 }
 
+/// The public event of the most recent disputed call in the fixture `uid`, if the call was big enough to be one.
+fn controversy_event(w: &World, uid: u64) -> pw_world::event::Causes {
+    let ids: Vec<u32> = w.officials.controversies.iter().rev().take(200).filter(|c| c.uid == uid).map(|c| c.id).collect();
+    let found = w.events.latest_where(5_000, |e| matches!(e.kind, EventKind::RefereeControversy { controversy } if ids.contains(&controversy)));
+    found.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)])
+}
+
 fn charge(w: &mut World, club: ClubId, kind: ChargeKind, uid: u64) {
     let today = w.date;
     let revenue = w.clubs[club].finance.balance.max(0);
@@ -292,7 +299,13 @@ fn charge(w: &mut World, club: ClubId, kind: ChargeKind, uid: u64) {
     let id = w.officials.charges.len() as u32;
     w.officials.charges.push(Charge { id, club, kind, date: today, uid, fine });
     w.clubs[club].finance.balance -= fine;
-    w.events.push(today, Visibility::Public, EventKind::Charged { charge: id, club });
+    // Comments on a referee are charged for the call that provoked them; a card count has no single event behind it (the match is
+    // the root).
+    let because = match kind {
+        ChargeKind::RefereeComments { .. } => controversy_event(w, uid),
+        ChargeKind::FailingToControl => Default::default(),
+    };
+    w.events.push_caused(today, Visibility::Public, EventKind::Charged { charge: id, club }, because);
 }
 
 /// A manager who feels their side was wronged may criticise the referee —
@@ -405,7 +418,8 @@ pub fn daily(w: &mut World) {
         let x = &mut w.officials.appeals[id as usize];
         x.decided = Some(today);
         x.outcome = Some(outcome);
-        w.events.push(today, Visibility::Public, EventKind::AppealDecided { appeal: id, player: a.player });
+        let because = controversy_event(w, c.uid);
+        w.events.push_caused(today, Visibility::Public, EventKind::AppealDecided { appeal: id, player: a.player }, because);
         // The player remembers who stood up for them.
         if let Some(m) = w.clubs[a.club].manager.get() {
             let mp = w.staff[m].person;

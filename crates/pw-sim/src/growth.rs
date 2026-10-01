@@ -218,7 +218,11 @@ fn drift(w: &mut World) {
             r.drift = r.drift.saturating_add(moved.unsigned_abs() as u8);
             if r.drift >= 3 {
                 r.drift = 0;
-                w.events.push(today, Visibility::Public, EventKind::CharacterChanged { person: me, up: moved > 0 });
+                // Character moves in many small steps with no single moment behind them; the one visible bond that shapes it, a mentor,
+                // is the cause when there is one.
+                let mentor = w.events.latest_where(5_000, |e| matches!(e.kind, EventKind::TookUnderWing { mentee, .. } if mentee == me));
+                let because = mentor.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+                w.events.push_caused(today, Visibility::Public, EventKind::CharacterChanged { person: me, up: moved > 0 }, because);
             }
         }
     }
@@ -237,6 +241,7 @@ fn stagnation(w: &mut World) {
             continue;
         }
         let playing = h.minutes_4w >= 120 || h.injury != 0;
+        let minutes = h.minutes_4w;
         let (ca, pa) = (w.players.cold[p].ca, w.players.cold[p].pa);
         let r = w.growth.records.get_mut(&p).expect("record");
         if playing {
@@ -249,7 +254,11 @@ fn stagnation(w: &mut World) {
             let first = r.eroded == 3;
             w.players.cold[p].pa = pa - 1;
             if first {
-                w.events.push(today, Visibility::Public, EventKind::Stagnated { player: p });
+                // What the ceiling came down for: the minutes he did not get, read against the bar the rule itself uses (a third of a
+                // month's football).
+                let share_pct = (u32::from(minutes) * 100 / 360).min(100) as u8;
+                let because = pw_world::causes![pw_world::event::Cause::Fact(pw_world::event::Fact::MinutesShortfall { player: p, share_pct, expected_pct: 33 })];
+                w.events.push_caused(today, Visibility::Public, EventKind::Stagnated { player: p }, because);
             }
         }
     }

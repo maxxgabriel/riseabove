@@ -105,6 +105,7 @@ fn balance(a: &Args) {
 == {target}, seed {} ({} years, {:.1?}) ==", pw_core::rng::seed_label(seed), a.years, t.elapsed());
         print!("{}", pw_sim::metrics::render(&run));
         print!("{}", pw_sim::metrics::render_economy(&run));
+        print!("{}", pw_sim::metrics::render_population(&run));
         let findings = pw_sim::metrics::analyse(&run);
         if findings.is_empty() {
             println!("no drift found");

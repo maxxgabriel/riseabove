@@ -295,10 +295,13 @@ pub fn retire(w: &mut World, p: PlayerId) {
         }
         contracts::release(w, p);
     }
+    let was_amateur = w.players.hot[p].status == PlayerStatus::Amateur;
     w.players.hot[p].status = PlayerStatus::Retired;
     w.knowledge.clear_player(p);
     let person = w.players.cold[p].person;
-    w.events.push(today, Visibility::Public, EventKind::Retired { person });
+    // An amateur who stops playing is not news: the event is the person's own, so the public record is not flooded with lapses.
+    let seen = if was_amateur { Visibility::Person(person) } else { Visibility::Public };
+    w.events.push(today, seen, EventKind::Retired { person });
     if let Some(a) = w.agents.of_player.remove(&p) {
         w.agents.list[a.agent].clients.retain(|&x| x != p);
     }

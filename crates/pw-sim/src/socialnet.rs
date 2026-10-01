@@ -429,13 +429,32 @@ pub fn apply(w: &mut World, a: AccountId, about: PersonId, mut delta: [i16; N_DI
         }
     };
     let o = &mut v[idx];
+    let before = o.score;
     for dim in Dim::ALL {
         o.dims[dim.idx()] = (o.dims[dim.idx()] + delta[dim.idx()]).clamp(-1000, 1000);
     }
     o.score = summarise(&acc, &o.dims);
     o.low = o.low.min(o.score);
     o.high = o.high.max(o.score);
+    let after = o.score;
+    // Turning is rare and worth a record; drifting is not. A view that was warm and is now cold (or the reverse) is an event, caused by
+    // the newest thing that happened to him; one such turn per person, direction and month is enough, so a crowd turning at once is one
+    // event and not thousands.
+    let turned = if before >= 0 && after <= -TURN { Some(false) } else if before <= 0 && after >= TURN { Some(true) } else { None };
+    if let Some(up) = turned {
+        let seen = w.events.latest_where(400, |e| matches!(e.kind, EventKind::OpinionTurned { about: x, up: u, .. } if x == about && u == up));
+        let fresh = seen.is_none_or(|id| w.events.get(id).is_none_or(|e| e.date.days_until(today) > 30));
+        if fresh {
+            let player = w.people[about].player;
+            let cause = w.events.latest_where(2_000, |e| e.kind.people().contains(&about) || (player.is_some() && e.kind.player() == Some(player)));
+            let because = cause.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+            w.events.push_caused(today, pw_world::event::Visibility::Public, EventKind::OpinionTurned { about, account: a as u32, up }, because);
+        }
+    }
 }
+
+/// How far an account's score must swing past neutral for its view of someone to count as turned.
+const TURN: i16 = 300;
 
 /// A group of accounts whose view of someone can be read as one (locked design 6.11).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

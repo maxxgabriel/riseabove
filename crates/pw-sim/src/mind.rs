@@ -235,6 +235,13 @@ pub fn retirement_choice(w: &World, p: PlayerId, rng: &mut Rng) -> bool {
     let h = &w.players.hot[p];
     let who = c.person;
     let age = consider::age(w, who);
+    // Adults in the amateur game drift out of organised football at every age, not only past thirty: work, study, family and
+    // a body that never became a profession's. Without this the world's population grew by a thousand creations a year against a
+    // few hundred retirements and the surplus piled up in the amateur pool (`pathway-sim balance` population table). Children
+    // in grassroots clubs (under eighteen) are not adults and stay. Rates are per year; a lapse is a quiet retirement.
+    if h.status == PlayerStatus::Amateur && age >= 18.0 && age < 30.0 {
+        return rng.chance(amateur_lapse(age));
+    }
     if age < 30.0 && h.status != PlayerStatus::FreeAgent {
         return false;
     }
@@ -249,6 +256,12 @@ pub fn retirement_choice(w: &World, p: PlayerId, rng: &mut Rng) -> bool {
     let age_push = ((age - 32.0) / 5.0).max(0.0);
     let x = -2.6 + age_push * 1.6 + (1.0 - body) * 2.2 + unattached * 1.4 + secure * 0.3 + family + long_injury - level * 1.5 - ambition * 0.5;
     rng.chance(sigmoid(x) * 0.5)
+}
+
+/// The yearly chance an amateur adult under thirty stops playing organised football. A constant, not tuning: the tuning table is part of
+/// the save layout.
+fn amateur_lapse(age: f32) -> f32 {
+    if age < 22.0 { 0.10 } else if age < 26.0 { 0.14 } else { 0.18 }
 }
 
 /// How drawn a retired player is to staying in football, per season.

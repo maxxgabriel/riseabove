@@ -3,6 +3,7 @@
 //! series for trends rather than single bad values.
 
 use pw_core::Date;
+use pw_world::player::PlayerSource;
 use pw_world::{EventKind, PlayerStatus, StaffRole, World};
 
 use crate::Sim;
@@ -30,6 +31,13 @@ pub struct Snapshot {
     pub p99_ca: f32,
     pub retirements: u32,
     pub youth_intakes: u32,
+    /// Players created in the period, by `PlayerSource::ALL` order: every new person in the world has a stated origin.
+    pub created: [u32; 7],
+    /// Everyone ever created, retired or not. `created` summed over the run explains this; nothing appears without a source.
+    pub players_total: usize,
+    /// Everyone not retired: professionals, free agents, amateurs and grassroots children. Its change over a period is explained by
+    /// `created` and `retirements` and nothing else (the population table prints the remainder).
+    pub alive: usize,
     // clubs and money
     pub clubs: usize,
     pub balance_p10: f64,
@@ -93,6 +101,12 @@ pub struct Snapshot {
     pub fee_median: f64,
     /// Median of fee over the market's estimate of the player now: what prices do, apart from who is being bought.
     pub fee_to_value: f64,
+    /// Median years left on the seller's contract at the moment of a fee deal (set by `observe`): short when initial contracts run out,
+    /// longer once renewals have matured. A price read from contract length moves with it.
+    pub deal_contract_years: f64,
+    /// Median of the seller-situation factor on the asking price at the moment of a fee deal (stance, expiry, listing, board): a fee
+    /// over value that rises with it is the mix of who is sold, not a change of price.
+    pub deal_asking_factor: f64,
     pub fee_p90: f64,
     pub fee_p95: f64,
     pub fee_max: f64,
@@ -222,6 +236,11 @@ fn pct<T: Copy + PartialOrd>(v: &mut [T], q: f32) -> Option<T> {
 /// Read the world now. `since` is the previous snapshot's date (events in between are counted as the period's activity).
 pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     let mut s = Snapshot { year, date: w.date.0, ..Default::default() };
+    // A period is (previous snapshot, now]: the day of the previous snapshot was counted in that one.
+    let from = if year == 0 { since } else { Date(since.0 + 1) };
+    s.created = w.players.created_by_source(from, Date(w.date.0 + 1));
+    s.players_total = w.players.len();
+    s.alive = w.players.ids().filter(|&p| w.players.hot[p].status != PlayerStatus::Retired).count();
     // Players.
     let (mut ages, mut cas, mut wages, mut fame): (Vec<f32>, Vec<f32>, Vec<f64>, Vec<f32>) = (vec![], vec![], vec![], vec![]);
     let mut first_team_wages: Vec<f64> = Vec::new();
@@ -433,19 +452,58 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     s
 }
 
+thread_local! {
+    /// Fees and the public value of the player at the moment of the deal, collected only while `observe` runs on this thread.
+    /// Diagnostic state: never saved, never read by the simulation.
+    static DEALS: std::cell::RefCell<Option<Vec<(f64, f64, f64, f64)>>> = const { std::cell::RefCell::new(None) };
+}
+
+/// A transfer fee was agreed for a player the market valued at `value` (before the move changes his contract): remembered for the
+/// fee-over-value series. Nothing happens unless a measurement run is collecting.
+pub fn note_deal(value: pw_core::Money, fee: pw_core::Money, years_left: f32, asking_factor: f32) {
+    if fee > 0 && value > 0 {
+        DEALS.with(|d| {
+            if let Some(v) = d.borrow_mut().as_mut() {
+                v.push((fee as f64, value as f64, f64::from(years_left), f64::from(asking_factor)));
+            }
+        });
+    }
+}
+
+/// Median fee over the player's value on the day of the deal. The snapshot's own `fee_to_value` divides by the value after the
+/// move, which already carries the new contract and so rises as contracts lengthen; this one does not.
+fn take_deal_ratio() -> Option<(f64, f64, f64)> {
+    DEALS.with(|d| {
+        let mut b = d.borrow_mut();
+        let v = b.as_mut()?;
+        let mut ratios: Vec<f64> = v.iter().map(|&(fee, value, _, _)| fee / value).collect();
+        let mut years: Vec<f64> = v.iter().map(|&(_, _, y, _)| y).collect();
+        let mut asks: Vec<f64> = v.iter().map(|&(_, _, _, a)| a).collect();
+        v.clear();
+        Some((pct(&mut ratios, 0.5)?, pct(&mut years, 0.5)?, pct(&mut asks, 0.5)?))
+    })
+}
+
 /// Run `years` seasons of 365 days from the world's current date, calling `each` after every year with that year's snapshot.
 pub fn observe(sim: &mut Sim, years: u32, mut each: impl FnMut(&Snapshot)) -> Vec<Snapshot> {
     let mut out = Vec::new();
     let mut since = sim.world.date;
+    DEALS.with(|d| *d.borrow_mut() = Some(Vec::new()));
     out.push(snapshot(&sim.world, since, 0));
     each(&out[0]);
     for y in 1..=years {
         sim.run(365);
-        let s = snapshot(&sim.world, since, y);
+        let mut s = snapshot(&sim.world, since, y);
+        if let Some((ratio, years, ask)) = take_deal_ratio() {
+            s.fee_to_value = ratio;
+            s.deal_contract_years = years;
+            s.deal_asking_factor = ask;
+        }
         since = sim.world.date;
         each(&s);
         out.push(s);
     }
+    DEALS.with(|d| *d.borrow_mut() = None);
     out
 }
 
@@ -562,7 +620,24 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     } else if pop.abs() > 4.0 {
         flag(Level::Warn, "population", format!("the active player count changes {pop:+.0}% a year"));
     }
-    let turnover = last.retirements as f64 / last.active_players.max(1) as f64;
+    // Everyone not retired, amateurs and children included: the active count above hides a pool that only ever fills.
+    if let Some(g) = yearly_growth(&series(&|s| s.alive as f64)) {
+        if g > 8.0 {
+            flag(Level::Problem, "population", format!("everyone not retired (amateurs and children included) grows {g:.0}% a year after warm-up: creations outrun retirements, see the population table"));
+        } else if g > 4.0 {
+            flag(Level::Warn, "population", format!("everyone not retired (amateurs and children included) grows {g:.0}% a year after warm-up: creations outrun retirements, see the population table"));
+        }
+    }
+    // Every change in the population is a creation (with a source) or a retirement; anything else is a leak.
+    for (prev, now) in run.iter().zip(run.iter().skip(1)).skip(1) {
+        let created: u32 = now.created.iter().sum();
+        let unexplained = now.alive as i64 - prev.alive as i64 - i64::from(created) + i64::from(now.retirements);
+        if unexplained != 0 {
+            flag(Level::Problem, "population", format!("year {}: {unexplained:+} players appeared or vanished without a creation record or a retirement", now.year));
+            break;
+        }
+    }
+    let turnover = last.retirements as f64 / last.alive.max(last.active_players).max(1) as f64;
     if !(0.02..=0.16).contains(&turnover) {
         flag(Level::Warn, "retirement", format!("{:.1}% of players retired this year", turnover * 100.0));
     }
@@ -674,13 +749,36 @@ pub fn render(run: &[Snapshot]) -> String {
     s
 }
 
+/// Where the people came from: new players by source per year against retirements, and the change in everyone not retired.
+/// `unexplained` is what is left of that change after creations and retirements: it must be zero (nothing enters or leaves the
+/// population without a stated source or a retirement).
+pub fn render_population(run: &[Snapshot]) -> String {
+    let mut s = String::new();
+    s.push_str("year   alive  delta  created");
+    for src in PlayerSource::ALL {
+        s.push_str(&format!(" {:>9}", src.label().split(' ').next_back().unwrap_or("?")));
+    }
+    s.push_str("  retired  unexplained  everCreated\n");
+    for (i, r) in run.iter().enumerate() {
+        let delta = if i == 0 { 0 } else { r.alive as i64 - run[i - 1].alive as i64 };
+        let created: u32 = r.created.iter().sum();
+        let unexplained = if i == 0 { 0 } else { delta - i64::from(created) + i64::from(r.retirements) };
+        s.push_str(&format!("{:>4} {:>7} {:>6} {:>8}", r.year, r.alive, delta, created));
+        for c in r.created {
+            s.push_str(&format!(" {c:>9}"));
+        }
+        s.push_str(&format!("  {:>7}  {:>11}  {:>11}\n", r.retirements, unexplained, r.players_total));
+    }
+    s
+}
+
 /// The money series of a run, one row per year: wages by tier, fees, cash, revenue against wages, unemployment, records and insolvency.
 pub fn render_economy(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee/val  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
+    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee/val cyrs  ask  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>8.2} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
+            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>8.2} {:>4.1} {:>5.2} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
             r.year,
             money(r.wage_tier1),
             money(r.wage_tier2),
@@ -690,6 +788,8 @@ pub fn render_economy(run: &[Snapshot]) -> String {
             money(r.player_wage_p99),
             money(r.fee_median),
             r.fee_to_value,
+            r.deal_contract_years,
+            r.deal_asking_factor,
             money(r.fee_p90),
             money(r.fee_p95),
             money(r.fee_max),
@@ -729,6 +829,8 @@ mod tests {
             .map(|y| Snapshot {
                 year: y as u32,
                 active_players: 1000,
+                alive: 1000,
+                created: [80, 0, 0, 0, 0, 0, 0],
                 clubs: 50,
                 balance_median: 5e6,
                 first_team_wage_median: 5000.0,

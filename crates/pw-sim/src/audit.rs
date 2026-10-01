@@ -75,6 +75,11 @@ pub enum Violation {
     RuleOutOfRange {
         change: u32,
     },
+    /// An event that names as its cause an event that happened after it (or itself): a cause precedes its effect.
+    CauseNotBefore {
+        event: u32,
+        cause: u32,
+    },
 }
 
 pub fn audit(w: &World) -> Vec<Violation> {
@@ -87,7 +92,40 @@ pub fn audit(w: &World) -> Vec<Violation> {
     minor(w, &mut v);
     votes(w, &mut v);
     rules(w, &mut v);
+    causes(w, &mut v);
     v
+}
+
+/// Causes run forward in time: the event a consequence names was recorded before it. (A cause may have been compacted away since; that
+/// is not a fault, and an event without a cause is not one either: a root has none. `cause_coverage` says how many have.)
+fn causes(w: &World, v: &mut Vec<Violation>) {
+    use pw_world::event::Cause;
+    for e in w.events.all() {
+        for c in &e.causes {
+            if let Cause::Event(id) = c
+                && *id >= e.id
+            {
+                v.push(Violation::CauseNotBefore { event: e.id.0, cause: id.0 });
+            }
+        }
+    }
+}
+
+/// For each kind of event, how many were recorded and how many of those name a cause, by the kind's debug name. For the kinds that are
+/// consequences of something else this is the measure of how connected the world is; roots (a match played, a transfer agreed) are
+/// expected to have none.
+pub fn cause_coverage(w: &World) -> Vec<(String, usize, usize)> {
+    let mut by: std::collections::BTreeMap<String, (usize, usize)> = std::collections::BTreeMap::new();
+    for e in w.events.all() {
+        let name = format!("{:?}", e.kind);
+        let name = name.split([' ', '{', '(']).next().unwrap_or("?").to_string();
+        let slot = by.entry(name).or_default();
+        slot.0 += 1;
+        if !e.causes.is_empty() {
+            slot.1 += 1;
+        }
+    }
+    by.into_iter().map(|(k, (n, c))| (k, n, c)).collect()
 }
 
 fn stories(w: &World, v: &mut Vec<Violation>) {

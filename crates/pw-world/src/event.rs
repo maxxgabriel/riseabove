@@ -933,6 +933,20 @@ pub enum EventKind {
         raised: bool,
         round: u8,
     },
+    /// A rivalry began or took on a new character (a cup revenge, a title race, a relegation scrap). Appended last: older saves'
+    /// events keep their numbering.
+    RivalryKindled {
+        a: crate::culture::Side,
+        b: crate::culture::Side,
+        kind: crate::culture::RivalryKind,
+    },
+    /// An account's view of someone crossed a line: won over (`up`) or turned against him. Individual opinion moves are not events
+    /// (there are millions); the crossing is, and it rests on the newest thing that happened to him.
+    OpinionTurned {
+        about: PersonId,
+        account: u32,
+        up: bool,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -1275,6 +1289,13 @@ impl EventLog {
 
     pub fn all(&self) -> &[Event] {
         &self.events
+    }
+
+    /// The newest of the last `window` events that `f` accepts: the event a consequence found later rests on (the signing behind a
+    /// clause review, the sacking behind a vacancy). `None` when it has been compacted away or never happened, in which case the
+    /// consequence is recorded without a cause rather than with an invented one.
+    pub fn latest_where(&self, window: usize, f: impl Fn(&Event) -> bool) -> Option<EventId> {
+        self.events.iter().rev().take(window).find(|e| f(e)).map(|e| e.id)
     }
 
     pub fn len(&self) -> usize {

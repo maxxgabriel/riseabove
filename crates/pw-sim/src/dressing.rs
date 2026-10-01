@@ -4,7 +4,7 @@
 //! `Settling`, `Teammates` and `Manager` factors), unrest, and the board's
 //! sense of whether the manager still has the players.
 
-use pw_core::{ClubId, Hidden, NationId, PlayerId};
+use pw_core::{ClubId, Hidden, NationId, PersonId, PlayerId};
 use pw_world::dressing::{Bond, Group, Room, Standing};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::{FxHashMap, MemoryKind, PlayerStatus, SquadStatus, TeamKind, World};
@@ -63,7 +63,8 @@ pub fn weekly(w: &mut World) {
             *v = (f32::from(*v) + step).min(100.0) as u8;
             if *v >= 80 {
                 room.integration.remove(&p);
-                w.events.push(today, Visibility::Club(club), EventKind::PlayerSettled { player: p, club });
+                let because = crate::clauses::deal_behind(w, p);
+                w.events.push_caused(today, Visibility::Club(club), EventKind::PlayerSettled { player: p, club }, because);
                 // Someone helped; they are remembered for it.
                 if let Some(helper) = players.iter().copied().filter(|&x| x != p).max_by(|&a, &b| {
                     let fa = consider::affinity(w, me, w.players.cold[a].person);
@@ -128,7 +129,16 @@ fn rebuild(w: &mut World, club: ClubId) {
             Standing::Peripheral
         };
         if s == Standing::Leader && prev.standing.get(&p) != Some(&Standing::Leader) && !prev.standing.is_empty() {
-            w.events.push(today, Visibility::Club(club), EventKind::LeaderEmerged { player: p, club });
+            // A leader steps into the room the last one left: the departure is the cause when there was one.
+            let left = prev.standing.iter().filter(|&(&q, &st)| st == Standing::Leader && !players.contains(&q)).filter_map(|(&q, _)| {
+                w.events.latest_where(5_000, |e| match e.kind {
+                    EventKind::Transfer { player, from, .. } => player == q && from == club,
+                    EventKind::Released { player, club: c, .. } => player == q && c == club,
+                    _ => false,
+                })
+            });
+            let because = left.max().map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+            w.events.push_caused(today, Visibility::Club(club), EventKind::LeaderEmerged { player: p, club }, because);
         }
         standing.insert(p, s);
     }
@@ -169,7 +179,16 @@ fn rebuild(w: &mut World, club: ClubId) {
             }
             let was = prev.groups.iter().find(|pg| pg.leader == g.leader).map_or(50, |pg| pg.stance);
             if g.stance < 30 && was >= 30 && li >= 0.55 {
-                w.events.push(today, Visibility::Club(club), EventKind::DressingRoomSplit { club, leader: g.leader });
+                // A group turns on the manager over something he did to one of them (a broken promise) or because he is new.
+                let mgr = m;
+                let members: Vec<PersonId> = g.members.iter().map(|&x| w.players.cold[x].person).collect();
+                let cause = w.events.latest_where(5_000, |e| match e.kind {
+                    EventKind::PromiseBroken { from, to, .. } => from == mgr && members.contains(&to),
+                    EventKind::ManagerAppointed { club: c, .. } => c == club,
+                    _ => false,
+                });
+                let because = cause.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
+                w.events.push_caused(today, Visibility::Club(club), EventKind::DressingRoomSplit { club, leader: g.leader }, because);
             }
         }
     }

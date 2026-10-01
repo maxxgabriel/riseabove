@@ -160,3 +160,44 @@ fn over_a_season_surges_and_their_consequences_form_chains_back_to_football() {
     let named = w.lifestate.by.values().flat_map(|s| s.loads.iter()).filter(|l| l.cause.is_some()).count();
     assert!(named > 0, "some lived experiences name their event");
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// The rest of the islands: contracts and clauses, the dressing room, stagnation, sponsors, rivalries, referees, opinion.
+// ---------------------------------------------------------------------------------------------------------------------------------
+
+#[test]
+fn every_cause_in_a_running_world_comes_before_its_effect() {
+    let w = world(500);
+    let bad: Vec<_> = pw_sim::audit::audit(&w).into_iter().filter(|v| matches!(v, pw_sim::audit::Violation::CauseNotBefore { .. })).collect();
+    assert!(bad.is_empty(), "a cause named after its effect: {bad:?}");
+}
+
+#[test]
+fn the_connected_islands_name_what_brought_them_about() {
+    // Two seasons of a small world: every kind below is emitted by a system that used to leave it uncaused. Each that occurs names its
+    // cause the large majority of the time; the rest are older than the event log remembers or have no single event behind them.
+    let w = world(750);
+    let cov = pw_sim::audit::cause_coverage(&w);
+    let get = |k: &str| cov.iter().find(|(n, _, _)| n == k).map_or((0, 0), |&(_, n, c)| (n, c));
+    let mut seen = Vec::new();
+    for (kind, floor) in [("ContractOption", 90), ("PlayerSettled", 80), ("Stagnated", 100), ("EndorsementEnded", 40), ("AppealDecided", 40), ("RivalryKindled", 60)] {
+        let (n, c) = get(kind);
+        if n >= 3 {
+            seen.push(kind);
+            assert!(c * 100 >= n * floor, "{kind}: {c} of {n} name a cause, expected at least {floor}%");
+        }
+    }
+    assert!(!seen.is_empty(), "none of the connected kinds occurred in two seasons: {cov:?}");
+}
+
+#[test]
+fn an_option_taken_names_the_signing_it_belongs_to() {
+    let mut w = world(30);
+    let (p, _) = player(&w);
+    let club = w.players.hot[p].club;
+    let signed = w.events.push(w.date, Visibility::Public, EventKind::ContractSigned { player: p, club, wage: 1000, until: w.date.add_days(900), renewal: false });
+    // The deal-behind lookup is what clause events use: the newest signing of this player.
+    let found = pw_sim::clauses::deal_behind(&w, p);
+    assert_eq!(found.len(), 1);
+    assert!(matches!(found[0], Cause::Event(id) if id == signed));
+}

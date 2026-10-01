@@ -355,6 +355,19 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
         JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
         EnrolledUniversity { person: x, institution } => format!("{} enrolled at {}.", me(x), crate::history::institution(w, institution)),
+        RivalryKindled { a: pw_world::culture::Side::Club(x), b: pw_world::culture::Side::Club(y), kind } => {
+            use pw_world::culture::RivalryKind as K;
+            let (x, y) = (club(w, x), club(w, y));
+            match kind {
+                K::CupRevenge => format!("The cup tie between {x} and {y} left something to settle."),
+                K::TitleRace => format!("{x} and {y} fought out the title to the last, and will not forget it."),
+                K::Promotion => format!("{x} and {y} fought out promotion to the last, and will not forget it."),
+                K::Relegation => format!("{x} and {y} were separated by a whisker in the fight against the drop."),
+                _ => format!("{x} and {y} have become rivals."),
+            }
+        }
+        // Rivalries between nations or institutions and individual accounts turning on someone are records, not lines in a feed.
+        RivalryKindled { .. } | OpinionTurned { .. } => return None,
         RecruitWon { person: x, institution, over, raised, .. } => {
             let (won, lost) = (crate::history::institution(w, institution), crate::history::institution(w, over));
             if raised { format!("{won} improved their scholarship offer and won the race for {} ahead of {lost}.", me(x)) } else { format!("{} chose {won} over {lost}.", me(x)) }
