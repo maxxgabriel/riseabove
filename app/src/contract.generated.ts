@@ -793,6 +793,59 @@ export interface ActDone {
   applies: string;
 }
 
+export interface DecisionOptionView {
+  i: number;
+  label: string;
+  kind: string;
+  positive: boolean;
+  default: boolean;
+  consequence?: string;
+  effect?: string;
+  tone?: string;
+  counter?: unknown;
+}
+
+export interface ThreadDecision {
+  id: string;
+  state: string;
+  title: string;
+  deadline: number;
+  options: DecisionOptionView[];
+  kind: string;
+}
+
+export interface DecisionDefault {
+  i: number;
+  label: string;
+}
+
+export interface DecisionDetailView {
+  id: string;
+  kind: string;
+  dkind: string;
+  title: string;
+  from: unknown;
+  created: number;
+  deadline: number;
+  state: string;
+  paragraphs: string[];
+  options: DecisionOptionView[];
+  answer: number | null;
+  default: DecisionDefault;
+  without_response: string | null;
+  consequences: string[];
+  terms: unknown;
+  current_terms: unknown;
+  talk: unknown;
+  meeting: unknown;
+  incident: unknown;
+  press: unknown;
+  outcome: string | null;
+}
+
+/** `me.message`: an event, or a decision in full. */
+export type MeMessage = MeMessageView | DecisionDetailView;
+
 export interface PulseTarget {
   k: string;
   id: number;
@@ -2049,17 +2102,19 @@ export interface MeTodayView {
 
 export interface MeMessagesViewMessage {
   date: number;
-  deadline: unknown;
+  deadline: number | null;
   folder: string;
   from: unknown;
   id: string;
   important: boolean;
   kind: string;
   needs_action: boolean;
-  parts: Part[];
+  dkind?: string;
+  preview?: string;
+  parts?: Part[];
   state: string;
   subject: string;
-  unread: boolean;
+  unread?: boolean;
 }
 
 export interface MeMessagesView {
@@ -2117,7 +2172,7 @@ export interface MeThreadViewMessagePostAuthor {
 }
 
 export interface MeThreadViewMessagePostParent {
-  about: Named;
+  about: Named | null;
   author: MeThreadViewMessagePostAuthor;
   date: number;
   id: number;
@@ -2132,7 +2187,7 @@ export interface MeThreadViewMessagePostParent {
 }
 
 export interface MeThreadViewMessagePost {
-  about: Named;
+  about: Named | null;
   author: MeThreadViewMessagePostAuthor;
   date: number;
   id: number;
@@ -2180,6 +2235,8 @@ export interface MeThreadViewMessage {
   replies: MeThreadViewMessageReply[];
   story?: MeThreadViewMessageStory | null;
   text: string;
+  decision?: ThreadDecision;
+  sureness?: string;
 }
 
 export interface MeThreadView {
@@ -2449,7 +2506,7 @@ export interface MeFeedViewPostAuthor {
 }
 
 export interface MeFeedViewPostParent {
-  about: Named;
+  about: Named | null;
   author: MeThreadViewMessagePostAuthor;
   date: number;
   id: number;
@@ -2696,7 +2753,7 @@ export interface ApiMethods {
   "me.thread": { kind: "query"; req: Record<string, unknown>; res: MeThreadView };
   "me.thread_read": { kind: "command"; req: IdReq; res: Done };
   "me.reply": { kind: "command"; req: ReplyReq; res: ActDone };
-  "me.message": { kind: "query"; req: Record<string, unknown>; res: MeMessageView };
+  "me.message": { kind: "query"; req: Record<string, unknown>; res: MeMessage };
   "me.answer": { kind: "command"; req: AnswerReq; res: Done };
   "me.act": { kind: "command"; req: ActReq; res: ActDone };
   "me.options": { kind: "query"; req: Record<string, unknown>; res: MeOptionsView };

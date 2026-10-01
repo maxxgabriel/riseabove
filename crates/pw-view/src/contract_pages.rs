@@ -81,11 +81,11 @@ impl Ts for PartIn {
 
 /// Declare a page payload: a struct that serialises and deserialises (refusing undeclared fields) and its TypeScript interface.
 macro_rules! response {
-    ($( $(#[$m:meta])* pub struct $name:ident { $( pub $f:ident : $t:ty ),* $(,)? } )*) => {$(
+    ($( $(#[$m:meta])* pub struct $name:ident { $( $(#[$fm:meta])* pub $f:ident : $t:ty ),* $(,)? } )*) => {$(
         $(#[$m])*
         #[derive(Clone, Debug, Deserialize, Serialize)]
         #[serde(deny_unknown_fields)]
-        pub struct $name { $( pub $f: $t ),* }
+        pub struct $name { $( $(#[$fm])* pub $f: $t ),* }
 
         impl Ts for $name {
             fn ts() -> String { stringify!($name).into() }
@@ -1152,19 +1152,22 @@ response! {
         pub waiting_on: Vec<MeTodayViewWaitingOn>,
         pub weekday: f64,
     }
+    /// One line of the message list: a decision (`dkind`, `preview`) or an event (`parts`, `unread`).
     pub struct MeMessagesViewMessage {
         pub date: f64,
-        pub deadline: Value,
+        pub deadline: Option<f64>,
         pub folder: String,
         pub from: Value,
         pub id: String,
         pub important: bool,
         pub kind: String,
         pub needs_action: bool,
-        pub parts: Vec<PartIn>,
+        pub dkind: Opt<String>,
+        pub preview: Opt<String>,
+        pub parts: Opt<Vec<PartIn>>,
         pub state: String,
         pub subject: String,
-        pub unread: bool,
+        pub unread: Opt<bool>,
     }
     pub struct MeMessagesView {
         pub awaiting: f64,
@@ -1215,7 +1218,7 @@ response! {
         pub you: bool,
     }
     pub struct MeThreadViewMessagePostParent {
-        pub about: NamedIn,
+        pub about: Option<NamedIn>,
         pub author: MeThreadViewMessagePostAuthor,
         pub date: f64,
         pub id: f64,
@@ -1229,7 +1232,7 @@ response! {
         pub text: String,
     }
     pub struct MeThreadViewMessagePost {
-        pub about: NamedIn,
+        pub about: Option<NamedIn>,
         pub author: MeThreadViewMessagePostAuthor,
         pub date: f64,
         pub id: f64,
@@ -1273,6 +1276,9 @@ response! {
         pub replies: Vec<MeThreadViewMessageReply>,
         pub story: Opt<Option<MeThreadViewMessageStory>>,
         pub text: String,
+        pub decision: Opt<ThreadDecision>,
+        /// How sure the person who told you was, in words.
+        pub sureness: Opt<String>,
     }
     pub struct MeThreadView {
         pub id: f64,
@@ -1289,6 +1295,7 @@ response! {
         pub headline: String,
         pub outlet: String,
     }
+    /// `me.message` for an event.
     pub struct MeMessageView {
         pub date: f64,
         pub id: String,
@@ -1508,7 +1515,7 @@ response! {
         pub you: bool,
     }
     pub struct MeFeedViewPostParent {
-        pub about: NamedIn,
+        pub about: Option<NamedIn>,
         pub author: MeThreadViewMessagePostAuthor,
         pub date: f64,
         pub id: f64,
@@ -1685,6 +1692,58 @@ response! {
 }
 
 response! {
+    /// One answer to a decision, as the inbox offers it: the engine's label and what choosing it does where the engine words the
+    /// decision (`consequence`).
+    pub struct DecisionOptionView {
+        pub i: f64,
+        pub label: String,
+        pub kind: String,
+        pub positive: bool,
+        pub default: bool,
+        pub consequence: Opt<String>,
+        pub effect: Opt<String>,
+        pub tone: Opt<String>,
+        pub counter: Opt<Value>,
+    }
+    /// The decision a thread message carries.
+    pub struct ThreadDecision {
+        pub id: String,
+        pub state: String,
+        pub title: String,
+        pub deadline: f64,
+        pub options: Vec<DecisionOptionView>,
+        pub kind: String,
+    }
+    /// The chosen answer that applies if none is given.
+    pub struct DecisionDefault {
+        pub i: f64,
+        pub label: String,
+    }
+    /// `me.message` for a decision: what it is, what each answer does, and how it ended. The blocks for talks, meetings, incidents
+    /// and press questions are present only for those kinds of decision.
+    pub struct DecisionDetailView {
+        pub id: String,
+        pub kind: String,
+        pub dkind: String,
+        pub title: String,
+        pub from: Value,
+        pub created: f64,
+        pub deadline: f64,
+        pub state: String,
+        pub paragraphs: Vec<String>,
+        pub options: Vec<DecisionOptionView>,
+        pub answer: Option<f64>,
+        pub default: DecisionDefault,
+        pub without_response: Option<String>,
+        pub consequences: Vec<String>,
+        pub terms: Value,
+        pub current_terms: Value,
+        pub talk: Value,
+        pub meeting: Value,
+        pub incident: Value,
+        pub press: Value,
+        pub outcome: Option<String>,
+    }
     /// Where a pulse item leads: a person, club, competition or match, or a story (`k` "news").
     pub struct PulseTarget {
         pub k: String,
@@ -1771,6 +1830,11 @@ response! {
 /// Every page payload declaration, in order.
 pub fn declarations() -> Vec<String> {
     vec![
+        DecisionOptionView::declaration(),
+        ThreadDecision::declaration(),
+        DecisionDefault::declaration(),
+        DecisionDetailView::declaration(),
+        "/** `me.message`: an event, or a decision in full. */\nexport type MeMessage = MeMessageView | DecisionDetailView;\n".to_string(),
         PulseTarget::declaration(),
         DatasetsView::declaration(),
         DatasetRow::declaration(),
@@ -1998,7 +2062,7 @@ pub fn response_type(method: &str) -> Option<String> {
         "me.football" => <MeFootballView as Ts>::ts(),
         "me.inbox" => <MeInboxView as Ts>::ts(),
         "me.life" => <MeLifeView as Ts>::ts(),
-        "me.message" => <MeMessageView as Ts>::ts(),
+        "me.message" => "MeMessage".to_string(),
         "me.messages" => <MeMessagesView as Ts>::ts(),
         "me.options" => <MeOptionsView as Ts>::ts(),
         "me.press" => <MePressView as Ts>::ts(),

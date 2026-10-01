@@ -701,7 +701,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
                     Tone::Warn,
                     70,
                     "Playing less than the role implies",
-                    format!("{:.0}% of the available minutes over the last four weeks, where a {} is expected to play around {:.0}%.", share * 100.0, status.to_lowercase(), expected * 100.0),
+                    format!("{:.0}% of the available minutes over the last four weeks, where {} is expected to play around {:.0}%.", share * 100.0, with_article(&status.to_lowercase()), expected * 100.0),
                     "Minutes in the last four weeks against squad status",
                 );
             } else if expected <= 0.4 && share >= expected + 0.4 {
@@ -710,7 +710,7 @@ fn player_notes(c: &Ctx, n: &mut Notes, person: PersonId, p: PlayerId) {
                     Tone::Pos,
                     40,
                     "Has outgrown the role",
-                    format!("{:.0}% of the available minutes over the last four weeks, where a {} would expect around {:.0}%.", share * 100.0, status.to_lowercase(), expected * 100.0),
+                    format!("{:.0}% of the available minutes over the last four weeks, where {} would expect around {:.0}%.", share * 100.0, with_article(&status.to_lowercase()), expected * 100.0),
                     "Minutes in the last four weeks against squad status",
                 );
             }
@@ -1819,4 +1819,10 @@ pub fn matchup(c: &Ctx, args: &Value) -> ApiResult<Value> {
         }
     }
     Ok(n.finish(args))
+}
+
+/// "an important player", "a regular starter".
+fn with_article(noun: &str) -> String {
+    let an = noun.starts_with(['a', 'e', 'i', 'o', 'u']);
+    format!("{} {noun}", if an { "an" } else { "a" })
 }

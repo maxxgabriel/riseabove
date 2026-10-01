@@ -1282,7 +1282,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.thread"), None, "MeThreadView"),
         typed(c("me.thread_read"), Some("IdReq"), "Done"),
         typed(c("me.reply"), Some("ReplyReq"), "ActDone"),
-        typed(q("me.message"), None, "MeMessageView"),
+        typed(q("me.message"), None, "MeMessage"),
         typed(c("me.answer"), Some("AnswerReq"), "Done"),
         typed(c("me.act"), Some("ActReq"), "ActDone"),
         typed(q("me.options"), None, "MeOptionsView"),

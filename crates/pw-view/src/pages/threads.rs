@@ -121,7 +121,8 @@ fn line(c: &Ctx, m: &Message) -> String {
         MsgSource::Decision { decision } => w.decisions.all.get(decision).map_or_else(String::new, |d| pw_narrate::choices::title(w, d)),
         MsgSource::Tell { info, from } => match pw_narrate::grapevine::belief(w, info, me) {
             Some((what, _)) => format!("{} told you {}.", c.person_name(from), what),
-            None => format!("{} told you something.", c.person_name(from)),
+            // What was said has since been forgotten (by the world's grapevine, not only by you); the day it was said still tells two apart.
+            None => format!("On {}, {} told you something you no longer remember clearly.", crate::fmt::date(m.date), c.person_name(from)),
         },
         MsgSource::Meeting { event } | MsgSource::Private { event } => w.events.get(event).map_or_else(|| "Something from earlier that is no longer on record.".to_string(), |e| {
             // An event the narration has no sentence for is still listed by what it is, never as a blank line.
