@@ -355,6 +355,10 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         JournalistLeft { person: x, outlet } => format!("{} is no longer writing for {}.", me(x), w.media.outlets[outlet].name),
         JournalistHired { person: x, outlet } => format!("{} joined {}.", me(x), w.media.outlets[outlet].name),
         EnrolledUniversity { person: x, institution } => format!("{} enrolled at {}.", me(x), crate::history::institution(w, institution)),
+        RecruitWon { person: x, institution, over, raised, .. } => {
+            let (won, lost) = (crate::history::institution(w, institution), crate::history::institution(w, over));
+            if raised { format!("{won} improved their scholarship offer and won the race for {} ahead of {lost}.", me(x)) } else { format!("{} chose {won} over {lost}.", me(x)) }
+        }
         Graduated { person: x, institution, early } => {
             if early {
                 format!("{} left {} to turn professional.", me(x), crate::history::institution(w, institution))

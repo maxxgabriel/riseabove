@@ -815,3 +815,38 @@ fn the_reference_gives_the_world_its_names_press_and_institutions_and_nothing_el
     assert_eq!(again.world.media.outlets.len(), w.media.outlets.len());
     assert_eq!(again.world.ext.lore, w.ext.lore);
 }
+
+#[test]
+fn universities_compete_for_players_in_rounds_and_never_give_more_places_than_they_have() {
+    let mut s = world(41);
+    s.run(800);
+    let w = &s.world;
+    let e = &w.ext.ecosystem;
+    // Places: no programme holds more scholarships than it has.
+    for (&u, prof) in &e.inst {
+        if w.minor.institutions[u as usize].kind != pw_world::minor::InstKind::University {
+            continue;
+        }
+        let held = e.scholarship.values().filter(|x| x.inst == u).count();
+        assert!(held <= usize::from(prof.scholarships).max(1) + 1, "{} holds {held} of {}", w.minor.institutions[u as usize].name, prof.scholarships);
+    }
+    // Contests: players wanted by several programmes choose one, the winner holds them, and some contests take a better offer or a
+    // second round (a place turned down offered again).
+    let won: Vec<_> = w
+        .events
+        .since(pw_core::Date(0))
+        .iter()
+        .filter_map(|ev| match ev.kind {
+            pw_world::event::EventKind::RecruitWon { person, institution, over, raised, round } => Some((person, institution, over, raised, round)),
+            _ => None,
+        })
+        .collect();
+    assert!(!won.is_empty(), "no contested recruit in two Septembers");
+    for &(person, institution, over, _, round) in &won {
+        assert_ne!(institution, over);
+        assert!((1..=3).contains(&round));
+        let p = w.people[person].player.get().expect("a player");
+        assert!(e.scholarship.get(&p).is_none_or(|x| x.inst == institution), "the winner holds the place");
+    }
+    assert!(won.iter().any(|x| x.3) || won.iter().any(|x| x.4 > 1), "neither a raised offer nor a second round in {} contests", won.len());
+}

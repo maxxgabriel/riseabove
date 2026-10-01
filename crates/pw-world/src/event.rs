@@ -924,6 +924,15 @@ pub enum EventKind {
         group: u32,
         action: crate::socialnet::GroupAction,
     },
+    /// A player wanted by more than one university chose `institution` over `over` (the best rival offer); `raised` when the winner had
+    /// improved its scholarship to win, `round` the recruiting round it was settled in.
+    RecruitWon {
+        person: PersonId,
+        institution: u32,
+        over: u32,
+        raised: bool,
+        round: u8,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -1115,6 +1124,7 @@ impl EventKind {
             | CareerEnded { person, .. }
             | Investment { person, .. }
             | EnrolledUniversity { person, .. }
+            | RecruitWon { person, .. }
             | Graduated { person, .. } => v.push(person),
             Record { person, .. } if person.is_some() => v.push(person),
             Voted { person, .. } | HallInduction { person, .. } => v.push(person),

@@ -57,13 +57,13 @@ pub fn recruit(w: &mut World) {
     }
     let mut unis: Vec<u32> = w.minor.institutions.iter().filter(|i| i.kind == InstKind::University).map(|i| i.id).collect();
     unis.sort();
-    // Offers, from what each university believes it has seen.
-    let mut offers: Vec<(PlayerId, u32, u8, f32)> = Vec::new();
+    // What each university believes it has seen, best first.
+    let mut recruiters: Vec<Recruiter> = Vec::new();
     for &u in &unis {
         let Some(prof) = w.ext.ecosystem.inst.get(&u).cloned() else { continue };
         let inst = w.minor.institutions[u as usize].clone();
         let held = w.ext.ecosystem.scholarship.values().filter(|s| s.inst == u).count();
-        let mut slots = usize::from(prof.scholarships).saturating_sub(held);
+        let slots = usize::from(prof.scholarships).saturating_sub(held);
         if slots == 0 {
             continue;
         }
@@ -99,58 +99,173 @@ pub fn recruit(w: &mut World) {
             }
         }
         seen.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-        for (score, p) in seen {
-            if slots == 0 {
-                break;
-            }
-            let tier = if prof.resources > 60.0 && score > bar + 25.0 { 3 } else if prof.resources > 40.0 && score > bar + 10.0 { 2 } else { 1 };
-            offers.push((p, u, tier, score));
-            slots -= 1;
-        }
+        recruiters.push(Recruiter { inst: u, bar, resources: prof.resources, ranked: seen, next: 0, slots });
     }
-    // Each player weighs what he was offered against what else he might do.
-    offers.sort_by_key(|o| (o.0, o.1));
-    let mut k = 0;
-    while k < offers.len() {
-        let p = offers[k].0;
-        let mine: Vec<(u32, u8, f32)> = offers[k..].iter().take_while(|o| o.0 == p).map(|o| (o.1, o.2, o.3)).collect();
-        k += mine.len();
-        choose(w, p, &mine, year);
+    // Rounds: each programme offers its open places to the best it has seen and not yet lost; each player answers; a place turned
+    // down goes to the next name on the list. Programmes that want the same player bid against each other once.
+    let mut settled: pw_world::FxHashSet<PlayerId> = Default::default();
+    let mut lost: pw_world::FxHashSet<(u32, PlayerId)> = Default::default();
+    for round in 0..ROUNDS {
+        let mut offers: Vec<Offer> = Vec::new();
+        for r in &mut recruiters {
+            let mut open = r.slots;
+            while open > 0 && r.next < r.ranked.len() {
+                let (score, p) = r.ranked[r.next];
+                r.next += 1;
+                if settled.contains(&p) || lost.contains(&(r.inst, p)) {
+                    continue;
+                }
+                offers.push(Offer { player: p, inst: r.inst, tier: first_tier(r, score), score, raised: false });
+                open -= 1;
+            }
+        }
+        if offers.is_empty() {
+            break;
+        }
+        offers.sort_by_key(|o| (o.player, o.inst));
+        let mut k = 0;
+        while k < offers.len() {
+            let p = offers[k].player;
+            let n = offers[k..].iter().take_while(|o| o.player == p).count();
+            let mut mine: Vec<Offer> = offers[k..k + n].to_vec();
+            k += n;
+            if mine.len() > 1 {
+                counter_offers(w, p, &mut mine, &recruiters);
+            }
+            match choose(w, p, &mine, year, round) {
+                Some(u) => {
+                    settled.insert(p);
+                    if let Some(r) = recruiters.iter_mut().find(|r| r.inst == u) {
+                        r.slots -= 1;
+                    }
+                    for o in mine.iter().filter(|o| o.inst != u) {
+                        lost.insert((o.inst, p));
+                    }
+                }
+                // The professional route, or home: nobody gets the player this year.
+                None => {
+                    settled.insert(p);
+                }
+            }
+        }
     }
 }
 
-fn choose(w: &mut World, p: PlayerId, offers: &[(u32, u8, f32)], year: u64) {
-    let today = w.date;
-    let who = w.players.cold[p].person;
-    let story = w.ext.ecosystem.story.get(&p).copied();
-    let home = story.map_or(RegionId::NONE, |s| s.home);
-    let lang = if home.is_some() { w.ext.ecosystem.regions[home].language } else { 0 };
-    let support = w.lives.get(who).map_or(0.5, |l| f32::from(l.household.parents.support) / 20.0);
-    let ambition = consider::hid(w, who, Hidden::Ambition) / 20.0;
-    let score = |&(u, tier, _): &(u32, u8, f32)| -> f32 {
+/// Recruiting rounds in a September: offers, answers, and places turned down offered again.
+const ROUNDS: usize = 3;
+
+/// A programme's view of its recruiting: what it holds itself to, what it can spend, whom it has seen (best first) and how many places
+/// are still open.
+struct Recruiter {
+    inst: u32,
+    bar: f32,
+    resources: f32,
+    ranked: Vec<(f32, PlayerId)>,
+    next: usize,
+    slots: usize,
+}
+
+#[derive(Clone, Copy)]
+struct Offer {
+    player: PlayerId,
+    inst: u32,
+    tier: u8,
+    score: f32,
+    raised: bool,
+}
+
+/// The scholarship a programme opens with: the better it thinks the player and the more it has, the more it offers.
+fn first_tier(r: &Recruiter, score: f32) -> u8 {
+    if r.resources > 60.0 && score > r.bar + 25.0 {
+        3
+    } else if r.resources > 40.0 && score > r.bar + 10.0 {
+        2
+    } else {
+        1
+    }
+}
+
+/// The most a programme will stretch to for a player it rates `score`: one step above its opening offer, within its means.
+fn ceiling(r: &Recruiter, score: f32) -> u8 {
+    let top = if r.resources > 60.0 { 3 } else if r.resources > 40.0 { 2 } else { 1 };
+    let wanted = if score > r.bar + 15.0 { 3 } else if score > r.bar + 5.0 { 2 } else { 1 };
+    top.min(wanted).max(first_tier(r, score))
+}
+
+/// A player holding several offers: each programme that is not the player's first choice may raise its scholarship once, if it rates the player highly enough
+/// and can afford to. The family hears the improved offers before deciding.
+fn counter_offers(w: &World, p: PlayerId, mine: &mut [Offer], recruiters: &[Recruiter]) {
+    let ctx = Family::of(w, p);
+    let best = mine.iter().map(|o| ctx.appeal(w, o.inst, o.tier)).fold(f32::MIN, f32::max);
+    for o in mine.iter_mut() {
+        if ctx.appeal(w, o.inst, o.tier) >= best {
+            continue;
+        }
+        let Some(r) = recruiters.iter().find(|r| r.inst == o.inst) else { continue };
+        let cap = ceiling(r, o.score);
+        if cap > o.tier {
+            o.tier = cap;
+            o.raised = true;
+        }
+    }
+}
+
+/// What a family weighs in an offer: the scholarship, the programme's football and name, how far from home, in which language.
+struct Family {
+    home: RegionId,
+    lang: u8,
+    support: f32,
+}
+
+impl Family {
+    fn of(w: &World, p: PlayerId) -> Family {
+        let who = w.players.cold[p].person;
+        let home = w.ext.ecosystem.story.get(&p).map_or(RegionId::NONE, |s| s.home);
+        let lang = if home.is_some() { w.ext.ecosystem.regions[home].language } else { 0 };
+        let support = w.lives.get(who).map_or(0.5, |l| f32::from(l.household.parents.support) / 20.0);
+        Family { home, lang, support }
+    }
+
+    fn appeal(&self, w: &World, u: u32, tier: u8) -> f32 {
         let inst = &w.minor.institutions[u as usize];
         let prof = &w.ext.ecosystem.inst[&u];
-        let travel = w.ext.ecosystem.travel_burden(home, prof.region);
-        let same_language = if home.is_some() && prof.region.is_some() && w.ext.ecosystem.regions[prof.region].language == lang { 0.05 } else { 0.0 };
-        0.5 * tier_value(tier) + 0.25 * prof.success / 100.0 + 0.15 * f32::from(inst.prestige) / 1000.0 - 0.6 * travel * (1.2 - support) + same_language
-    };
-    let best = offers.iter().copied().max_by(|a, b| score(a).total_cmp(&score(b)).then(b.0.cmp(&a.0))).unwrap();
+        let travel = w.ext.ecosystem.travel_burden(self.home, prof.region);
+        let same_language = if self.home.is_some() && prof.region.is_some() && w.ext.ecosystem.regions[prof.region].language == self.lang { 0.05 } else { 0.0 };
+        0.5 * tier_value(tier) + 0.25 * prof.success / 100.0 + 0.15 * f32::from(inst.prestige) / 1000.0 - 0.6 * travel * (1.2 - self.support) + same_language
+    }
+}
+
+/// The player answers: the best offer, or none of them if the alternative looks better. Returns the programme chosen.
+fn choose(w: &mut World, p: PlayerId, offers: &[Offer], year: u64, round: usize) -> Option<u32> {
+    let today = w.date;
+    let who = w.players.cold[p].person;
+    let ctx = Family::of(w, p);
+    let ambition = consider::hid(w, who, Hidden::Ambition) / 20.0;
+    let mut scored: Vec<(f32, Offer)> = offers.iter().map(|o| (ctx.appeal(w, o.inst, o.tier), *o)).collect();
+    scored.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.inst.cmp(&b.1.inst)));
+    let (appeal, best) = *scored.first()?;
+    let rival = scored.get(1).map(|x| x.1.inst);
     // What else he could do: the better he is, the more the professional route tempts, more so if he is ambitious.
     // How good he thinks he is, not how good he is.
     let ca = crate::consider::self_view(w, p);
     let alternative = (0.15 + 0.6 * ((ca - 55.0) / 60.0).clamp(0.0, 1.0)) * (0.7 + 0.6 * ambition);
     let noise = (w.roll(stream::MINOR, &[u64::from(p.0), year, 0x5c0]) - 0.5) * 0.1;
-    if score(&best) + noise <= alternative {
-        return;
+    if appeal + noise <= alternative {
+        return None;
     }
-    let (u, tier, _) = best;
+    let u = best.inst;
     w.minor.join(p, u);
     w.minor.enrolled.insert(p, today.year());
-    w.ext.ecosystem.scholarship.insert(p, Scholarship { inst: u, tier, from: today });
+    w.ext.ecosystem.scholarship.insert(p, Scholarship { inst: u, tier: best.tier, from: today });
     crate::ecosystem::note(w, p, StageKind::University, u);
     let region = w.ext.ecosystem.inst[&u].region;
     crate::ecosystem::set_dev_region(w, p, region);
     w.events.push(today, Visibility::Person(who), EventKind::EnrolledUniversity { person: who, institution: u });
+    // A contested recruit is news around the programmes: who won the player, against whom, and whether it took a better scholarship.
+    if let Some(over) = rival {
+        w.events.push(today, Visibility::Public, EventKind::RecruitWon { person: who, institution: u, over, raised: best.raised, round: round as u8 + 1 });
+    }
+    Some(u)
 }
 
 /// July: programmes take stock. Results, alumni and sponsors set the budget; the budget sets coaching and places.
