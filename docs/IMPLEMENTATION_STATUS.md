@@ -280,11 +280,26 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
 * **Region output** is measured by quality (top tier, internationals, senior appearances, value): `ecosystem::region_output` (tested).
 * **UI** (IMPLEMENTED, typed contract, contract test): `Development` page (regions, abroad, scenario) and a pathway panel on player pages
   (`pathway.player`, `ecosystem.regions|export|scenario`); recognition internals are omniscient-view only. Not visually reviewed in a browser.
-* **Not done**: university recruiting competition between institutions beyond offers and choice; women's football and referee
-  pathways (deliberately later); the reference data under `data/worlds/india/**` is read only in part: the loader uses states, clubs, stadiums, competitions, memberships and derbies; not yet used: associations and
-  state-association names, districts, academies, universities, schools, media outlets, broadcasters, rules, national and state teams,
-  languages and terminology, partnerships, grassroots programmes, coach and referee development, aliases other than derby names.
-* **Not validated**: long-run balance of the new discovery rates on the full India world (calibration soak pending, see the report).
+* **Reference data read into the world** (IMPLEMENTED, tested: `reference::the_reference_gives_the_world_its_names_press_and_institutions_and_nothing_else`):
+  `pw-import/src/india_ref.rs` types every table it reads (23 of them; an untyped table is reported, not skipped), and `india_lore.rs` turns
+  the records into `World::ext.lore` (`pw-world/src/lore.rs`, ext layout 4). Each entry keeps its record id and standing (Imported /
+  ScenarioSeed). What it gives the world is names and words, never strengths or results:
+  - state associations name each state's football body; the pyramid and the state premier leagues take their real competition names;
+  - real schools, sports hostels, SAI centres and universities become the world's institutions (resources from their kind, not their record);
+    clubs' academies and nicknames, supporters' groups and native-script names are attached to the clubs;
+  - newsrooms are real outlets (national, state and club media chosen by football emphasis and reach), staffed by the world's journalists;
+    broadcasters holding rights in the starting season are outlets too;
+  - programmes, partnerships (world clubs and the federation), men's representative sides, the coaching ladder, the referees' ladder,
+    rules in words and football terms in each language are recorded for the views and the text.
+  The Development > Scenario page lists them with their standing; a club page shows what the club is known as, its academy, partners and media.
+  Supporters and local papers call a club by its nickname (`pw-lang` render, tested in `pw-lang/tests/nickname.rs`).
+* **Not done**: women's football (deliberately later); districts and grassroots programmes are listed, not simulated.
+* **Balance on the India world** (MEASURED, 6 years, tiny scale, seeds 1-2; `pathway-sim balance india-tiny`): mean ability had risen
+  11-14 points in six years. Two causes, both fixed. Academy intakes in a world of regions drew potential from the European formula (mean ~106
+  against India's ~70): an academy now recruits from its region's pool (`ecosystem::pool_talent`) with a selection margin, and no minors
+  come from abroad. Children grew at a youth rate from eight: growth now brakes near an age ceiling (`generate::maturity_ceiling`). Drift
+  is now +5 to +6 (a warning, from more and better-selected youngsters at the professional clubs). Clubs in debt fell from 23 to 11 and the
+  median wage bill from 0.87 to 0.67 of revenue (see section 16). Not yet repeated on the full-scale India world in this container.
 
 ## 15. Language engine (pw-lang) in the news, inbox and social text — PARTIAL (in ecosystem worlds)
 
@@ -299,7 +314,7 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
 * **Not done**: incident reports, analysis and feature stories; inbox options with engine effects (the engine's `effect` ids are not implemented by the simulation);
   worlds without an ecosystem (the engine's money is rupees); second language.
 
-## 16. Economy calibration — PARTIAL (three causes of early drift fixed, one open)
+## 16. Economy calibration — PARTIAL (four causes of drift fixed; late-run fee prices and imported youth sides open)
 
 Measured with `pathway-sim balance` (release) on the synthetic small world (64 clubs, two tiers), seeds 1-3, eight to ten years, and the tiny
 world, seed 1, ten years; the real archive is not in this container, so its numbers below are the earlier report's.
@@ -309,7 +324,8 @@ world, seed 1, ten years; the real archive is not in this container, so its numb
 | Club balances grew ~45%/yr in the archive, x3 in the small world's first years | Placeholder cash was endowed at 0.45 of revenue; the reserve rule kept 0.75 of revenue plus a surplus drained at ~45%/yr | **FIXED**: clubs start at the reserve (`reserve_years`), owners take their share of the excess quarterly | small: median balance year 0 -> 3 x1.5 (was x3.4); `economy_long.rs` bound (within x2 over three years) |
 | Imported first-team wages 22k -> 44k -> 56k -> 68k | Builders priced every generated wage and salary before the economy existed: revenue had no broadcast share | **FIXED**: `economy::ensure_pools` at the end of `builder::finalize` | `archive.rs` `wages_the_archive_lacks_are_set_at_the_level_the_running_world_pays` (0.60 of the running level before, now within 0.8-1.25); small: mean first-team wage 187k -> 235-259k over eight years (3.5-4%/yr) |
 | Prime-age professionals released into the amateur game, first teams years younger | Graduates stepped up while the first team was under its hard limit; the monthly trim then shed senior players | **FIXED**: graduates step up best-first into the planned room (`first_team_target`) | tier-1 first-team age 24.3 -> 25.3-25.6 in year 6 (was falling from 28) |
-| Median transfer fee +27-35%/yr (small world, `balance` flags a PROBLEM) | Not the price: fees stay at 1.1-1.5x the public value. The mix changes (early deals are cheap youth sales from big clubs to small ones, later ones top-flight moves) and the second tier's ability rises ~20 points in eight years as the academy pipeline outgrows the generated lower-division squads | **OPEN** | per-deal fee/value, traded-player ability and tier ability by year, recorded in the commit message of `6793f26`; `economy_long.rs` (fees from year 5) still passes |
+| Median transfer fee +27-35%/yr (small world, `balance` flags a PROBLEM) | Mostly not the price: the mix changes (early deals are cheap youth sales from big clubs to small ones, later ones top-flight moves) | **MEASURED, partly open**: `balance` now reports fee over the public value (`fee/val`) and flags a problem only when that rises; a rising median at steady prices is a warning. Small world, seed 1: fee/value 0.70 for four years, then 1.03-1.10 in years 5-6 (warning: +12%/yr) | `metrics::tests::dearer_players_moving_is_not_price_inflation_but_paying_more_for_the_same_player_is` |
+| Clubs over their wage budget kept signing and renewing; India: clubs in debt 0 -> 23 in six years (tiny), 128-182 (full), wage bill 0.87 of revenue | Only the transfer search read the wage budget; renewals, first professional deals, trials, enquiries and pre-contracts did not, and talks stretched past it. The going rate priced the first team at the whole budget, leaving nothing for staff, reserves and scholars | **FIXED**: one check (`market::wage_fits`) on every route that adds a wage; key players are renewed over budget, and anyone while the first team is at a matchday squad; the going rate prices the first team at 85% of the budget (`FIRST_TEAM_PART`) | India tiny: clubs in debt 11, wage/revenue 0.67; small: wage/revenue 0.60, first-team squads steady at 25 |
 | Archive: active players +19%/yr, state growth ~31%/yr | Imported worlds carry no youth sides, which fill over the first seasons; the amateur pool grows until its age structure fills | **OPEN** (warm-up, not measured here) | `LOCAL_INTEGRATION_REPORT.md` |
 
 A reloaded world diverged from an uninterrupted one after the change (`qa_retention`): `growth::drift` pushed `CharacterChanged` events in
