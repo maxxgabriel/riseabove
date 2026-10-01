@@ -2301,6 +2301,8 @@ export interface MeTodayViewSettling {
   since: number;
   plan: string;
   parts: MeTodayViewSettlingPart[];
+  home: string;
+  clock: string | null;
 }
 
 export interface MeTodayViewAtmosphere {

@@ -127,8 +127,62 @@ pub(crate) fn words(c: &Ctx, me: PersonId, m: &ChatMsg, i: usize, family: bool) 
                     let s = format!("{n}'s a manager now, at ");
                     vec![Part::t(s), Part::l(Ref::club(club), c.club_name(club)), Part::t(". Who saw that coming?")]
                 }
-                _ => t(format!("News about {n}. Remember when he was one of us?")),
+                _ => t(format!("News about {n}. Remember when they were one of us?")),
             }
+        }
+        Said::Spotted { spot } => {
+            use pw_world::chronicle::Spot;
+            t(match (family, spot) {
+                (true, Spot::Street) => pick(m, i, &["Someone stopped you in the street for an autograph? The whole neighbourhood is talking about it.", "A stranger asked for your autograph! We still can't believe it."]).to_string(),
+                (true, Spot::Training) => "People queue outside training for your autograph now? We are so proud.".to_string(),
+                (true, _) => pick(m, i, &["Your photo at the airport is everywhere! We kept a copy.", "Saw you at the airport in the paper. Wear a jacket next time, it's cold on planes."]).to_string(),
+                (false, Spot::Training) => pick(m, i, &["Saw the queue at the gate for your autograph. Superstar now?", "The kids at the gate were asking for you, not us. Remember who passes you the ball."]).to_string(),
+                (false, Spot::Street) => pick(m, i, &["Heard you got stopped in town for an autograph. Big time.", "Signing autographs in the street now? Don't forget us."]).to_string(),
+                (false, _) => pick(m, i, &["Seen your airport photos. Who dressed you?", "Photographers at the airport now? Sunglasses next."]).to_string(),
+            })
+        }
+        Said::PartnerMove { coming: true } => t(pick(m, i, &["I'm coming with you. Already looking at places near the ground.", "Packed. Where you go, I go."]).to_string()),
+        Said::PartnerMove { coming: false } => {
+            t(pick(m, i, &["I can't leave everything here, not now. We'll make it work from here, I promise.", "I'm staying, for now. It doesn't change anything between us. Call me when you land."]).to_string())
+        }
+        Said::FamilyMove { coming, abroad } => t(match (coming, abroad) {
+            (true, true) => "I'm coming out for the first weeks to help you settle. Someone has to make sure you eat properly.",
+            (true, false) => "I'm coming with you for the first weeks, until you find your feet.",
+            (false, true) => "We can't come with you, not with everything here. We'll visit as soon as we can. Call every day.",
+            (false, false) => "We can't all come, but it's not the other side of the world. Call every day.",
+        }
+        .to_string()),
+        Said::WatchedFromHome { uid, result, ahead } => {
+            // The final whistle at about nine in the evening where you play, and what hour that was at home.
+            let h = (21 + i32::from(ahead)).rem_euclid(24);
+            let when = match h {
+                0 => "It's past midnight here, but we watched every minute.".to_string(),
+                1..=5 => format!("It's {h} in the morning here. Couldn't sleep, so I watched."),
+                6..=11 => "Watched it with breakfast this morning.".to_string(),
+                12..=17 => "Watched it this afternoon. Don't tell anyone at work.".to_string(),
+                _ => "Watched it here tonight, all of us together.".to_string(),
+            };
+            let how = if c.is_concealed(uid) {
+                ""
+            } else {
+                match result.signum() {
+                    1 => " What a result!",
+                    0 => " A point, at least.",
+                    _ => " Unlucky. Get some rest.",
+                }
+            };
+            t(format!("{when}{how}"))
+        }
+        Said::MissingFar { ahead } => {
+            let h = (19 + i32::from(ahead)).rem_euclid(24);
+            let at = match h {
+                0 => "midnight".to_string(),
+                1..=11 => format!("{h} in the morning"),
+                12 => "noon".to_string(),
+                13..=17 => format!("{} in the afternoon", h - 12),
+                _ => format!("{} in the evening", h - 12),
+            };
+            t(pick(m, i, &["When it's evening where you are, it's {at} here. Call whenever you can, we'll pick up.", "We keep working out what time it is for you. It's {at} here when you finish dinner. We miss you."]).replace("{at}", &at))
         }
         Said::AgentNews { club } => {
             let s = pick(m, i, &["Had a call from {c} about you. Early days, I'll keep you posted.", "{c} asked about you. Nothing concrete yet."]);

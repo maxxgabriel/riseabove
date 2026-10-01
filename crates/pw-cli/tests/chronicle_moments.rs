@@ -200,3 +200,108 @@ fn at_a_trial_verdict_the_club_says_when_its_coach_and_its_scout_saw_you_differe
     assert_eq!(keen, sim.world.staff[coach].person, "the coach rated him higher");
     assert_eq!(doubtful, sim.world.staff[scout].person);
 }
+
+fn renowned(local: u16, wide: u16) -> pw_world::renown::Renown {
+    pw_world::renown::Renown { local, continental: wide, fame: wide, ..Default::default() }
+}
+
+#[test]
+fn being_recognised_in_public_grows_with_renown_and_a_trip_is_when_the_cameras_are_there() {
+    use pw_world::chronicle::Spot;
+    let (mut sim, p, who) = chronicled(46);
+    let d0 = sim.world.date;
+    // Over a few years of days, with no trips: how often someone asks for an autograph.
+    let asked = |sim: &mut Sim, r: Option<pw_world::renown::Renown>| -> usize {
+        match r {
+            Some(r) => sim.world.renown.people.insert(who, r),
+            None => sim.world.renown.people.remove(&who),
+        };
+        (0..2000).filter(|&i| pw_sim::chronicle::spotted(&sim.world, who, p, d0.add_days(i), &[]).is_some()).count()
+    };
+    assert_eq!(asked(&mut sim, None), 0, "nobody stops someone nobody has heard of");
+    assert_eq!(asked(&mut sim, Some(renowned(1500, 1500))), 0, "nor someone known only to a few");
+    let (some, many) = (asked(&mut sim, Some(renowned(5000, 0))), asked(&mut sim, Some(renowned(9500, 0))));
+    assert!(some > 0 && many > some, "rarer for the less known: {some} against {many} in 2000 days");
+    assert!(many < 120, "never every day: {many} in 2000 days");
+    // On the way to join the national squad: the photographers, more often for the famous, never for the unknown.
+    let nation = sim.world.people[who].nation;
+    let trip = |d: Date| pw_world::event::Event {
+        id: EventId(0),
+        date: d,
+        vis: pw_world::event::Visibility::Public,
+        kind: pw_world::EventKind::NationalSquad { player: p, nation, level: pw_world::intl::Level::Senior },
+        causes: Default::default(),
+    };
+    let photos = |sim: &mut Sim, wide: u16| -> usize {
+        sim.world.renown.people.insert(who, renowned(0, wide));
+        (0..400).filter(|&i| matches!(pw_sim::chronicle::spotted(&sim.world, who, p, d0.add_days(i), &[trip(d0.add_days(i))]), Some((Spot::SquadTrip, _, n)) if n == nation)).count()
+    };
+    let (none, few, lots) = (photos(&mut sim, 1000), photos(&mut sim, 4000), photos(&mut sim, 9500));
+    assert_eq!(none, 0);
+    assert!(few > 0 && lots > few, "{few} against {lots} trips photographed of 400");
+    // The same day asks the same question and gets the same answer.
+    let again = pw_sim::chronicle::spotted(&sim.world, who, p, d0.add_days(3), &[trip(d0.add_days(3))]);
+    assert_eq!(again, pw_sim::chronicle::spotted(&sim.world, who, p, d0.add_days(3), &[trip(d0.add_days(3))]));
+}
+
+#[test]
+fn the_first_autograph_and_the_first_airport_photo_are_told_once_each_and_someone_hears_of_it() {
+    use pw_world::chat::Said;
+    let (mut sim, _p, who) = chronicled(47);
+    for _ in 0..200 {
+        sim.world.renown.people.insert(who, renowned(9800, 9800));
+        sim.run(1);
+    }
+    let spots: Vec<pw_world::chronicle::Spot> = lines(&sim.world, who).into_iter().filter_map(|l| if let Line::Spotted { spot, .. } = l { Some(spot) } else { None }).collect();
+    assert!(!spots.is_empty(), "two hundred days as the best-known player in the land and nobody asked for an autograph");
+    for (i, a) in spots.iter().enumerate() {
+        assert!(!spots[i + 1..].iter().any(|b| b.same_kind(*a)), "each kind of moment is told once: {spots:?}");
+    }
+    let inbox = &sim.world.ext.chats.of[&who];
+    let heard = inbox.chats.iter().flat_map(|c| c.msgs.iter()).filter(|m| matches!(m.said, Said::Spotted { .. })).count();
+    assert!(heard >= 1, "the family or the squad hears of it");
+    // Teasing about it after the first time stays rare: a few months apart at least.
+    let firsts: Vec<Date> = sim.world.ext.chronicle.of(who).unwrap().entries.iter().filter(|e| matches!(e.line, Line::Spotted { .. })).map(|e| e.date).collect();
+    let mut again: Vec<Date> = inbox.chats.iter().flat_map(|c| c.msgs.iter()).filter(|m| matches!(m.said, Said::Spotted { .. }) && !firsts.contains(&m.date)).map(|m| m.date).collect();
+    again.sort();
+    assert!(again.windows(2).all(|x| x[0].days_until(x[1]) > 120), "{again:?}");
+}
+
+#[test]
+fn a_move_abroad_brings_a_place_to_live_the_family_deciding_and_a_clock_hours_apart() {
+    use pw_world::chat::{Room, Said};
+    let (mut sim, p, who) = chronicled(48);
+    // A day first, so the chats are open before the move (they start from what happens after they open).
+    sim.run(1);
+    let w = &mut sim.world;
+    let seller = w.players.hot[p].club;
+    let own = w.people[who].nation;
+    let lives = w.lives[who].home;
+    let buyer = w.clubs.ids().find(|&k| k != seller && w.clubs[k].nation != own && w.clubs[k].nation != lives && w.clubs[k].first_team().is_some()).expect("a club in another country");
+    let there = w.clubs[buyer].nation;
+    // The family at home, five hours behind the new club's country.
+    w.lives[who].household.parents.alive = 2;
+    w.lives[who].household.parents.nation = own;
+    let tz = w.nations[own].env.tz;
+    w.nations[there].env.tz = tz + 5;
+    let contract = pw_sim::market::new_contract(w, p, buyer, 1.0);
+    pw_sim::market::execute_transfer(w, p, buyer, seller, 0, contract);
+    sim.run(1);
+    let w = &sim.world;
+    assert_eq!(pw_world::chat::home_ahead(w, who).map(|x| x.0), Some(-5), "home is five hours behind");
+    let chats = &w.ext.chats.of[&who].chats;
+    let family: Vec<Said> = chats.iter().filter(|c| c.room == Room::Family).flat_map(|c| c.msgs.iter().map(|m| m.said)).collect();
+    assert!(family.iter().any(|s| matches!(s, Said::FamilyMove { abroad: true, .. })), "the family decides whether someone comes: {family:?}");
+    // A partner, if there is one, says whether they come too.
+    if let Some(pt) = w.lives[who].household.partner {
+        let said: Vec<Said> = chats.iter().filter(|c| c.room == Room::Direct { with: pt.person }).flat_map(|c| c.msgs.iter().map(|m| m.said)).collect();
+        assert!(said.iter().any(|s| matches!(s, Said::PartnerMove { .. })), "{said:?}");
+    }
+    assert!(lines(w, who).iter().any(|l| matches!(l, Line::Life { kind: pw_world::event::LifeEventKind::Relocated { nation } } if *nation == there)));
+    sim.run(12);
+    let places: Vec<Line> = lines(&sim.world, who).into_iter().filter(|l| matches!(l, Line::NewPlace { .. })).collect();
+    assert_eq!(places.len(), 1, "where you live, told once: {places:?}");
+    assert!(matches!(places[0], Line::NewPlace { club, .. } if club == buyer));
+    sim.run(20);
+    assert_eq!(lines(&sim.world, who).iter().filter(|l| matches!(l, Line::NewPlace { .. })).count(), 1, "not again");
+}

@@ -146,6 +146,25 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
                 if let Some(f) = family(w, me, &mut rng) {
                     inbox.post(Room::Family, today, f, Said::Proud { about: About::Moved { club: to } }, ev);
                 }
+                // A permanent move far from home: the family decides whether someone comes for the first weeks.
+                if matches!(e.kind, E::Transfer { .. })
+                    && let Some(abroad) = crate::chronicle::far_move(w, p, from, to)
+                    && let Some(f) = family(w, me, &mut rng)
+                {
+                    let young = w.people[me].age(today) < 20;
+                    let coming = rng.chance(match (young, abroad) {
+                        (true, false) => 0.6,
+                        (true, true) => 0.45,
+                        (false, false) => 0.25,
+                        (false, true) => 0.15,
+                    });
+                    inbox.post(Room::Family, today, f, Said::FamilyMove { coming, abroad }, ev);
+                }
+            }
+            // Your partner deciding about a move abroad (`life::relocate`).
+            E::Life { person, kind: pw_world::event::LifeEventKind::PartnerJoinedMove { partner: pt } | pw_world::event::LifeEventKind::PartnerStayedBehind { partner: pt } } if person == me => {
+                let coming = matches!(e.kind, E::Life { kind: pw_world::event::LifeEventKind::PartnerJoinedMove { .. }, .. });
+                inbox.post(Room::Direct { with: pt }, today, Sender::Person(pt), Said::PartnerMove { coming }, ev);
             }
             E::EnrolledUniversity { person, institution } if person == me => {
                 if let Some(f) = family(w, me, &mut rng) {
@@ -213,6 +232,7 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
         }
     }
     from_the_story(w, inbox, me, club, today, &mut rng);
+    spotted_again(w, inbox, me, p, club, today, &fresh, &mut rng);
     if club.is_none() {
         return;
     }
@@ -234,6 +254,17 @@ fn from_the_story(w: &World, inbox: &mut Inbox, me: PersonId, club: ClubId, toda
                     inbox.post(Room::Squad { club: k }, today, Sender::Person(q), Said::GoodToHaveYouBack { uid }, EventId::NONE);
                 }
             }
+            // Recognised in public for the first time: the family hears of the autograph or sees the photo; a teammate saw the
+            // queue at the training ground.
+            Line::Spotted { spot, .. } => {
+                if spot == pw_world::chronicle::Spot::Training {
+                    if let Some(&q) = closest(w, me, club, 1, rng).first() {
+                        inbox.post(Room::Squad { club }, today, Sender::Person(q), Said::Spotted { spot }, EventId::NONE);
+                    }
+                } else if let Some(f) = family(w, me, rng) {
+                    inbox.post(Room::Family, today, f, Said::Spotted { spot }, EventId::NONE);
+                }
+            }
             Line::Meanwhile { who, tie, then: then @ (Then::Capped { .. } | Then::BecameManager { .. }) } => {
                 let Some(TieKind::Teammate { club: old }) = life.ties.get(usize::from(tie)).map(|t| t.kind) else { continue };
                 if old == club || old.is_none() {
@@ -248,6 +279,34 @@ fn from_the_story(w: &World, inbox: &mut Inbox, me: PersonId, club: ClubId, toda
             }
             _ => {}
         }
+    }
+}
+
+/// Days between the squad's teasing about being recognised again.
+const SPOTTED_GAP: i32 = 120;
+
+/// Whether anyone said something of this kind in any room in the last `days` days.
+fn said_lately(inbox: &Inbox, today: Date, days: i32, kind: impl Fn(&Said) -> bool) -> bool {
+    inbox.chats.iter().any(|c| c.msgs.iter().rev().take_while(|m| m.date.days_until(today) <= days).any(|m| kind(&m.said)))
+}
+
+/// Recognised again after the first time (the chronicle tells only the first of each kind): now and then a teammate teases you
+/// about it, never more than once in a few months.
+#[allow(clippy::too_many_arguments)]
+fn spotted_again(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId, club: ClubId, today: Date, fresh: &[pw_world::event::Event], rng: &mut Rng) {
+    use pw_world::chronicle::Line;
+    if club.is_none() {
+        return;
+    }
+    let Some(life) = w.ext.chronicle.of(me) else { return };
+    let Some((spot, ..)) = crate::chronicle::spotted(w, me, p, today, fresh) else { return };
+    let mut told = life.entries.iter().filter_map(|e| if let Line::Spotted { spot: s, .. } = e.line { Some((e.date, s)) } else { None });
+    // The first time is the chronicle's, and its reaction comes from `from_the_story`.
+    if !told.any(|(d, s)| d < today && s.same_kind(spot)) || said_lately(inbox, today, SPOTTED_GAP, |s| matches!(s, Said::Spotted { .. })) || !rng.chance(0.5) {
+        return;
+    }
+    if let Some(&q) = closest(w, me, club, 1, rng).first() {
+        inbox.post(Room::Squad { club }, today, Sender::Person(q), Said::Spotted { spot }, EventId::NONE);
     }
 }
 
@@ -284,7 +343,19 @@ fn after_match(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId, club: Cl
     {
         inbox.post(room, today, Sender::Person(q), Said::WellDone { uid: m.uid }, EventId::NONE);
     }
+    // Family at home in another time zone: now and then they say they watched, at whatever hour it was there.
+    if mine.is_some()
+        && let Some((ahead, _)) = pw_world::chat::home_ahead(w, me).filter(|(h, _)| h.abs() >= WATCH_HOURS)
+        && !said_lately(inbox, today, 14, |s| matches!(s, Said::WatchedFromHome { .. }))
+        && rng.chance(0.35)
+        && let Some(f) = family(w, me, rng)
+    {
+        inbox.post(Room::Family, today, f, Said::WatchedFromHome { uid: m.uid, result, ahead }, EventId::NONE);
+    }
 }
+
+/// Hours between home and where you live before the family's messages mention it.
+const WATCH_HOURS: i8 = 3;
 
 /// Left out of the squad again: now and then the captain or a friend checks in, quietly.
 fn left_out(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId, club: ClubId, today: Date) {
@@ -349,6 +420,11 @@ fn far_from_home(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId, today:
     if (here.is_some_and(|h| h != home) || abroad)
         && let Some(f) = family(w, me, rng)
     {
-        inbox.post(Room::Family, today, f, Said::Missing, EventId::NONE);
+        // Across a time difference, the hours between you are part of missing you.
+        let said = match pw_world::chat::home_ahead(w, me).filter(|(h, _)| h.abs() >= WATCH_HOURS) {
+            Some((ahead, _)) if rng.chance(0.5) => Said::MissingFar { ahead },
+            _ => Said::Missing,
+        };
+        inbox.post(Room::Family, today, f, said, EventId::NONE);
     }
 }

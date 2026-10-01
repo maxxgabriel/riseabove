@@ -201,13 +201,55 @@ fn life_parts(c: &Ctx, k: LifeEventKind) -> Vec<Part> {
         LifeEventKind::ParentUnwell => s.t("A parent fell ill"),
         LifeEventKind::ParentRecovered => s.t("A parent recovered"),
         LifeEventKind::Bereavement => s.t("Lost someone close"),
-        LifeEventKind::Relocated { nation } => s.t("Moved your life to ").nation(nation),
+        LifeEventKind::Relocated { nation } => {
+            // Abroad, the clock is part of the distance: how far home is ahead or behind.
+            let family = c.me().map_or(NationId::NONE, |me| pw_world::chat::family_nation(c.w, me));
+            let s = s.t("Moved your life to ").nation(nation);
+            match clock_words(c, family, nation) {
+                Some(w) => s.t(format!(". {w}")),
+                None => s,
+            }
+        }
         LifeEventKind::PartnerJoinedMove { partner } => s.person(partner).t(" came with you"),
         LifeEventKind::PartnerStayedBehind { partner } => s.person(partner).t(" stayed behind"),
         LifeEventKind::FinancialTrouble => s.t("Money became a worry"),
         LifeEventKind::Graduated => s.t("Completed another stage of your education"),
     }
     .done()
+}
+
+fn hours(n: i8) -> String {
+    match n.unsigned_abs() {
+        1 => "an hour".into(),
+        h => format!("{h} hours"),
+    }
+}
+
+/// "Home is 4 hours ahead": how the clock at home (`home`, where the family is) stands against `here`, said as roughly when either
+/// nation's hours are inferred rather than known. `None` when they keep the same hours or either is unknown.
+pub(crate) fn clock_words(c: &Ctx, home: NationId, here: NationId) -> Option<String> {
+    if home.is_none() || here.is_none() || home == here {
+        return None;
+    }
+    let (a, b) = (&c.w.nations.get(home)?.env, &c.w.nations.get(here)?.env);
+    let ahead = a.tz - b.tz;
+    if ahead == 0 {
+        return None;
+    }
+    let about = if a.known && b.known { "" } else { "about " };
+    Some(format!("Home is {about}{} {}", hours(ahead), if ahead > 0 { "ahead" } else { "behind" }))
+}
+
+/// A home's quality (1–5) as a word, before "rented place" or "home".
+pub(crate) fn quality_word(q: u8) -> &'static str {
+    match q {
+        1 => "small ",
+        2 => "modest ",
+        3 => "comfortable ",
+        4 => "spacious ",
+        5 => "luxurious ",
+        _ => "",
+    }
 }
 
 fn why_parts(c: &Ctx, why: Why) -> Option<Vec<Part>> {
@@ -479,6 +521,27 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             };
             (s.done(), "recognition", None)
         }
+        Line::Spotted { spot, club, nation } => {
+            use pw_world::chronicle::Spot;
+            let s = match spot {
+                Spot::Street => s.t("Asked for your autograph in the street, the first time a stranger had"),
+                Spot::Training => s.t("People waiting outside training at ").club(club).t(" asked for your autograph, the first time anyone had"),
+                Spot::AwayTrip => s.t("Photographed at the airport for the first time, on the way to play ").club(club),
+                Spot::SquadTrip => s.t("Photographed at the airport for the first time, on the way to join the ").nation(nation).t(" squad"),
+                Spot::Moving => s.t("Photographed at the airport for the first time, on the way to ").club(club),
+            };
+            (s.done(), "recognition", None)
+        }
+        Line::NewPlace { club, home, quality } => {
+            use pw_world::affairs::HomeKind as H;
+            let s = match home {
+                H::Family => s.t("Moved in with a host family the club found, near ").club(club),
+                H::Digs => s.t("Settled into the club's digs at ").club(club).t(", while looking for a place of your own"),
+                H::Rented => s.t(format!("Found a {}rented place near ", quality_word(quality))).club(club),
+                H::Owned => s.t(format!("Bought a {}home near ", quality_word(quality))).club(club),
+            };
+            (s.done(), "life", None)
+        }
         Line::Faced { who, tie, club, .. } => {
             let t = life.ties.get(usize::from(tie))?;
             let role = if matches!(t.kind, TieKind::Coach { .. } | TieKind::LetGo { .. }) { ", in charge of " } else { ", now at " };
@@ -658,4 +721,88 @@ pub(crate) fn shared(c: &Ctx, me: PersonId, t: &Tie) -> Vec<Part> {
         TieKind::Finder => return s.t("The first outside your family to take you seriously").done(),
     };
     if now || t.days() < 7 { s.t(", since ").date(t.from).done() } else { s.t(", ").date(t.from).t(" to ").date(t.to).done() }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::render;
+    use crate::ctx::Ctx;
+    use crate::session::Session;
+    use pw_core::{EventId, NationId};
+    use pw_world::affairs::HomeKind;
+    use pw_world::chat::{ChatMsg, Said, Sender};
+    use pw_world::chronicle::{Line, Spot};
+    use pw_world::event::LifeEventKind;
+
+    fn text(parts: &[crate::model::Part]) -> String {
+        parts.iter().map(|p| p.t.as_str()).collect()
+    }
+
+    fn clean(t: &str) {
+        assert!(!t.trim().is_empty() && !t.contains("  ") && !t.contains('{') && !t.contains('}'), "clean: {t}");
+        assert!(t.starts_with(|c: char| c.is_uppercase()), "a sentence: {t}");
+        assert!(![" him", " his ", " he ", " she ", " her "].iter().any(|g| t.contains(g)), "no assumed gender: {t}");
+    }
+
+    #[test]
+    fn recognition_a_new_place_and_the_hours_between_home_and_here_read_as_sentences() {
+        let w = pw_import::synthetic::build(pw_data::DataPack::builtin(), 5, pw_import::synthetic::Scale::SMALL);
+        let mut s = Session::new(w, "t".into());
+        let p = s.w().players.ids().find(|&q| s.w().players.hot[q].club.is_some()).unwrap();
+        let me = s.w().players.cold[p].person;
+        s.inhabit(me, 0).unwrap();
+        let w = &mut s.game.sim.world;
+        let club = w.players.hot[p].club;
+        // Home (the family's country) four hours ahead of where the person lives now.
+        let own = w.people[me].nation;
+        let there = w.nations.ids().find(|&n| n != own).expect("two nations");
+        w.lives[me].home = there;
+        w.lives[me].household.parents.nation = own;
+        w.nations[own].env.tz = 7;
+        w.nations[there].env.tz = 3;
+        w.nations[own].env.known = true;
+        w.nations[there].env.known = true;
+        let c = Ctx::new(&s);
+        let life = c.w.ext.chronicle.of(me).unwrap();
+        let line = |l: Line| {
+            let (parts, _, _) = render(&c, life, l).expect("told");
+            let t = text(&parts);
+            clean(&t);
+            t
+        };
+        assert!(line(Line::Spotted { spot: Spot::Street, club, nation: NationId::NONE }).contains("autograph"));
+        assert!(line(Line::Spotted { spot: Spot::Training, club, nation: NationId::NONE }).contains("training"));
+        for spot in [Spot::AwayTrip, Spot::Moving] {
+            assert!(line(Line::Spotted { spot, club, nation: NationId::NONE }).contains("airport"));
+        }
+        assert!(line(Line::Spotted { spot: Spot::SquadTrip, club: pw_core::ClubId::NONE, nation: own }).contains("squad"));
+        assert!(line(Line::NewPlace { club, home: HomeKind::Family, quality: 0 }).contains("host family"));
+        assert!(line(Line::NewPlace { club, home: HomeKind::Digs, quality: 0 }).contains("digs"));
+        assert!(line(Line::NewPlace { club, home: HomeKind::Rented, quality: 3 }).starts_with("Found a comfortable rented place near "));
+        assert!(line(Line::NewPlace { club, home: HomeKind::Owned, quality: 5 }).starts_with("Bought a luxurious home near "));
+        assert!(line(Line::Life { kind: LifeEventKind::Relocated { nation: there } }).ends_with(". Home is 4 hours ahead"));
+        assert_eq!(super::clock_words(&c, own, own), None, "no clock at home");
+        assert_eq!(super::clock_words(&c, there, own).as_deref(), Some("Home is 4 hours behind"));
+        // The chats: each new message in words, the family's from home across the hours.
+        let today = c.w.date;
+        let msg = |said: Said, family: bool| {
+            let m = ChatMsg { date: today, from: Sender::Mother, said, event: EventId::NONE };
+            let t = text(&crate::pages::chat::words(&c, me, &m, 0, family));
+            clean(&t);
+            t
+        };
+        for spot in [Spot::Street, Spot::Training, Spot::AwayTrip] {
+            msg(Said::Spotted { spot }, true);
+            msg(Said::Spotted { spot }, false);
+        }
+        for (coming, abroad) in [(true, true), (true, false), (false, true), (false, false)] {
+            msg(Said::FamilyMove { coming, abroad }, true);
+        }
+        msg(Said::PartnerMove { coming: true }, false);
+        msg(Said::PartnerMove { coming: false }, false);
+        // The final whistle at nine in the evening here is one in the morning at home, four hours ahead.
+        assert!(msg(Said::WatchedFromHome { uid: u64::MAX, result: 1, ahead: 4 }, true).starts_with("It's 1 in the morning here"));
+        assert!(msg(Said::WatchedFromHome { uid: u64::MAX, result: -1, ahead: -6 }, true).contains("afternoon"));
+        assert!(msg(Said::MissingFar { ahead: 4 }, true).contains("11 in the evening"));
+    }
 }

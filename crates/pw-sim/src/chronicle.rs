@@ -121,6 +121,12 @@ pub fn daily(w: &mut World) {
             }
             back_with_group(w, &mut life, p, today);
             talked_about(w, &mut life, id, p, today);
+            if let Some((spot, club, nation)) = spotted(w, id, p, today, &fresh)
+                && !life.entries.iter().any(|x| matches!(x.line, Line::Spotted { spot: s, .. } if s.same_kind(spot)))
+            {
+                life.push(today, Line::Spotted { spot, club, nation }, EventId::NONE);
+            }
+            new_place(w, &mut life, id, p, today);
             if today.day() == 1 {
                 nothing_came_of_it(w, &mut life, p, today);
             }
@@ -154,6 +160,117 @@ pub fn club_km(w: &World, a: ClubId, b: ClubId) -> Option<f32> {
     let rb = eco.regions.get(*eco.club_region.get(&b)?)?;
     let (dx, dy) = (f32::from(ra.x) - f32::from(rb.x), f32::from(ra.y) - f32::from(rb.y));
     Some((dx * dx + dy * dy).sqrt() * KM_PER_UNIT)
+}
+
+/// Smallest distance (km) of an away trip that is a flight.
+pub const FLIGHT_KM: f32 = 500.0;
+
+/// Recognised in public today: asked for an autograph in the street or outside training, or photographed at an airport on the
+/// way to an away match far off, to join the national squad, or to a new club far from the last. How likely grows with how well
+/// known the person is (`renown`): the city's standing for autographs, celebrity and continental standing for the photographers;
+/// below a floor of standing, never. Pure and keyed on the day and the person: the chronicle and the chats ask it the same
+/// question and get the same answer. `fresh` is the day's new events.
+pub fn spotted(w: &World, who: PersonId, p: PlayerId, today: Date, fresh: &[Event]) -> Option<(pw_world::chronicle::Spot, ClubId, pw_core::NationId)> {
+    use pw_world::chronicle::Spot;
+    let r = w.renown.people.get(&who)?;
+    let club = w.players.hot[p].club;
+    let mut rng = pw_core::Rng::keyed(&[w.seed, 0x7370_6f74, u64::from(today.0 as u32), u64::from(who.0)]);
+    // Photographers at the airport: only on a trip, more often the better known.
+    let wide = f32::from(r.fame.max(r.continental)) / 10_000.0;
+    let lens = if wide < 0.2 { 0.0 } else { ((wide - 0.2) * 1.2).min(0.8) };
+    let mut trip = None;
+    for e in fresh.iter().filter(|e| e.date == today) {
+        match e.kind {
+            E::Transfer { player, from, to, .. } if player == p && far_move(w, p, from, to).is_some() => trip = Some((Spot::Moving, to, pw_core::NationId::NONE)),
+            E::NationalSquad { player, nation, .. } if player == p && trip.is_none() => trip = Some((Spot::SquadTrip, ClubId::NONE, nation)),
+            _ => {}
+        }
+    }
+    let played_today = w.perf.recent.get(&p).is_some_and(|v| v.iter().any(|a| a.date == today));
+    if trip.is_none() && played_today && club.is_some() {
+        let here = w.clubs.get(club).map(|k| k.nation);
+        if let Some(m) = w.recent_matches.on(today).find(|m| m.away == club) {
+            let abroad = w.clubs.get(m.home).map(|k| k.nation) != here;
+            if abroad || club_km(w, club, m.home).is_some_and(|km| km >= FLIGHT_KM) {
+                trip = Some((Spot::AwayTrip, m.home, pw_core::NationId::NONE));
+            }
+        }
+    }
+    let flash = rng.chance(lens);
+    if let Some(t) = trip
+        && flash
+    {
+        return Some(t);
+    }
+    // Autographs: the city's standing, on an ordinary day.
+    let local = f32::from(r.local) / 10_000.0;
+    let ask = if local < 0.25 { 0.0 } else { (local - 0.25) * 0.03 };
+    let roll = rng.f32();
+    let training_day = club.is_some() && !played_today && !matches!(today.weekday(), pw_core::Weekday::Sat | pw_core::Weekday::Sun);
+    if training_day && roll < ask {
+        Some((Spot::Training, club, pw_core::NationId::NONE))
+    } else if roll >= ask && roll < ask * 1.7 {
+        Some((Spot::Street, club, pw_core::NationId::NONE))
+    } else {
+        None
+    }
+}
+
+/// Whether a move from club `from` to club `to` takes the person to another country (`Some(true)`) or another state of their own
+/// (`Some(false)`); `None` for a move nearby. With no club before, home is where the person grew up.
+pub fn far_move(w: &World, p: PlayerId, from: ClubId, to: ClubId) -> Option<bool> {
+    let eco = &w.ext.ecosystem;
+    let person_nation = w.players.cold.get(p).and_then(|c| w.people.get(c.person)).map(|x| x.nation);
+    let nation = |k: ClubId| if k.is_some() { w.clubs.get(k).map(|c| c.nation) } else { person_nation };
+    let (a, b) = (nation(from)?, nation(to)?);
+    if a != b {
+        return Some(true);
+    }
+    let state = |k: ClubId| if k.is_some() { eco.club_region.get(&k).map(|&r| eco.state_of(r)) } else { eco.story.get(&p).map(|s| eco.state_of(s.home)) };
+    match (state(from), state(to)) {
+        (Some(x), Some(y)) if x != y => Some(false),
+        _ => None,
+    }
+}
+
+/// Where someone lives after arriving on `since`: the home they chose since then (rented or bought, with its quality), or, until
+/// they do, what the club found: a host family for someone under eighteen, digs for the rest.
+pub fn place_after_move(w: &World, who: PersonId, since: Date) -> (pw_world::affairs::HomeKind, u8) {
+    use pw_world::affairs::HomeKind;
+    let home = w.affairs.of(who).map(|a| a.home).unwrap_or_default();
+    if home.since >= since && matches!(home.kind, HomeKind::Rented | HomeKind::Owned) {
+        return (home.kind, home.quality);
+    }
+    let young = w.people.get(who).is_some_and(|x| x.age(w.date) < 18);
+    (if young { HomeKind::Family } else { HomeKind::Digs }, 0)
+}
+
+/// Days after a move far from home when where you live is told.
+const NEW_PLACE_DAYS: i32 = 10;
+
+/// A few days after a permanent move to another state or country: where you ended up living, once a move.
+fn new_place(w: &World, life: &mut Life, who: PersonId, p: PlayerId, today: Date) {
+    let Some(i) = life.entries.iter().rposition(|x| matches!(x.line, Line::Joined { how: Join::Transfer | Join::Signed, .. })) else { return };
+    let (arrived, Line::Joined { club, .. }) = (life.entries[i].date, life.entries[i].line) else { return };
+    let days = arrived.days_until(today);
+    if !(NEW_PLACE_DAYS..=NEW_PLACE_DAYS + 60).contains(&days) || w.players.hot[p].club != club {
+        return;
+    }
+    if life.entries[i..].iter().any(|x| matches!(x.line, Line::NewPlace { club: c, .. } if c == club)) {
+        return;
+    }
+    // Where you came from: the club of the spell before this one, or the last club the story knows.
+    let before = w.history.spells.get(&p).and_then(|v| v.iter().rev().find(|s| s.club != club && s.from <= arrived)).map(|s| s.club).or_else(|| {
+        life.entries[..i].iter().rev().find_map(|x| match x.line {
+            Line::Joined { club: c, .. } => Some(c),
+            _ => None,
+        })
+    });
+    if far_move(w, p, before.unwrap_or(ClubId::NONE), club).is_none() {
+        return;
+    }
+    let (home, quality) = place_after_move(w, who, arrived);
+    life.push(today, Line::NewPlace { club, home, quality }, EventId::NONE);
 }
 
 /// The first time each wider circle talks about you online: your own supporters, another club's, another state, another country.

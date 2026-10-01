@@ -1212,12 +1212,15 @@ response! {
         pub label: String,
         pub words: String,
     }
-    /// Settling in after a move: since when, the manager's plan for you, and how each part of a new life is going.
+    /// Settling in after a move: since when, the manager's plan for you, how each part of a new life is going, where you live
+    /// now, and how the clock at home stands against yours when it differs ("Home is 4 hours ahead").
     pub struct MeTodayViewSettling {
         pub club: NamedIn,
         pub since: f64,
         pub plan: String,
         pub parts: Vec<MeTodayViewSettlingPart>,
+        pub home: String,
+        pub clock: Option<String>,
     }
     pub struct MeTodayView {
         pub availability: MeTodayViewAvailability,
