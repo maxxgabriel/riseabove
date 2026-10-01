@@ -139,7 +139,9 @@ fn relegated(w: &mut World, team: pw_core::TeamId) {
 /// The newest signing of this player (a transfer, a new contract or a renewal): the event that every later clause, option, promise
 /// and review of that contract rests on. Empty when the signing is older than the event log remembers.
 pub fn deal_behind(w: &World, p: PlayerId) -> pw_world::event::Causes {
-    let found = w.events.latest_where(20_000, |e| matches!(e.kind, EventKind::ContractSigned { player, .. } | EventKind::Transfer { player, .. } if player == p));
+    // Since the day the current contract began: the signing is on or after it.
+    let from = w.players.cold[p].contract.start;
+    let found = w.events.latest_where(w.date, from.days_until(w.date).max(1) + 1, |e| matches!(e.kind, EventKind::ContractSigned { player, .. } | EventKind::Transfer { player, .. } if player == p));
     found.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)])
 }
 
@@ -351,8 +353,10 @@ pub fn promise_status(w: &mut World, club: ClubId, p: PlayerId, s: SquadStatus) 
     if mgr == who {
         return;
     }
-    let id = w.social.make_promise(mgr, who, club, PromiseKind::Status(s), today, today.add_days(365), EventId::NONE);
+    // The promise rests on the signing it was made in, so its keeping or breaking can name it.
     let because = deal_behind(w, p);
+    let signing = because.iter().find_map(|c| if let pw_world::event::Cause::Event(e) = c { Some(*e) } else { None }).unwrap_or(EventId::NONE);
+    let id = w.social.make_promise(mgr, who, club, PromiseKind::Status(s), today, today.add_days(365), signing);
     w.events.push_caused(today, Visibility::Between(mgr, who), EventKind::PromiseMade { promise: id, from: mgr, to: who }, because);
 }
 

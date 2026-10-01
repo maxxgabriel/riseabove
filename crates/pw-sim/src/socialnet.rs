@@ -442,11 +442,11 @@ pub fn apply(w: &mut World, a: AccountId, about: PersonId, mut delta: [i16; N_DI
     // event and not thousands.
     let turned = if before >= 0 && after <= -TURN { Some(false) } else if before <= 0 && after >= TURN { Some(true) } else { None };
     if let Some(up) = turned {
-        let seen = w.events.latest_where(400, |e| matches!(e.kind, EventKind::OpinionTurned { about: x, up: u, .. } if x == about && u == up));
+        let seen = w.events.latest_where(today, 31, |e| matches!(e.kind, EventKind::OpinionTurned { about: x, up: u, .. } if x == about && u == up));
         let fresh = seen.is_none_or(|id| w.events.get(id).is_none_or(|e| e.date.days_until(today) > 30));
         if fresh {
             let player = w.people[about].player;
-            let cause = w.events.latest_where(2_000, |e| e.kind.people().contains(&about) || (player.is_some() && e.kind.player() == Some(player)));
+            let cause = w.events.latest_where(today, 30, |e| e.kind.people().contains(&about) || (player.is_some() && e.kind.player() == Some(player)));
             let because = cause.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
             w.events.push_caused(today, pw_world::event::Visibility::Public, EventKind::OpinionTurned { about, account: a as u32, up }, because);
         }

@@ -107,6 +107,9 @@ pub struct Snapshot {
     /// Median of the seller-situation factor on the asking price at the moment of a fee deal (stance, expiry, listing, board): a fee
     /// over value that rises with it is the mix of who is sold, not a change of price.
     pub deal_asking_factor: f64,
+    /// Median fee over what an omniscient observer would call the player's worth (`market::true_worth`) on the day of the deal: whether
+    /// prices follow the truth about players, or the market's reading of them. Audit only; nothing in the world reads it.
+    pub deal_fee_to_true: f64,
     pub fee_p90: f64,
     pub fee_p95: f64,
     pub fee_max: f64,
@@ -455,16 +458,16 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
 thread_local! {
     /// Fees and the public value of the player at the moment of the deal, collected only while `observe` runs on this thread.
     /// Diagnostic state: never saved, never read by the simulation.
-    static DEALS: std::cell::RefCell<Option<Vec<(f64, f64, f64, f64)>>> = const { std::cell::RefCell::new(None) };
+    static DEALS: std::cell::RefCell<Option<Vec<(f64, f64, f64, f64, f64)>>> = const { std::cell::RefCell::new(None) };
 }
 
 /// A transfer fee was agreed for a player the market valued at `value` (before the move changes his contract): remembered for the
 /// fee-over-value series. Nothing happens unless a measurement run is collecting.
-pub fn note_deal(value: pw_core::Money, fee: pw_core::Money, years_left: f32, asking_factor: f32) {
+pub fn note_deal(value: pw_core::Money, fee: pw_core::Money, years_left: f32, asking_factor: f32, true_worth: pw_core::Money) {
     if fee > 0 && value > 0 {
         DEALS.with(|d| {
             if let Some(v) = d.borrow_mut().as_mut() {
-                v.push((fee as f64, value as f64, f64::from(years_left), f64::from(asking_factor)));
+                v.push((fee as f64, value as f64, f64::from(years_left), f64::from(asking_factor), true_worth as f64));
             }
         });
     }
@@ -472,15 +475,16 @@ pub fn note_deal(value: pw_core::Money, fee: pw_core::Money, years_left: f32, as
 
 /// Median fee over the player's value on the day of the deal. The snapshot's own `fee_to_value` divides by the value after the
 /// move, which already carries the new contract and so rises as contracts lengthen; this one does not.
-fn take_deal_ratio() -> Option<(f64, f64, f64)> {
+fn take_deal_ratio() -> Option<(f64, f64, f64, f64)> {
     DEALS.with(|d| {
         let mut b = d.borrow_mut();
         let v = b.as_mut()?;
-        let mut ratios: Vec<f64> = v.iter().map(|&(fee, value, _, _)| fee / value).collect();
-        let mut years: Vec<f64> = v.iter().map(|&(_, _, y, _)| y).collect();
-        let mut asks: Vec<f64> = v.iter().map(|&(_, _, _, a)| a).collect();
+        let mut ratios: Vec<f64> = v.iter().map(|&(fee, value, ..)| fee / value).collect();
+        let mut years: Vec<f64> = v.iter().map(|&(_, _, y, ..)| y).collect();
+        let mut asks: Vec<f64> = v.iter().map(|&(_, _, _, a, _)| a).collect();
+        let mut truth: Vec<f64> = v.iter().filter(|&&(.., t)| t > 0.0).map(|&(fee, .., t)| fee / t).collect();
         v.clear();
-        Some((pct(&mut ratios, 0.5)?, pct(&mut years, 0.5)?, pct(&mut asks, 0.5)?))
+        Some((pct(&mut ratios, 0.5)?, pct(&mut years, 0.5)?, pct(&mut asks, 0.5)?, pct(&mut truth, 0.5).unwrap_or(0.0)))
     })
 }
 
@@ -494,7 +498,8 @@ pub fn observe(sim: &mut Sim, years: u32, mut each: impl FnMut(&Snapshot)) -> Ve
     for y in 1..=years {
         sim.run(365);
         let mut s = snapshot(&sim.world, since, y);
-        if let Some((ratio, years, ask)) = take_deal_ratio() {
+        if let Some((ratio, years, ask, truth)) = take_deal_ratio() {
+            s.deal_fee_to_true = truth;
             s.fee_to_value = ratio;
             s.deal_contract_years = years;
             s.deal_asking_factor = ask;
@@ -525,6 +530,17 @@ fn yearly_growth(series: &[f64]) -> Option<f64> {
     let (first, last) = (*series.get(1)?, *series.last()?);
     let years = (series.len() - 2) as f64;
     (first > 0.0 && last > 0.0 && years >= 1.0).then(|| ((last / first).powf(1.0 / years) - 1.0) * 100.0)
+}
+
+/// Percent per year of the least-squares line through `(year, ln value)` points; needs three points spanning two years.
+fn log_slope(points: &[(f64, f64)]) -> Option<f64> {
+    if points.len() < 3 {
+        return None;
+    }
+    let n = points.len() as f64;
+    let (mx, my) = (points.iter().map(|p| p.0).sum::<f64>() / n, points.iter().map(|p| p.1).sum::<f64>() / n);
+    let var: f64 = points.iter().map(|p| (p.0 - mx).powi(2)).sum();
+    (var >= 2.0).then(|| ((points.iter().map(|p| (p.0 - mx) * (p.1 - my)).sum::<f64>() / var).exp() - 1.0) * 100.0)
 }
 
 /// Read a run's snapshots for trends. Needs at least four snapshots (year 0 plus three years) to say anything about direction.
@@ -585,10 +601,12 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
     };
     // A median fee rises when prices rise, and also when dearer players are the ones moving. Prices are what fee over value measures;
     // only that is a problem. The median alone, with prices steady, is a market of different deals, worth a look and no more.
-    let price_growth = match (market_years.first(), market_years.last()) {
-        (Some(a), Some(b)) if b.year > a.year && a.fee_to_value > 0.0 && b.fee_to_value > 0.0 => Some(((b.fee_to_value / a.fee_to_value).powf(1.0 / f64::from(b.year - a.year)) - 1.0) * 100.0),
-        _ => None,
-    };
+    // Clubs learn the market over its first years (what they know of players narrows the margin they shade a price by, and fees over
+    // value step up from about 0.9 to about 1.3 of what players are worth), so the price trend is read from the run's second half,
+    // as a fitted slope over every year with a market and not from two years' medians, which one odd year can swing by a third.
+    let half = (run.len() / 2) as u32;
+    let priced: Vec<(f64, f64)> = market_years.iter().filter(|s| s.year >= half && s.fee_to_value > 0.0).map(|s| (f64::from(s.year), s.fee_to_value.ln())).collect();
+    let price_growth = log_slope(&priced);
     match (fee_growth, price_growth) {
         (_, Some(p)) if p > 15.0 => flag(Level::Problem, "fees", format!("clubs pay {p:.0}% more a year over what players are worth")),
         (_, Some(p)) if p > 8.0 => flag(Level::Warn, "fees", format!("clubs pay {p:.0}% more a year over what players are worth")),
@@ -775,10 +793,10 @@ pub fn render_population(run: &[Snapshot]) -> String {
 /// The money series of a run, one row per year: wages by tier, fees, cash, revenue against wages, unemployment, records and insolvency.
 pub fn render_economy(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee/val cyrs  ask  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
+    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee/val fee/true cyrs  ask  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>8.2} {:>4.1} {:>5.2} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
+            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>8.2} {:>8.2} {:>4.1} {:>5.2} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
             r.year,
             money(r.wage_tier1),
             money(r.wage_tier2),
@@ -788,6 +806,7 @@ pub fn render_economy(run: &[Snapshot]) -> String {
             money(r.player_wage_p99),
             money(r.fee_median),
             r.fee_to_value,
+            r.deal_fee_to_true,
             r.deal_contract_years,
             r.deal_asking_factor,
             money(r.fee_p90),
@@ -848,6 +867,48 @@ mod tests {
                 ..Default::default()
             })
             .collect()
+    }
+
+    #[test]
+    fn people_who_appear_without_a_creation_or_leave_without_a_retirement_are_a_leak() {
+        // flat(): 80 created and 80 retired a year, nobody gained: the books balance.
+        let mut run = flat(6);
+        assert!(analyse(&run).iter().all(|f| f.series != "population"), "{:?}", analyse(&run));
+        // A hundred players more than the creations explain in year 4.
+        for s in run.iter_mut().skip(4) {
+            s.alive += 100;
+        }
+        let found = analyse(&run);
+        assert!(found.iter().any(|f| f.series == "population" && f.message.contains("without a creation record")), "{found:?}");
+    }
+
+    #[test]
+    fn an_amateur_pool_that_only_fills_is_caught_after_warm_up() {
+        let mut run = flat(8);
+        for (i, s) in run.iter_mut().enumerate() {
+            // Creations outrun retirements by 12% of the population a year, and the books still balance.
+            s.created = [80 + 120, 0, 0, 0, 0, 0, 0];
+            s.alive = (1000.0 * 1.12f64.powi(i as i32)) as usize;
+        }
+        for i in 1..run.len() {
+            let delta = run[i].alive as i64 - run[i - 1].alive as i64;
+            run[i].created = [(delta + i64::from(run[i].retirements)) as u32, 0, 0, 0, 0, 0, 0];
+        }
+        let found = analyse(&run);
+        assert!(found.iter().any(|f| f.series == "population" && f.message.contains("creations outrun retirements")), "{found:?}");
+    }
+
+    #[test]
+    fn a_price_step_in_the_first_years_is_not_inflation_but_a_climb_in_the_second_half_is() {
+        let mut run = flat(10);
+        for (i, s) in run.iter_mut().enumerate() {
+            s.fee_to_value = if i < 4 { 0.9 } else { 1.3 };
+        }
+        assert!(analyse(&run).iter().all(|f| f.series != "fees"), "{:?}", analyse(&run));
+        for (i, s) in run.iter_mut().enumerate().skip(5) {
+            s.fee_to_value = 1.3 * 1.2f64.powi(i as i32 - 5);
+        }
+        assert!(analyse(&run).iter().any(|f| f.series == "fees"));
     }
 
     #[test]

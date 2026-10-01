@@ -285,7 +285,7 @@ pub fn after_match(w: &mut World, fx: &Fixture, r: &MatchResult) {
 /// The public event of the most recent disputed call in the fixture `uid`, if the call was big enough to be one.
 fn controversy_event(w: &World, uid: u64) -> pw_world::event::Causes {
     let ids: Vec<u32> = w.officials.controversies.iter().rev().take(200).filter(|c| c.uid == uid).map(|c| c.id).collect();
-    let found = w.events.latest_where(5_000, |e| matches!(e.kind, EventKind::RefereeControversy { controversy } if ids.contains(&controversy)));
+    let found = w.events.latest_where(w.date, 60, |e| matches!(e.kind, EventKind::RefereeControversy { controversy } if ids.contains(&controversy)));
     found.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)])
 }
 

@@ -220,7 +220,7 @@ fn drift(w: &mut World) {
                 r.drift = 0;
                 // Character moves in many small steps with no single moment behind them; the one visible bond that shapes it, a mentor,
                 // is the cause when there is one.
-                let mentor = w.events.latest_where(5_000, |e| matches!(e.kind, EventKind::TookUnderWing { mentee, .. } if mentee == me));
+                let mentor = w.events.latest_where(today, 400, |e| matches!(e.kind, EventKind::TookUnderWing { mentee, .. } if mentee == me));
                 let because = mentor.map_or_else(Default::default, |id| pw_world::causes![pw_world::event::Cause::Event(id)]);
                 w.events.push_caused(today, Visibility::Public, EventKind::CharacterChanged { person: me, up: moved > 0 }, because);
             }

@@ -301,7 +301,12 @@ pub fn settle(w: &mut World, idx: usize, kept: bool) {
     let today = w.date;
     let pr = w.social.promises[idx].clone();
     w.social.promises[idx].state = if kept { PromiseState::Kept } else { PromiseState::Broken };
-    let causes: Causes = pw_world::causes![Cause::Event(pr.cause), Cause::Fact(Fact::PromiseDue { promise: pr.id })];
+    // A promise made with nothing behind it names no event (it must not name the empty id: a cause that points at nothing).
+    let mut causes: Causes = Causes::new();
+    if pr.cause.is_some() {
+        causes.push(Cause::Event(pr.cause));
+    }
+    causes.push(Cause::Fact(Fact::PromiseDue { promise: pr.id }));
     let kind = if kept { EventKind::PromiseKept { promise: pr.id, from: pr.from, to: pr.to } } else { EventKind::PromiseBroken { promise: pr.id, from: pr.from, to: pr.to } };
     let ev = w.events.push_caused(today, Visibility::Between(pr.from, pr.to), kind, causes);
     let compat = consider::compat(w, pr.to, pr.from);

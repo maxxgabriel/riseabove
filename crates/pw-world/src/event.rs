@@ -1291,11 +1291,12 @@ impl EventLog {
         &self.events
     }
 
-    /// The newest of the last `window` events that `f` accepts: the event a consequence found later rests on (the signing behind a
-    /// clause review, the sacking behind a vacancy). `None` when it has been compacted away or never happened, in which case the
-    /// consequence is recorded without a cause rather than with an invented one.
-    pub fn latest_where(&self, window: usize, f: impl Fn(&Event) -> bool) -> Option<EventId> {
-        self.events.iter().rev().take(window).find(|e| f(e)).map(|e| e.id)
+    /// The newest event of the last `within_days` days (up to `today`) that `f` accepts: the event a consequence found later rests on
+    /// (the signing behind a clause review, the sacking behind a vacancy). `None` when it has been compacted away or never happened, in
+    /// which case the consequence is recorded without a cause rather than with an invented one. Bounded by days, not by a count of
+    /// events: how many events a day holds depends on the size of the world.
+    pub fn latest_where(&self, today: Date, within_days: i32, f: impl Fn(&Event) -> bool) -> Option<EventId> {
+        self.since(today.add_days(-within_days)).iter().rev().find(|e| f(e)).map(|e| e.id)
     }
 
     pub fn len(&self) -> usize {

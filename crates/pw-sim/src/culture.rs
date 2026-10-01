@@ -295,7 +295,7 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
     if first.points - second.points <= 3 {
         let kind = if tier == 1 { RivalryKind::TitleRace } else { RivalryKind::Promotion };
         let (a, b) = (Side::Club(club(first.team)), Side::Club(club(second.team)));
-        let decided = w.events.latest_where(2_000, |e| matches!(e.kind, EventKind::Champion { comp: c, .. } if c == comp));
+        let decided = w.events.latest_where(today, 30, |e| matches!(e.kind, EventKind::Champion { comp: c, .. } if c == comp));
         let because = decided.map_or_else(Causes::new, |id| pw_world::causes![Cause::Event(id)]);
         kindle(w, a, b, kind, 30, because);
         let r = w.culture.rivalries.ensure(a, b, kind, 30, today);
@@ -310,7 +310,7 @@ pub fn season_end(w: &mut World, comp: CompId, rows: &[pw_world::TableRow]) {
         let down = rows[n - relegate];
         if safe.points - down.points <= 2 {
             let (a, b) = (Side::Club(club(safe.team)), Side::Club(club(down.team)));
-            let dropped = w.events.latest_where(2_000, |e| matches!(e.kind, EventKind::Relegated { team, .. } if team == down.team));
+            let dropped = w.events.latest_where(today, 30, |e| matches!(e.kind, EventKind::Relegated { team, .. } if team == down.team));
             let because = dropped.map_or_else(Causes::new, |id| pw_world::causes![Cause::Event(id)]);
             kindle(w, a, b, RivalryKind::Relegation, 25, because);
             let r = w.culture.rivalries.ensure(a, b, RivalryKind::Relegation, 25, today);

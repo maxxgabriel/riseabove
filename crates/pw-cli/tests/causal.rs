@@ -174,20 +174,43 @@ fn every_cause_in_a_running_world_comes_before_its_effect() {
 
 #[test]
 fn the_connected_islands_name_what_brought_them_about() {
-    // Two seasons of a small world: every kind below is emitted by a system that used to leave it uncaused. Each that occurs names its
-    // cause the large majority of the time; the rest are older than the event log remembers or have no single event behind them.
+    // Two seasons of a small world. Options, settling and promises rest on a signing: whenever the log holds one for that player before
+    // the event, the event names a signing (contracts the world began with have none, and name nothing).
     let w = world(750);
+    let signed_before = |e: &pw_world::event::Event, p: PlayerId| w.events.all().iter().take_while(|x| x.id < e.id).any(|x| matches!(x.kind, EventKind::ContractSigned { player, .. } | EventKind::Transfer { player, .. } if player == p));
+    let (mut with_signing, mut named) = (0, 0);
+    for e in w.events.all() {
+        let p = match e.kind {
+            EventKind::ContractOption { player, .. } | EventKind::PlayerSettled { player, .. } => player,
+            _ => continue,
+        };
+        if signed_before(e, p) {
+            with_signing += 1;
+            named += usize::from(!e.causes.is_empty());
+        }
+    }
+    assert_eq!(with_signing, named, "an option or a settling with a signing behind it names it");
+    // The others have no single event behind them for some of the time; the floors say how often the cause is found.
     let cov = pw_sim::audit::cause_coverage(&w);
     let get = |k: &str| cov.iter().find(|(n, _, _)| n == k).map_or((0, 0), |&(_, n, c)| (n, c));
     let mut seen = Vec::new();
-    for (kind, floor) in [("ContractOption", 90), ("PlayerSettled", 80), ("Stagnated", 100), ("EndorsementEnded", 40), ("AppealDecided", 40), ("RivalryKindled", 60)] {
+    for (kind, floor) in [("Stagnated", 100), ("EndorsementEnded", 40), ("AppealDecided", 40)] {
         let (n, c) = get(kind);
         if n >= 3 {
             seen.push(kind);
             assert!(c * 100 >= n * floor, "{kind}: {c} of {n} name a cause, expected at least {floor}%");
         }
     }
-    assert!(!seen.is_empty(), "none of the connected kinds occurred in two seasons: {cov:?}");
+    // A rivalry born of a title race, a promotion or a relegation scrap rests on the season's own event. One born of a cup tie rests on the
+    // match, which has no event in the log (matches are recorded in the fixture and the results, not as events), so it names none.
+    for e in w.events.all() {
+        if let EventKind::RivalryKindled { kind, .. } = e.kind
+            && kind != pw_world::culture::RivalryKind::CupRevenge
+        {
+            assert!(!e.causes.is_empty(), "a {kind:?} rivalry names the season event behind it");
+        }
+    }
+    println!("connected kinds seen: {seen:?}; with a signing behind: {with_signing}");
 }
 
 #[test]

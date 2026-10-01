@@ -246,7 +246,7 @@ pub fn sign(w: &mut World, who: PersonId, brand: u32, fee_year: Money, years: u8
     w.commerce.by_person.entry(who).or_default().push(idx);
     w.commerce.brands[brand as usize].committed += fee_year;
     // Brands come for attention: the surge or milestone that put him in front of them, when there was one.
-    let noticed = w.events.latest_where(5_000, |e| match e.kind {
+    let noticed = w.events.latest_where(today, 90, |e| match e.kind {
         EventKind::AttentionSurge { person, .. } => person == who,
         EventKind::Milestone { player, .. } => w.players.cold.get(player).is_some_and(|c| c.person == who),
         _ => false,
@@ -302,7 +302,7 @@ fn review(w: &mut World) {
             let key = hash_key(&[w.seed, u64::from(e.person.0), i as u64, today.year() as u64]);
             if key.is_multiple_of(3) {
                 // The clash is between his own deal and the club's: the newer of the two signings is what brought it about.
-                let signed = w.events.latest_where(20_000, |x| match x.kind {
+                let signed = w.events.latest_where(today, 400, |x| match x.kind {
                     EventKind::Endorsed { person, brand, .. } => person == e.person && brand == e.brand,
                     EventKind::ClubSponsor { club: c, .. } => c == club,
                     _ => false,
@@ -321,7 +321,7 @@ fn review(w: &mut World) {
             }
             // Why it ended is an event of its own where one exists: the scandal that sank his image, the retirement, the club's rival
             // sponsor, or the signing whose term simply ran out.
-            let ended_by = w.events.latest_where(20_000, |x| match (why, &x.kind) {
+            let ended_by = w.events.latest_where(today, e.start.days_until(today).max(1) + 1, |x| match (why, &x.kind) {
                 (DealEnd::Scandal, EventKind::Incident { .. }) => x.kind.people().contains(&e.person),
                 (DealEnd::Scandal, EventKind::MediaGrudge { subject, .. }) => *subject == e.person,
                 (DealEnd::Retired, EventKind::Retired { person }) => *person == e.person,

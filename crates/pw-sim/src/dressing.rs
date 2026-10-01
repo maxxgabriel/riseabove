@@ -131,7 +131,7 @@ fn rebuild(w: &mut World, club: ClubId) {
         if s == Standing::Leader && prev.standing.get(&p) != Some(&Standing::Leader) && !prev.standing.is_empty() {
             // A leader steps into the room the last one left: the departure is the cause when there was one.
             let left = prev.standing.iter().filter(|&(&q, &st)| st == Standing::Leader && !players.contains(&q)).filter_map(|(&q, _)| {
-                w.events.latest_where(5_000, |e| match e.kind {
+                w.events.latest_where(today, 120, |e| match e.kind {
                     EventKind::Transfer { player, from, .. } => player == q && from == club,
                     EventKind::Released { player, club: c, .. } => player == q && c == club,
                     _ => false,
@@ -182,7 +182,7 @@ fn rebuild(w: &mut World, club: ClubId) {
                 // A group turns on the manager over something he did to one of them (a broken promise) or because he is new.
                 let mgr = m;
                 let members: Vec<PersonId> = g.members.iter().map(|&x| w.players.cold[x].person).collect();
-                let cause = w.events.latest_where(5_000, |e| match e.kind {
+                let cause = w.events.latest_where(today, 120, |e| match e.kind {
                     EventKind::PromiseBroken { from, to, .. } => from == mgr && members.contains(&to),
                     EventKind::ManagerAppointed { club: c, .. } => c == club,
                     _ => false,
