@@ -10,17 +10,19 @@ import { usePageTitle } from "./common";
 
 function People({ list, empty }: { list: InstitutionPerson[]; empty: string }) {
   if (list.length === 0) return <p className="muted">{empty}</p>;
+  // Where they are now is said of former players; a list where nobody has it leaves the column out.
+  const now = list.some((p) => p.now != null);
   return (
     <table className="minitable">
       <thead>
-        <tr><th>Name</th><th className="num">Age</th><th>Now</th></tr>
+        <tr><th>Name</th><th className="num">Age</th>{now && <th>Now</th>}</tr>
       </thead>
       <tbody>
         {list.map((p) => (
           <tr key={p.who.id}>
             <td><EntityLink r={p.who}>{p.who.name}</EntityLink></td>
             <td className="num">{p.age}</td>
-            <td className="wrap muted">{p.now ?? "Not known"}</td>
+            {now && <td className="wrap muted">{p.now ?? "Not known"}</td>}
           </tr>
         ))}
       </tbody>

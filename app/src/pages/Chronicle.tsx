@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dt, EntityLink, Money, Parts } from "../components/links";
 import { storyPath } from "../components/Newsroom";
 import type { ChronicleEntry, ChronicleView, Named } from "../contract.generated";
-import { monthName } from "../format";
+import { cap, monthName } from "../format";
 import { href } from "../router";
 import { useApi } from "../store";
 import { Empty, Section, Tabs } from "../ui/ui";
@@ -135,9 +135,9 @@ function Doc({ e, who }: { e: ChronicleEntry; who: Named }) {
     case "medal":
       return (
         <div className="doc doc-medal">
-          <div className="medal-disc" aria-hidden="true"><span>{(d.honour ?? "Medal").split(",")[0]}</span></div>
+          <div className="medal-disc" aria-hidden="true"><span>★</span></div>
           <div className="medal-text">
-            <div className="doc-title">{d.honour ?? "Medal"}</div>
+            <div className="doc-title">{cap(d.honour) || "Medal"}</div>
             <div>{d.comp ? <EntityLink r={d.comp}>{d.comp.name}</EntityLink> : (d.comp_name ?? "A competition")}</div>
             <div className="hint">{d.season ?? "Season not known"}{d.club && <> · <EntityLink r={d.club}>{d.club.name}</EntityLink></>}</div>
           </div>
@@ -188,15 +188,16 @@ function Became({ d }: { d: ChronicleView }) {
           <li key={b.who.id} className={`became-row${b.retired ? " is-retired" : ""}`}>
             <div className="became-who">
               <EntityLink r={b.who}>{b.who.name}</EntityLink>
-              <span className="hint block"><Parts parts={b.how} />, since <Dt d={b.from} /></span>
+              <span className="hint block"><Parts parts={b.how} />; your paths first crossed on <Dt d={b.from} /></span>
             </div>
             <div className="became-now">
               <strong>{b.summary}</strong>
-              <span className="block">
-                {b.role}
-                {b.club && <> at <EntityLink r={b.club}>{b.club.name}</EntityLink></>}
-                {b.league && <span className="hint"> · <EntityLink r={b.league}>{b.league.name}</EntityLink>{b.level ? `, ${b.level}` : ""}</span>}
-              </span>
+              {b.club && (
+                <span className="block">
+                  {b.role} at <EntityLink r={b.club}>{b.club.name}</EntityLink>
+                  {b.league && <span className="hint"> · <EntityLink r={b.league}>{b.league.name}</EntityLink>{b.level ? `, ${b.level}` : ""}</span>}
+                </span>
+              )}
             </div>
             <div className="became-facts">
               {b.caps != null && b.caps_for ? (
