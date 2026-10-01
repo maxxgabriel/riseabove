@@ -1,7 +1,49 @@
 # Pathway — Progress, Next Steps, and What's Needed From You
 
-Last updated: 2026-09-28. This is the living log for the project: what the game is, what is built,
+Last updated: 2026-10-01 (see §0 for the latest pass). This is the living log for the project: what the game is, what is built,
 what state each piece is in, what comes next (in order), and what is blocked on you.
+
+---
+
+## 0. Latest pass (2026-10-01) — what was done, what was not, what is unverified
+
+Branch `local/pathway-integration`. Work on the five open items of `docs/IMPLEMENTATION_STATUS.md` (§8-§10, §13, §15, §16). Details and evidence are in that file.
+
+**Done**
+- **Population and economy (§16):** `pathway-sim balance` prints a population table (new players by source, retirements, remainder = 0). Everyone-not-retired
+  grew ~700 a year without bound because amateur adults under thirty could not retire; they now lapse at 10-18% a year (`mind::amateur_lapse`). Small world,
+  2 seeds, 10 years: population plateaus at ~10.5k from year 8. Fee over value is measured at the moment of the deal; the price trend is read from the run's
+  second half as a fitted slope.
+- **Causal islands (§13):** clause options, promises, dressing room, stagnation, commerce, rivalries (`RivalryKindled`), referee charges and appeals, and
+  opinion turns (`OpinionTurned`) name their causes; `audit` checks that every cause precedes its effect and `cause_coverage` reports per kind. This found
+  and fixed promise outcomes naming the empty event id.
+- **Firewall and typed arguments (§8, §9):** every query with arguments reads a declared request type; `VisiblePlayer`/`VisibleAbility` view types for the
+  player list and the person page; the person page no longer shows a stranger the injury diagnosis; `hidden`/`unknown` say why a value is null.
+- **Saves (§10):** people who left the game are no longer simulated; census checks in `validate::problems`.
+- **Language (§15):** social opinion, banter and answers are written by the engine (48 of 51 relays, 1844 of 1969 opinion posts in a 500-day India world).
+
+**Not done**
+- **Fee level (§16):** median transfer fee still rises (4.7m -> 34m over ten years, small world) with fee/value 0.9 -> ~1.4; the step in the first years is
+  not proven to be knowledge maturing. Cause of the remaining rise not found. Median club revenue and balances also grow faster than total revenue.
+- **Imported youth sides / archive growth:** not measured (the archive is not in this container). Run `pathway-sim balance` on it and read the population table.
+- **Wages:** mean first-team wage still inflates 6-7% a year against ~3% revenue (unchanged by this pass).
+- **Save growth (§10):** still ~+0.9 MB raw a year on the tiny world. The largest part is `media.stories`; bounding it needs a `Window` with tombstones plus
+  retention for inbox messages and beliefs first. **A design decision for you.** Closed talks and grapevine also still grow. 3-year archive retention unverified.
+- **Firewall (§8):** `VisiblePlayer` covers the player list and the person page only; insights, `me`, `life`, club, staff and society pages still read truth
+  behind `Ctx`. `world.new` and `advance.start` still read their arguments by hand; argument-free methods ignore arguments.
+- **Language (§15):** `transfer.open_bid`, `transfer.drop_target` and `medical.request_report` are not offered (nothing does what their words say); chants,
+  memes, call-outs and awards stay with the older text; posts older than 28 days lose the event line; no second language, no era slang.
+- **Causal (§13):** dressing-room mood, contract package negotiation as events and referee season reviews are still islands; cup-tie rivalries have no
+  cause because matches are not events; there is no per-kind rule of which events must have a cause.
+- **Sacking compensation** stays off until the economy baseline is understood (your decision).
+
+**Unverified**
+- The FULL tier (`cargo xtask full`) was started and **stopped before finishing**: it has not been run on this tree. Run before trusting it.
+- Run and passing: `cargo xtask quick -p pw-sim metrics`, `cargo xtask smoke`, `cargo test -p pw-cli --test causal`; the agents ran the `pw-view` contract,
+  firewall and playthrough tests, `pw-lang`, `lang_bridge`, and the save and retention tests in their own worktrees. The merged tree has not had the
+  `pw-view`, `lang_bridge` or save suites run together. `npx tsc --noEmit` was not run (no `node_modules`).
+- Merging the three agent branches changed simulation behaviour in the same tree (retired players are no longer stepped), so balance numbers before and after
+  the merge are not strictly comparable.
 
 ---
 
