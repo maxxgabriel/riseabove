@@ -278,8 +278,16 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
 * **Rivalries** start empty and grow from state championship meetings, weighted by neighbourliness (IMPLEMENTED, tested). Real derbies from
   the reference data (`culture/rivalries.toml`, `derby_name` aliases) are only `Scenario::known_derbies`: names for the news and UI, no intensity.
 * **Region output** is measured by quality (top tier, internationals, senior appearances, value): `ecosystem::region_output` (tested).
-* **UI** (IMPLEMENTED, typed contract, contract test): `Development` page (regions, abroad, scenario) and a pathway panel on player pages
-  (`pathway.player`, `ecosystem.regions|export|scenario`); recognition internals are omniscient-view only. Not visually reviewed in a browser.
+* **UI** (IMPLEMENTED, typed contract, contract test, reviewed in a browser): `Development` page (regions, abroad, scenario with the reference data's
+  associations, press, broadcasters, programmes, partnerships, coaching ladder, representative sides of the states in the world, rules and languages) and a
+  pathway panel on player pages (`pathway.player`, `ecosystem.regions|export|scenario`); recognition internals are omniscient-view only. `app/e2e/india.mjs`
+  (all 58 pages of a lived-as India career in Chromium, no console or API error, no broken value) passes; the review fixed unstyled tables, empty columns,
+  maintainers' notes and duplicated sides on the scenario page, foreign nations named by their codes ("The KOR Sun", "ESP Real Oeste"), a regional paper
+  preferring another state's clubs and a private story whose body repeated its headline. In this container Chromium has no Indic font, so the native-script
+  words draw as boxes there; the page names system Indic fonts ("Nirmala UI", "Noto Sans") for real machines.
+* **Universities compete** (IMPLEMENTED, tested): recruiting runs in up to three rounds (a place turned down goes to the next name on the list), a player
+  holding several offers hears counter-offers (a programme raises its scholarship once, within its resources, for a player it rates highly), and a
+  contested recruit is public news (`RecruitWon`). Two Septembers of a tiny India world: 27 contested recruits, 23 settled in a later round, 1 by a raised offer.
 * **Reference data read into the world** (IMPLEMENTED, tested: `reference::the_reference_gives_the_world_its_names_press_and_institutions_and_nothing_else`):
   `pw-import/src/india_ref.rs` types every table it reads (23 of them; an untyped table is reported, not skipped), and `india_lore.rs` turns
   the records into `World::ext.lore` (`pw-world/src/lore.rs`, ext layout 4). Each entry keeps its record id and standing (Imported /
@@ -293,7 +301,8 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
     rules in words and football terms in each language are recorded for the views and the text.
   The Development > Scenario page lists them with their standing; a club page shows what the club is known as, its academy, partners and media.
   Supporters and local papers call a club by its nickname (`pw-lang` render, tested in `pw-lang/tests/nickname.rs`).
-* **Not done**: women's football (deliberately later); districts and grassroots programmes are listed, not simulated.
+* **Not done**: women's football (deliberately later); the referee pathway (the reference's referee grades are empty); districts and grassroots
+  programmes are listed, not simulated.
 * **Balance on the India world** (MEASURED, 6 years, tiny scale, seeds 1-2; `pathway-sim balance india-tiny`): mean ability had risen
   11-14 points in six years. Two causes, both fixed. Academy intakes in a world of regions drew potential from the European formula (mean ~106
   against India's ~70): an academy now recruits from its region's pool (`ecosystem::pool_talent`) with a selection margin, and no minors
@@ -301,18 +310,27 @@ Implemented in `pw-sim/src/{recognition,export,ecosystem,statepath,university,yo
   is now +5 to +6 (a warning, from more and better-selected youngsters at the professional clubs). Clubs in debt fell from 23 to 11 and the
   median wage bill from 0.87 to 0.67 of revenue (see section 16). Not yet repeated on the full-scale India world in this container.
 
-## 15. Language engine (pw-lang) in the news, inbox and social text — PARTIAL (in ecosystem worlds)
+## 15. Language engine (pw-lang) in the news, inbox and social text — IMPLEMENTED for the news and the inbox, PARTIAL for social
 
-`crates/pw-lang` (data-driven: events, certainty, lexicon, channel grammars, voices, lint and fuzz over every event x channel x voice x knowledge state) is merged and
-**wired into the simulation in worlds with an ecosystem** through `pw-narrate/src/lang.rs` (`docs/LANGUAGE.md` has the table of what maps to what).
-* **News**: about 90% of press stories in a 500-day India world are written by the engine (transfers, rumours at the stage reached, injuries, manager changes,
-  match reports, interviews, milestones and records, unhappy/praise/award stories). The rest (incident reports, analysis, features, discipline, fan reaction) use the older templates.
-* **Inbox**: trial invitations and talks about a move are worded by the engine (subject and message); the options stay the simulation's own. Other decisions keep their titles.
-* **Social**: a post that relays a covered story is written by the engine in the account's voice; opinion, banter, chants and memes stay with the personality-driven text.
-* **Tested** (`crates/pw-cli/tests/lang_bridge.rs`): clean text, no firmer than the story, rumours never read as bids, nothing from the club's own business in public stories (injury diagnosis and
-  time out, contract length, negotiations), old stories unchanged as the world ages, same story same words, inbox wording.
-* **Not done**: incident reports, analysis and feature stories; inbox options with engine effects (the engine's `effect` ids are not implemented by the simulation);
-  worlds without an ecosystem (the engine's money is rupees); second language.
+`crates/pw-lang` (data-driven: events, certainty, lexicon, channel grammars, voices, lint and fuzz over every event x channel x voice x knowledge state) is
+wired into the simulation **in every world** through `pw-narrate/src/lang.rs` (`docs/LANGUAGE.md` has the table of what maps to what). Money takes the
+world's form (`pw_lang::Currency`: the Indian system in a world of Indian regions, `£` and short units elsewhere).
+* **News**: in a 500-day India world all but 87 stories are written by the engine: transfers, rumours at the stage reached, injuries, manager changes,
+  match reports and the morning-after analysis (naming the derby where the reference names one), interviews, milestones and records, unhappy and praise
+  stories, features and data pieces (`player.reading`, the media's labels), incidents made public (18 kinds), pressure on a manager (as speculation),
+  discipline, criticism and supporters' reactions. Left with the older text: season wrap-ups and manager changes (they rest on the event log, which
+  forgets), denials and private matters (family, pregnancy, relationships; their body now says where it came from instead of repeating the headline).
+* **Inbox**: trial invitations, talks about a move and university scholarships are worded by the engine, and so are their options: each engine option is
+  tied to one of the decision's own choices by its effect (`lang::effect_choice`) and shows what choosing it does; the answer is applied by the decision as
+  before. A scholarship offered to the person someone lives as is their decision (`DecisionKind::Scholarship`), not the AI's.
+* **Social**: a post that relays a covered story is written by the engine in the account's voice; supporters and local papers call clubs by their
+  nicknames; a local supporter celebrates in the language of the club's state (the reference terms, in their own script). Opinion, banter, chants and
+  memes stay with the personality-driven text.
+* **Tested** (`crates/pw-cli/tests/lang_bridge.rs`, 18 tests; `pw-lang/tests/*`): clean text, no firmer than the story, rumours never read as bids,
+  nothing from the club's own business in public stories, old stories unchanged as the world ages, same story same words, the inbox's options are the
+  decision's own choices, money in the world's form, the new story kinds written in a running world, nicknames, local words and derby names.
+* **Not done**: a second language for the text itself (the reference words appear inside English text); engine effects not tied to a decision
+  (`transfer.open_bid`, `transfer.drop_target`, `medical.request_report`) are not offered.
 
 ## 16. Economy calibration — PARTIAL (four causes of drift fixed; late-run fee prices and imported youth sides open)
 
