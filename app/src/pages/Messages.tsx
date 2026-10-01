@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DecisionCard, MeetingBlock, StoryCard, kindLabel, type DecisionDetail } from "../components/Decision";
 import { Dt, EntityLink, Parts } from "../components/links";
 import { prose } from "../format";
@@ -9,6 +9,7 @@ import type { Named, Part } from "../types";
 import { Icon, type IconName } from "../ui/Icon";
 import { Badge, Button, Empty, Tabs } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
+import type { ChatView, ChatsView } from "../contract.generated";
 
 // ---- conversations ----------------------------------------------------------------------------
 
@@ -82,19 +83,22 @@ export function Messages() {
   const route = useRoute();
   const seg = route.segs[1];
   const activity = route.query.get("view") === "activity" || (seg != null && /^[de]\d+$/.test(seg));
+  const chats = route.query.get("view") === "chats" || seg === "c";
+  const view = chats ? "chats" : activity ? "activity" : "conversations";
   return (
     <div className="page fill inbox-page">
       <PageHead title="Messages" sub="Conversations with the people who reach you, and everything that has been decided or reported about you." />
       <Tabs
         label="Messages"
-        value={activity ? "activity" : "conversations"}
-        onChange={(v) => navigate(v === "activity" ? "/messages?view=activity" : "/messages")}
+        value={view}
+        onChange={(v) => navigate(v === "conversations" ? "/messages" : `/messages?view=${v}`)}
         tabs={[
           { id: "conversations", label: "Conversations" },
+          { id: "chats", label: "Chats" },
           { id: "activity", label: "All activity" },
         ]}
       />
-      {activity ? <Activity /> : <Conversations />}
+      {view === "chats" ? <Chats /> : view === "activity" ? <Activity /> : <Conversations />}
     </div>
   );
 }
@@ -395,6 +399,76 @@ function EventDetail({ id }: { id: string }) {
             <div className="hint">Why: {d.why.map(prose).join("; ")}</div>
           )}
         </article>
+      )}
+    </Async>
+  );
+}
+
+function Chats() {
+  const route = useRoute();
+  const selected = route.segs[1] === "c" ? Number(route.segs[2]) : null;
+  const q = useApi<ChatsView>("me.chats");
+  return (
+    <Async q={q}>
+      {(d) => {
+        const current = selected ?? d.rooms[0]?.id ?? null;
+        return (
+          <div className="inbox">
+            <div className="inbox-list">
+              <div className="inbox-summary"><span>CHATS</span><small>{d.rooms.reduce((n, r) => n + r.unread, 0)} unread</small></div>
+              {d.rooms.length === 0 ? (
+                <Empty title="No chats yet" icon="chat">Your squad's group, your family and the people close to you write when something happens: a win, a call-up, an injury, a birthday.</Empty>
+              ) : (
+                <ul className="msglist" aria-label="Chats">
+                  {d.rooms.map((r) => (
+                    <li key={r.id}>
+                      <a href={href(`/messages/c/${r.id}`)} aria-current={r.id === current ? "true" : undefined} className={`msg ${r.id === current ? "sel" : ""}`}>
+                        <div className="msg-top">
+                          <strong className={`msg-subject ${r.unread > 0 ? "unread" : ""}`}><Icon name={r.kind === "direct" ? "person" : r.kind === "family" ? "home" : "people"} size={13} /> {r.title}</strong>
+                          {r.last != null && <span className="hint"><Dt d={r.last} year={false} /></span>}
+                        </div>
+                        {r.unread > 0 && <div className="msg-sub"><Badge tone="you">{r.unread} new</Badge></div>}
+                        <div className="msg-preview">{r.preview}</div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="inbox-detail">{current != null ? <ChatRoom id={current} key={current} onRead={q.reload} /> : <Empty title="No chat selected" icon="chat" />}</div>
+          </div>
+        );
+      }}
+    </Async>
+  );
+}
+
+function ChatRoom({ id, onRead }: { id: number; onRead: () => void }) {
+  const q = useApi<ChatView>("me.chat", { id });
+  const end = useRef<HTMLDivElement>(null);
+  // A chat opens at its latest message.
+  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [q.data?.lines.length]);
+  useEffect(() => {
+    if (q.data) void act("me.chat_read", { id }).then(onRead).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q.data?.id]);
+  return (
+    <Async q={q}>
+      {(c) => (
+        <div className="chat">
+          <h2>{c.title}</h2>
+          <ul className="transcript">
+            {c.lines.map((l, i) => (
+              <li key={i} className={l.mine ? "you" : ""}>
+                <div className="bubble">
+                  <span className="bubble-who">{l.who ? <EntityLink r={l.who}>{l.from}</EntityLink> : l.from} · <Dt d={l.date} year={false} /></span>
+                  <span><Parts parts={l.text} /></span>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div ref={end} />
+        </div>
       )}
     </Async>
   );

@@ -36,7 +36,7 @@ const GUARDED: &[&str] = &[
 const MUST_STAY_CLEAN: &[&str] = &[
     "boardroom.rs", "bargaining.rs", "package.rs", "clauses.rs", "adaptation.rs", "mediarel.rs", "attention.rs", "newsroom.rs", "socialnet.rs",
     "pressroom.rs", "media.rs", "governance.rs", "finance.rs", "grapevine.rs", "commerce.rs", "culture.rs", "honours.rs", "awards.rs", "inbox.rs",
-    "press.rs", "responses.rs", "interpret.rs", "renown.rs", "life.rs", "affairs.rs", "medical.rs", "dressing.rs", "chronicle.rs",
+    "press.rs", "responses.rs", "interpret.rs", "renown.rs", "life.rs", "affairs.rs", "medical.rs", "dressing.rs", "chronicle.rs", "chat.rs",
 ];
 
 fn src() -> PathBuf {

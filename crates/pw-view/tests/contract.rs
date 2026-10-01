@@ -626,6 +626,7 @@ fn queries_are_read_through_declared_requests_that_refuse_what_they_do_not_name(
         ("me.feed", json!({"limit": 10}), Some("limit")),
         ("social.thread", json!({"id": 0}), Some("id")),
         ("me.story", json!({"id": 0}), Some("id")),
+        ("me.chat", json!({"id": 0}), Some("id")),
         ("me.calendar", json!({"from": 20_000, "to": 20_010}), Some("from")),
         ("ecosystem.district", json!({}), None),
         ("world.inspect_import", json!({"dir": "/no/such/folder"}), Some("dir")),

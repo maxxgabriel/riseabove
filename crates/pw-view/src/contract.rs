@@ -1153,6 +1153,38 @@ contract! {
         pub stories: u32,
     }
 
+    /// A chat in the list: the squad's group, the family, someone one to one.
+    pub struct ChatRoomRow {
+        pub id: u32,
+        /// squad, team, family or direct.
+        pub kind: String,
+        pub title: String,
+        pub with: Option<Named>,
+        pub last: Option<i32>,
+        pub preview: String,
+        pub unread: u32,
+    }
+
+    pub struct ChatsView {
+        pub rooms: Vec<ChatRoomRow>,
+    }
+
+    pub struct ChatLine {
+        pub date: i32,
+        /// Who spoke, as shown ("Mum", a teammate's name, "You").
+        pub from: String,
+        pub who: Option<Named>,
+        pub mine: bool,
+        pub text: Vec<crate::model::Part>,
+    }
+
+    pub struct ChatView {
+        pub id: u32,
+        pub kind: String,
+        pub title: String,
+        pub lines: Vec<ChatLine>,
+    }
+
     pub struct ChronicleView {
         pub person: Named,
         pub since: i32,
@@ -1430,6 +1462,9 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.agent"), None, "AgentView"),
         typed(q("me.journal"), None, "JournalView"),
         typed(q("me.chronicle"), None, "ChronicleView"),
+        typed(q("me.chats"), None, "ChatsView"),
+        typed(q("me.chat"), Some("IdReq"), "ChatView"),
+        typed(c("me.chat_read"), Some("IdReq"), "Done"),
         typed(c("me.goal"), Some("GoalReq"), "Done"),
         typed(c("me.goal_done"), Some("GoalDoneReq"), "Done"),
         typed(c("me.note"), Some("NoteReq"), "Done"),
@@ -1598,6 +1633,10 @@ pub fn declarations() -> Vec<String> {
         ChronicleTie::declaration(),
         ChronicleReach::declaration(),
         ChronicleView::declaration(),
+        ChatRoomRow::declaration(),
+        ChatsView::declaration(),
+        ChatLine::declaration(),
+        ChatView::declaration(),
         AgentRow::declaration(),
         AgentView::declaration(),
         OwnStoryView::declaration(),

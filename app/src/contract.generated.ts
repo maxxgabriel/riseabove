@@ -810,6 +810,35 @@ export interface ChronicleView {
   reach: ChronicleReach[];
 }
 
+export interface ChatRoomRow {
+  id: number;
+  kind: string;
+  title: string;
+  with: Named | null;
+  last: number | null;
+  preview: string;
+  unread: number;
+}
+
+export interface ChatsView {
+  rooms: ChatRoomRow[];
+}
+
+export interface ChatLine {
+  date: number;
+  from: string;
+  who: Named | null;
+  mine: boolean;
+  text: Part[];
+}
+
+export interface ChatView {
+  id: number;
+  kind: string;
+  title: string;
+  lines: ChatLine[];
+}
+
 export interface AgentRow {
   id: number;
   who: Named;
@@ -2877,6 +2906,9 @@ export interface ApiMethods {
   "me.agent": { kind: "query"; req: Record<string, unknown>; res: AgentView };
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: JournalView };
   "me.chronicle": { kind: "query"; req: Record<string, unknown>; res: ChronicleView };
+  "me.chats": { kind: "query"; req: Record<string, unknown>; res: ChatsView };
+  "me.chat": { kind: "query"; req: IdReq; res: ChatView };
+  "me.chat_read": { kind: "command"; req: IdReq; res: Done };
   "me.goal": { kind: "command"; req: GoalReq; res: Done };
   "me.goal_done": { kind: "command"; req: GoalDoneReq; res: Done };
   "me.note": { kind: "command"; req: NoteReq; res: Done };
@@ -2964,6 +2996,9 @@ export type TypedMethod =
   | "me.agent"
   | "me.journal"
   | "me.chronicle"
+  | "me.chats"
+  | "me.chat"
+  | "me.chat_read"
   | "me.goal"
   | "me.goal_done"
   | "me.note"

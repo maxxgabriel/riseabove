@@ -38,7 +38,7 @@ const inbox = await api("me.inbox");
 const thread = inbox.threads[0]?.id;
 
 const routes = [
-  "today", "messages", thread != null ? `messages?thread=${thread}` : "messages", "news", "calendar", "football", "contract", "life", "relationships", "press", "social", "journal", "me",
+  "today", "messages", thread != null ? `messages?thread=${thread}` : "messages", "messages?view=chats", "story", "news", "calendar", "football", "contract", "life", "relationships", "press", "social", "journal", "me",
   `person/${me}`, ...["attributes", "stats", "career", "events"].map((t) => `person/${me}/${t}`), "overview", "people", "clubs", `club/${club}`,
   ...["squad", "staff", "fixtures", "finances", "board", "fans", "room", "history"].map((t) => `club/${club}/${t}`),
   "comps", `comp/${comp}`, ...["table", "fixtures", "leaders", "history", "rules"].map((t) => `comp/${comp}/${t}`), "nations", "nation/0", "fixtures", "transfers", "events", "history", "staff",

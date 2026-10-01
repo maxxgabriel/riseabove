@@ -131,3 +131,48 @@ fn an_observer_has_no_chronicle_of_their_own() {
     wait(&api, "task");
     assert!(api.call("me.chronicle", json!({})).is_err());
 }
+
+#[test]
+fn the_squad_and_the_people_close_to_you_write_and_their_words_stay_put() {
+    let api = lived(11, 240);
+    let rooms = api.call("me.chats", json!({})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.chats", &rooms) {
+        panic!("me.chats is not its declared type: {e}");
+    }
+    let rooms = rooms["rooms"].as_array().unwrap().clone();
+    assert!(!rooms.is_empty(), "eight months at a club and nobody has written");
+    assert!(rooms.iter().any(|r| r["kind"] == "squad"), "the squad has a group: {rooms:?}");
+    let mut before = Vec::new();
+    for r in &rooms {
+        let chat = api.call("me.chat", json!({"id": r["id"]})).unwrap();
+        if let Some(Err(e)) = pw_view::contract_pages::check_response("me.chat", &chat) {
+            panic!("me.chat is not its declared type: {e}");
+        }
+        let lines = chat["lines"].as_array().unwrap();
+        assert!(!lines.is_empty());
+        for l in lines {
+            let t = text(&json!({"parts": l["text"]}));
+            assert!(!t.trim().is_empty() && !t.contains('{') && !t.contains('}') && !t.contains("  "), "a clean message: {t}");
+            assert!(!l["from"].as_str().unwrap().is_empty());
+        }
+        before.push((r["id"].clone(), lines.clone()));
+    }
+    // Reading a chat clears its unread count.
+    let first = &rooms[0];
+    api.call("me.chat_read", json!({"id": first["id"]})).unwrap();
+    let after = api.call("me.chats", json!({})).unwrap();
+    assert!(after["rooms"].as_array().unwrap().iter().any(|r| r["id"] == first["id"] && r["unread"] == 0));
+    // What was said stays said, in the same words, after a reload and as more is said.
+    api.call("world.save", json!({"file": "chats-test"})).unwrap();
+    api.call("world.load", json!({"file": "chats-test.pws"})).unwrap();
+    wait(&api, "task");
+    advance(&api, 30);
+    for (id, lines) in before {
+        let now = api.call("me.chat", json!({"id": id})).unwrap();
+        let now = now["lines"].as_array().unwrap();
+        assert!(now.len() >= lines.len().min(200));
+        if now.len() == lines.len() || lines.len() < 200 {
+            assert_eq!(now[..lines.len()], lines[..], "messages keep their words");
+        }
+    }
+}

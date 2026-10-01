@@ -14,6 +14,7 @@ pub mod beliefs;
 pub mod boardroom;
 pub mod calendar;
 pub mod careers;
+pub mod chat;
 pub mod chronicle;
 pub mod club;
 pub mod commerce;

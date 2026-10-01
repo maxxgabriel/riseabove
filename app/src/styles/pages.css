@@ -340,3 +340,5 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width:
 .keepsake.k-call_up { border-top-color: var(--pos); }
 .episodes { display: grid; gap: 0.1rem; margin: 0.25rem 0; padding-left: 0.6rem; border-left: 2px solid var(--line-2); }
 .episodes .hint { display: inline-block; min-width: 5.5rem; }
+.chat { display: grid; gap: 0.8rem; max-width: 46rem; }
+.chat h2 { font-size: 1.2rem; }
