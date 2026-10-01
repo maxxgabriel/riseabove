@@ -25,6 +25,7 @@ use crate::almanac::Almanac;
 use crate::chat::Chats;
 use crate::chronicle::Chronicles;
 use crate::ecosystem::Ecosystem;
+use crate::ledger::Ledgers;
 use crate::lore::Lore;
 use crate::medical::MedicalExt;
 use crate::pathway::PathwayExt;
@@ -40,8 +41,9 @@ use crate::training::TrainingExt;
 /// `reference` at its end (named derbies and the report of loading reference data), both empty in a save from layout 2; 4 = adds
 /// `lore` (names and labels from reference data), appended and empty in a save from layout 3; 5 = adds `chronicle` (the lives humans
 /// inhabit, as they were lived), appended and empty in a save from layout 4: a chronicle begins when someone is inhabited; 6 = adds
-/// `chats` (group chats and private messages around inhabited people), appended and empty in a save from layout 5.
-pub const EXT_VERSION: u32 = 6;
+/// `chats` (group chats and private messages around inhabited people), appended and empty in a save from layout 5; 7 = adds `ledger`
+/// (payslips and bonuses of inhabited lives), appended and empty in a save from layout 6.
+pub const EXT_VERSION: u32 = 7;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -75,6 +77,9 @@ pub struct Extensions {
     // ---- layout 6: appended
     /// Owner: `pw_sim::chat`. Chats around the people humans inhabit.
     pub chats: Chats,
+    // ---- layout 7: appended
+    /// Owner: `pw_sim::life` and `pw_sim::clauses`. Where the money of each inhabited life went.
+    pub ledger: Ledgers,
     /// Set (never saved) when this value was upgraded from an older layout: the version it came from. `pw_sim::legacy::finish`
     /// consumes it after load.
     #[serde(skip)]
@@ -96,6 +101,7 @@ pub fn steps() -> &'static [ExtStep] {
         ExtStep { from: 3, name: "add names and labels from reference data", apply: v3_to_v4 },
         ExtStep { from: 4, name: "add career chronicles", apply: v4_to_v5 },
         ExtStep { from: 5, name: "add chats", apply: v5_to_v6 },
+        ExtStep { from: 6, name: "add personal ledgers", apply: v6_to_v7 },
     ]
 }
 
@@ -220,6 +226,11 @@ fn v4_to_v5(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
 /// Layout 6 appends `chats` at the end: nobody had a chat before chats existed.
 fn v5_to_v6(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
     append_default::<Chats>(bytes)
+}
+
+/// Layout 7 appends `ledger` at the end: no payslip was kept before ledgers existed.
+fn v6_to_v7(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    append_default::<Ledgers>(bytes)
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
@@ -400,6 +411,7 @@ mod tests {
         let e5 = decode(5, v5).expect("layout 5 upgrades");
         assert_eq!(e5.chronicle.lives.len(), 1, "the chronicle layout 5 held is kept");
         assert!(e5.chats.of.is_empty());
+        assert!(e5.ledger.of.is_empty(), "no payslip is invented for an old save");
         assert_eq!(e.ecosystem.last_year, 2032);
         assert_eq!(e.lore.competitions.len(), 1, "what layout 4 held is untouched");
         assert!(e.chronicle.lives.is_empty(), "no life is chronicled for an old save");

@@ -43,6 +43,7 @@ pub mod intl;
 pub mod knowledge;
 pub mod life;
 pub mod lifestate;
+pub mod ledger;
 pub mod lore;
 pub mod matchfacts;
 pub mod media;

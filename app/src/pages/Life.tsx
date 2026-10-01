@@ -1,5 +1,5 @@
 import { bandFill, cap, pullWord } from "../format";
-import type { Band } from "../contract.generated";
+import type { Band, MoneyView } from "../contract.generated";
 import { useEffect, useMemo, useState } from "react";
 import { ConfirmAction, queueAction, useOptions, type Options } from "../components/Actions";
 import { Dt, EntityLink, Money } from "../components/links";
@@ -234,14 +234,15 @@ function MoneyTab({ l }: { l: LifeResp }) {
                 { k: "Savings", v: <Money v={m.savings} exact /> },
                 { k: "Invested", v: <Money v={m.invested} exact /> },
                 { k: "Debt", v: m.debt > 0 ? <span className="tone-neg"><Money v={m.debt} exact /></span> : <span className="faint">None</span> },
-                { k: "Income, per year", v: <Money v={m.income} exact /> },
-                { k: "Spending, per year", v: <Money v={m.spending} exact /> },
-                { k: "Sent to family, per year", v: <Money v={m.family_support} exact /> },
+                { k: "Take-home, last month", v: <Money v={m.income} exact /> },
+                { k: "Living costs, last month", v: <Money v={m.spending} exact /> },
+                { k: "Sent home, last month", v: <Money v={m.family_support} exact /> },
                 { k: "Lifestyle", v: m.lifestyle },
               ]}
             />
           </div>
         </Section>
+        <Payslips />
         <Section title="Invest some savings">
           <div className="card form">
             <p className="muted">Money put to work grows or shrinks at the pace of the risk you take. It can be lost.</p>
@@ -484,3 +485,56 @@ function HelpersList({ l, opts }: { l: LifeResp; opts: Options | undefined }) {
   );
 }
 
+
+/** Where the money went: the latest payslips, the bonuses as they landed, and what it all means. */
+function Payslips() {
+  const q = useApi<MoneyView>("me.money");
+  const d = q.data;
+  if (!d) return null;
+  return (
+    <>
+      {d.meaning.length > 0 && (
+        <Section title="What it means" aside={d.per_week > 0 ? <span><Money v={d.per_week} /> a week before tax</span> : undefined}>
+          <ul className="meaning">{d.meaning.map((m, i) => <li key={i}>{m}</li>)}</ul>
+        </Section>
+      )}
+      <Section title="Payslips" aside={<span>{d.months.length} kept</span>}>
+        {d.months.length === 0 ? (
+          <p className="muted">Your first payslip arrives at the start of next month.</p>
+        ) : (
+          <table className="minitable">
+            <thead>
+              <tr><th>Month</th><th className="r">Wage</th><th className="r">Other</th><th className="r">Bonuses</th><th className="r">Tax</th><th className="r">Take-home</th><th className="r">Living</th><th className="r">Home</th><th className="r">Left</th></tr>
+            </thead>
+            <tbody>
+              {d.months.slice(0, 12).map((m) => (
+                <tr key={m.date}>
+                  <td><Dt d={m.date} /></td>
+                  <td className="r"><Money v={m.wage} /></td>
+                  <td className="r">{m.other > 0 ? <Money v={m.other} /> : <span className="faint">-</span>}</td>
+                  <td className="r">{m.bonuses > 0 ? <Money v={m.bonuses} /> : <span className="faint">-</span>}</td>
+                  <td className="r tone-neg"><Money v={-m.tax} /></td>
+                  <td className="r"><strong><Money v={m.net} /></strong></td>
+                  <td className="r"><Money v={-m.living} /></td>
+                  <td className="r">{m.family > 0 ? <Money v={-m.family} /> : <span className="faint">-</span>}</td>
+                  <td className={`r ${m.left < 0 ? "tone-neg" : "tone-pos"}`}><Money v={m.left} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Section>
+      {d.bonuses.length > 0 && (
+        <Section title="Bonuses" aside={<span>after tax and your agent's share</span>}>
+          <table className="minitable">
+            <tbody>
+              {d.bonuses.slice(0, 15).map((b, i) => (
+                <tr key={i}><td><Dt d={b.date} /></td><td className="wrap">{b.what}</td><td className="r"><Money v={b.kept} /></td></tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      )}
+    </>
+  );
+}

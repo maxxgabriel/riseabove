@@ -268,6 +268,7 @@ impl Api {
             "me.journal" => self.with(pages::life::journal),
             "me.chronicle" => self.with(pages::chronicle::chronicle),
             "me.chats" => self.with(pages::chat::rooms),
+            "me.money" => self.with(pages::money::money),
             "me.matchday" => self.with(|c| pages::matchday::matchday(c, &args)),
             "me.chat" => self.with(|c| pages::chat::room(c, &args)),
             "me.chat_read" => self.with_mut(|s| pages::chat::read(s, &args)),
@@ -304,6 +305,7 @@ impl Api {
                     "job": job, "task": task,
                     "settings": {"conceal_mine": s.meta.conceal_mine, "stops": {"decisions": s.meta.stops.decisions, "matches": s.meta.stops.matches, "major": s.meta.stops.major}},
                     "awaiting": awaiting, "unrevealed": s.meta.concealed.len(),
+                    "currency": pw_narrate::lang::currency_symbol(s.w()),
                 })
             }
         }

@@ -48,7 +48,7 @@ export function Settings() {
             />
           </Field>
           <Field label="Currency symbol" hint="Display only. The simulation has a single unit of account and nothing is converted.">
-            <Segmented label="Currency" value={s.currency} onChange={(v) => setSettings({ currency: v })} options={["£", "€", "$", "¥"].map((c) => ({ id: c, label: c }))} />
+            <Segmented label="Currency" value={s.currency} onChange={(v) => setSettings({ currency: v })} options={[{ id: "", label: "The world's own" }, ...["£", "€", "$", "¥", "₹"].map((c) => ({ id: c, label: c }))]} />
           </Field>
         </div>
       </Section>

@@ -448,6 +448,8 @@ contract! {
         pub settings: Option<SettingsView>,
         pub awaiting: Option<usize>,
         pub unrevealed: Option<usize>,
+        /// The symbol of the world's own money ("₹" in a world of Indian regions), when a world is open.
+        pub currency: Option<String>,
     }
 
     pub struct PositionView {
@@ -1185,6 +1187,35 @@ contract! {
         pub lines: Vec<ChatLine>,
     }
 
+    /// A month's payslip: what came in, what tax and living took, what went home, what was left; and the bonuses that month.
+    pub struct PayslipRow {
+        pub date: i32,
+        pub wage: i64,
+        pub other: i64,
+        pub tax: i64,
+        pub net: i64,
+        pub living: i64,
+        pub family: i64,
+        pub left: i64,
+        pub bonuses: i64,
+    }
+
+    pub struct BonusRow {
+        pub date: i32,
+        pub what: String,
+        pub gross: i64,
+        pub kept: i64,
+    }
+
+    pub struct MoneyView {
+        /// The contract's weekly wage now, before tax.
+        pub per_week: i64,
+        pub months: Vec<PayslipRow>,
+        pub bonuses: Vec<BonusRow>,
+        /// What the money means, in a few plain sentences.
+        pub meaning: Vec<String>,
+    }
+
     /// One moment of a match day you lived.
     pub struct MatchdayStep {
         /// "The day before", "Half-time", "That night" ...
@@ -1478,6 +1509,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.journal"), None, "JournalView"),
         typed(q("me.chronicle"), None, "ChronicleView"),
         typed(q("me.chats"), None, "ChatsView"),
+        typed(q("me.money"), None, "MoneyView"),
         typed(q("me.matchday"), Some("MatchReq"), "MatchdayView"),
         typed(q("me.chat"), Some("IdReq"), "ChatView"),
         typed(c("me.chat_read"), Some("IdReq"), "Done"),
@@ -1649,6 +1681,9 @@ pub fn declarations() -> Vec<String> {
         ChronicleTie::declaration(),
         ChronicleReach::declaration(),
         ChronicleView::declaration(),
+        PayslipRow::declaration(),
+        BonusRow::declaration(),
+        MoneyView::declaration(),
         MatchdayStep::declaration(),
         MatchdayView::declaration(),
         ChatRoomRow::declaration(),

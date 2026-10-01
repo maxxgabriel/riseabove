@@ -255,6 +255,11 @@ fn finances(w: &mut World, who: PersonId) {
     let spend = ((income as f32 * share) as i64).max(floor) + kids + extra_out;
     let parents = w.lives[who].household.parents;
     let support = if parents.alive > 0 && parents.means <= 2 && income > 6_000 { (income as f32 * 0.04 * f32::from(parents.closeness) / 60.0) as i64 } else { 0 };
+    if w.ext.chronicle.lives.contains_key(&who) {
+        let (wage, other) = (gross_week * 52 / 12, extra_in);
+        let entry = pw_world::ledger::Entry::Payslip { wage, other, tax: wage + other - income, net: income, living: spend, family: support };
+        w.ext.ledger.record(who, today, entry);
+    }
     let f = &mut w.lives[who].finances;
     f.income = income;
     f.spending = spend;

@@ -64,6 +64,8 @@ export interface Status {
   settings?: WorldSettings;
   awaiting?: number;
   unrevealed?: number;
+  /** The world's own money: "₹" in a world of Indian regions, "£" elsewhere. */
+  currency?: string;
 }
 
 export interface SaveInfo {

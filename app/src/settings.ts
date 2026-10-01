@@ -9,7 +9,7 @@ export interface Settings {
   density: Density;
   textScale: number; // percent
   dateStyle: DateStyle;
-  currency: string; // symbol only; the simulation has one unit of account
+  currency: string; // a symbol, or "" for the world's own money; the simulation has one unit of account
   reduceMotion: boolean;
   railCollapsed: boolean;
   autosave: boolean;
@@ -21,7 +21,7 @@ const defaults: Settings = {
   density: "comfortable",
   textScale: 100,
   dateStyle: "short",
-  currency: "£",
+  currency: "",
   reduceMotion: false,
   railCollapsed: false,
   autosave: true,

@@ -7,6 +7,7 @@ pub mod life;
 pub mod matchday;
 pub mod matchp;
 pub mod me;
+pub mod money;
 pub mod newsroom;
 pub mod pathway;
 pub mod person;

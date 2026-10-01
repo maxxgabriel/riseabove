@@ -29,6 +29,14 @@ pub fn enabled(_w: &World) -> bool {
 
 /// How the world's money is written: the Indian system in a world of Indian regions, a symbol and short units elsewhere (the symbol the
 /// game's pages use by default; the simulation keeps one unit of account).
+/// The symbol the world's money is shown with: "₹" in a world of Indian regions, "£" elsewhere.
+pub fn currency_symbol(w: &World) -> String {
+    match currency(w) {
+        pw_lang::Currency::Rupee => "₹".into(),
+        pw_lang::Currency::Short(c) => c.to_string(),
+    }
+}
+
 pub fn currency(w: &World) -> pw_lang::Currency {
     let indian = w.ext.ecosystem.regions.iter().next().is_some_and(|r| w.nations.get(r.nation).is_some_and(|n| n.code == "IND"));
     if indian { pw_lang::Currency::Rupee } else { pw_lang::Currency::Short('£') }

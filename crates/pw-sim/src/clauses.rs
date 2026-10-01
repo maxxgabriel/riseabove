@@ -8,6 +8,7 @@
 use pw_core::{ClubId, EventId, Money, PlayerId, PosGroup};
 use pw_world::boardroom::{ContractFile, Outcome, Verdict, Voice};
 use pw_world::contract::{SquadStatus, Trigger};
+use pw_world::ledger::{Entry, Paid};
 use pw_world::event::{EventKind, Visibility};
 use pw_world::negotiation::{Negotiation, TalkKind};
 use pw_world::social::PromiseKind;
@@ -18,8 +19,8 @@ use crate::{boardroom, consider, market, package};
 
 // ------------------------------------------------------------------ money
 
-/// The club pays a bonus; the player keeps what tax and the agent leave, in his savings.
-fn pay(w: &mut World, club: ClubId, p: PlayerId, amount: Money) {
+/// The club pays a bonus; the player keeps what tax and the agent leave, in his savings (and an inhabited life's ledger keeps the line).
+fn pay(w: &mut World, club: ClubId, p: PlayerId, amount: Money, paid: Paid) {
     if amount <= 0 || club.is_none() {
         return;
     }
@@ -28,7 +29,12 @@ fn pay(w: &mut World, club: ClubId, p: PlayerId, amount: Money) {
     f.season_spend += amount;
     let tax = i64::from(w.nations[w.clubs[club].nation].env.tax);
     let who = w.players.cold[p].person;
-    w.lives[who].finances.savings += amount * (100 - tax) / 100 * 6 / 10;
+    let kept = amount * (100 - tax) / 100 * 6 / 10;
+    w.lives[who].finances.savings += kept;
+    if w.ext.chronicle.lives.contains_key(&who) {
+        let today = w.date;
+        w.ext.ledger.record(who, today, Entry::Bonus { paid, gross: amount, kept });
+    }
 }
 
 /// After a senior match: appearance, goal, assist and clean-sheet bonuses.
@@ -46,7 +52,7 @@ pub fn match_bonuses(w: &mut World, p: PlayerId, minutes: u8, goals: u8, assists
     if kept_clean && minutes >= 60 && keeper_or_defender {
         total += c.clean_sheet_bonus;
     }
-    pay(w, club, p, total);
+    pay(w, club, p, total, Paid::Match { goals, assists, clean: kept_clean && minutes >= 60 && keeper_or_defender });
     check_auto(w, p, None);
 }
 
@@ -54,7 +60,7 @@ pub fn match_bonuses(w: &mut World, p: PlayerId, minutes: u8, goals: u8, assists
 pub fn on_cap(w: &mut World, p: PlayerId) {
     let c = &w.players.cold[p].contract;
     let (club, bonus) = (c.club, c.cap_bonus);
-    pay(w, club, p, bonus);
+    pay(w, club, p, bonus, Paid::Cap);
     check_auto(w, p, None);
 }
 
@@ -65,7 +71,7 @@ pub fn on_continental_entry(w: &mut World, comp: pw_core::CompId) {
         for p in w.teams[t].squad.clone() {
             let c = &w.players.cold[p].contract;
             let (club, bonus) = (c.club, c.continental_bonus);
-            pay(w, club, p, bonus);
+            pay(w, club, p, bonus, Paid::Continental);
             check_auto(w, p, Some(Trigger::Continental));
         }
     }
@@ -87,7 +93,7 @@ pub fn weekly(w: &mut World) {
                 for p in w.teams[team].squad.clone() {
                     let c = &w.players.cold[p].contract;
                     let (club, bonus) = (c.club, c.title_bonus);
-                    pay(w, club, p, bonus);
+                    pay(w, club, p, bonus, Paid::Title);
                     check_auto(w, p, Some(Trigger::Title));
                 }
             }
@@ -95,7 +101,7 @@ pub fn weekly(w: &mut World) {
                 for p in w.teams[team].squad.clone() {
                     let c = &w.players.cold[p].contract;
                     let (club, bonus) = (c.club, c.promotion_bonus);
-                    pay(w, club, p, bonus);
+                    pay(w, club, p, bonus, Paid::Promotion);
                     check_auto(w, p, Some(Trigger::Promotion));
                 }
             }
@@ -111,7 +117,7 @@ pub fn weekly(w: &mut World) {
             // The anniversary fell in the last seven days.
             if days >= 365 && days / 365 > (days - 7) / 365 {
                 let (club, bonus) = (c.club, c.loyalty_bonus);
-                pay(w, club, p, bonus);
+                pay(w, club, p, bonus, Paid::Loyalty);
             }
         }
     }

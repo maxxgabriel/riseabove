@@ -1,4 +1,5 @@
 import { getSettings } from "./settings";
+import { getStatus } from "./store";
 import type { Fmt } from "./types";
 
 const DAY = 86_400_000;
@@ -63,14 +64,21 @@ export function ordinal(n: number): string {
 }
 
 const int = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+const inr = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
 export const fmtInt = (n: number) => int.format(n);
 
 /** Money, compact by default. `exact` shows every digit. */
 export function money(v: number | null | undefined, opts: { exact?: boolean; sign?: boolean } = {}): string {
   if (v == null || !Number.isFinite(v)) return "";
-  const sym = getSettings().currency;
+  const sym = getSettings().currency || getStatus().currency || "£";
   const a = Math.abs(v);
   const sign = v < 0 ? "−" : opts.sign && v > 0 ? "+" : "";
+  if (sym === "₹") {
+    // Indian grouping, and lakh and crore for large sums.
+    if (opts.exact || a < 100_000) return `${sign}₹${inr.format(a)}`;
+    if (a < 10_000_000) return `${sign}₹${(a / 100_000).toFixed(a < 1_000_000 ? 2 : 1).replace(/\.?0+$/, "")} lakh`;
+    return `${sign}₹${(a / 10_000_000).toFixed(a < 100_000_000 ? 2 : 1).replace(/\.?0+$/, "")} crore`;
+  }
   if (opts.exact || a < 10_000) return `${sign}${sym}${int.format(a)}`;
   const c = (x: number, unit: string, digits: number) => {
     const s = x.toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");

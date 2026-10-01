@@ -208,3 +208,25 @@ fn your_match_is_a_day_lived_and_a_hidden_result_stays_hidden() {
         assert!(api.call("me.matchday", json!({"uid": f["open"]["id"]})).is_err());
     }
 }
+
+#[test]
+fn a_wage_becomes_payslips_bonuses_and_a_life() {
+    let api = lived(4, 120);
+    let m = api.call("me.money", json!({})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.money", &m) {
+        panic!("me.money is not its declared type: {e}");
+    }
+    let months = m["months"].as_array().unwrap();
+    assert!(months.len() >= 3, "four months of a contract leave payslips: {m}");
+    for x in months {
+        let n = |k: &str| x[k].as_i64().unwrap();
+        assert!(n("wage") > 0 && n("tax") > 0, "a professional is paid and taxed: {x}");
+        assert_eq!(n("net"), n("wage") + n("other") - n("tax"), "take-home is pay less tax: {x}");
+        assert_eq!(n("left"), n("net") - n("living") - n("family"), "what is left is take-home less living and family: {x}");
+    }
+    for b in m["bonuses"].as_array().unwrap() {
+        assert!(b["kept"].as_i64().unwrap() < b["gross"].as_i64().unwrap(), "tax and the agent take their share of a bonus: {b}");
+    }
+    assert!(!m["meaning"].as_array().unwrap().is_empty(), "the numbers are said in words");
+    assert_eq!(api.call("world.status", json!({})).unwrap()["currency"], "₹", "an India world counts in rupees");
+}

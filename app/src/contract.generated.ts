@@ -178,6 +178,7 @@ export interface StatusView {
   settings: SettingsView | null;
   awaiting: number | null;
   unrevealed: number | null;
+  currency: string | null;
 }
 
 export interface PositionView {
@@ -808,6 +809,32 @@ export interface ChronicleView {
   entries: ChronicleEntry[];
   people: ChronicleTie[];
   reach: ChronicleReach[];
+}
+
+export interface PayslipRow {
+  date: number;
+  wage: number;
+  other: number;
+  tax: number;
+  net: number;
+  living: number;
+  family: number;
+  left: number;
+  bonuses: number;
+}
+
+export interface BonusRow {
+  date: number;
+  what: string;
+  gross: number;
+  kept: number;
+}
+
+export interface MoneyView {
+  per_week: number;
+  months: PayslipRow[];
+  bonuses: BonusRow[];
+  meaning: string[];
 }
 
 export interface MatchdayStep {
@@ -2943,6 +2970,7 @@ export interface ApiMethods {
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: JournalView };
   "me.chronicle": { kind: "query"; req: Record<string, unknown>; res: ChronicleView };
   "me.chats": { kind: "query"; req: Record<string, unknown>; res: ChatsView };
+  "me.money": { kind: "query"; req: Record<string, unknown>; res: MoneyView };
   "me.matchday": { kind: "query"; req: MatchReq; res: MatchdayView };
   "me.chat": { kind: "query"; req: IdReq; res: ChatView };
   "me.chat_read": { kind: "command"; req: IdReq; res: Done };
@@ -3034,6 +3062,7 @@ export type TypedMethod =
   | "me.journal"
   | "me.chronicle"
   | "me.chats"
+  | "me.money"
   | "me.matchday"
   | "me.chat"
   | "me.chat_read"
