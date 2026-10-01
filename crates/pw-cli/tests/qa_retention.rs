@@ -148,7 +148,9 @@ fn people_who_left_the_game_stop_generating_life_events() {
         // The events of a person's own month (money, parents): a partner's step can still mark a shared event such as a wedding.
         if let E::Life { person, kind: kind @ (L::FinancialTrouble | L::ParentUnwell | L::ParentRecovered | L::Bereavement) } = &e.kind {
             let player = w.people[*person].player;
-            // `gone` is read at the event's date, for someone who really had played (and then retired) before it.
+            // `gone` is read at the event's date, for someone who really had played and had retired before it: status is today's, so
+            // the retirement itself must predate the event (a player who went years without a match but retired later had not left
+            // the game yet). Retirements are never forgotten by the log.
             let retired_before = retired_on.get(person).is_some_and(|&d| d < e.date);
             if player.is_some() && w.players.hot[player].last_match.0 > 0 && retired_before && pw_sim::retention::left_the_game(w, *person, e.date) {
                 after_leaving.push((e.date, *person, format!("{kind:?}")));
