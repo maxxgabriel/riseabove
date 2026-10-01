@@ -91,6 +91,8 @@ pub struct Snapshot {
     pub appetite_mean: f32,
     pub appetite_max: f32,
     pub fee_median: f64,
+    /// Median of fee over the market's estimate of the player now: what prices do, apart from who is being bought.
+    pub fee_to_value: f64,
     pub fee_p90: f64,
     pub fee_p95: f64,
     pub fee_max: f64,
@@ -354,13 +356,17 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
         }
     }
     // Activity in the period.
-    let mut fees: Vec<f64> = Vec::new();
+    let (mut fees, mut ratios): (Vec<f64>, Vec<f64>) = (Vec::new(), Vec::new());
     for e in w.events.since(since) {
         match e.kind {
-            EventKind::Transfer { fee, .. } => {
+            EventKind::Transfer { fee, player, .. } => {
                 s.transfers += 1;
                 if fee > 0 {
                     fees.push(fee as f64);
+                    let value = crate::market::value_of(w, player);
+                    if value > 0 {
+                        ratios.push(fee as f64 / value as f64);
+                    }
                 }
             }
             EventKind::LoanMove { .. } => s.loans += 1,
@@ -406,6 +412,7 @@ pub fn snapshot(w: &World, since: Date, year: u32) -> Snapshot {
     }
     s.fees_total = fees.iter().sum();
     s.fee_median = pct(&mut fees.clone(), 0.5).unwrap_or(0.0);
+    s.fee_to_value = pct(&mut ratios, 0.5).unwrap_or(0.0);
     s.fee_p90 = pct(&mut fees.clone(), 0.9).unwrap_or(0.0);
     s.fee_p95 = pct(&mut fees.clone(), 0.95).unwrap_or(0.0);
     s.fee_max = pct(&mut fees, 1.0).unwrap_or(0.0);
@@ -518,12 +525,19 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
         (Some(a), Some(b)) if b.year > a.year => Some(((b.fee_median / a.fee_median).powf(1.0 / f64::from(b.year - a.year)) - 1.0) * 100.0),
         _ => None,
     };
-    if let Some(g) = fee_growth {
-        if g > 15.0 {
-            flag(Level::Problem, "fees", format!("median transfer fee inflates {g:.0}% a year"));
-        } else if g > 8.0 {
-            flag(Level::Warn, "fees", format!("median transfer fee inflates {g:.0}% a year"));
-        }
+    // A median fee rises when prices rise, and also when dearer players are the ones moving. Prices are what fee over value measures;
+    // only that is a problem. The median alone, with prices steady, is a market of different deals, worth a look and no more.
+    let price_growth = match (market_years.first(), market_years.last()) {
+        (Some(a), Some(b)) if b.year > a.year && a.fee_to_value > 0.0 && b.fee_to_value > 0.0 => Some(((b.fee_to_value / a.fee_to_value).powf(1.0 / f64::from(b.year - a.year)) - 1.0) * 100.0),
+        _ => None,
+    };
+    match (fee_growth, price_growth) {
+        (_, Some(p)) if p > 15.0 => flag(Level::Problem, "fees", format!("clubs pay {p:.0}% more a year over what players are worth")),
+        (_, Some(p)) if p > 8.0 => flag(Level::Warn, "fees", format!("clubs pay {p:.0}% more a year over what players are worth")),
+        (Some(g), Some(_)) if g > 15.0 => flag(Level::Warn, "fees", format!("median transfer fee rises {g:.0}% a year at steady prices: dearer players are moving")),
+        (Some(g), None) if g > 15.0 => flag(Level::Problem, "fees", format!("median transfer fee inflates {g:.0}% a year")),
+        (Some(g), _) if g > 8.0 => flag(Level::Warn, "fees", format!("median transfer fee inflates {g:.0}% a year")),
+        _ => {}
     }
     // Fame and reputation saturation.
     if last.fame_saturated > 0.05 {
@@ -573,7 +587,19 @@ pub fn analyse(run: &[Snapshot]) -> Vec<Finding> {
             flag(Level::Warn, "save size", format!("the world's size grows {g:.0}% a year"));
         }
     }
-    for (name, f) in [("stories", (&|s: &Snapshot| s.stories as f64) as &dyn Fn(&Snapshot) -> f64), ("posts", &|s| s.posts as f64), ("events", &|s| s.events as f64)] {
+    // Posts (kept for weeks) and the event log (kept for about a year, headlines for good) are windows: what they hold is a level, and
+    // a level that keeps climbing is the problem. (Read as a cumulative log, a window's yearly change is noise around zero once it is
+    // full, and any later year looked like many times "year 2".)
+    for (name, f) in [("posts", (&|s: &Snapshot| s.posts as f64) as &dyn Fn(&Snapshot) -> f64), ("events", &|s| s.events as f64)] {
+        let v: Vec<f64> = run.iter().map(f).collect();
+        if v.len() >= 4 && v[2] > 0.0 {
+            let rate = v[v.len() - 1] / v[2];
+            if rate > 2.5 {
+                flag(Level::Warn, name, format!("{name} held are {rate:.1}x what they were in year 2"));
+            }
+        }
+    }
+    for (name, f) in [("stories", (&|s: &Snapshot| s.stories as f64) as &dyn Fn(&Snapshot) -> f64)] {
         // Cumulative logs grow linearly; only a rate that itself keeps climbing is a problem.
         let v: Vec<f64> = run.iter().map(f).collect();
         let per_year: Vec<f64> = v.windows(2).map(|p| p[1] - p[0]).collect();
@@ -651,10 +677,10 @@ pub fn render(run: &[Snapshot]) -> String {
 /// The money series of a run, one row per year: wages by tier, fees, cash, revenue against wages, unemployment, records and insolvency.
 pub fn render_economy(run: &[Snapshot]) -> String {
     let mut s = String::new();
-    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
+    s.push_str("year  wageT1  wageT2  wageT3  wageMean wagePl50 wagePl99  fee50  fee/val  fee90  fee95   feeMax   balP10  balMed  balP90  hoard  inDebt admin(n/new)  revTot  wageTot  wage/rev w/r90  free  staffU  recSign recSale recWorld recOther quality\n");
     for r in run {
         s.push_str(&format!(
-            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
+            "{:>4} {:>7} {:>7} {:>7} {:>8} {:>8} {:>8} {:>6} {:>8.2} {:>6} {:>6} {:>8} {:>8} {:>7} {:>7} {:>6} {:>6} {:>5}/{:<5} {:>7} {:>8} {:>8.2} {:>6.2} {:>5} {:>7} {:>7} {:>7} {:>8} {:>8} {:>6.1} {:>7.3} {:>6.3} {:>7} {:>6.0}\n",
             r.year,
             money(r.wage_tier1),
             money(r.wage_tier2),
@@ -663,6 +689,7 @@ pub fn render_economy(run: &[Snapshot]) -> String {
             money(r.player_wage_median),
             money(r.player_wage_p99),
             money(r.fee_median),
+            r.fee_to_value,
             money(r.fee_p90),
             money(r.fee_p95),
             money(r.fee_max),
@@ -773,6 +800,21 @@ mod tests {
     }
 
     #[test]
+    fn a_window_that_stays_full_is_fine_but_one_that_keeps_filling_is_not() {
+        // A full window whose level wobbles: the yearly change goes from 3 to 600, and that is noise, not growth.
+        let mut steady = flat(8);
+        for (i, s) in steady.iter_mut().enumerate() {
+            s.posts = if i == 0 { 0 } else { 40_000 + [0, 3, 600, 200, 900, 100, 700][i - 1] };
+        }
+        assert!(analyse(&steady).iter().all(|f| f.series != "posts"), "{:?}", analyse(&steady));
+        let mut filling = flat(8);
+        for (i, s) in filling.iter_mut().enumerate() {
+            s.posts = 10_000 * (i + 1) * (i + 1);
+        }
+        assert!(analyse(&filling).iter().any(|f| f.series == "posts"));
+    }
+
+    #[test]
     fn growth_is_measured_from_the_first_full_year() {
         assert!((yearly_growth(&[1.0, 100.0, 110.0, 121.0]).unwrap() - 10.0).abs() < 1e-6);
         assert!(yearly_growth(&[1.0, 0.0, 5.0, 6.0]).is_none());
@@ -791,6 +833,22 @@ mod tests {
             s.fee_median *= 1.3f64.powi(i as i32);
         }
         assert!(analyse(&real).iter().any(|f| f.series == "fees" && f.level == Level::Problem));
+    }
+
+    #[test]
+    fn dearer_players_moving_is_not_price_inflation_but_paying_more_for_the_same_player_is() {
+        let mut mix = flat(8);
+        for (i, s) in mix.iter_mut().enumerate() {
+            s.fee_median *= 1.3f64.powi(i as i32);
+            s.fee_to_value = 1.1;
+        }
+        let f = analyse(&mix);
+        assert!(f.iter().any(|x| x.series == "fees" && x.level == Level::Warn) && f.iter().all(|x| x.series != "fees" || x.level != Level::Problem), "{f:?}");
+        let mut prices = flat(8);
+        for (i, s) in prices.iter_mut().enumerate() {
+            s.fee_to_value = 1.1 * 1.2f64.powi(i as i32);
+        }
+        assert!(analyse(&prices).iter().any(|x| x.series == "fees" && x.level == Level::Problem));
     }
 
     #[test]
