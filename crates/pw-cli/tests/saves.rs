@@ -86,6 +86,57 @@ fn the_validator_catches_dangling_references_and_double_registrations() {
     assert!(validate::problems(&w).iter().any(|m| m.contains("finances")), "{:?}", validate::problems(&w));
 }
 
+/// The census of live ids: nobody is listed twice, and every id a roster, contract or back-reference holds exists and agrees.
+#[test]
+fn the_validator_catches_duplicated_live_ids_and_dangling_roster_references() {
+    let sim = world_after(30);
+    let has = |w: &World, what: &str| validate::problems(w).iter().any(|m| m.contains(what));
+    let c0 = pw_core::ClubId(0);
+
+    let mut w = sim.world.clone();
+    let t = w.clubs[c0].first_team();
+    let p = w.teams[t].squad[0];
+    w.teams[t].squad.push(p);
+    assert!(has(&w, "two squads"), "one team listing a player twice: {:?}", validate::problems(&w));
+
+    let mut w = sim.world.clone();
+    let team = w.clubs[c0].first_team();
+    w.clubs[c0].teams.push(team);
+    assert!(has(&w, "twice"), "{:?}", validate::problems(&w));
+
+    let mut w = sim.world.clone();
+    let st = w.clubs[c0].staff[0];
+    w.clubs[pw_core::ClubId(1)].staff.push(st);
+    assert!(has(&w, "both"), "{:?}", validate::problems(&w));
+
+    let mut w = sim.world.clone();
+    w.clubs[c0].staff.push(pw_core::StaffId(u32::MAX - 1));
+    assert!(has(&w, "unknown staff"), "{:?}", validate::problems(&w));
+
+    // Two people claiming one staff record, or a staff record naming someone who does not name it back.
+    let mut w = sim.world.clone();
+    let st = w.clubs[c0].staff[0];
+    let owner = w.staff[st].person;
+    let other = w.people.iter_enumerated().map(|(id, _)| id).find(|&id| id != owner && w.people[id].staff.is_none()).expect("a person without a staff record");
+    w.people[other].staff = st;
+    assert!(has(&w, "names someone else"), "{:?}", validate::problems(&w));
+    let mut w = sim.world.clone();
+    w.staff[st].person = other;
+    assert!(has(&w, "do not name each other"), "{:?}", validate::problems(&w));
+
+    // A player registered to one club but playing for another's team.
+    let mut w = sim.world.clone();
+    let p = w.teams[w.clubs[c0].first_team()].squad[0];
+    w.players.hot[p].club = pw_core::ClubId(1);
+    assert!(has(&w, "not his club"), "{:?}", validate::problems(&w));
+
+    // A retired player must have left his squad.
+    let mut w = sim.world.clone();
+    let p = w.teams[w.clubs[c0].first_team()].squad[0];
+    w.players.hot[p].status = pw_world::PlayerStatus::Retired;
+    assert!(has(&w, "retired player"), "{:?}", validate::problems(&w));
+}
+
 #[test]
 fn validation_reports_damage_in_a_loaded_world() {
     // Upgrades validate before writing (unit-tested in save.rs); this checks the validator finds real damage in a loaded world.

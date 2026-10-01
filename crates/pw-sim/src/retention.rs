@@ -84,6 +84,14 @@ pub fn gone(w: &World, p: PlayerId, today: Date) -> bool {
     s.is_none() || !w.staff[s].employed()
 }
 
+/// Has this person left the game: a computer-run player who is `gone`? Their life stops being simulated month by month (no new
+/// finances, family events, private news): without this a world's population of retired people grows for ever and each of them keeps
+/// producing events, rumours and ties. What their life held when they left stays as it was; a person a human inhabits is never "left".
+pub fn left_the_game(w: &World, who: PersonId, today: Date) -> bool {
+    let person = &w.people[who];
+    person.player.is_some() && person.mind == pw_world::MindKind::Ai && gone(w, person.player, today)
+}
+
 /// Drop round-by-round detail from old closed talks; keep ids, parties, final terms, private limits, causes, and outcome.
 /// Yearly: forget what nothing needs any more. Returns how many closed talks were compacted.
 pub fn yearly(w: &mut World) -> usize {

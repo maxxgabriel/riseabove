@@ -125,3 +125,26 @@ fn nothing_is_kept_past_its_window() {
     // History stays: the old headlines are still there.
     assert!(headlines > 50, "only {headlines} old headline events were kept");
 }
+
+/// People who left the game (a computer-run player retired for years, with no job in it) stop producing news and private rumours: their
+/// month-by-month life is no longer stepped. Without this a world's retired population grows for ever and each of them keeps adding events.
+#[test]
+fn people_who_left_the_game_stop_generating_life_events() {
+    use pw_world::{EventKind as E, LifeEventKind as L};
+    let s = ran(Scale::TINY, 14, 8 * 365);
+    let w = &s.world;
+    let gone = w.people.ids().filter(|&p| pw_sim::retention::left_the_game(w, p, w.date)).count();
+    assert!(gone > 20, "only {gone} people had left the game after eight years");
+    let mut after_leaving = Vec::new();
+    for e in w.events.all() {
+        // The events of a person's own month (money, parents): a partner's step can still mark a shared event such as a wedding.
+        if let E::Life { person, kind: kind @ (L::FinancialTrouble | L::ParentUnwell | L::ParentRecovered | L::Bereavement) } = &e.kind {
+            let player = w.people[*person].player;
+            // `gone` is read at the event's date, for someone who really had played (and then retired) before it.
+            if player.is_some() && w.players.hot[player].last_match.0 > 0 && pw_sim::retention::left_the_game(w, *person, e.date) {
+                after_leaving.push((e.date, *person, format!("{kind:?}")));
+            }
+        }
+    }
+    assert!(after_leaving.is_empty(), "life events for people who had left the game: {:?}", &after_leaving[..after_leaving.len().min(5)]);
+}
