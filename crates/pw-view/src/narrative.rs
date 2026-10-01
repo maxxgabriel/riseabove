@@ -106,6 +106,7 @@ pub fn group_of(k: &E) -> Group {
         Record { .. } | Voted { .. } | HallInduction { .. } => Group::Career,
         MinorTitle { .. } | Chronicle { .. } | RefereeControversy { .. } | AppealDecided { .. } | Charged { .. } | SchoolFounded { .. } | RuleChanged { .. } | RivalryKindled { .. } => Group::Competition,
         OpinionTurned { .. } => Group::Media,
+        AskedIfReady { .. } => Group::Health,
         AgentExploring { .. } => Group::Transfers,
         Milestone { .. }
         | RecordBroken { .. }
@@ -267,6 +268,7 @@ pub fn label(k: &E) -> &'static str {
         RuleChanged { .. } => "Rule change",
         RivalryKindled { .. } => "Rivalry",
         OpinionTurned { .. } => "Opinion",
+        AskedIfReady { .. } => "Fitness",
     }
 }
 

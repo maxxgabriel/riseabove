@@ -368,6 +368,10 @@ fn raw_line(w: &World, e: &Event, viewer: PersonId) -> Option<String> {
         }
         // Rivalries between nations or institutions and individual accounts turning on someone are records, not lines in a feed.
         RivalryKindled { .. } | OpinionTurned { .. } => return None,
+        AskedIfReady { player: p, manager } => {
+            let you = p.is_some() && w.players.cold[p].person == viewer;
+            if you { format!("{} asked whether you could play before the medical staff had cleared you.", me(manager)) } else { format!("{} asked {} whether he could play before the medical staff had cleared him.", me(manager), player(w, p)) }
+        }
         RecruitWon { person: x, institution, over, raised, .. } => {
             let (won, lost) = (crate::history::institution(w, institution), crate::history::institution(w, over));
             if raised { format!("{won} improved their scholarship offer and won the race for {} ahead of {lost}.", me(x)) } else { format!("{} chose {won} over {lost}.", me(x)) }

@@ -116,6 +116,20 @@ pub(crate) fn words(c: &Ctx, me: PersonId, m: &ChatMsg, i: usize, family: bool) 
             let n = first(c, who);
             t(if child { format!("Congrats {n}! Welcome to the little one.") } else { format!("Congrats {n} on the wedding! Great day.") })
         }
+        Said::AskedIfReady => t(pick(m, i, &["How's the body? Could you give me something on Saturday? Be honest with me.", "Doc says not yet. What do you say: could you play this week?", "Need to know where you are. Ready to be on the bench at least?"]).to_string()),
+        Said::GoodToHaveYouBack { .. } => t(pick(m, i, &["Good to have you back out there.", "Missed you, mate. Welcome back.", "Back where you belong. Easy does it."]).to_string()),
+        Said::OldTeamNews { who, then } => {
+            use pw_world::chronicle::Then;
+            let n = first(c, who);
+            match then {
+                Then::Capped { nation } => t(format!("Did you all see {n}? First cap for {}! Proud of our boy.", c.nation_name(nation))),
+                Then::BecameManager { club } => {
+                    let s = format!("{n}'s a manager now, at ");
+                    vec![Part::t(s), Part::l(Ref::club(club), c.club_name(club)), Part::t(". Who saw that coming?")]
+                }
+                _ => t(format!("News about {n}. Remember when he was one of us?")),
+            }
+        }
         Said::AgentNews { club } => {
             let s = pick(m, i, &["Had a call from {c} about you. Early days, I'll keep you posted.", "{c} asked about you. Nothing concrete yet."]);
             let (a, b) = s.split_once("{c}").unwrap_or((s, ""));

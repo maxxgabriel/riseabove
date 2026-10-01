@@ -31,3 +31,16 @@ pub fn capitalise(s: &str) -> String {
     let mut c = s.chars();
     c.next().map_or_else(String::new, |f| f.to_uppercase().collect::<String>() + c.as_str())
 }
+
+/// 12400 -> "12,400".
+pub fn thousands(n: u32) -> String {
+    let s = n.to_string();
+    let mut out = String::new();
+    for (i, ch) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(ch);
+    }
+    out
+}

@@ -1668,6 +1668,8 @@ export interface ClubViewPlace {
   nearby: Named[];
   universities: string[];
   from_home: string | null;
+  training: string;
+  ground: string | null;
 }
 
 export interface ClubView {
@@ -2270,6 +2272,18 @@ export interface MeTodayViewKnownFace {
   role: string;
 }
 
+export interface MeTodayViewOnThisDay {
+  years_ago: number;
+  date: number;
+  parts: Part[];
+}
+
+export interface MeTodayViewAround {
+  kind: string;
+  date: number;
+  parts: Part[];
+}
+
 export interface MeTodayViewBuildup {
   name: string | null;
   significance: number;
@@ -2347,6 +2361,8 @@ export interface MeTodayView {
   routine_hours: number;
   unrevealed: unknown[];
   waiting_on: MeTodayViewWaitingOn[];
+  on_this_day: MeTodayViewOnThisDay[];
+  around: MeTodayViewAround[];
   weekday: number;
 }
 

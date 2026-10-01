@@ -16,7 +16,6 @@ use crate::ctx::Ctx;
 use crate::model::{ApiError, ApiResult, Part, Ref};
 
 /// Kilometres per unit of the regions' 0-100 map grid (the grid spans roughly the width of the country).
-const KM_PER_UNIT: f32 = 30.0;
 
 fn step(when: &str, kind: &str, parts: Vec<Part>) -> MatchdayStep {
     MatchdayStep { when: when.into(), kind: kind.into(), parts }
@@ -28,11 +27,7 @@ fn t(s: impl Into<String>) -> Vec<Part> {
 
 /// Distance in km between two clubs' home regions, when both are on the map.
 fn km(c: &Ctx, a: ClubId, b: ClubId) -> Option<f32> {
-    let eco = &c.w.ext.ecosystem;
-    let ra = eco.regions.get(*eco.club_region.get(&a)?)?;
-    let rb = eco.regions.get(*eco.club_region.get(&b)?)?;
-    let (dx, dy) = (f32::from(ra.x) - f32::from(rb.x), f32::from(ra.y) - f32::from(rb.y));
-    Some((dx * dx + dy * dy).sqrt() * KM_PER_UNIT)
+    pw_sim::chronicle::club_km(c.w, a, b)
 }
 
 fn conditions(c: &Ctx, venue: ClubId, d: Date) -> Option<String> {

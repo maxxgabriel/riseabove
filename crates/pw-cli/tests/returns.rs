@@ -136,3 +136,22 @@ fn season_rate() {
     eprintln!("regulars {}: {:.2} injuries per regular-season; {:.1} injuries per 1000 match-hours overall ({:.0} match-hours)", regulars.len(), reg_cases as f64 / regulars.len().max(1) as f64, cases.len() as f64 / match_hours * 1000.0, match_hours);
     eprintln!("season rate: {} injuries over {squad} club players = {per:.2} per player-season, mean {mean_days:.0} days", cases.len());
 }
+
+#[test]
+fn someone_who_never_said_where_he_stands_is_asked_once_and_not_rushed() {
+    let mut c = setup(34);
+    c.w.medical.willing_to_rush.remove(&c.p);
+    let who = c.w.players.cold[c.p].person;
+    c.w.people[who].mind = pw_world::MindKind::External;
+    let asked = |w: &World| w.events.all().iter().filter(|e| matches!(e.kind, pw_world::EventKind::AskedIfReady { player, .. } if player == c.p)).count();
+    pw_sim::returns::consider_rush(&mut c.w, c.club, c.m, c.p, 1.0);
+    assert_eq!(asked(&c.w), 1, "the manager asks");
+    assert_ne!(c.w.players.hot[c.p].injury, 0, "asking is not rushing: he stays injured until he answers");
+    pw_sim::returns::consider_rush(&mut c.w, c.club, c.m, c.p, 1.0);
+    assert_eq!(asked(&c.w), 1, "once in a case");
+    // A computer-run player is never asked: his stance comes from who he is.
+    let mut d = setup(35);
+    d.w.medical.willing_to_rush.remove(&d.p);
+    pw_sim::returns::consider_rush(&mut d.w, d.club, d.m, d.p, 1.0);
+    assert!(d.w.events.all().iter().all(|e| !matches!(e.kind, pw_world::EventKind::AskedIfReady { .. })));
+}

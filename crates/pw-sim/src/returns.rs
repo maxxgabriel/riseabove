@@ -128,6 +128,13 @@ pub fn consider_rush(w: &mut World, club: ClubId, m: StaffId, p: PlayerId, stake
         None => w.people[who].mind == MindKind::Ai && amb + pres > 26.0,
     };
     if !willing {
+        // Someone who has never said where he stands is asked, once in a case: the manager wants him and the medical room has not
+        // cleared him. His answer is his stance on playing through (`medical::set_willing`).
+        let undecided = !w.medical.willing_to_rush.contains_key(&p) && w.people[who].mind != MindKind::Ai;
+        let asked = w.events.latest_where(today, case.date.days_until(today).max(0) + 1, |e| matches!(e.kind, EventKind::AskedIfReady { player, .. } if player == p)).is_some();
+        if undecided && !asked {
+            w.events.push(today, Visibility::Between(mp, who), EventKind::AskedIfReady { player: p, manager: mp });
+        }
         return;
     }
 

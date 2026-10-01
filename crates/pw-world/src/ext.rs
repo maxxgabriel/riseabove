@@ -45,7 +45,7 @@ use crate::training::TrainingExt;
 /// `chats` (group chats and private messages around inhabited people), appended and empty in a save from layout 5; 7 = adds `ledger`
 /// (payslips and bonuses of inhabited lives), appended and empty in a save from layout 6; 8 = adds `training` log (the training
 /// ground week by week around inhabited people), appended and empty in a save from layout 7.
-pub const EXT_VERSION: u32 = 8;
+pub const EXT_VERSION: u32 = 9;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Extensions {
@@ -85,6 +85,9 @@ pub struct Extensions {
     // ---- layout 8: appended
     /// Owner: `pw_sim::trainlog`. The training ground, week by week, around inhabited people.
     pub trainlog: TrainLogs,
+    // ---- layout 9: appended
+    /// Owner: `pw_sim::chronicle`. How far each chronicled person travelled to away matches, by year and club.
+    pub journeys: crate::chronicle::Journeys,
     /// Set (never saved) when this value was upgraded from an older layout: the version it came from. `pw_sim::legacy::finish`
     /// consumes it after load.
     #[serde(skip)]
@@ -108,6 +111,7 @@ pub fn steps() -> &'static [ExtStep] {
         ExtStep { from: 5, name: "add chats", apply: v5_to_v6 },
         ExtStep { from: 6, name: "add personal ledgers", apply: v6_to_v7 },
         ExtStep { from: 7, name: "add training logs", apply: v7_to_v8 },
+        ExtStep { from: 8, name: "add travel tallies", apply: v8_to_v9 },
     ]
 }
 
@@ -242,6 +246,11 @@ fn v6_to_v7(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
 /// Layout 8 appends `trainlog` at the end: no training week was written down before it existed.
 fn v7_to_v8(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
     append_default::<TrainLogs>(bytes)
+}
+
+/// Layout 9 appends `journeys` at the end: no trip was counted before it existed (the season lines of older years say nothing of travel).
+fn v8_to_v9(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
+    append_default::<crate::chronicle::Journeys>(bytes)
 }
 
 /// Step helper for adding a domain: the old bytes gain the default of the new trailing field(s).
@@ -424,11 +433,28 @@ mod tests {
         assert!(e5.chats.of.is_empty());
         assert!(e5.ledger.of.is_empty(), "no payslip is invented for an old save");
         assert!(e5.trainlog.of.is_empty(), "no training week is invented for an old save");
+        assert!(e5.journeys.of.is_empty(), "no trip is counted for an old save");
         assert_eq!(e.ecosystem.last_year, 2032);
         assert_eq!(e.lore.competitions.len(), 1, "what layout 4 held is untouched");
         assert!(e.chronicle.lives.is_empty(), "no life is chronicled for an old save");
         let again = decode(EXT_VERSION, bincode::serialize(&e).unwrap()).expect("layout 5 round-trips");
         assert!(again.chronicle.lives.is_empty());
+    }
+
+    #[test]
+    fn layout_8_gains_empty_journeys_and_keeps_its_training_logs() {
+        let mut old = Extensions::default();
+        old.trainlog.of.insert(pw_core::PersonId(9), Default::default());
+        old.chronicle.lives.insert(pw_core::PersonId(9), crate::chronicle::Life::default());
+        // Layout 8 is the current layout without its last field.
+        let mut v8 = bincode::serialize(&old).unwrap();
+        let tail = bincode::serialize(&old.journeys).unwrap().len();
+        v8.truncate(v8.len() - tail);
+        let e = decode(8, v8).expect("layout 8 upgrades");
+        assert_eq!(e.migrated_from, Some(8));
+        assert_eq!(e.trainlog.of.len(), 1, "what layout 8 held is kept");
+        assert_eq!(e.chronicle.lives.len(), 1);
+        assert!(e.journeys.of.is_empty(), "no trip is counted for an old save");
     }
 
     #[test]

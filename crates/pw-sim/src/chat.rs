@@ -176,6 +176,9 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
                     inbox.post(Room::Family, today, f, Said::HeadUp, ev);
                 }
             }
+            E::AskedIfReady { player, manager } if player == p => {
+                inbox.post(Room::Direct { with: manager }, today, Sender::Person(manager), Said::AskedIfReady, ev);
+            }
             E::AgentPitch { player, club: k, .. } if player == p => {
                 if let Some(a) = agent(w, p) {
                     inbox.post(Room::Direct { with: a }, today, Sender::Person(a), Said::AgentNews { club: k }, ev);
@@ -209,6 +212,7 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
             }
         }
     }
+    from_the_story(w, inbox, me, club, today, &mut rng);
     if club.is_none() {
         return;
     }
@@ -216,6 +220,35 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
     left_out(w, inbox, me, p, club, today);
     birthdays(w, inbox, me, club, today, &mut rng);
     far_from_home(w, inbox, me, p, today, &mut rng);
+}
+
+/// What today's chronicle lines bring to the chats: a teammate after the first match back, and the old squad when one of its
+/// former members gets a first cap or a manager's job.
+fn from_the_story(w: &World, inbox: &mut Inbox, me: PersonId, club: ClubId, today: Date, rng: &mut Rng) {
+    use pw_world::chronicle::{Line, Then, TieKind};
+    let Some(life) = w.ext.chronicle.of(me) else { return };
+    for e in life.entries.iter().rev().take_while(|e| e.date == today) {
+        match e.line {
+            Line::Comeback { uid, club: k, .. } => {
+                if let Some(&q) = closest(w, me, k, 1, rng).first() {
+                    inbox.post(Room::Squad { club: k }, today, Sender::Person(q), Said::GoodToHaveYouBack { uid }, EventId::NONE);
+                }
+            }
+            Line::Meanwhile { who, tie, then: then @ (Then::Capped { .. } | Then::BecameManager { .. }) } => {
+                let Some(TieKind::Teammate { club: old }) = life.ties.get(usize::from(tie)).map(|t| t.kind) else { continue };
+                if old == club || old.is_none() {
+                    continue;
+                }
+                // Someone still at the old club says it, if anyone from your time there is.
+                let at_old = |q: PersonId| w.people.get(q).is_some_and(|x| x.player.is_some() && w.players.hot[x.player].club == old);
+                let speaker = life.ties.iter().filter(|t| matches!(t.kind, TieKind::Teammate { club: c } if c == old) && t.person != who && at_old(t.person)).map(|t| t.person).min();
+                if let Some(q) = speaker {
+                    inbox.post(Room::Squad { club: old }, today, Sender::Person(q), Said::OldTeamNews { who, then }, e.event);
+                }
+            }
+            _ => {}
+        }
+    }
 }
 
 /// The squad's chat after today's match: one to three of those who played, the scorer named, the result in their mood.

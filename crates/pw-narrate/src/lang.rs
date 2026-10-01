@@ -37,6 +37,14 @@ pub fn currency_symbol(w: &World) -> String {
     }
 }
 
+/// An amount in the world's own form: ₹ with lakh and crore in a world of Indian regions, short units elsewhere.
+pub fn money_text(w: &World, v: i64) -> String {
+    match currency(w) {
+        pw_lang::Currency::Rupee => pw_lang::text::money(v, false),
+        pw_lang::Currency::Short(c) => pw_lang::text::money_short(v, c, false),
+    }
+}
+
 pub fn currency(w: &World) -> pw_lang::Currency {
     let indian = w.ext.ecosystem.regions.iter().next().is_some_and(|r| w.nations.get(r.nation).is_some_and(|n| n.code == "IND"));
     if indian { pw_lang::Currency::Rupee } else { pw_lang::Currency::Short('£') }

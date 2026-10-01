@@ -947,6 +947,12 @@ pub enum EventKind {
         account: u32,
         up: bool,
     },
+    /// A manager asked an injured player whether he could play before the medical room had cleared him (only asked of someone who
+    /// had not said where he stands; `pw_sim::medical::set_willing` is his answer).
+    AskedIfReady {
+        player: PlayerId,
+        manager: PersonId,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]

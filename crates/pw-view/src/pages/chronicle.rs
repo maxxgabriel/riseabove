@@ -277,7 +277,16 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             } else {
                 s.t("Signed a contract with ").club(club).t(" until ")
             };
-            (s.date(until).done(), "moves", Some("contract"))
+            let mut s = s.date(until);
+            // Your own terms, kept when the contract was signed.
+            if let Some(wage) = life.entries.iter().find_map(|e| match e.line {
+                Line::Terms { club: k, until: u, wage } if k == club && u == until => Some(wage),
+                _ => None,
+            }) && wage > 0
+            {
+                s = s.t(format!(", on {} a week", pw_narrate::lang::money_text(w, wage)));
+            }
+            (s.done(), "moves", Some("contract"))
         }
         Line::Trial { club } => (s.t("Began a trial at ").club(club).done(), "moves", Some("trial")),
         Line::TrialOutcome { club, offered } => {
@@ -311,6 +320,10 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
                     idle.push(format!("left out of the squad {}", plural(omitted, "time", "times")));
                 }
                 text.push_str(&format!("; {}", idle.join(", ")));
+            }
+            // How far the season took you, when the clubs are on the map.
+            if let Some(t) = c.me().and_then(|me| w.ext.journeys.of(me, year, club)).filter(|t| t.trips > 0) {
+                text.push_str(&format!("; {} km on the road to {} away {}", crate::fmt::thousands(t.km), t.trips, if t.trips == 1 { "match" } else { "matches" }));
             }
             (s.t(format!("{year} at ")).club(club).t(text).done(), "football", None)
         }
@@ -352,6 +365,7 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
                 Big::BigOccasion => s.t("Scored in a match that mattered, against "),
                 Big::BestOnPitch => s.t("Best player on the pitch against "),
                 Big::Final => s.t("Played in the final against "),
+                Big::Decider => s.t(if goals >= 2 { format!("Scored {goals}, the last of them the winner, against ") } else { "Scored the winner against ".into() }),
             };
             (lead.club(opp).t(", ").comp(comp).t(result_words(result)).done(), "football", None)
         }
@@ -418,6 +432,39 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             };
             (s.done(), "club", None)
         }
+        Line::FirstGoalFor { club, .. } => (s.t("First goal for ").club(club).done(), "football", None),
+        Line::BackWithGroup => (s.t("Back training with the group, part of the way back").done(), "injury", None),
+        Line::AskedIfReady { by } => (s.person(by).t(" asked whether you could play before the medical staff had cleared you").done(), "injury", None),
+        Line::Comeback { club, opp, days, .. } => {
+            let weeks = (u32::from(days) + 3) / 7;
+            let away = if weeks >= 2 { format!(", after {weeks} weeks out") } else { String::new() };
+            (s.t("Back on the pitch for ").club(club).t(" against ").club(opp).t(away).done(), "injury", None)
+        }
+        Line::NothingCameOfIt { club, .. } => (s.t("Nothing came of the talk linking you with ").club(club).done(), "recognition", None),
+        Line::Answered { story, answer, corrected } => {
+            let st = w.media.stories.get(story)?;
+            let outlet = pw_narrate::press::outlet_name(w, st);
+            let head = c.headline(st);
+            let tail = if corrected {
+                ". They later corrected it".to_string()
+            } else {
+                let by = w.media.stories.get(answer).map(|a| pw_narrate::press::outlet_name(w, a)).filter(|o| *o != outlet);
+                by.map_or_else(|| ". It was denied".to_string(), |o| format!(". It was denied, in {o}"))
+            };
+            (s.t(format!("{outlet} wrote \u{201c}{head}\u{201d}{tail}")).done(), "recognition", None)
+        }
+        Line::Terms { .. } => return None,
+        Line::Talked { reach, club, nation, region } => {
+            use pw_world::chronicle::FanReach as R;
+            let s = match reach {
+                R::OwnClub => s.club(club).t(" supporters started talking about you online"),
+                R::OtherClub => s.t("Supporters of ").club(club).t(" started talking about you too"),
+                R::OtherState if region.is_some() => s.t("People in ").region(region).t(" started talking about you"),
+                R::OtherState => s.t("People beyond your home state started talking about you"),
+                R::Abroad => s.t("Fans in ").nation(nation).t(" started talking about you"),
+            };
+            (s.done(), "recognition", None)
+        }
         Line::Faced { who, tie, club, .. } => {
             let t = life.ties.get(usize::from(tie))?;
             let role = if matches!(t.kind, TieKind::Coach { .. } | TieKind::LetGo { .. }) { ", in charge of " } else { ", now at " };
@@ -426,9 +473,14 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
     })
 }
 
+/// One line of a person's story in words, for other pages (Today's "on this day").
+pub(crate) fn line_parts(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<Vec<Part>> {
+    render(c, life, line).map(|(parts, _, _)| parts)
+}
+
 fn line_uid(l: Line) -> Option<u64> {
     match l {
-        Line::Debut { uid, .. } | Line::FirstGoal { uid, .. } | Line::Match { uid, .. } | Line::Faced { uid, .. } if uid != u64::MAX => Some(uid),
+        Line::Debut { uid, .. } | Line::FirstGoal { uid, .. } | Line::Match { uid, .. } | Line::Faced { uid, .. } | Line::FirstGoalFor { uid, .. } | Line::Comeback { uid, .. } if uid != u64::MAX => Some(uid),
         _ => None,
     }
 }
@@ -445,13 +497,18 @@ fn now_words(c: &Ctx, who: PersonId) -> Option<String> {
     }
     if p.player.is_some() {
         let h = &w.players.hot[p.player];
+        // Senior caps are public: what became of them includes how far they went.
+        let caps = w.intl.caps.get(&p.player).and_then(|v| v.iter().filter(|x| x.level == pw_world::intl::Level::Senior).max_by_key(|x| x.caps)).map(|x| {
+            format!("; {} {} for {}", x.caps, if x.caps == 1 { "cap" } else { "caps" }, c.nation_name(x.nation))
+        });
+        let caps = caps.unwrap_or_default();
         if h.status == pw_world::PlayerStatus::Retired {
-            return Some("Retired".into());
+            return Some(format!("Retired{caps}"));
         }
         if h.club.is_some() {
-            return Some(c.club_name(h.club));
+            return Some(format!("{}{caps}", c.club_name(h.club)));
         }
-        return Some("Without a club".into());
+        return Some(format!("Without a club{caps}"));
     }
     None
 }

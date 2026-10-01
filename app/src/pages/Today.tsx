@@ -54,6 +54,8 @@ export interface TodayResp {
   routine_hours: number;
   waiting_on: { kind: string; text: string; since: number; date?: number; ref?: { k: string; id: number } }[];
   known_faces: { who: Named; how: Part[]; role: string }[];
+  on_this_day: { years_ago: number; date: number; parts: Part[] }[];
+  around: { kind: string; date: number; parts: Part[] }[];
   buildup: null | { name: string | null; significance: number; lines: Part[][] };
   atmosphere: null | { mood: string; lines: string[] };
   settling: null | { club: Named; since: number; plan: string; parts: { label: string; words: string }[] };
@@ -62,6 +64,10 @@ export interface TodayResp {
     recurrence: boolean; rushed: boolean; physio: Named | null; missed: { uid: number; date: number; opponent: Named; score: string; outcome: string }[];
   };
 }
+
+const AROUND_LABEL: Record<string, string> = {
+  breakout: "Breakthrough", manager: "Dugout", owner: "Ownership", administration: "Crisis", investment: "Investment", project: "New facility", record: "Record",
+};
 
 const KIND_ICON: Record<string, IconName> = { match: "pitch", training: "training", recovery: "refresh", rest: "clock", medical: "warn", discipline: "warn" };
 
@@ -169,6 +175,28 @@ export function Today() {
                   </div>
                   {t.conceal_mine && <p className="hint">Your team's results stay hidden until you show them. This can be changed in Settings.</p>}
                 </Section>
+                {t.on_this_day.length > 0 && (
+                  <Section title="On this day">
+                    <div className="card list-card">
+                      <ul className="rows feed">
+                        {t.on_this_day.map((d, i) => (
+                          <li key={i}><div><span className="feed-kind">{d.years_ago === 1 ? "A year ago" : `${d.years_ago} years ago`}</span><div><Parts parts={d.parts} /></div></div><span className="hint"><Dt d={d.date} /></span></li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Section>
+                )}
+                {t.around.length > 0 && (
+                  <Section title="Around the country">
+                    <div className="card list-card">
+                      <ul className="rows feed">
+                        {t.around.map((a, i) => (
+                          <li key={i}><div><span className="feed-kind">{AROUND_LABEL[a.kind] ?? a.kind}</span><div><Parts parts={a.parts} /></div></div><span className="hint"><Dt d={a.date} year={false} /></span></li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Section>
+                )}
                 {t.changes.length > 0 && (
                   <Section title="Since you last looked">
                     <div className="card list-card">

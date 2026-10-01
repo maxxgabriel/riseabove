@@ -53,6 +53,8 @@ pub enum Big {
     HatTrick,
     BestOnPitch,
     Winner,
+    /// The goal that won a match by one (appended: older chronicles never hold it).
+    Decider,
 }
 
 /// What a person from the past did next.
@@ -155,6 +157,37 @@ pub enum Line {
     Faced { who: PersonId, tie: u16, uid: u64, club: ClubId },
     /// Something that changed the club you were at (appended: older chronicles never hold it).
     AtClub { club: ClubId, news: ClubNews },
+    // ---- appended after layout 8: older chronicles never hold these
+    /// The first goal for a club after scoring elsewhere first.
+    FirstGoalFor { club: ClubId, uid: u64 },
+    /// Back training with the group, part of the way back from an injury.
+    BackWithGroup,
+    /// The manager asked whether you could play before the medical room had cleared you.
+    AskedIfReady { by: PersonId },
+    /// The first match after an injury of `days`.
+    Comeback { uid: u64, club: ClubId, opp: ClubId, days: u16 },
+    /// A club the press linked you with that never came for you (`story` is the first link).
+    NothingCameOfIt { club: ClubId, story: StoryId },
+    /// A story about you that was later corrected by its outlet (`corrected`) or denied (`answer` is that piece).
+    Answered { story: StoryId, answer: StoryId, corrected: bool },
+    /// The first time people of a wider circle talked about you online (`club` and `nation` are the first speaker's).
+    Talked { reach: FanReach, club: ClubId, nation: NationId, region: RegionId },
+    /// The terms of a contract written in the same event as its `Contract` line (weekly wage): kept for the scrapbook, since the
+    /// contract on the player's record is replaced by the next one. Not a line of its own in the timeline.
+    Terms { club: ClubId, until: Date, wage: i64 },
+}
+
+/// How far from home the people talking about you are.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum FanReach {
+    /// Supporters of your own club.
+    OwnClub,
+    /// Supporters of another club in your country.
+    OtherClub,
+    /// People in another state or region of your country.
+    OtherState,
+    /// People in another country.
+    Abroad,
 }
 
 /// What changed at a club while you were there.
@@ -218,6 +251,27 @@ impl Life {
     /// Whether a line of this exact content already exists (backfill and the daily pass can meet).
     pub fn has(&self, line: &Line) -> bool {
         self.entries.iter().any(|e| &e.line == line)
+    }
+}
+
+/// The miles of one calendar year at one club: away trips to matches, in km between the home regions on the map.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Travel {
+    pub year: i32,
+    pub club: ClubId,
+    pub km: u32,
+    pub trips: u16,
+}
+
+/// Owned by `pw_sim::chronicle`: the travel of each chronicled person, by year and club (layout 9).
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct Journeys {
+    pub of: FxHashMap<PersonId, Vec<Travel>>,
+}
+
+impl Journeys {
+    pub fn of(&self, who: PersonId, year: i32, club: ClubId) -> Option<Travel> {
+        self.of.get(&who)?.iter().find(|t| t.year == year && t.club == club).copied()
     }
 }
 

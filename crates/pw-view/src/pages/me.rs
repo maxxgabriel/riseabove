@@ -232,6 +232,13 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         let text = format!("Back in training somewhere between {} and {}, if the recovery goes to plan", crate::fmt::day_month(lo), crate::fmt::day_month(hi));
         waiting_on.push(json!({"kind": "injury", "text": text, "since": e.date.0, "date": hi.0}));
     }
+    // Contract talks where the club owes you an answer.
+    for t in w.talks.iter().rev().take(3000).filter(|t| t.player == p && t.state == pw_world::negotiation::TalkState::ClubTurn) {
+        let text = format!("{} have your answer on the contract and have not replied yet. Talks close by {}", c.club_name(t.club), crate::fmt::day_month(t.deadline));
+        waiting_on.push(json!({"kind": "talks", "text": text, "since": t.opened.0, "date": t.deadline.0, "ref": Ref::club(t.club)}));
+    }
+    let on_this_day = on_this_day(c, me);
+    let around = around_the_country(c, me);
     let known_faces: Vec<Value> = next
         .map(|f| f.opponent(team))
         .map(|t| w.teams[t].club)
@@ -291,7 +298,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery, "buildup": buildup, "atmosphere": atmosphere, "settling": settling,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "on_this_day": on_this_day, "around": around, "known_faces": known_faces, "recovery": recovery, "buildup": buildup, "atmosphere": atmosphere, "settling": settling,
         "promises": {"open": open_promises, "next_due": next_due},
         "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,
@@ -553,6 +560,69 @@ pub fn contract(c: &Ctx) -> ApiResult<Value> {
 }
 
 /// The open injury as it is lived: diagnosis, sureness, the step of the return, the physio, the matches missed.
+/// Lines of your own story from this day in earlier years: "One year ago today".
+fn on_this_day(c: &Ctx, me: pw_core::PersonId) -> Vec<Value> {
+    let Some(life) = c.w.ext.chronicle.of(me) else { return Vec::new() };
+    let (y, m, d) = c.w.date.ymd();
+    let mut out = Vec::new();
+    for e in life.entries.iter().rev() {
+        let (ey, em, ed) = e.date.ymd();
+        if ey >= y || em != m || ed != d {
+            continue;
+        }
+        let Some(parts) = super::chronicle::line_parts(c, life, e.line) else { continue };
+        out.push(json!({"years_ago": y - ey, "date": e.date.0, "parts": parts}));
+        if out.len() >= 3 {
+            break;
+        }
+    }
+    out
+}
+
+/// A few public stories of the week from your own country, chosen by how rare and how big they are, not by how recent: a teenager
+/// breaking through, a big club changing manager or owner, a club going under, a record, an underdog's title. One per kind.
+fn around_the_country(c: &Ctx, me: pw_core::PersonId) -> Vec<Value> {
+    use pw_world::EventKind as E;
+    let w = c.w;
+    let home = w.people[me].nation;
+    let today = w.date;
+    let club_rep = |k: pw_core::ClubId| w.clubs.get(k).filter(|x| x.nation == home).map(|x| f32::from(x.reputation) / 10_000.0);
+    let mut best: Vec<(&'static str, f32, &pw_world::event::Event)> = Vec::new();
+    for e in w.events.since(today.add_days(-7)) {
+        if !matches!(e.vis, pw_world::event::Visibility::Public) || pw_career::feed::concerns(w, me, e) {
+            continue;
+        }
+        let scored: Option<(&'static str, f32)> = match e.kind {
+            E::Breakout { player, .. } => {
+                let q = w.players.cold.get(player);
+                let teen = q.is_some_and(|x| w.people.get(x.person).is_some_and(|pp| pp.age(today) <= 19));
+                let mine = q.is_some_and(|x| w.people.get(x.person).is_some_and(|pp| pp.nation == home));
+                (teen && mine).then(|| ("breakout", 0.9 + w.clubs.get(w.players.hot[player].club).map_or(0.0, |k| f32::from(k.reputation) / 10_000.0)))
+            }
+            E::ManagerSacked { club, .. } => club_rep(club).filter(|r| *r >= 0.4).map(|r| ("manager", 0.6 + r)),
+            E::ManagerResigned { club, .. } => club_rep(club).filter(|r| *r >= 0.4).map(|r| ("manager", 0.55 + r)),
+            E::Takeover { club, .. } => club_rep(club).map(|r| ("owner", 0.7 + r)),
+            E::Administration { club } => club_rep(club).map(|r| ("administration", 1.0 + r)),
+            E::OwnerInvestment { club, .. } => club_rep(club).filter(|r| *r >= 0.3).map(|r| ("investment", 0.4 + r)),
+            E::ProjectCompleted { club, .. } => club_rep(club).map(|r| ("project", 0.3 + r)),
+            // A record held by a person (team records have none, and their line names a person).
+            E::RecordBroken { club, player, .. } if player.is_some() => club_rep(club).map(|r| ("record", 0.5 + r)),
+            _ => None,
+        };
+        let Some((kind, score)) = scored else { continue };
+        if !narrative::visible(c, e) {
+            continue;
+        }
+        match best.iter_mut().find(|(k, _, _)| *k == kind) {
+            Some(slot) if slot.1 < score => *slot = (kind, score, e),
+            Some(_) => {}
+            None => best.push((kind, score, e)),
+        }
+    }
+    best.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.2.id.cmp(&b.2.id)));
+    best.into_iter().take(4).map(|(kind, _, e)| json!({"kind": kind, "date": e.date.0, "parts": narrative::describe(c, e)})).collect()
+}
+
 fn recovery(c: &Ctx, p: pw_core::PlayerId, team: pw_core::TeamId) -> Value {
     use pw_world::medical::ReturnStage;
     let w = c.w;

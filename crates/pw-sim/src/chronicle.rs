@@ -108,18 +108,135 @@ pub fn daily(w: &mut World) {
             on_event(w, &mut life, id, p, e, today);
         }
         life.cursor = w.events.last_id();
+        let mut trips: Vec<(ClubId, f32)> = Vec::new();
         if p.is_some() {
             seasons(w, &mut life, p);
             if let Some(apps) = w.perf.recent.get(&p) {
                 for a in apps.iter().filter(|a| a.date == today) {
                     on_app(w, &mut life, p, a.club, a.comp, a.goals, a.assists, today);
+                    if let Some(km) = w.recent_matches.on(today).find(|m| m.involves(a.club) && m.comp == a.comp && m.away == a.club).and_then(|m| club_km(w, a.club, m.home)) {
+                        trips.push((a.club, km));
+                    }
                 }
+            }
+            back_with_group(w, &mut life, p, today);
+            talked_about(w, &mut life, id, p, today);
+            if today.day() == 1 {
+                nothing_came_of_it(w, &mut life, p, today);
             }
             if today.weekday() == pw_core::Weekday::Mon {
                 refresh_ties(w, &mut life, p, today);
             }
         }
         w.ext.chronicle.lives.insert(id, life);
+        for (club, km) in trips {
+            let v = w.ext.journeys.of.entry(id).or_default();
+            let year = today.year();
+            match v.iter_mut().find(|t| t.year == year && t.club == club) {
+                Some(t) => {
+                    t.km += km.round() as u32;
+                    t.trips += 1;
+                }
+                None => v.push(pw_world::chronicle::Travel { year, club, km: km.round() as u32, trips: 1 }),
+            }
+        }
+    }
+}
+
+/// Map units of the regions' map in km (`ecosystem::Region::x`, `y`).
+pub const KM_PER_UNIT: f32 = 30.0;
+
+/// Distance in km between two clubs' home regions, when both are on the map.
+pub fn club_km(w: &World, a: ClubId, b: ClubId) -> Option<f32> {
+    let eco = &w.ext.ecosystem;
+    let ra = eco.regions.get(*eco.club_region.get(&a)?)?;
+    let rb = eco.regions.get(*eco.club_region.get(&b)?)?;
+    let (dx, dy) = (f32::from(ra.x) - f32::from(rb.x), f32::from(ra.y) - f32::from(rb.y));
+    Some((dx * dx + dy * dy).sqrt() * KM_PER_UNIT)
+}
+
+/// The first time each wider circle talks about you online: your own supporters, another club's, another state, another country.
+fn talked_about(w: &World, life: &mut Life, who: PersonId, p: PlayerId, today: Date) {
+    use pw_world::chronicle::FanReach;
+    if life.entries.iter().filter(|x| matches!(x.line, Line::Talked { .. })).count() >= 4 {
+        return;
+    }
+    let home = w.people[who].nation;
+    let mine = w.players.hot[p].club;
+    let eco = &w.ext.ecosystem;
+    let state = |c: ClubId| eco.club_region.get(&c).map(|&r| eco.state_of(r));
+    let my_state = state(mine).or_else(|| eco.story.get(&p).map(|s| eco.state_of(s.home)));
+    for post in w.net.posts.iter().rev().take_while(|x| x.date >= today) {
+        if post.about != who && post.about2 != who {
+            continue;
+        }
+        let Some(acc) = w.net.accounts.get(post.author as usize) else { continue };
+        if acc.person == who || acc.kind == pw_world::socialnet::AccountKind::Person {
+            continue;
+        }
+        let their_state = if acc.club.is_some() { state(acc.club) } else { None };
+        let reach = if acc.nation.is_some() && home.is_some() && acc.nation != home {
+            FanReach::Abroad
+        } else if acc.club.is_some() && acc.club == mine {
+            FanReach::OwnClub
+        } else if their_state.is_some() && my_state.is_some() && their_state != my_state {
+            FanReach::OtherState
+        } else if acc.club.is_some() {
+            FanReach::OtherClub
+        } else {
+            continue;
+        };
+        if life.entries.iter().any(|x| matches!(x.line, Line::Talked { reach: r, .. } if r == reach)) {
+            continue;
+        }
+        let region = their_state.unwrap_or(pw_core::RegionId::NONE);
+        life.push(today, Line::Talked { reach, club: acc.club, nation: acc.nation, region }, EventId::NONE);
+    }
+}
+
+/// The index of the last injury line, if the person is still on the way back from it (no recovery line after it).
+fn open_injury(life: &Life) -> Option<usize> {
+    let i = life.entries.iter().rposition(|x| matches!(x.line, Line::Injury { .. }))?;
+    Some(i)
+}
+
+/// Part of the way back: the first day training with the group again (the medical stage the training ground already uses).
+fn back_with_group(w: &World, life: &mut Life, p: PlayerId, today: Date) {
+    let h = &w.players.hot[p];
+    if h.injury == 0 {
+        return;
+    }
+    let stage = pw_world::medical::ReturnStage::of(f32::from(h.injury_days) / f32::from(h.injury_total.max(1)));
+    if stage < pw_world::medical::ReturnStage::PartialTeam {
+        return;
+    }
+    let Some(i) = open_injury(life) else { return };
+    if life.entries[i + 1..].iter().any(|x| matches!(x.line, Line::BackWithGroup | Line::Recovered)) {
+        return;
+    }
+    life.push(today, Line::BackWithGroup, EventId::NONE);
+}
+
+/// Monthly: clubs the press linked you with that never came. Four months after the first link, with no move to that club, the
+/// story says so once.
+fn nothing_came_of_it(w: &World, life: &mut Life, p: PlayerId, today: Date) {
+    let mine = w.players.hot[p].club;
+    let mut found: Vec<(ClubId, pw_core::StoryId)> = Vec::new();
+    for (i, e) in life.entries.iter().enumerate() {
+        let Line::Press { story, .. } = e.line else { continue };
+        let Some(s) = w.media.stories.get(story) else { continue };
+        if s.kind != StoryKind::TransferRumour || s.other_club.is_none() || e.date.days_until(today) < 120 {
+            continue;
+        }
+        let club = s.other_club;
+        let came = club == mine || life.entries[i..].iter().any(|x| matches!(x.line, Line::Joined { club: c, .. } if c == club));
+        let told = life.entries.iter().any(|x| matches!(x.line, Line::NothingCameOfIt { club: c, .. } if c == club));
+        if !came && !told && !found.iter().any(|(c, _)| *c == club) {
+            found.push((club, story));
+        }
+    }
+    for (club, story) in found {
+        life.push(today, Line::NothingCameOfIt { club, story }, EventId::NONE);
     }
 }
 
@@ -215,9 +332,10 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
             reunion(w, life, who, to, d, id);
         }
         E::LoanReturn { player, to } if mine(player) => push(life, Line::Joined { club: to, how: Join::LoanReturn }),
-        E::ContractSigned { player, club, until, renewal, .. } if mine(player) => {
+        E::ContractSigned { player, club, until, renewal, wage } if mine(player) => {
             let first = !renewal && !life.entries.iter().any(|x| matches!(x.line, Line::Contract { .. }));
             push(life, Line::Contract { club, first, renewal, until });
+            push(life, Line::Terms { club, until, wage });
             told(w, life, p, Org::Club(club), today);
         }
         E::Released { player, club } | E::AcademyReleased { player, club } if mine(player) => {
@@ -288,6 +406,7 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
         E::InternationalDebut { player, nation, .. } if mine(player) => push(life, Line::Capped { nation }),
         E::WithdrewFromSquad { player, nation } if mine(player) => push(life, Line::WithdrewFromSquad { nation }),
         E::Injured { player, injury, days } if mine(player) && days >= 7 => push(life, Line::Injury { injury, days }),
+        E::AskedIfReady { player, manager } if mine(player) => push(life, Line::AskedIfReady { by: manager }),
         E::InjurySetback { player, days } if mine(player) => push(life, Line::Setback { days }),
         E::Recovered { player } if mine(player) => {
             let open = life.entries.iter().rev().find(|x| matches!(x.line, Line::Injury { .. } | Line::Recovered)).is_some_and(|x| matches!(x.line, Line::Injury { .. }));
@@ -341,6 +460,16 @@ fn reunion(w: &World, life: &mut Life, who: PersonId, club: ClubId, d: Date, id:
 /// Coverage of the person: the first piece at each reach, and the pieces that looked at them in depth.
 fn press(w: &World, life: &mut Life, who: PersonId, p: PlayerId, story: pw_core::StoryId, d: Date, id: EventId) {
     let Some(s) = w.media.stories.get(story) else { return };
+    // A correction or a denial of something written about you: the earlier piece was answered in public.
+    if matches!(s.kind, StoryKind::Correction | StoryKind::Denial) {
+        for &r in &s.refs {
+            let about_me = w.media.stories.get(r).is_some_and(|o| o.person == who || (p.is_some() && o.player == p));
+            let line = Line::Answered { story: r, answer: story, corrected: s.kind == StoryKind::Correction };
+            if about_me && !life.has(&line) {
+                life.push(d, line, id);
+            }
+        }
+    }
     if s.person != who && !(p.is_some() && s.player == p) {
         return;
     }
@@ -426,6 +555,8 @@ fn on_app(w: &World, life: &mut Life, p: PlayerId, club: ClubId, comp: pw_core::
         Some(Big::Decisive)
     } else if m.derby && (goals > 0 || m.pom == p) {
         Some(Big::Derby)
+    } else if decider(m, club, p) {
+        Some(Big::Decider)
     } else if goals >= 2 {
         Some(Big::Brace)
     } else if m.significance >= 80 && goals > 0 {
@@ -438,7 +569,38 @@ fn on_app(w: &World, life: &mut Life, p: PlayerId, club: ClubId, comp: pw_core::
     if let Some(big) = big {
         life.push(today, Line::Match { uid: m.uid, club, opp, comp, goals, assists, result: side_result, big }, EventId::NONE);
     }
+    // The first goal for a new club, after scoring for another first (the very first goal is its own line).
+    if goals > 0 && !life.entries.iter().any(|x| matches!(x.line, Line::FirstGoal { club: c, .. } | Line::FirstGoalFor { club: c, .. } if c == club)) {
+        let lines = w.perf.seasons.get(&p);
+        let here: u32 = lines.map_or(0, |v| v.iter().filter(|l| l.club == club).map(|l| u32::from(l.goals)).sum());
+        let elsewhere = lines.is_some_and(|v| v.iter().any(|l| l.club != club && l.goals > 0)) || life.entries.iter().any(|x| matches!(x.line, Line::FirstGoal { .. }));
+        if elsewhere && here <= u32::from(goals) {
+            life.push(today, Line::FirstGoalFor { club, uid: m.uid }, EventId::NONE);
+        }
+    }
+    // The first match back after an injury that kept you out.
+    if let Some(i) = open_injury(life) {
+        let since = life.entries[i].date;
+        let played_since = w.perf.recent.get(&p).is_some_and(|v| v.iter().any(|a| a.date > since && a.date < today));
+        let told = life.entries[i..].iter().any(|x| matches!(x.line, Line::Comeback { .. }));
+        if !played_since && !told {
+            let days = since.days_until(today).clamp(0, i32::from(u16::MAX)) as u16;
+            life.push(today, Line::Comeback { uid: m.uid, club, opp, days }, EventId::NONE);
+        }
+    }
     faced(w, life, opp, m.uid, today);
+}
+
+/// Whether `p` scored the goal that won `club` the match by one: the side's goal that took it past the other side's final total.
+fn decider(m: &pw_world::matchfacts::MatchFacts, club: ClubId, p: PlayerId) -> bool {
+    let side = u8::from(m.away == club);
+    let (gf, ga) = if side == 0 { (m.hg, m.ag) } else { (m.ag, m.hg) };
+    if m.pens.is_some() || gf != ga + 1 {
+        return false;
+    }
+    let mut ours: Vec<&pw_world::matchfacts::Goal> = m.goals.iter().filter(|g| g.side == side).collect();
+    ours.sort_by_key(|g| g.minute);
+    ours.get(usize::from(ga)).is_some_and(|g| g.player == p && !g.own_goal)
 }
 
 /// People from the past on the other side today, told the first time only.
@@ -493,4 +655,52 @@ pub fn club_news(w: &World, p: PlayerId, kind: &E) -> Option<(ClubId, pw_world::
         _ => return None,
     };
     (club.is_some() && club == mine).then_some((club, news))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::decider;
+    use pw_core::{ClubId, CompId, Date, FixtureId, PlayerId, TeamId};
+    use pw_world::matchfacts::{Goal, MatchFacts};
+
+    fn facts(hg: u8, ag: u8, goals: &[(u32, u8, u8, bool)]) -> MatchFacts {
+        MatchFacts {
+            uid: 1,
+            fixture: FixtureId(0),
+            date: Date(0),
+            comp: CompId(0),
+            home_team: TeamId(0),
+            away_team: TeamId(1),
+            home: ClubId(0),
+            away: ClubId(1),
+            hg,
+            ag,
+            pens: None,
+            goals: goals.iter().map(|&(p, minute, side, own_goal)| Goal { player: PlayerId(p), assist: PlayerId::NONE, minute, side, penalty: false, own_goal }).collect(),
+            reds: Default::default(),
+            late_winner: None,
+            hat_tricks: Default::default(),
+            comeback: false,
+            pom: PlayerId::NONE,
+            pom_rating: 0,
+            debut_goals: Default::default(),
+            significance: 0,
+            derby: false,
+        }
+    }
+
+    #[test]
+    fn the_winner_is_the_goal_that_took_the_side_past_the_other_sides_total() {
+        // 2-1: home goals by 7 (10') and 8 (60'), away by 9 (30'). The second home goal won it.
+        let m = facts(2, 1, &[(7, 10, 0, false), (9, 30, 1, false), (8, 60, 0, false)]);
+        assert!(decider(&m, ClubId(0), PlayerId(8)));
+        assert!(!decider(&m, ClubId(0), PlayerId(7)), "the opener did not win it");
+        assert!(!decider(&m, ClubId(1), PlayerId(9)), "the losing side has no winner");
+        // 1-0 away: the only goal.
+        assert!(decider(&facts(0, 1, &[(5, 80, 1, false)]), ClubId(1), PlayerId(5)));
+        // 3-1 is not won by one goal; a draw has no winner; an own goal is nobody's winner on the side it helped.
+        assert!(!decider(&facts(3, 1, &[(7, 1, 0, false), (7, 2, 0, false), (9, 3, 1, false), (7, 4, 0, false)]), ClubId(0), PlayerId(7)));
+        assert!(!decider(&facts(1, 1, &[(7, 1, 0, false), (9, 3, 1, false)]), ClubId(0), PlayerId(7)));
+        assert!(!decider(&facts(1, 0, &[(9, 50, 0, true)]), ClubId(0), PlayerId(9)));
+    }
 }

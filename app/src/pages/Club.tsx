@@ -400,6 +400,8 @@ function Place({ c }: { c: ClubResp }) {
           ...(p.language ? [{ k: "Language", v: p.language }] : []),
           { k: "People", v: p.population },
           { k: "Football", v: p.football },
+          ...(p.ground ? [{ k: "Ground", v: p.ground }] : []),
+          { k: "Training", v: p.training },
           ...(p.nearby.length ? [{ k: "Neighbours", v: <>{p.nearby.map((n, i) => <span key={n.id}>{i > 0 && ", "}<EntityLink r={n}>{n.name}</EntityLink></span>)}</> }] : []),
           ...(p.universities.length ? [{ k: "Universities", v: p.universities.join(", ") }] : []),
         ]}

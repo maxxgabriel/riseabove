@@ -74,6 +74,13 @@ pub enum Said {
     ClubNews { news: crate::chronicle::ClubNews },
     /// A teammate married or became a parent (appended).
     LifeNews { who: PersonId, child: bool },
+    // ---- appended after layout 8
+    /// The manager, privately: could you play, before the medical room has cleared you?
+    AskedIfReady,
+    /// A teammate after your first match back from an injury.
+    GoodToHaveYouBack { uid: u64 },
+    /// The old squad's chat when one of its former members does something big (a first cap, a manager's job).
+    OldTeamNews { who: PersonId, then: crate::chronicle::Then },
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

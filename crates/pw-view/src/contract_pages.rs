@@ -607,6 +607,10 @@ response! {
         pub nearby: Vec<NamedIn>,
         pub universities: Vec<String>,
         pub from_home: Option<String>,
+        /// The training ground, in words.
+        pub training: String,
+        /// The stadium and its size, if the club has one on record.
+        pub ground: Option<String>,
     }
     pub struct ClubView {
         pub academy: Option<ClubViewAcademy>,
@@ -1143,6 +1147,19 @@ response! {
         pub since: f64,
         pub text: String,
     }
+    /// A line of your own story from this day in an earlier year.
+    pub struct MeTodayViewOnThisDay {
+        pub years_ago: f64,
+        pub date: f64,
+        pub parts: Vec<PartIn>,
+    }
+    /// A public story of the week from your own country, picked by rarity and size (`kind`: breakout, manager, owner, administration,
+    /// investment, project, record).
+    pub struct MeTodayViewAround {
+        pub kind: String,
+        pub date: f64,
+        pub parts: Vec<PartIn>,
+    }
     /// Someone from your past on the other side of your next match.
     pub struct MeTodayViewKnownFace {
         pub who: NamedIn,
@@ -1233,6 +1250,8 @@ response! {
         pub routine_hours: f64,
         pub unrevealed: Vec<Value>,
         pub waiting_on: Vec<MeTodayViewWaitingOn>,
+        pub on_this_day: Vec<MeTodayViewOnThisDay>,
+        pub around: Vec<MeTodayViewAround>,
         pub weekday: f64,
     }
     /// One line of the message list: a decision (`dkind`, `preview`) or an event (`parts`, `unread`).
@@ -2058,6 +2077,8 @@ pub fn declarations() -> Vec<String> {
         MeTodayViewRecent::declaration(),
         MeTodayViewWaitingOn::declaration(),
         MeTodayViewKnownFace::declaration(),
+        MeTodayViewOnThisDay::declaration(),
+        MeTodayViewAround::declaration(),
         MeTodayViewBuildup::declaration(),
         MeTodayViewSettlingPart::declaration(),
         MeTodayViewSettling::declaration(),

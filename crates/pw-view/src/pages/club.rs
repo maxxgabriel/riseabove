@@ -485,8 +485,18 @@ fn place(c: &Ctx, id: ClubId) -> Value {
         let grouped = if n >= 1_000 { format!("{},{:03}", n / 1_000, n % 1_000) } else { n.to_string() };
         if km < 40.0 { "Home ground: this is where you grew up".to_string() } else { format!("About {grouped} km from home") }
     });
+    // Where the work is done and where the matches are played, in words (levels are 1-20).
+    let k = &w.clubs[id];
+    let training = match k.facilities.training {
+        16.. => "A modern training centre: several pitches, a gym and a medical room",
+        11..=15 => "A proper training ground of the club's own",
+        6..=10 => "Basic: one or two pitches and a changing room",
+        _ => "Borrowed pitches: the club trains where it can",
+    };
+    let ground = (!k.stadium.is_empty()).then(|| if k.capacity > 0 { format!("{}, about {} seats", k.stadium, crate::fmt::thousands(k.capacity)) } else { k.stadium.clone() });
     json!({
         "region": r.name, "state": state_name, "climate": climate, "language": eco.languages.get(usize::from(r.language)).cloned(),
         "population": population, "football": football, "nearby": nearby, "universities": universities, "from_home": from_home,
+        "training": training, "ground": ground,
     })
 }

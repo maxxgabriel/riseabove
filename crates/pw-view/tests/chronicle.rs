@@ -275,3 +275,32 @@ fn the_training_ground_leaves_a_week_by_week_trace() {
         }
     }
 }
+
+#[test]
+fn today_brings_back_this_day_in_earlier_years_and_the_week_around_the_country() {
+    let api = lived(23, 420);
+    let t = api.call("me.today", json!({})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.today", &t) {
+        panic!("today is not its declared type: {e}");
+    }
+    let today = t["date"].as_i64().unwrap();
+    for d in t["on_this_day"].as_array().unwrap() {
+        let years = d["years_ago"].as_i64().unwrap();
+        assert!(years >= 1, "{d}");
+        assert!(d["date"].as_i64().unwrap() < today);
+        assert!(!text(d).trim().is_empty());
+    }
+    let kinds = ["breakout", "manager", "owner", "administration", "investment", "project", "record"];
+    let around = t["around"].as_array().unwrap();
+    assert!(around.len() <= 4);
+    let mut seen = std::collections::HashSet::new();
+    for a in around {
+        let k = a["kind"].as_str().unwrap();
+        assert!(kinds.contains(&k), "{a}");
+        assert!(seen.insert(k.to_string()), "one per kind: {a}");
+        assert!(today - a["date"].as_i64().unwrap() <= 7, "of the week: {a}");
+        assert!(!text(a).trim().is_empty());
+    }
+    // A year on, the story has a line on this day only if something happened on it: the field is there either way.
+    assert!(t["on_this_day"].is_array() && t["around"].is_array());
+}
