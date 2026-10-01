@@ -54,9 +54,11 @@ declaration registered; regenerate the TS with `UPDATE_CONTRACT=1 cargo test -p 
 `npm run build`; `node app/e2e/india.mjs` (all pages, now including `#/story` and Messages > Chats) and `node app/e2e/smoke.mjs`; screenshots of each new page.
 
 ### Unverified
-- `cargo xtask full` was **running when this was written** and its result is not recorded here. The new daily systems only run for chronicled people and
-  use their own keyed RNG, so other systems' outcomes should not move, but run `cargo xtask full` and the long playthrough
-  (`cargo test -p pw-view --test playthrough three_seasons -- --ignored`) before trusting a long career.
+- `cargo xtask full` ran: 526 passed, 2 failed, 32 ignored. Both failures are fixed: the `contract_pages` unit test's sample club lacked the new
+  `place` field (this pass); `qa_retention::people_who_left_the_game_stop_generating_life_events` failed identically on the pulled commit `26c1ef2`
+  because it judged "left the game" at an event's date from today's status (the three people had retired after their events); it now requires the
+  retirement to predate the event. The full tier has not been re-run end to end after those two fixes, and the long playthrough
+  (`cargo test -p pw-view --test playthrough three_seasons -- --ignored`) was not run this pass.
 - Cost over 15 seasons: chronicle, chats (240 messages per room), ledger (600 lines) and training log (104 weeks) are bounded or small, but save size and
   per-day time with an inhabited person were not measured. Measure with `pathway-sim growth` and the `prof!` timings (`chronicle::daily`, `chat::daily`).
 
