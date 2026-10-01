@@ -52,6 +52,8 @@ export interface TodayResp {
   promises: { open: number; next_due: number | null };
   plan_pending: unknown | null;
   routine_hours: number;
+  waiting_on: { kind: string; text: string; since: number; date?: number; ref?: { k: string; id: number } }[];
+  known_faces: { who: Named; how: Part[]; role: string }[];
 }
 
 const KIND_ICON: Record<string, IconName> = { match: "pitch", training: "training", recovery: "refresh", rest: "clock", medical: "warn", discipline: "warn" };

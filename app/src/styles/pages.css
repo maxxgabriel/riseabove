@@ -338,3 +338,5 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width:
 .keepsake.k-clipping { border-top-color: var(--accent); font-family: Georgia, "Times New Roman", serif; }
 .keepsake.k-clipping .keepsake-kind { font-family: var(--font); }
 .keepsake.k-call_up { border-top-color: var(--pos); }
+.episodes { display: grid; gap: 0.1rem; margin: 0.25rem 0; padding-left: 0.6rem; border-left: 2px solid var(--line-2); }
+.episodes .hint { display: inline-block; min-width: 5.5rem; }

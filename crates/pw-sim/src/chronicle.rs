@@ -206,8 +206,14 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
         }
     };
     match e.kind {
-        E::Transfer { player, to, .. } if mine(player) => push(life, Line::Joined { club: to, how: Join::Transfer }),
-        E::LoanMove { player, to, .. } if mine(player) => push(life, Line::Joined { club: to, how: Join::Loan }),
+        E::Transfer { player, to, .. } if mine(player) => {
+            push(life, Line::Joined { club: to, how: Join::Transfer });
+            reunion(w, life, who, to, d, id);
+        }
+        E::LoanMove { player, to, .. } if mine(player) => {
+            push(life, Line::Joined { club: to, how: Join::Loan });
+            reunion(w, life, who, to, d, id);
+        }
         E::LoanReturn { player, to } if mine(player) => push(life, Line::Joined { club: to, how: Join::LoanReturn }),
         E::ContractSigned { player, club, until, renewal, .. } if mine(player) => {
             let first = !renewal && !life.entries.iter().any(|x| matches!(x.line, Line::Contract { .. }));
@@ -307,6 +313,23 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
         E::MovedHome { person, bought } if person == who => push(life, Line::MovedHome { bought }),
         E::Retired { person } if person == who => push(life, Line::Retired),
         _ => meanwhile(w, life, who, p, e),
+    }
+}
+
+/// Arriving at a club whose manager is someone from the past: the coach who let you go elsewhere, a former teammate.
+fn reunion(w: &World, life: &mut Life, who: PersonId, club: ClubId, d: Date, id: EventId) {
+    let Some(m) = w.clubs.get(club).map(|k| k.manager).filter(|m| m.is_some()) else { return };
+    let boss = w.staff[m].person;
+    if boss == who {
+        return;
+    }
+    let Some(t) = life.best_tie(boss) else { return };
+    if matches!(life.ties[t].kind, TieKind::Coach { club: c } if c == club) {
+        return;
+    }
+    let line = Line::Meanwhile { who: boss, tie: t as u16, then: Then::ManagesYou { club } };
+    if !life.entries.iter().any(|x| x.event == id && x.line == line) {
+        life.push(d, line, id);
     }
 }
 

@@ -157,3 +157,9 @@
 @media (max-width: 1080px) { .thread-workspace { grid-template-columns: minmax(0, 1fr); } .thread-context { display: none; } }
 @media (max-width: 900px) { .social-layout, .inbox-page .inbox { grid-template-columns: minmax(0, 1fr); } .social-aside { display: none; } .inbox-page .inbox-list { border-right: 0; border-bottom: 1px solid var(--line); max-height: 18rem; } .inbox-page .inbox-detail { min-height: 24rem; } }
 @media (prefers-reduced-motion: reduce) { .world-arrive { animation: none; } }
+
+.portal-waiting { display: grid; }
+.portal-waiting li { display: grid; gap: 0.1rem; padding: 0.4rem 0; border-bottom: 1px solid var(--line); }
+.portal-waiting li:last-child { border-bottom: 0; }
+.portal-faces { display: grid; gap: 0.25rem; padding-top: 0.4rem; }
+.portal-faces .subhead { margin: 0; }

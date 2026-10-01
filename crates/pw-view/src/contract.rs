@@ -500,7 +500,10 @@ contract! {
         pub since: i32,
         pub last: i32,
         pub why: Option<Evidence>,
+        /// What they did, remembered: the episodes the relationship rests on, newest first.
         pub evidence: Vec<Evidence>,
+        /// What you shared, from your story (teammates at a club, the manager who gave you a debut), if anything.
+        pub shared: Vec<crate::model::Part>,
     }
 
     pub struct PeopleView {

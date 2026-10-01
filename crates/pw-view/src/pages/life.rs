@@ -213,7 +213,8 @@ pub fn people(c: &Ctx) -> ApiResult<Value> {
     let grudge = pw_world::social::grudge_factor(&w.people[me]);
     let mut rels: Vec<(PersonId, pw_world::Rel)> = w.social.relations_of(me).collect();
     rels.sort_by_key(|(p, r)| (std::cmp::Reverse(i32::from(r.affinity).abs() + (i32::from(r.trust) - 50).abs()), *p));
-    let ev = |m: &pw_world::social::Memory| Evidence { text: format!("They {}", m.kind.text()), date: m.date.0 };
+    let ev = |m: &pw_world::social::Memory| Evidence { text: episode(m.kind).into(), date: m.date.0 };
+    let life = w.ext.chronicle.of(me);
     let people: Vec<RelationshipRow> = rels
         .into_iter()
         .take(40)
@@ -235,11 +236,53 @@ pub fn people(c: &Ctx) -> ApiResult<Value> {
                 since: r.since.0,
                 last: r.last.0,
                 why: w.social.defining_memory(me, p, today, grudge).map(ev),
-                evidence: mem.iter().take(3).map(|m| ev(m)).collect(),
+                evidence: mem.iter().take(6).map(|m| ev(m)).collect(),
+                shared: life.and_then(|l| l.best_tie(p).map(|i| l.ties[i])).map_or_else(Vec::new, |t| super::chronicle::shared(c, me, &t)),
             }
         })
         .collect();
     typed(&PeopleView { people })
+}
+
+/// A remembered episode, from the rememberer's side, with the other person as its subject (`Social::remember(from, about, ..)` records
+/// what `about` did): "Gave you a chance", "Dropped you".
+fn episode(k: pw_world::social::MemoryKind) -> &'static str {
+    use pw_world::social::MemoryKind as M;
+    match k {
+        M::PromiseKept => "Kept a promise to you",
+        M::PromiseBroken => "Broke a promise to you",
+        M::Argument => "Argued with you",
+        M::PublicPraise => "Praised you in public",
+        M::PublicCriticism => "Criticised you in public",
+        M::Celebrated => "Celebrated with you",
+        M::Mentored => "Mentored you",
+        M::Dropped => "Dropped you",
+        M::Backed => "Backed you",
+        M::Fined => "Fined you",
+        M::TransferRequest => "Asked to leave",
+        M::RefusedLoan => "Turned down a loan move",
+        M::ExtraWork => "Put in extra work",
+        M::Apologised => "Apologised to you",
+        M::Rivalry => "Competed with you for a place",
+        M::Settled => "Helped you settle in",
+        M::Insulted => "Insulted you",
+        M::Supported => "Was there for you",
+        M::PoorAttitude => "Slacked off in training",
+        M::DefendedMe => "Stood up for you",
+        M::HonestTalk => "Had an honest conversation with you",
+        M::Refused => "Turned down your request",
+        M::GaveChance => "Gave you a chance",
+        M::HardBargain => "Drove a hard bargain with you",
+        M::LetDown => "Let you down",
+        M::Betrayal => "Crossed a line you will not forget",
+        M::SharedPitch => "Played a long stretch alongside you",
+        M::Leaked => "Leaked to the press, you believe",
+        M::Fought => "Clashed with you",
+        M::Mediated => "Helped settle a dispute",
+        M::Protected => "Protected you",
+        M::Blamed => "Blamed you",
+        M::Confided => "Confided in you",
+    }
 }
 
 pub fn promises(c: &Ctx) -> ApiResult<Value> {

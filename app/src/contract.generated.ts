@@ -229,6 +229,7 @@ export interface RelationshipRow {
   last: number;
   why: Evidence | null;
   evidence: Evidence[];
+  shared: Part[];
 }
 
 export interface PeopleView {
@@ -2170,8 +2171,15 @@ export interface MeTodayViewWaitingOn {
   text: string;
 }
 
+export interface MeTodayViewKnownFace {
+  who: Named;
+  how: Part[];
+  role: string;
+}
+
 export interface MeTodayView {
   availability: MeTodayViewAvailability;
+  known_faces: MeTodayViewKnownFace[];
   changes: MeTodayViewChange[];
   commitments: MeTodayViewCommitment[];
   conceal_mine: boolean;

@@ -199,6 +199,47 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             json!({"kind": "meeting", "text": format!("You asked {} to talk about {}", c.person_name(m.with), m.topic.label()), "since": m.requested.0, "date": m.date.0, "ref": Ref::person(m.with)}),
         );
     }
+    // What the world has not answered yet: a trial with no verdict, clubs said to want you, an agent sounding out a move, an injury
+    // that will take as long as it takes. Only what you could know, in the words you would hear it in.
+    for t in w.deals.trials.iter().filter(|t| t.player == p).map(|t| (t.club, t.from, t.until)).chain(w.youth.trials.iter().filter(|t| t.player == p).map(|t| (t.club, t.from, t.until))) {
+        let left = date.days_until(t.2).max(0);
+        let text = format!("Trial at {}: nobody has told you how it is going. They decide within {}", c.club_name(t.0), crate::fmt::days_words(left));
+        waiting_on.push(json!({"kind": "trial", "text": text, "since": t.1.0, "date": t.2.0, "ref": Ref::club(t.0)}));
+    }
+    let mut linked: Vec<pw_core::ClubId> = Vec::new();
+    for s in w.media.stories.iter().rev().take_while(|s| s.date.days_until(date) <= 45) {
+        if s.kind != pw_world::media::StoryKind::TransferRumour || s.player != p || s.other_club.is_none() || s.other_club == h.club || linked.contains(&s.other_club) {
+            continue;
+        }
+        linked.push(s.other_club);
+        let how = match s.claim {
+            0..=39 => "are said to be keeping an eye on you",
+            40..=69 => "are said to be interested",
+            _ => "are said to be preparing a bid",
+        };
+        let text = format!("{} {how}, according to {}. Nobody has been in touch", c.club_name(s.other_club), pw_narrate::press::outlet_name(w, s));
+        waiting_on.push(json!({"kind": "rumour", "text": text, "since": s.date.0, "ref": Ref::club(s.other_club)}));
+    }
+    if let Some(e) = w.events.since(date.add_days(-60)).iter().rev().find(|e| matches!(e.kind, pw_world::EventKind::AgentExploring { player, .. } if player == p)) {
+        waiting_on.push(json!({"kind": "agent", "text": "Your agent is sounding out clubs about a move. Nothing firm yet", "since": e.date.0}));
+    }
+    if h.injury != 0
+        && let Some(e) = w.events.since(date.add_days(-400)).iter().rev().find(|e| matches!(e.kind, pw_world::EventKind::Diagnosed { player, .. } if player == p))
+        && let pw_world::EventKind::Diagnosed { estimate, .. } = e.kind
+    {
+        // The estimate you were given, as a range: a diagnosis is a guess, and the body keeps its own time.
+        let (lo, hi) = (e.date.add_days(i32::from(estimate) * 4 / 5), e.date.add_days(i32::from(estimate) * 6 / 5 + 3));
+        let text = format!("Back in training somewhere between {} and {}, if the recovery goes to plan", crate::fmt::day_month(lo), crate::fmt::day_month(hi));
+        waiting_on.push(json!({"kind": "injury", "text": text, "since": e.date.0, "date": hi.0}));
+    }
+    let known_faces: Vec<Value> = next
+        .map(|f| f.opponent(team))
+        .map(|t| w.teams[t].club)
+        .map(|opp| super::chronicle::known_faces(c, me, opp))
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(who, how, role)| json!({"who": named(Ref::person(who), c.person_name(who)), "how": how, "role": role}))
+        .collect();
     let open_promises = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).count();
     let next_due = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).map(|pr| pr.due.0).min();
 
@@ -228,7 +269,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces,
         "promises": {"open": open_promises, "next_due": next_due},
         "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,

@@ -1,9 +1,9 @@
 import { cap } from "../format";
 import { TalkButton } from "../components/Actions";
-import { Dt, EntityLink } from "../components/links";
+import { Dt, EntityLink, Parts } from "../components/links";
 import { navigate, useRoute } from "../router";
 import { useApi } from "../store";
-import type { Named } from "../types";
+import type { Named, Part } from "../types";
 import { Badge, Empty, Progress, Tabs } from "../ui/ui";
 import { Async, PageHead, usePageTitle } from "./common";
 
@@ -18,6 +18,7 @@ interface Person {
   since: number;
   last: number;
   why: { text: string; date: number } | null;
+  shared: Part[];
 }
 interface Promise_ {
   id: number;
@@ -81,10 +82,15 @@ function People() {
                 <li key={p.who.id}>
                   <div className="grow">
                     <div><strong><EntityLink r={p.who}>{p.who.name}</EntityLink></strong> {p.role && <span className="muted">· {p.role}</span>}</div>
-                    <div className="hint">
-                      {p.why ? <>{p.why.text} (<Dt d={p.why.date} year={false} />). </> : null}
-                      Trust: {p.trust}. Respect: {p.respect}. Last spoke <Dt d={p.last} year={false} />.
-                    </div>
+                    {p.shared.length > 0 && <div className="muted"><Parts parts={p.shared} /></div>}
+                    {p.evidence.length > 0 ? (
+                      <ul className="episodes">
+                        {p.evidence.map((e, i) => <li key={i}><span className="hint num"><Dt d={e.date} /></span> {e.text}</li>)}
+                      </ul>
+                    ) : (
+                      <div className="hint">Nothing between you has stayed with you yet.</div>
+                    )}
+                    <div className="hint">Underneath it all: trust {p.trust}, respect {p.respect}. Last spoke <Dt d={p.last} year={false} />.</div>
                   </div>
                   <Badge tone={p.tone}>{p.label}</Badge>
                   <TalkButton who={p.who} />

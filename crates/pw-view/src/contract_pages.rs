@@ -1129,8 +1129,16 @@ response! {
         pub since: f64,
         pub text: String,
     }
+    /// Someone from your past on the other side of your next match.
+    pub struct MeTodayViewKnownFace {
+        pub who: NamedIn,
+        pub how: Vec<PartIn>,
+        /// player or manager.
+        pub role: String,
+    }
     pub struct MeTodayView {
         pub availability: MeTodayViewAvailability,
+        pub known_faces: Vec<MeTodayViewKnownFace>,
         pub changes: Vec<MeTodayViewChange>,
         pub commitments: Vec<MeTodayViewCommitment>,
         pub conceal_mine: bool,
@@ -1978,6 +1986,7 @@ pub fn declarations() -> Vec<String> {
         MeTodayViewPromises::declaration(),
         MeTodayViewRecent::declaration(),
         MeTodayViewWaitingOn::declaration(),
+        MeTodayViewKnownFace::declaration(),
         MeTodayView::declaration(),
         MeMessagesViewMessage::declaration(),
         MeMessagesView::declaration(),

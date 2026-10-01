@@ -420,6 +420,9 @@ fn engine_truth_is_read_only_in_the_files_that_gate_it() {
         ("pages/insights.rs", "private books"),
         ("pages/insights.rs", "private medical"),
         ("pages/me.rs", "private medical"),
+        // Your own trial only (`deals.trials` filtered to the inhabited player): the club and the day they decide are what a player
+        // on trial is told.
+        ("pages/me.rs", "private books"),
         ("pages/club.rs", "private books"),
         ("pages/life.rs", "relationship internals"),
         ("pages/life.rs", "private medical"),

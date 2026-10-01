@@ -1,7 +1,7 @@
 import { ClubCrest } from "../components/Crest";
 import { Insights } from "../components/Insights";
 import { NewsFeed, StoryCard, WorldPulse } from "../components/Newsroom";
-import { Dt, EntityLink } from "../components/links";
+import { Dt, EntityLink, Parts } from "../components/links";
 import { DEFAULT_TINT, Stage, StageHeader } from "../components/Stage";
 import { tintOf } from "../color";
 import { useClubColors } from "../crest";
@@ -44,6 +44,18 @@ export function Portal() {
               {t.decisions.length > 0 && <div className="portal-decisions">{t.decisions.slice(0, 2).map((d) => <a key={d.id} href={href(`/messages/${d.id}`)}><Badge tone="warn">Decision</Badge><strong>{d.title}</strong><span>{d.summary}</span><small>Reply by <Dt d={d.deadline} year={false} /></small></a>)}</div>}
               {inbox.data?.threads.length ? <div className="portal-inbox-list">{inbox.data.threads.slice(0, 6).map((m) => <a key={m.id} href={href(`/messages/t/${m.id}`)} className={m.unread ? "unread" : ""}><span className="portal-inbox-row"><strong>{m.title}</strong><small><Dt d={m.last} year={false} /></small></span><span className="portal-inbox-preview">{m.preview}</span>{m.needs_action && <Badge tone="warn">Needs an answer</Badge>}</a>)}</div> : <div className="card muted">{inbox.error ? "Inbox unavailable." : "No conversations yet. People will reach you as the world moves."}</div>}
             </Section>
+            {t.waiting_on.length > 0 && (
+              <Section title="Waiting to hear">
+                <ul className="portal-waiting">
+                  {t.waiting_on.map((x, i) => (
+                    <li key={i}>
+                      <span>{x.ref && (x.ref.k === "club" || x.ref.k === "person") ? <a className="elink" href={href(`/${x.ref.k}/${x.ref.id}`)}>{x.text}</a> : x.text}</span>
+                      <small className="hint">since <Dt d={x.since} year={false} /></small>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            )}
             <Section title="Today's plan">
               <div className="portal-plan">{t.commitments.map((c, i) => <div key={i}><span className="portal-plan-mark" />{c.text}</div>)}{t.queued.map((q, i) => <div key={`q${i}`} className="muted"><span className="portal-plan-mark queued" />{q} <small>Queued</small></div>)}</div>
             </Section>
@@ -61,6 +73,12 @@ export function Portal() {
           <aside className="portal-context stack">
             <Section title="Next match" tone="strong">
               {t.next_match ? <a className="portal-next" href={href(`/match/${t.next_match.uid}`)}><span className="hint">{t.next_match.comp.name} · {t.next_match.round}</span><strong>{t.next_match.home ? "v" : "at"} {t.next_match.opponent.name}</strong><span>{relativeDays(t.next_match.date, t.date)} <small>· <Dt d={t.next_match.date} year={false} /></small></span></a> : <div className="card muted">No match is scheduled.</div>}
+              {t.known_faces.length > 0 && (
+                <div className="portal-faces">
+                  <div className="subhead">People you know on the other side</div>
+                  {t.known_faces.map((f) => <div key={f.who.id}><EntityLink r={f.who}>{f.who.name}</EntityLink>{f.role === "manager" ? " (their manager)" : ""}, <span className="muted"><Parts parts={f.how} /></span></div>)}
+                </div>
+              )}
               {t.next_match && <Insights method="insight.match" args={{ uid: t.next_match.uid }} title="What to watch" limit={2} compact hideEmpty />}
             </Section>
             <Section title="Your status" aside={<a href={href(`/person/${t.me.person}`)}>Profile</a>}>

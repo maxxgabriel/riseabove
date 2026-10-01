@@ -161,7 +161,7 @@ fn current(c: &Ctx, me: PersonId, t: &Tie) -> bool {
 }
 
 /// "your former teammate at Odisha FC", "the first at KIIT to take you seriously" ...
-fn tie_parts(c: &Ctx, t: &Tie, now: bool) -> Vec<Part> {
+pub(crate) fn tie_parts(c: &Ctx, t: &Tie, now: bool) -> Vec<Part> {
     let s = S::new(c);
     match t.kind {
         TieKind::Teammate { club } => s.t(if now { "your teammate at " } else { "your former teammate at " }).club(club),
@@ -529,4 +529,48 @@ fn layer_key(l: Layer) -> &'static str {
         Layer::National => "national",
         Layer::Abroad => "abroad",
     }
+}
+
+/// People from your past on the other side of a fixture against `opp`: its players and its manager, by their most telling tie.
+pub(crate) fn known_faces(c: &Ctx, me: PersonId, opp: ClubId) -> Vec<(PersonId, Vec<Part>, &'static str)> {
+    let w = c.w;
+    let Some(life) = w.ext.chronicle.of(me) else { return Vec::new() };
+    let manager = w.clubs.get(opp).map(|k| k.manager).filter(|m| m.is_some()).map(|m| w.staff[m].person);
+    let mut out: Vec<(PersonId, Vec<Part>, &'static str)> = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    for t in &life.ties {
+        if t.person == me || !seen.insert(t.person) {
+            continue;
+        }
+        let Some(best) = life.best_tie(t.person).map(|i| life.ties[i]) else { continue };
+        if matches!(best.kind, TieKind::Teammate { .. } | TieKind::Classmate { .. }) && best.days() < LISTED_DAYS {
+            continue;
+        }
+        let q = w.people.get(t.person).map_or(pw_core::PlayerId::NONE, |x| x.player);
+        let role = if manager == Some(t.person) {
+            "manager"
+        } else if q.is_some() && w.players.hot[q].club == opp && w.players.hot[q].status != pw_world::PlayerStatus::Retired {
+            "player"
+        } else {
+            continue;
+        };
+        out.push((t.person, tie_parts(c, &best, false), role));
+    }
+    out
+}
+
+/// What two people shared, for a relationship: "Teammates at Kerala Police FC, Aug 2026 to Mar 2028".
+pub(crate) fn shared(c: &Ctx, me: PersonId, t: &Tie) -> Vec<Part> {
+    let now = current(c, me, t);
+    let s = S::new(c);
+    let s = match t.kind {
+        TieKind::Teammate { club } => s.t("Teammates at ").club(club),
+        TieKind::Classmate { inst } => s.t("Teammates at ").inst(inst),
+        TieKind::Coach { club } => s.t("Your manager at ").club(club),
+        TieKind::Scout { org } => return s.t(format!("The first at {} to take you seriously, ", org_words(c, org))).date(t.from).done(),
+        TieKind::LetGo { club } => return s.t("Let you go at ").club(club).t(", ").date(t.from).done(),
+        TieKind::Mentor => return s.t("Looked out for you from ").date(t.from).done(),
+        TieKind::Finder => return s.t("The first outside your family to take you seriously").done(),
+    };
+    if now || t.days() < 7 { s.t(", since ").date(t.from).done() } else { s.t(", ").date(t.from).t(" to ").date(t.to).done() }
 }
