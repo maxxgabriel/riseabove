@@ -1,0 +1,854 @@
+# Frames for incidents made public and for the analysis the morning after a match. An incident's facts are only who, where and
+# what kind; nothing about how private matters were handled. Analysis never says how good anyone is.
+
+[[frame]]
+id = "incident.reported.news.headline.report.training_clash.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'training_clash'"
+time = "past"
+text = "Bust-up at {club} training"
+
+[[frame]]
+id = "incident.reported.news.headline.report.training_clash.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'training_clash'"
+time = "past"
+text = "Training-ground row at {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.training_clash.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'other', 'club']
+when = "kind == 'training_clash'"
+time = "past"
+text = "{who} and {other} clashed at {club} training"
+
+[[frame]]
+id = "incident.reported.news.lede.report.training_clash.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'other', 'club']
+when = "kind == 'training_clash'"
+time = "past"
+text = "Tempers flared at {club} training, where {who} and {other} had to be separated"
+
+[[frame]]
+id = "incident.reported.news.headline.report.tactics_row.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'tactics_row'"
+time = "past"
+text = "Tactics row at {club}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.tactics_row.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'tactics_row'"
+time = "past"
+text = "{who} at odds with {club} staff"
+
+[[frame]]
+id = "incident.reported.news.lede.report.tactics_row.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'other', 'club']
+when = "kind == 'tactics_row'"
+time = "past"
+text = "{who} and {other} disagreed openly over tactics at {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.tactics_row.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'other', 'club']
+when = "kind == 'tactics_row'"
+time = "past"
+text = "A row over tactics has broken out at {club} between {who} and {other}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.stormed_out.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'stormed_out'"
+time = "past"
+text = "{who} storms out of {club} training"
+
+[[frame]]
+id = "incident.reported.news.headline.report.stormed_out.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'stormed_out'"
+time = "past"
+text = "Walk-out at {club} training"
+
+[[frame]]
+id = "incident.reported.news.lede.report.stormed_out.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'stormed_out'"
+time = "past"
+text = "{who:desc} stormed out of training at {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.stormed_out.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'stormed_out'"
+time = "past"
+text = "{who:desc} left {club} training early and in a temper"
+
+[[frame]]
+id = "incident.reported.news.headline.report.late.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'late'"
+time = "past"
+text = "{who} late for {club} duty"
+
+[[frame]]
+id = "incident.reported.news.headline.report.late.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'late'"
+time = "past"
+text = "Timekeeping trouble at {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.late.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'late'"
+time = "past"
+text = "{who:desc} turned up late at {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.late.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'late'"
+time = "past"
+text = "{club} were kept waiting by {who:desc}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.postponed.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'postponed'"
+time = "past"
+text = "{club} match postponed"
+
+[[frame]]
+id = "incident.reported.news.headline.report.postponed.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'postponed'"
+time = "past"
+text = "Postponement for {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.postponed.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'postponed'"
+time = "past"
+text = "{club}'s match has been called off"
+
+[[frame]]
+id = "incident.reported.news.lede.report.postponed.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'postponed'"
+time = "past"
+text = "The {club} fixture will not go ahead as planned"
+
+[[frame]]
+id = "incident.reported.news.headline.report.travel_delay.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'travel_delay'"
+time = "past"
+text = "Travel chaos for {club}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.travel_delay.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'travel_delay'"
+time = "past"
+text = "{club} held up on the road"
+
+[[frame]]
+id = "incident.reported.news.lede.report.travel_delay.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'travel_delay'"
+time = "past"
+text = "{club} were badly delayed travelling to their match"
+
+[[frame]]
+id = "incident.reported.news.lede.report.travel_delay.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'travel_delay'"
+time = "past"
+text = "A long and difficult journey left {club} arriving late"
+
+[[frame]]
+id = "incident.reported.news.headline.report.pitch_damage.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'pitch_damage'"
+time = "past"
+text = "Pitch trouble at {club}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.pitch_damage.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'pitch_damage'"
+time = "past"
+text = "{club} ground damaged"
+
+[[frame]]
+id = "incident.reported.news.lede.report.pitch_damage.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'pitch_damage'"
+time = "past"
+text = "The playing surface at {club} has been damaged"
+
+[[frame]]
+id = "incident.reported.news.lede.report.pitch_damage.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'pitch_damage'"
+time = "past"
+text = "{club} are counting the cost of a damaged pitch"
+
+[[frame]]
+id = "incident.reported.news.headline.report.facility_damage.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'facility_damage'"
+time = "past"
+text = "Damage to {club} facilities"
+
+[[frame]]
+id = "incident.reported.news.headline.report.facility_damage.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'facility_damage'"
+time = "past"
+text = "{club} facilities hit"
+
+[[frame]]
+id = "incident.reported.news.lede.report.facility_damage.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'facility_damage'"
+time = "past"
+text = "{club}'s facilities have been damaged"
+
+[[frame]]
+id = "incident.reported.news.lede.report.facility_damage.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'facility_damage'"
+time = "past"
+text = "Repairs are needed at {club} after damage to the facilities"
+
+[[frame]]
+id = "incident.reported.news.headline.report.equipment.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'equipment'"
+time = "past"
+text = "Equipment failure costs {club} a session"
+
+[[frame]]
+id = "incident.reported.news.headline.report.equipment.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'equipment'"
+time = "past"
+text = "Training disrupted at {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.equipment.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'equipment'"
+time = "past"
+text = "{club} lost a training session to equipment failures"
+
+[[frame]]
+id = "incident.reported.news.lede.report.equipment.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'equipment'"
+time = "past"
+text = "Broken equipment cut short a {club} training session"
+
+[[frame]]
+id = "incident.reported.news.headline.report.visa.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who']
+when = "kind == 'visa'"
+time = "past"
+text = "Visa delay for {who}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.visa.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who']
+when = "kind == 'visa'"
+time = "past"
+text = "{who} held up by paperwork"
+
+[[frame]]
+id = "incident.reported.news.lede.report.visa.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who']
+when = "kind == 'visa'"
+time = "past"
+text = "{who:desc} has been held up by a visa problem"
+
+[[frame]]
+id = "incident.reported.news.lede.report.visa.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who']
+when = "kind == 'visa'"
+time = "past"
+text = "A visa problem is keeping {who:desc} waiting"
+
+[[frame]]
+id = "incident.reported.news.headline.report.registration.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'registration'"
+time = "past"
+text = "Registration blunder at {club}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.registration.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'registration'"
+time = "past"
+text = "{club} in registration mix-up"
+
+[[frame]]
+id = "incident.reported.news.lede.report.registration.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'registration'"
+time = "past"
+text = "{club} failed to register {who:desc} properly"
+
+[[frame]]
+id = "incident.reported.news.lede.report.registration.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'registration'"
+time = "past"
+text = "An error in registering {who:desc} has left {club} red-faced"
+
+[[frame]]
+id = "incident.reported.news.headline.report.coach_walked_out.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'coach_walked_out'"
+time = "past"
+text = "{who} walks out on {club}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.coach_walked_out.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'coach_walked_out'"
+time = "past"
+text = "{club} lose {who}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.coach_walked_out.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'coach_walked_out'"
+time = "past"
+text = "{who:desc} has walked out on {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.coach_walked_out.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'coach_walked_out'"
+time = "past"
+text = "{club} are looking for a replacement after {who:desc} left"
+
+[[frame]]
+id = "incident.reported.news.headline.report.staff_poached.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'staff_poached'"
+time = "past"
+text = "{club} lose {who} to a rival"
+
+[[frame]]
+id = "incident.reported.news.headline.report.staff_poached.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'staff_poached'"
+time = "past"
+text = "{who} lured away from {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.staff_poached.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'staff_poached'"
+time = "past"
+text = "{who:desc} has been lured away from {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.staff_poached.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who', 'club']
+when = "kind == 'staff_poached'"
+time = "past"
+text = "{club} could not keep hold of {who:desc}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.ownership.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'ownership'"
+time = "past"
+text = "Controversy over {club} ownership"
+
+[[frame]]
+id = "incident.reported.news.headline.report.ownership.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'ownership'"
+time = "past"
+text = "Questions for {club} owners"
+
+[[frame]]
+id = "incident.reported.news.lede.report.ownership.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'ownership'"
+time = "past"
+text = "{club}'s owners find themselves at the centre of a controversy"
+
+[[frame]]
+id = "incident.reported.news.lede.report.ownership.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'ownership'"
+time = "past"
+text = "The people who own {club} are facing awkward questions"
+
+[[frame]]
+id = "incident.reported.news.headline.report.sponsor_collapse.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'sponsor_collapse'"
+time = "past"
+text = "{club} sponsor collapses"
+
+[[frame]]
+id = "incident.reported.news.headline.report.sponsor_collapse.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'sponsor_collapse'"
+time = "past"
+text = "Blow for {club} as sponsor goes under"
+
+[[frame]]
+id = "incident.reported.news.lede.report.sponsor_collapse.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'sponsor_collapse'"
+time = "past"
+text = "A sponsor of {club} has collapsed"
+
+[[frame]]
+id = "incident.reported.news.lede.report.sponsor_collapse.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'sponsor_collapse'"
+time = "past"
+text = "{club} have lost a sponsor, which has gone under"
+
+[[frame]]
+id = "incident.reported.news.headline.report.investigation.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'investigation'"
+time = "past"
+text = "{club} under investigation"
+
+[[frame]]
+id = "incident.reported.news.headline.report.investigation.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'investigation'"
+time = "past"
+text = "Investigation opened into {club}"
+
+[[frame]]
+id = "incident.reported.news.lede.report.investigation.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'investigation'"
+time = "past"
+text = "{club} are under investigation"
+
+[[frame]]
+id = "incident.reported.news.lede.report.investigation.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'investigation'"
+time = "past"
+text = "The authorities have opened an investigation into {club}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.burglary.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who']
+when = "kind == 'burglary'"
+time = "past"
+text = "Burglary at the home of {who}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.burglary.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['who']
+when = "kind == 'burglary'"
+time = "past"
+text = "{who} burgled"
+
+[[frame]]
+id = "incident.reported.news.lede.report.burglary.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who']
+when = "kind == 'burglary'"
+time = "past"
+text = "The home of {who:desc} has been burgled"
+
+[[frame]]
+id = "incident.reported.news.lede.report.burglary.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['who']
+when = "kind == 'burglary'"
+time = "past"
+text = "Thieves broke into the home of {who:desc}"
+
+[[frame]]
+id = "incident.reported.news.headline.report.supporter_unrest.1"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'supporter_unrest'"
+time = "past"
+text = "{club} supporters protest"
+
+[[frame]]
+id = "incident.reported.news.headline.report.supporter_unrest.2"
+event = "incident.reported"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "kind == 'supporter_unrest'"
+time = "past"
+text = "Unrest among {club} fans"
+
+[[frame]]
+id = "incident.reported.news.lede.report.supporter_unrest.1"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'supporter_unrest'"
+time = "past"
+text = "{club} supporters have taken to protest"
+
+[[frame]]
+id = "incident.reported.news.lede.report.supporter_unrest.2"
+event = "incident.reported"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "kind == 'supporter_unrest'"
+time = "past"
+text = "There is open unrest among the {club} support"
+
+[[frame]]
+id = "match.analysis.news.headline.report.any.1"
+event = "match.analysis"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['home', 'away']
+time = "past"
+text = "The morning after {home} v {away}"
+
+[[frame]]
+id = "match.analysis.news.headline.report.any.2"
+event = "match.analysis"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['home', 'away', 'home_goals', 'away_goals']
+time = "past"
+text = "Talking points from {home} {home_goals}-{away_goals} {away}"
+
+[[frame]]
+id = "match.analysis.news.lede.report.star.1"
+event = "match.analysis"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['star', 'home', 'away']
+time = "past"
+text = "{star:desc} was the name on everyone's lips after {home} met {away}"
+
+[[frame]]
+id = "match.analysis.news.lede.report.star.2"
+event = "match.analysis"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['star', 'home', 'away']
+time = "past"
+text = "Much of the talk after {home} against {away} was about {star:desc}"
+
+[[frame]]
+id = "match.analysis.news.lede.report.any.1"
+event = "match.analysis"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['home', 'away']
+time = "past"
+text = "{home} and {away} left the analysts with plenty of material"
+
+[[frame]]
+id = "match.analysis.news.lede.report.any.2"
+event = "match.analysis"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['home', 'away']
+time = "past"
+text = "There was plenty to pick over after {home} met {away}"

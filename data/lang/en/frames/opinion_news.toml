@@ -1,0 +1,886 @@
+# Frames for the opinion and inside-the-club stories: readings of a player (features and data pieces), pressure on a manager,
+# discipline, criticism and supporters' reactions. None of them states how good anyone is; a reading is a label the media already use.
+
+[[frame]]
+id = "player.reading.news.headline.report.big_game.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'big_game'"
+time = "present"
+text = "{player}: made for the big occasions"
+
+[[frame]]
+id = "player.reading.news.headline.report.big_game.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'big_game'"
+time = "present"
+text = "{player}, the player for the biggest nights"
+
+[[frame]]
+id = "player.reading.news.lede.report.big_game.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'big_game'"
+time = "present"
+text = "{player:desc} has a habit of turning up when the stakes are highest"
+
+[[frame]]
+id = "player.reading.news.lede.report.big_game.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'big_game'"
+time = "present"
+text = "When the matches matter most, {player:desc} tends to be at the centre of them"
+
+[[frame]]
+id = "player.reading.news.headline.report.flat_track.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'flat_track'"
+time = "present"
+text = "Does {player} go missing when it matters?"
+
+[[frame]]
+id = "player.reading.news.headline.report.flat_track.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'flat_track'"
+time = "present"
+text = "The question over {player} in the big games"
+
+[[frame]]
+id = "player.reading.news.lede.report.flat_track.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'flat_track'"
+time = "present"
+text = "The doubts about {player:desc} come back whenever the opposition is strong"
+
+[[frame]]
+id = "player.reading.news.lede.report.flat_track.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'flat_track'"
+time = "present"
+text = "{player:desc} has yet to convince when the matches matter most"
+
+[[frame]]
+id = "player.reading.news.headline.report.in_form.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_form'"
+time = "present"
+text = "{player} in the form of a career"
+
+[[frame]]
+id = "player.reading.news.headline.report.in_form.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_form'"
+time = "present"
+text = "{player} cannot stop performing"
+
+[[frame]]
+id = "player.reading.news.lede.report.in_form.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_form'"
+time = "present"
+text = "{player:desc} is in the best spell of a career so far"
+
+[[frame]]
+id = "player.reading.news.lede.report.in_form.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_form'"
+time = "present"
+text = "Week after week, {player:desc} keeps delivering"
+
+[[frame]]
+id = "player.reading.news.headline.report.in_slump.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_slump'"
+time = "present"
+text = "What has happened to {player}?"
+
+[[frame]]
+id = "player.reading.news.headline.report.in_slump.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_slump'"
+time = "present"
+text = "{player} searching for the old form"
+
+[[frame]]
+id = "player.reading.news.lede.report.in_slump.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_slump'"
+time = "present"
+text = "{player:desc} has gone through a lean spell that nobody quite explains"
+
+[[frame]]
+id = "player.reading.news.lede.report.in_slump.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'in_slump'"
+time = "present"
+text = "The spark has gone from {player:desc} for now"
+
+[[frame]]
+id = "player.reading.news.headline.report.underrated.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'underrated'"
+time = "present"
+text = "The numbers say {player} is underrated"
+
+[[frame]]
+id = "player.reading.news.headline.report.underrated.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'underrated'"
+time = "present"
+text = "{player}, better than people think"
+
+[[frame]]
+id = "player.reading.news.lede.report.underrated.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'underrated'"
+time = "present"
+text = "Look past the headlines and {player:desc} comes out far better than the reputation suggests"
+
+[[frame]]
+id = "player.reading.news.lede.report.underrated.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'underrated'"
+time = "present"
+text = "The record of {player:desc} deserves more attention than it gets"
+
+[[frame]]
+id = "player.reading.news.headline.report.overrated.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'overrated'"
+time = "present"
+text = "Is {player} overrated?"
+
+[[frame]]
+id = "player.reading.news.headline.report.overrated.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'overrated'"
+time = "present"
+text = "The numbers do not flatter {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.overrated.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'overrated'"
+time = "present"
+text = "The reputation of {player:desc} runs ahead of what the record shows"
+
+[[frame]]
+id = "player.reading.news.lede.report.overrated.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'overrated'"
+time = "present"
+text = "Look at the numbers and {player:desc} is not quite what the talk suggests"
+
+[[frame]]
+id = "player.reading.news.headline.report.goal_threat.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'goal_threat'"
+time = "present"
+text = "{player}: the goals keep coming"
+
+[[frame]]
+id = "player.reading.news.headline.report.goal_threat.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'goal_threat'"
+time = "present"
+text = "Nobody carries a threat like {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.goal_threat.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'goal_threat'"
+time = "present"
+text = "Give {player:desc} a sight of goal and the chance tends to be taken"
+
+[[frame]]
+id = "player.reading.news.lede.report.goal_threat.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'goal_threat'"
+time = "present"
+text = "{player:desc} has become the most dangerous finisher around"
+
+[[frame]]
+id = "player.reading.news.headline.report.workhorse.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'workhorse'"
+time = "present"
+text = "{player}, the engine nobody notices"
+
+[[frame]]
+id = "player.reading.news.headline.report.workhorse.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'workhorse'"
+time = "present"
+text = "The quiet work of {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.workhorse.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'workhorse'"
+time = "present"
+text = "{player:desc} does the running others leave undone"
+
+[[frame]]
+id = "player.reading.news.lede.report.workhorse.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'workhorse'"
+time = "present"
+text = "Much of what goes right around {player:desc} starts with that unseen work"
+
+[[frame]]
+id = "player.reading.news.headline.report.unreliable.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'unreliable'"
+time = "present"
+text = "The two sides of {player}"
+
+[[frame]]
+id = "player.reading.news.headline.report.unreliable.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'unreliable'"
+time = "present"
+text = "Brilliant or baffling: {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.unreliable.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'unreliable'"
+time = "present"
+text = "One week {player:desc} is unplayable, the next a passenger"
+
+[[frame]]
+id = "player.reading.news.lede.report.unreliable.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'unreliable'"
+time = "present"
+text = "Nobody quite knows which {player} will turn up"
+
+[[frame]]
+id = "player.reading.news.headline.report.breakthrough.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'breakthrough'"
+time = "present"
+text = "{player}: the breakthrough of the season"
+
+[[frame]]
+id = "player.reading.news.headline.report.breakthrough.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'breakthrough'"
+time = "present"
+text = "A star is born: {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.breakthrough.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'breakthrough'"
+time = "present"
+text = "{player:desc} has gone from unknown to unmissable"
+
+[[frame]]
+id = "player.reading.news.lede.report.breakthrough.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'breakthrough'"
+time = "present"
+text = "Few saw the rise of {player:desc} coming"
+
+[[frame]]
+id = "player.reading.news.headline.report.frozen_out.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'frozen_out'"
+time = "present"
+text = "Why has {player} disappeared from the side?"
+
+[[frame]]
+id = "player.reading.news.headline.report.frozen_out.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'frozen_out'"
+time = "present"
+text = "Where has {player} gone?"
+
+[[frame]]
+id = "player.reading.news.lede.report.frozen_out.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'frozen_out'"
+time = "present"
+text = "{player:desc} has dropped out of the picture, and nobody has said why"
+
+[[frame]]
+id = "player.reading.news.lede.report.frozen_out.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'frozen_out'"
+time = "present"
+text = "The minutes have dried up for {player:desc}"
+
+[[frame]]
+id = "player.reading.news.headline.report.durable.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'durable'"
+time = "present"
+text = "{player}, never injured, always there"
+
+[[frame]]
+id = "player.reading.news.headline.report.durable.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'durable'"
+time = "present"
+text = "The iron constitution of {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.durable.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'durable'"
+time = "present"
+text = "Season after season, {player:desc} is available"
+
+[[frame]]
+id = "player.reading.news.lede.report.durable.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'durable'"
+time = "present"
+text = "Injuries seem to pass {player:desc} by"
+
+[[frame]]
+id = "player.reading.news.headline.report.injury_prone.1"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'injury_prone'"
+time = "present"
+text = "The body keeps failing {player}"
+
+[[frame]]
+id = "player.reading.news.headline.report.injury_prone.2"
+event = "player.reading"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+when = "reading == 'injury_prone'"
+time = "present"
+text = "Another setback for {player}"
+
+[[frame]]
+id = "player.reading.news.lede.report.injury_prone.1"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'injury_prone'"
+time = "present"
+text = "Injury has followed {player:desc} for too long"
+
+[[frame]]
+id = "player.reading.news.lede.report.injury_prone.2"
+event = "player.reading"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+when = "reading == 'injury_prone'"
+time = "present"
+text = "The fitness of {player:desc} remains the question"
+
+[[frame]]
+id = "manager.pressure.news.headline.report.any.1"
+event = "manager.pressure"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['manager', 'club']
+time = "present"
+text = "Pressure grows on {manager}"
+
+[[frame]]
+id = "manager.pressure.news.headline.report.any.2"
+event = "manager.pressure"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['manager', 'club']
+time = "present"
+text = "{club} board patience wearing thin"
+
+[[frame]]
+id = "manager.pressure.news.headline.report.any.3"
+event = "manager.pressure"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['manager', 'club']
+time = "present"
+text = "Questions over {manager}'s future at {club}"
+
+[[frame]]
+id = "manager.pressure.news.lede.report.any.1"
+event = "manager.pressure"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['manager', 'club']
+time = "present"
+text = "{manager:desc} is under growing pressure at {club}"
+
+[[frame]]
+id = "manager.pressure.news.lede.report.any.2"
+event = "manager.pressure"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['manager', 'club']
+time = "present"
+text = "The position of {manager:desc} at {club} is being questioned"
+
+[[frame]]
+id = "manager.pressure.news.lede.report.any.3"
+event = "manager.pressure"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['manager', 'club']
+time = "present"
+text = "{club} have not hidden their unease, and {manager:desc} knows it"
+
+[[frame]]
+id = "player.discipline.news.headline.report.any.1"
+event = "player.discipline"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player} disciplined by {club}"
+
+[[frame]]
+id = "player.discipline.news.headline.report.any.2"
+event = "player.discipline"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player} in trouble at {club}"
+
+[[frame]]
+id = "player.discipline.news.headline.report.any.3"
+event = "player.discipline"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{club} take action over {player}"
+
+[[frame]]
+id = "player.discipline.news.lede.report.any.1"
+event = "player.discipline"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{club} have disciplined {player:desc}"
+
+[[frame]]
+id = "player.discipline.news.lede.report.any.2"
+event = "player.discipline"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player:desc} has been dealt with internally by {club}"
+
+[[frame]]
+id = "player.discipline.news.lede.report.any.3"
+event = "player.discipline"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player', 'club']
+time = "present"
+text = "{player:desc} has fallen foul of the club's rules at {club}"
+
+[[frame]]
+id = "player.criticism.news.headline.report.any.1"
+event = "player.criticism"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} under fire"
+
+[[frame]]
+id = "player.criticism.news.headline.report.any.2"
+event = "player.criticism"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player} must improve"
+
+[[frame]]
+id = "player.criticism.news.headline.report.any.3"
+event = "player.criticism"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "Critics turn on {player}"
+
+[[frame]]
+id = "player.criticism.news.lede.report.any.1"
+event = "player.criticism"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player:desc} has drawn criticism for recent showings"
+
+[[frame]]
+id = "player.criticism.news.lede.report.any.2"
+event = "player.criticism"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "The patience with {player:desc} is running out"
+
+[[frame]]
+id = "player.criticism.news.lede.report.any.3"
+event = "player.criticism"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['player']
+time = "present"
+text = "{player:desc} is facing questions about a place in the side"
+
+[[frame]]
+id = "fans.reaction.news.headline.report.angry.1"
+event = "fans.reaction"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "mood == 'angry'"
+time = "present"
+text = "{club} supporters vent their anger"
+
+[[frame]]
+id = "fans.reaction.news.headline.report.angry.2"
+event = "fans.reaction"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "mood == 'angry'"
+time = "present"
+text = "Fury among {club} fans"
+
+[[frame]]
+id = "fans.reaction.news.lede.report.angry.1"
+event = "fans.reaction"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "mood == 'angry'"
+time = "present"
+text = "The {club} faithful are not happy, and they are saying so"
+
+[[frame]]
+id = "fans.reaction.news.lede.report.angry.2"
+event = "fans.reaction"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "mood == 'angry'"
+time = "present"
+text = "Anger has spilled over among {club} supporters"
+
+[[frame]]
+id = "fans.reaction.news.headline.report.delighted.1"
+event = "fans.reaction"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "mood == 'delighted'"
+time = "present"
+text = "{club} fans in raptures"
+
+[[frame]]
+id = "fans.reaction.news.headline.report.delighted.2"
+event = "fans.reaction"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "mood == 'delighted'"
+time = "present"
+text = "Joy among the {club} faithful"
+
+[[frame]]
+id = "fans.reaction.news.lede.report.delighted.1"
+event = "fans.reaction"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "mood == 'delighted'"
+time = "present"
+text = "{club} supporters are enjoying every minute of it"
+
+[[frame]]
+id = "fans.reaction.news.lede.report.delighted.2"
+event = "fans.reaction"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "mood == 'delighted'"
+time = "present"
+text = "The mood among {club} fans could hardly be better"
+
+[[frame]]
+id = "fans.reaction.news.headline.report.divided.1"
+event = "fans.reaction"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "mood == 'divided'"
+time = "present"
+text = "{club} fans divided"
+
+[[frame]]
+id = "fans.reaction.news.headline.report.divided.2"
+event = "fans.reaction"
+channel = "news"
+slot = "headline"
+topic = "report"
+needs = ['club']
+when = "mood == 'divided'"
+time = "present"
+text = "{club} supporters split"
+
+[[frame]]
+id = "fans.reaction.news.lede.report.divided.1"
+event = "fans.reaction"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "mood == 'divided'"
+time = "present"
+text = "Opinion among {club} supporters is split down the middle"
+
+[[frame]]
+id = "fans.reaction.news.lede.report.divided.2"
+event = "fans.reaction"
+channel = "news"
+slot = "lede"
+topic = "report"
+needs = ['club']
+when = "mood == 'divided'"
+time = "present"
+text = "Not every {club} fan sees it the same way"

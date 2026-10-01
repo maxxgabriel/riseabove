@@ -508,3 +508,91 @@ type = "text"
 [[event.fact]]
 key = "matches_seen"
 type = "num"
+
+[[event]]
+kind = "player.reading"
+summary = "A feature or data piece reads a player through a label the media already use (reading: big_game, flat_track, in_form, in_slump, underrated, overrated, goal_threat, workhorse, unreliable, breakthrough, frozen_out, durable, injury_prone). It is an opinion, never a measure of ability."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "reading"
+type = "text"
+
+[[event]]
+kind = "manager.pressure"
+summary = "A manager's position is being questioned. Speculation about the future, not a decision."
+[[event.fact]]
+key = "manager"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "player.discipline"
+summary = "A club has dealt with a player internally. What was done and why are the club's business and are not facts here."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "player.criticism"
+summary = "A player's recent showings have drawn criticism. An opinion."
+[[event.fact]]
+key = "player"
+type = "person"
+[[event.fact]]
+key = "club"
+type = "club"
+
+[[event]]
+kind = "fans.reaction"
+summary = "A club's supporters reacting, as news in itself. mood: angry, delighted or divided."
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "mood"
+type = "text"
+
+[[event]]
+kind = "incident.reported"
+summary = "An incident made public. kind names it (training_clash, tactics_row, stormed_out, late, postponed, travel_delay, pitch_damage, facility_damage, equipment, visa, registration, coach_walked_out, staff_poached, ownership, sponsor_collapse, investigation, supporter_unrest, burglary); who and other are the people involved, first the instigator."
+[[event.fact]]
+key = "club"
+type = "club"
+[[event.fact]]
+key = "who"
+type = "person"
+[[event.fact]]
+key = "other"
+type = "person"
+[[event.fact]]
+key = "kind"
+type = "text"
+
+[[event]]
+kind = "match.analysis"
+summary = "The analysis the morning after a match: who played whom, the score and the player the talk was about. Says nothing of anyone's ability."
+[[event.fact]]
+key = "home"
+type = "club"
+[[event.fact]]
+key = "away"
+type = "club"
+[[event.fact]]
+key = "home_goals"
+type = "num"
+[[event.fact]]
+key = "away_goals"
+type = "num"
+[[event.fact]]
+key = "star"
+type = "person"

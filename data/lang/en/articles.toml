@@ -108,3 +108,45 @@ event = "ui.unknown_value"
 channel = "ui"
 structure = ["label:unknown", "hint:basis"]
 required = ["label:unknown"]
+
+[[article]]
+event = "player.reading"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "manager.pressure"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "player.discipline"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "player.criticism"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "fans.reaction"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "incident.reported"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]
+
+[[article]]
+event = "match.analysis"
+channel = "news"
+structure = ["headline:report", "lede:report"]
+required = ["headline:report", "lede:report"]

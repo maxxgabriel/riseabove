@@ -169,7 +169,9 @@ fn certainty_of(s: &Story) -> Certainty {
             _ => Certainty::Speculation,
         },
         // A leak is somebody's word; a quote or a public matter is stated plainly.
-        StoryKind::Unhappy if s.leaker.is_some() => Certainty::SourceClaim,
+        StoryKind::Unhappy | StoryKind::Discipline | StoryKind::IncidentNews if s.leaker.is_some() => Certainty::SourceClaim,
+        // Talk of a manager's future is a guess about what a board will do.
+        StoryKind::ManagerPressure => Certainty::Speculation,
         _ => Certainty::Fact,
     }
 }
@@ -371,9 +373,126 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
             }
             Some(ev)
         }
+        // Features and data pieces read a player through a label the media already use; only stories that recorded the label.
+        StoryKind::Feature | StoryKind::Analysis if s.player.is_some() && matches!(w.media.links.get(&s.id), Some(pw_world::media::StoryLink::Reading(_))) => match w.media.links.get(&s.id) {
+            Some(pw_world::media::StoryLink::Reading(l)) => {
+                let mut ev = LEvent::new("player.reading", s.date).ent("player", player_ref(w, s.player, s.date)).text("reading", reading_key(*l));
+                if s.club.is_some() {
+                    ev = ev.ent("club", club_ref(w, s.club));
+                }
+                Some(ev)
+            }
+            _ => None,
+        },
+        // The manager the story was about (recorded on the story), with the job held then, so the words do not change as the manager moves on.
+        StoryKind::ManagerPressure if s.person.is_some() && s.club.is_some() => {
+            let name = w.people.get(s.person).map(|p| p.display_name(&w.names).into_owned())?;
+            let short = name.split_whitespace().last().unwrap_or(&name).to_string();
+            let manager = LRef::new(&format!("person.{}", s.person.0), &name, &short).with_desc("title", "manager");
+            Some(LEvent::new("manager.pressure", s.date).ent("manager", manager).ent("club", club_ref(w, s.club)))
+        }
+        StoryKind::Discipline if s.player.is_some() && s.club.is_some() => Some(LEvent::new("player.discipline", s.date).ent("player", player_ref(w, s.player, s.date)).ent("club", club_ref(w, s.club))),
+        StoryKind::Criticism if s.player.is_some() => {
+            let mut ev = LEvent::new("player.criticism", s.date).ent("player", player_ref(w, s.player, s.date));
+            if s.club.is_some() {
+                ev = ev.ent("club", club_ref(w, s.club));
+            }
+            Some(ev)
+        }
+        StoryKind::FanReaction if s.club.is_some() => {
+            let mood = match s.tone {
+                t if t <= -20 => "angry",
+                t if t >= 20 => "delighted",
+                _ => "divided",
+            };
+            Some(LEvent::new("fans.reaction", s.date).ent("club", club_ref(w, s.club)).text("mood", mood))
+        }
+        // The morning-after piece on a match: the fixture and the player the talk was about.
+        StoryKind::Analysis => match w.media.links.get(&s.id) {
+            Some(pw_world::media::StoryLink::Fixture { home, away, hg, ag, star, .. }) if home.is_some() && away.is_some() => {
+                let mut ev = LEvent::new("match.analysis", s.date).ent("home", club_ref(w, *home)).ent("away", club_ref(w, *away)).num("home_goals", i64::from(*hg)).num("away_goals", i64::from(*ag));
+                if star.is_some() {
+                    ev = ev.ent("star", player_ref(w, *star, s.date));
+                }
+                Some(ev)
+            }
+            _ => None,
+        },
+        // An incident made public, while the world still remembers it (`retention` forgets old ones; the older text covers those).
+        StoryKind::IncidentNews => {
+            // A leak names its incident through the information item; a public incident through the story's thread, and then only the
+            // story of the incident itself (a later story about how the club responded keeps its own words).
+            let incident = match w.grapevine.items.get(s.info as usize).map(|it| it.kind) {
+                Some(pw_world::info::InfoKind::Incident { incident }) => incident,
+                _ => match w.media.threads.get(s.thread as usize).map(|t| t.subject) {
+                    Some(pw_world::media::ThreadSubject::Incident { incident }) if w.incidents.get(incident).is_some_and(|i| s.source == pw_world::event::Cause::Event(i.event)) => incident,
+                    _ => return None,
+                },
+            };
+            let i = w.incidents.get(incident)?;
+            let kind = incident_key(i.kind)?;
+            let mut ev = LEvent::new("incident.reported", s.date).text("kind", kind);
+            if i.club.is_some() {
+                ev = ev.ent("club", club_ref(w, i.club));
+            }
+            if let Some(r) = i.parties.first().and_then(|&p| person_ref(w, p, i.date)) {
+                ev = ev.ent("who", r);
+            }
+            if let Some(r) = i.parties.get(1).and_then(|&p| person_ref(w, p, i.date)) {
+                ev = ev.ent("other", r);
+            }
+            Some(ev)
+        }
         // Manager changes, seasons and contracts rest on the event log, which forgets: they keep the older text rather than change wording later.
         StoryKind::TransferNews | StoryKind::ManagerChange | StoryKind::Injury | StoryKind::Season | StoryKind::Contract => None,
         _ => None,
+    }
+}
+
+/// The engine's name for an incident a story may report (`incident.reported`'s `kind`). Private matters and nation-wide ones keep the
+/// older text.
+fn incident_key(k: pw_world::incident::IncidentKind) -> Option<&'static str> {
+    use pw_world::incident::IncidentKind as K;
+    Some(match k {
+        K::TrainingConfrontation => "training_clash",
+        K::TacticalDisagreement => "tactics_row",
+        K::StormedOut => "stormed_out",
+        K::LateArrival => "late",
+        K::Postponement => "postponed",
+        K::TravelDelay => "travel_delay",
+        K::PitchDamage => "pitch_damage",
+        K::FacilityDamage => "facility_damage",
+        K::EquipmentProblem => "equipment",
+        K::VisaProblem => "visa",
+        K::RegistrationError => "registration",
+        K::CoachResigned => "coach_walked_out",
+        K::StaffPoached => "staff_poached",
+        K::OwnershipControversy => "ownership",
+        K::SponsorCollapse => "sponsor_collapse",
+        K::Investigation => "investigation",
+        K::SupporterUnrest => "supporter_unrest",
+        K::Burglary => "burglary",
+        _ => return None,
+    })
+}
+
+/// The engine's name for a media label (`player.reading`'s `reading`).
+fn reading_key(l: pw_world::perf::Label) -> &'static str {
+    use pw_world::perf::Label as L;
+    match l {
+        L::BigGamePlayer => "big_game",
+        L::FlatTrackBully => "flat_track",
+        L::InForm => "in_form",
+        L::InSlump => "in_slump",
+        L::Underrated => "underrated",
+        L::Overrated => "overrated",
+        L::GoalThreat => "goal_threat",
+        L::Workhorse => "workhorse",
+        L::Unreliable => "unreliable",
+        L::Breakthrough => "breakthrough",
+        L::FrozenOut => "frozen_out",
+        L::Durable => "durable",
+        L::InjuryProne => "injury_prone",
     }
 }
 

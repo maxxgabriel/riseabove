@@ -340,3 +340,25 @@ fn variety() {
         eprintln!("VARIETY {k}: {total} stories, {} headline frames used, most common {:.0}%", m.len(), 100.0 * top as f32 / total as f32);
     }
 }
+
+#[test]
+fn features_analysis_incidents_and_fan_reactions_are_written_by_the_engine() {
+    let s = india_world(54, 500);
+    let w = &s.world;
+    let mut written = std::collections::BTreeMap::<&str, usize>::new();
+    for (_, st) in w.media.stories.iter_enumerated() {
+        if let Some(t) = lang::story(w, st) {
+            for f in &t.frames {
+                for kind in ["player.reading", "match.analysis", "incident.reported", "fans.reaction", "player.criticism", "manager.pressure", "player.discipline"] {
+                    if f.starts_with(kind) {
+                        *written.entry(kind).or_default() += 1;
+                    }
+                }
+            }
+        }
+    }
+    // The common ones must appear in a year and a half of an India world; the rarer ones are covered by the cleanliness test when they do.
+    for kind in ["player.reading", "match.analysis", "incident.reported", "fans.reaction"] {
+        assert!(written.get(kind).copied().unwrap_or(0) > 0, "{kind} never written: {written:?}");
+    }
+}
