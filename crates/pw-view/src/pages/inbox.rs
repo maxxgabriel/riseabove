@@ -38,6 +38,7 @@ pub fn kind_key(k: &DecisionKind) -> &'static str {
         DecisionKind::IncidentAsk { ask: Ask::Apologise, .. } => "incident_apology",
         DecisionKind::PressQuestion { .. } => "press_question",
         DecisionKind::Appeal { .. } => "appeal",
+        DecisionKind::Scholarship { .. } => "scholarship",
     }
 }
 
@@ -97,6 +98,7 @@ pub fn decision_from(c: &Ctx, d: &Decision) -> Value {
             Some(x) => named(Ref::club(x.against), c.club_name(x.against)),
             None => Value::Null,
         },
+        DecisionKind::Scholarship { institution, .. } => Value::String(pw_narrate::history::institution(w, *institution)),
     }
 }
 
@@ -143,6 +145,8 @@ fn option_label(c: &Ctx, d: &Decision, ch: &Choice) -> String {
         (K::IncidentAsk { ask: Ask::Apologise, .. }, Choice::Reject) => "Refuse to apologise".into(),
         (K::Appeal { .. }, Choice::Accept) => "Appeal the card".into(),
         (K::Appeal { .. }, Choice::Reject) => "Accept the decision".into(),
+        (K::Scholarship { .. }, Choice::Accept) => "Accept the place".into(),
+        (K::Scholarship { .. }, Choice::Reject) => "Decline".into(),
         (K::Incident { .. }, Choice::Handle(r)) => response_label(c, *r),
         (K::PressQuestion { .. }, Choice::Say(st)) => pw_narrate::press::stance_label(*st).into(),
         (K::Meeting { meeting }, Choice::Respond(t)) => {
@@ -215,14 +219,21 @@ fn option_kind(ch: &Choice) -> &'static str {
 }
 
 pub fn options_json(c: &Ctx, d: &Decision) -> Vec<Value> {
+    // Where the language engine words the decision, its options carry the labels and say what each does; each is tied to one of the
+    // decision's own choices by its effect, so the answer is applied exactly as before.
+    let worded = pw_narrate::lang::decision_options(c.w, d);
     d.options
         .iter()
         .enumerate()
         .map(|(i, ch)| {
+            let engine = worded.iter().find(|o| o.index == i);
             let mut v = json!({
-                "i": i, "label": option_label(c, d, ch), "kind": option_kind(ch), "positive": ch.is_positive(),
+                "i": i, "label": engine.map_or_else(|| option_label(c, d, ch), |o| o.label.clone()), "kind": option_kind(ch), "positive": ch.is_positive(),
                 "default": i == usize::from(d.default),
             });
+            if let Some(o) = engine {
+                v["consequence"] = json!(o.consequence);
+            }
             match ch {
                 Choice::Counter { wage, years, status, release_clause } => {
                     v["counter"] = json!({"wage": wage, "years": years, "status": status.map(|s| s.label()), "release_clause": release_clause});
@@ -547,6 +558,16 @@ pub fn decision_detail(c: &Ctx, did: DecisionId, d: &Decision) -> Value {
             consequences.push("Appealing sends it to a panel, which sits two days later. It can rescind the card, uphold it, or, if it finds the appeal frivolous, add a match to the ban.".into());
             consequences.push("Not appealing leaves the ban as it stands.".into());
             consequences.push("Whichever you choose, the player notices whether you stood up for them.".into());
+        }
+        DecisionKind::Scholarship { institution, tier } => {
+            let name = pw_narrate::history::institution(w, *institution);
+            paragraphs.push(match tier {
+                3 => format!("{name} offer a full scholarship: fees and board paid, and a place in their team."),
+                2 => format!("{name} offer a scholarship that pays most of the fees, and a place in their team."),
+                _ => format!("{name} offer a place through their sports quota, with a place in their team."),
+            });
+            consequences.push(format!("Accepting means studying and playing at {name}; the university's football is where people will see you play."));
+            consequences.push("Declining keeps you free for a club; the place goes to someone else.".into());
         }
         DecisionKind::PressQuestion { conference, question } => {
             press_block = press_json(c, *conference, usize::from(*question));

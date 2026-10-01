@@ -51,6 +51,14 @@ pub fn title(w: &World, d: &Decision) -> String {
             pw_world::incident::Ask::RequestLeave => format!("Ask for time away? ({})", crate::incidents::summary_for(w, *incident, false, false, d.person)),
             pw_world::incident::Ask::Apologise => format!("You are expected to apologise: {}", crate::incidents::summary_for(w, *incident, false, false, d.person)),
         },
+        DecisionKind::Scholarship { institution, tier } => {
+            let what = match tier {
+                3 => "a full scholarship",
+                2 => "a scholarship",
+                _ => "a place with a sports quota",
+            };
+            format!("{} offer you {what}", crate::history::institution(w, *institution))
+        }
         DecisionKind::Treatment { surgery_days, rehab_days } => {
             format!("Surgery (about {}, lower risk of recurrence) or rehabilitation (about {}, setbacks likelier)?", crate::fmt::duration_days(*surgery_days), crate::fmt::duration_days(*rehab_days))
         }

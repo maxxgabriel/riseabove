@@ -5,8 +5,8 @@
 //! fees the outlet reports), decides the speaker's certainty from what the story actually rests on, and hands back text. It never supplies a
 //! fact the world did not record and never a firmer certainty than the story's own claim, so the engine's guarantees carry through.
 //!
-//! Text is produced only where the engine has an event for it and the world's money is rupees (a world with an ecosystem); everywhere
-//! else the callers fall back to the older templates. Text is a pure function of world state and the story, so it reads the same each time.
+//! Text is produced wherever the engine has an event for it, in every world, with money in the world's form; elsewhere the callers fall
+//! back to the older templates. Text is a pure function of world state and the story, so it reads the same each time.
 
 use std::sync::OnceLock;
 
@@ -21,9 +21,17 @@ fn engine() -> &'static Engine {
     E.get_or_init(Engine::builtin)
 }
 
-/// Whether the engine writes for this world. Its money is rupees and its examples are Indian football; other worlds keep their own templates.
-pub fn enabled(w: &World) -> bool {
-    w.ext.ecosystem.is_configured()
+/// Whether the engine writes for this world: every world. Its words are football's, with no country in them; money takes the world's
+/// form (`currency`).
+pub fn enabled(_w: &World) -> bool {
+    true
+}
+
+/// How the world's money is written: the Indian system in a world of Indian regions, a symbol and short units elsewhere (the symbol the
+/// game's pages use by default; the simulation keeps one unit of account).
+pub fn currency(w: &World) -> pw_lang::Currency {
+    let indian = w.ext.ecosystem.regions.iter().next().is_some_and(|r| w.nations.get(r.nation).is_some_and(|n| n.code == "IND"));
+    if indian { pw_lang::Currency::Rupee } else { pw_lang::Currency::Short('£') }
 }
 
 // ------------------------------------------------------------------------------------------------- references
@@ -227,7 +235,7 @@ pub fn try_story(w: &World, s: &Story) -> Result<Text, String> {
     let sp = speaker(s, w, &ev, cert);
     let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(s.id.0), 0x1a9]);
     let mut tr = Tracker::new();
-    let r = engine().render(&Request::new(&ev, &sp, "news", s.date, seed), &mut tr);
+    let r = engine().render(&Request::new(&ev, &sp, "news", s.date, seed).currency(currency(w)), &mut tr);
     // An optional item with no frame is skipped and noted; only a missing required item makes the article incomplete.
     if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required") || n.contains("unknown channel")) {
         return Err(format!("{} {}: {}", ev.kind, s.id.0, r.notes.join("; ")));
@@ -501,6 +509,54 @@ fn reading_key(l: pw_world::perf::Label) -> &'static str {
 /// The engine's message for a decision put to a person: its subject and what has happened. The options stay the simulation's own (accept,
 /// reject, ...): the engine only words the situation, so nothing offered here is something the world cannot do.
 pub fn decision(w: &World, d: &pw_world::decision::Decision) -> Option<(String, String)> {
+    let r = render_decision(w, d)?;
+    let subject = r.part("subject")?.text.clone();
+    let body: Vec<&str> = r.parts.iter().filter(|p| p.slot != "subject" && p.slot != "closing" && p.slot != "opening").map(|p| p.text.as_str()).collect();
+    if body.is_empty() {
+        return None;
+    }
+    Some((subject, body.join(" ")))
+}
+
+/// An option of a decision in the engine's words: which of the decision's own choices it is, its label and what choosing it does.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DecisionOption {
+    pub index: usize,
+    pub label: String,
+    pub consequence: String,
+}
+
+/// The engine's options for a decision, each tied to one of the decision's own choices by its effect. An option whose effect is not one
+/// the decision can carry out is left out, and so is any choice the engine has no option for: the inbox then shows the simulation's own.
+/// So an option shown here always does what its consequence line says.
+pub fn decision_options(w: &World, d: &pw_world::decision::Decision) -> Vec<DecisionOption> {
+    let Some(r) = render_decision(w, d) else { return Vec::new() };
+    let mut out: Vec<DecisionOption> = Vec::new();
+    for o in &r.options {
+        let choice = match effect_choice(&o.effect) {
+            Some(c) => c,
+            None => continue,
+        };
+        let Some(index) = d.options.iter().position(|c| *c == choice) else { continue };
+        if out.iter().any(|x| x.index == index) {
+            continue;
+        }
+        out.push(DecisionOption { index, label: o.label.clone(), consequence: o.consequence.clone() });
+    }
+    out
+}
+
+/// The decision choice an engine effect carries out. Effects not listed here are not offered with a decision.
+pub fn effect_choice(effect: &str) -> Option<pw_world::decision::Choice> {
+    use pw_world::decision::Choice;
+    match effect {
+        "decision.accept" | "academy.accept" | "university.accept" | "callup.accept" => Some(Choice::Accept),
+        "decision.reject" | "academy.decline" | "university.decline" => Some(Choice::Reject),
+        _ => None,
+    }
+}
+
+fn render_decision(w: &World, d: &pw_world::decision::Decision) -> Option<pw_lang::Rendered> {
     use pw_world::decision::DecisionKind as K;
     if !enabled(w) || d.player.is_none() {
         return None;
@@ -523,21 +579,30 @@ pub fn decision(w: &World, d: &pw_world::decision::Decision) -> Option<(String, 
             }
             ev
         }
+        K::Scholarship { institution, tier } => {
+            let name = crate::history::institution(w, *institution);
+            let offer = match tier {
+                3 => "full scholarship",
+                2 => "scholarship",
+                _ => "sports quota place",
+            };
+            LEvent::new("university.scholarship", date)
+                .with("to_player", pw_lang::Value::Bool(true))
+                .ent("player", player_ref(w, d.player, date))
+                .ent("university", LRef::new(&format!("inst.{institution}"), &name, &name))
+                .text("offer_kind", offer)
+        }
         _ => return None,
     };
     let sp = engine().witness("inbox", "staff", "club_official", &ev);
     let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(d.person.0), date.0 as u64, 0x1b0]);
     let mut tr = Tracker::new();
-    let r = engine().render(&Request::new(&ev, &sp, "inbox", w.date, seed), &mut tr);
+    // Rendered as of the day the decision was raised, so its words do not change while it waits for an answer.
+    let r = engine().render(&Request::new(&ev, &sp, "inbox", date, seed).currency(currency(w)), &mut tr);
     if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required")) {
         return None;
     }
-    let subject = r.part("subject")?.text.clone();
-    let body: Vec<&str> = r.parts.iter().filter(|p| p.slot != "subject" && p.slot != "closing" && p.slot != "opening").map(|p| p.text.as_str()).collect();
-    if body.is_empty() {
-        return None;
-    }
-    Some((subject, body.join(" ")))
+    Some(r)
 }
 
 // ------------------------------------------------------------------------------------------------- social
@@ -584,7 +649,7 @@ pub fn post(w: &World, p: &pw_world::socialnet::Post) -> Option<String> {
     }
     let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(p.id), 0x50c]);
     let mut tr = Tracker::new();
-    let r = engine().render(&Request::new(&ev, &sp, "social", p.date, seed), &mut tr);
+    let r = engine().render(&Request::new(&ev, &sp, "social", p.date, seed).currency(currency(w)), &mut tr);
     if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required")) {
         return None;
     }

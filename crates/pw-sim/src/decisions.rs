@@ -253,6 +253,7 @@ pub fn resolve_due(w: &mut World) {
             DecisionKind::Appeal { controversy } => crate::officials::decide_appeal(w, controversy, choice == Choice::Accept),
             DecisionKind::IncidentAsk { incident, ask } => crate::responses::answer_ask(w, incident, person, ask, choice == Choice::Accept),
             DecisionKind::TransferTalks { .. } => {}
+            DecisionKind::Scholarship { institution, tier } => crate::university::answer_offer(w, p, institution, tier, choice == Choice::Accept),
         }
     }
 }

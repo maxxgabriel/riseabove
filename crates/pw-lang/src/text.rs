@@ -57,6 +57,33 @@ pub fn money(rupees: i64, words: bool) -> String {
     if rupees < 0 { format!("-{sym}{body}") } else { format!("{sym}{body}") }
 }
 
+/// Money in a symbol and short units ("£2.5m", "€450k", "$9,000"); `words` spells the unit ("£2.5 million").
+pub fn money_short(v: i64, sym: char, words: bool) -> String {
+    let a = v.unsigned_abs() as f64;
+    let body = if a >= 1e9 {
+        format!("{}{}", trim_decimal(a / 1e9), if words { " billion" } else { "bn" })
+    } else if a >= 1e6 {
+        format!("{}{}", trim_decimal(a / 1e6), if words { " million" } else { "m" })
+    } else if a >= 1e4 {
+        format!("{}{}", trim_decimal((a / 1e3).round()), if words { " thousand" } else { "k" })
+    } else {
+        group_western(v.unsigned_abs())
+    };
+    if v < 0 { format!("-{sym}{body}") } else { format!("{sym}{body}") }
+}
+
+fn group_western(n: u64) -> String {
+    let s = n.to_string();
+    let mut out = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
+}
+
 /// Days from `now` to `then`: negative = in the past.
 pub fn delta(then: Date, now: Date) -> i32 {
     then.0 - now.0
@@ -212,6 +239,16 @@ pub fn lower_first(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn short_money_is_written_with_the_symbol_and_short_units() {
+        assert_eq!(money_short(2_500_000, '£', false), "£2.5m");
+        assert_eq!(money_short(2_500_000, '£', true), "£2.5 million");
+        assert_eq!(money_short(450_000, '€', false), "€450k");
+        assert_eq!(money_short(9_000, '$', false), "$9,000");
+        assert_eq!(money_short(-1_200_000_000, '£', false), "-£1.2bn");
+    }
+
     use super::*;
 
     #[test]

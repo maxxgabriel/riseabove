@@ -101,3 +101,22 @@ effect = "university.decline"
 consequence = "Tells {university} that you decline."
 needs = ["university", "to_player"]
 when = "to_player == true"
+
+[[option]]
+event = "transfer.bid_made"
+channel = "inbox"
+id = "approach.listen"
+label = "Hear {buyer} out"
+effect = "decision.accept"
+consequence = "Tells {buyer} you are open to talks. Nothing is agreed until terms are."
+needs = ["buyer", "ours"]
+when = "ours == false"
+[[option]]
+event = "transfer.bid_made"
+channel = "inbox"
+id = "approach.refuse"
+label = "Not interested"
+effect = "decision.reject"
+consequence = "Ends {buyer}'s approach. They will not come back for a while."
+needs = ["buyer", "ours"]
+when = "ours == false"

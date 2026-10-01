@@ -339,6 +339,16 @@ impl Speaker {
 }
 
 /// Requests a rendering of one event through one channel.
+/// How money is written. A world's money is one unit of account; the text gives it the world's form.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Currency {
+    /// "₹2.5 crore", "Rs 40 lakh": the Indian system (the house style of a speaker picks the symbol or "Rs").
+    #[default]
+    Rupee,
+    /// "£2.5m", "€450k": a symbol and short units, as the rest of the game writes money.
+    Short(char),
+}
+
 #[derive(Clone, Debug)]
 pub struct Request<'a> {
     pub event: &'a Event,
@@ -351,11 +361,16 @@ pub struct Request<'a> {
     pub behaviour: Option<&'a str>,
     /// What the speaker is trying to do: "inform" (default), "persuade", "reassure", "warn", "ask", ...
     pub intent: Option<&'a str>,
+    pub currency: Currency,
 }
 
 impl<'a> Request<'a> {
     pub fn new(event: &'a Event, speaker: &'a Speaker, channel: &'a str, now: Date, seed: u64) -> Request<'a> {
-        Request { event, speaker, channel, now, seed, behaviour: None, intent: None }
+        Request { event, speaker, channel, now, seed, behaviour: None, intent: None, currency: Currency::Rupee }
+    }
+    pub fn currency(mut self, c: Currency) -> Self {
+        self.currency = c;
+        self
     }
     pub fn behaviour(mut self, b: &'a str) -> Self {
         self.behaviour = Some(b);

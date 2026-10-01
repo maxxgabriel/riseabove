@@ -520,9 +520,10 @@ impl Engine {
                     }
                 }
             },
-            Value::Money { money } => match mode {
-                "words" => text::money(money, true),
-                _ => text::money(money, cx.req.speaker.rs_words),
+            Value::Money { money } => match (cx.req.currency, mode) {
+                (crate::model::Currency::Rupee, "words") => text::money(money, true),
+                (crate::model::Currency::Rupee, _) => text::money(money, cx.req.speaker.rs_words),
+                (crate::model::Currency::Short(sym), m) => text::money_short(money, sym, m == "words"),
             },
             Value::Num(n) => match mode {
                 "words" => text::number_words(n),

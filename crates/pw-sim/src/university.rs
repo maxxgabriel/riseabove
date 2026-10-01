@@ -20,7 +20,7 @@ use pw_world::recog::{Learned, Org};
 use pw_world::knowledge::{Observer, perceive};
 use pw_world::minor::InstKind;
 use pw_core::Hidden;
-use pw_world::{PlayerStatus, World};
+use pw_world::{Decision, DecisionKind, MindKind, PlayerStatus, World};
 
 use crate::consider;
 
@@ -250,22 +250,46 @@ fn choose(w: &mut World, p: PlayerId, offers: &[Offer], year: u64, round: usize)
     let ca = crate::consider::self_view(w, p);
     let alternative = (0.15 + 0.6 * ((ca - 55.0) / 60.0).clamp(0.0, 1.0)) * (0.7 + 0.6 * ambition);
     let noise = (w.roll(stream::MINOR, &[u64::from(p.0), year, 0x5c0]) - 0.5) * 0.1;
-    if appeal + noise <= alternative {
+    let yes = appeal + noise > alternative;
+    let u = best.inst;
+    // A person someone is living as answers for themselves: the place is held and the offer goes to their inbox, with what their own
+    // mind would have said as the answer if they let it lapse.
+    if w.people[who].mind == MindKind::External {
+        let kind = DecisionKind::Scholarship { institution: u, tier: best.tier };
+        let options = kind.simple_options();
+        w.decisions.push(Decision { person: who, player: p, kind, options, created: today, deadline: today.add_days(7), default: u8::from(!yes), answer: None, resolved: false });
+        return Some(u);
+    }
+    if !yes {
         return None;
     }
-    let u = best.inst;
-    w.minor.join(p, u);
-    w.minor.enrolled.insert(p, today.year());
-    w.ext.ecosystem.scholarship.insert(p, Scholarship { inst: u, tier: best.tier, from: today });
-    crate::ecosystem::note(w, p, StageKind::University, u);
-    let region = w.ext.ecosystem.inst[&u].region;
-    crate::ecosystem::set_dev_region(w, p, region);
-    w.events.push(today, Visibility::Person(who), EventKind::EnrolledUniversity { person: who, institution: u });
+    enroll(w, p, u, best.tier);
     // A contested recruit is news around the programmes: who won the player, against whom, and whether it took a better scholarship.
     if let Some(over) = rival {
         w.events.push(today, Visibility::Public, EventKind::RecruitWon { person: who, institution: u, over, raised: best.raised, round: round as u8 + 1 });
     }
     Some(u)
+}
+
+/// A player takes up a place: a member of the university, on its scholarship, developing where it is.
+pub fn enroll(w: &mut World, p: PlayerId, u: u32, tier: u8) {
+    let today = w.date;
+    let who = w.players.cold[p].person;
+    w.minor.join(p, u);
+    w.minor.enrolled.insert(p, today.year());
+    w.ext.ecosystem.scholarship.insert(p, Scholarship { inst: u, tier, from: today });
+    crate::ecosystem::note(w, p, StageKind::University, u);
+    let region = w.ext.ecosystem.inst[&u].region;
+    crate::ecosystem::set_dev_region(w, p, region);
+    w.events.push(today, Visibility::Person(who), EventKind::EnrolledUniversity { person: who, institution: u });
+}
+
+/// The answer to a scholarship put to a person someone lives as. The place was held; it is taken up only if they are still free to.
+pub fn answer_offer(w: &mut World, p: PlayerId, u: u32, tier: u8, accept: bool) {
+    let free = matches!(w.players.hot[p].status, PlayerStatus::Amateur | PlayerStatus::FreeAgent) && !w.ext.ecosystem.scholarship.contains_key(&p);
+    if accept && free {
+        enroll(w, p, u, tier);
+    }
 }
 
 /// July: programmes take stock. Results, alumni and sponsors set the budget; the budget sets coaching and places.

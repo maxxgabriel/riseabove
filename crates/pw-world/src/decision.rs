@@ -55,6 +55,8 @@ pub enum DecisionKind {
     PressQuestion { conference: u32, question: u8 },
     /// Appeal a red card? (accept = appeal)
     Appeal { controversy: u32 },
+    /// A university offers a place with a scholarship of `tier` (1-3); the place is held until the answer.
+    Scholarship { institution: u32, tier: u8 },
 }
 
 /// One available answer. Choices are semantic; the client renders them.
@@ -103,6 +105,7 @@ impl DecisionKind {
             DecisionKind::Incident { .. } => "Something to deal with",
             DecisionKind::PressQuestion { .. } => "Press conference",
             DecisionKind::Appeal { .. } => "Appeal a red card?",
+            DecisionKind::Scholarship { .. } => "University scholarship offer",
             DecisionKind::IncidentAsk { ask: crate::incident::Ask::RequestLeave, .. } => "Ask for time away?",
             DecisionKind::IncidentAsk { ask: crate::incident::Ask::Apologise, .. } => "Apologise?",
         }

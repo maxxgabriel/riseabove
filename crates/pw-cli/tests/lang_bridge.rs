@@ -188,6 +188,40 @@ fn an_invitation_and_a_bid_reach_the_inbox_in_the_engines_words() {
 }
 
 #[test]
+fn the_engines_options_are_the_decisions_own_choices_with_what_each_does() {
+    use pw_world::decision::{Choice, DecisionKind};
+    let s = india_world(55, 30);
+    let w = &s.world;
+    let with_choices = |mut d: pw_world::decision::Decision| {
+        d.options = d.kind.simple_options();
+        d
+    };
+    let club = *w.youth.academies.keys().min().unwrap();
+    let kid = w.players.hot.iter_enumerated().find(|(_, h)| h.status == pw_world::PlayerStatus::Amateur).map(|x| x.0).unwrap();
+    let uni = w.minor.institutions.iter().find(|i| i.kind == pw_world::minor::InstKind::University).map(|i| i.id).unwrap();
+    let pro = w.players.hot.iter_enumerated().find(|(_, h)| h.club.is_some() && h.status == pw_world::PlayerStatus::Active).map(|x| x.0).unwrap();
+    let buyer = w.clubs.ids().find(|&c| c != w.players.hot[pro].club).unwrap();
+    for d in [
+        with_choices(decision_for(w, kid, DecisionKind::Trial { club, days: 14 })),
+        with_choices(decision_for(w, kid, DecisionKind::Scholarship { institution: uni, tier: 2 })),
+        with_choices(decision_for(w, pro, DecisionKind::TransferTalks { club: buyer, fee: 25_000_000 })),
+    ] {
+        let opts = lang::decision_options(w, &d);
+        assert_eq!(opts.len(), 2, "{:?}: {opts:?}", d.kind);
+        // Each engine option is one of the decision's choices, accept and reject both covered, and says what it does in clean words.
+        let chosen: Vec<Choice> = opts.iter().map(|o| d.options[o.index]).collect();
+        assert!(chosen.contains(&Choice::Accept) && chosen.contains(&Choice::Reject), "{:?}", d.kind);
+        for o in &opts {
+            assert!(!o.label.is_empty() && !o.consequence.is_empty());
+            assert!(pw_lang::check::check_text(&o.consequence).is_empty(), "{}", o.consequence);
+        }
+        assert!(lang::decision(w, &d).is_some(), "{:?} is worded", d.kind);
+    }
+    // An effect no decision can carry out is never offered.
+    assert!(lang::effect_choice("transfer.open_bid").is_none() && lang::effect_choice("inbox.dismiss").is_none());
+}
+
+#[test]
 fn a_post_that_relays_a_story_is_no_firmer_than_the_story_or_the_post() {
     use pw_world::media::ClaimType;
     use pw_world::socialnet::{Concept, Frame};
@@ -361,4 +395,27 @@ fn features_analysis_incidents_and_fan_reactions_are_written_by_the_engine() {
     for kind in ["player.reading", "match.analysis", "incident.reported", "fans.reaction"] {
         assert!(written.get(kind).copied().unwrap_or(0) > 0, "{kind} never written: {written:?}");
     }
+}
+
+#[test]
+fn money_takes_the_worlds_form_rupees_in_india_and_a_symbol_elsewhere() {
+    let mut s = Sim::new(pw_import::synthetic::build(DataPack::builtin(), 61, pw_import::synthetic::Scale::TINY));
+    s.run(400);
+    let w = &s.world;
+    let mut with_money = 0;
+    for (_, st) in w.media.stories.iter_enumerated() {
+        if let Some(t) = lang::story(w, st) {
+            let text = format!("{} {}", t.headline, t.body);
+            assert!(!text.contains('₹') && !text.contains("crore") && !text.contains("lakh") && !text.contains("Rs "), "rupees outside India: {text}");
+            if text.contains('£') {
+                with_money += 1;
+            }
+        }
+    }
+    assert!(with_money > 0, "no engine story in a synthetic world mentions money");
+    let india = india_world(62, 300);
+    let w = &india.world;
+    let rupees = w.media.stories.iter_enumerated().filter_map(|(_, st)| lang::story(w, st)).filter(|t| t.body.contains('₹') || t.body.contains("Rs ") || t.headline.contains('₹')).count();
+    let pounds = w.media.stories.iter_enumerated().filter_map(|(_, st)| lang::story(w, st)).filter(|t| t.body.contains('£') || t.headline.contains('£')).count();
+    assert!(rupees > 0 && pounds == 0, "India: {rupees} stories in rupees, {pounds} in pounds");
 }

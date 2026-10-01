@@ -850,3 +850,22 @@ fn universities_compete_for_players_in_rounds_and_never_give_more_places_than_th
     }
     assert!(won.iter().any(|x| x.3) || won.iter().any(|x| x.4 > 1), "neither a raised offer nor a second round in {} contests", won.len());
 }
+
+#[test]
+fn a_scholarship_offer_to_the_person_lived_as_is_their_decision() {
+    let mut s = world(43);
+    s.run(10);
+    let w = &mut s.world;
+    let uni = w.minor.institutions.iter().find(|i| i.kind == pw_world::minor::InstKind::University).map(|i| i.id).unwrap();
+    let free: Vec<PlayerId> = w.players.hot.iter_enumerated().filter(|(_, h)| h.status == pw_world::PlayerStatus::Amateur).map(|x| x.0).take(2).collect();
+    let (a, b) = (free[0], free[1]);
+    pw_sim::university::answer_offer(w, a, uni, 2, false);
+    assert!(w.ext.ecosystem.scholarship.get(&a).is_none(), "declining leaves the player free");
+    pw_sim::university::answer_offer(w, b, uni, 2, true);
+    let sch = w.ext.ecosystem.scholarship.get(&b).expect("accepting takes up the place");
+    assert_eq!((sch.inst, sch.tier), (uni, 2));
+    assert_eq!(w.minor.member_of.get(&b), Some(&uni));
+    // Once enrolled, a second answer changes nothing.
+    pw_sim::university::answer_offer(w, b, uni, 3, true);
+    assert_eq!(w.ext.ecosystem.scholarship[&b].tier, 2);
+}

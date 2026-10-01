@@ -22,6 +22,8 @@ export interface DecisionOption {
   positive: boolean;
   default: boolean;
   effect?: string;
+  /** What choosing it does, in the language engine's words (present where the engine words the decision). */
+  consequence?: string;
   tone?: string;
   counter?: { wage: number; years: number; status: string | null; release_clause: number };
 }
@@ -348,6 +350,7 @@ export function DecisionCard({ id, showTitle = true }: { id: string; showTitle?:
                           {optionSummary(o) && <div className="muted">{optionSummary(o)}</div>}
                           {o.counter && <div className="muted">Asks for <Money v={o.counter.wage} exact /> a week.</div>}
                           {o.effect && <div className="muted">{o.effect}</div>}
+                          {o.consequence && <div className="muted">{prose(o.consequence)}</div>}
                         </div>
                         <Button size="sm" variant={o.i === d.answer ? "default" : "primary"} onClick={() => setChoice(o.i)} disabled={o.i === d.answer}>{o.i === d.answer ? "Chosen" : "Choose"}</Button>
                       </li>
@@ -356,7 +359,7 @@ export function DecisionCard({ id, showTitle = true }: { id: string; showTitle?:
                 ) : (
                   <div className="answer-buttons">
                     {d.options.map((o, i) => (
-                      <Button key={o.i} variant={o.i === d.answer ? "default" : i === 0 && d.answer == null ? "primary" : "default"} onClick={() => setChoice(o.i)} disabled={o.i === d.answer}>
+                      <Button key={o.i} title={o.consequence} variant={o.i === d.answer ? "default" : i === 0 && d.answer == null ? "primary" : "default"} onClick={() => setChoice(o.i)} disabled={o.i === d.answer}>
                         {o.label}
                       </Button>
                     ))}
@@ -379,6 +382,7 @@ export function DecisionCard({ id, showTitle = true }: { id: string; showTitle?:
               }
             >
               {opt?.effect && <p>{opt.effect}</p>}
+              {opt?.consequence && <p>{prose(opt.consequence)}</p>}
               <p className="muted">Nothing happens until the day ends. Until then you can come back and answer differently.</p>
             </Dialog>
           </article>
@@ -408,6 +412,7 @@ export function kindLabel(k: string | undefined): string {
     case "incident_apology": return "Apology";
     case "press_question": return "Press question";
     case "appeal": return "Appeal";
+    case "scholarship": return "Scholarship";
     default: return "Decision";
   }
 }

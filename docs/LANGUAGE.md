@@ -14,8 +14,8 @@ let r = eng.render(&Request::new(&ev, &sp, "news", today, seed), &mut tracker); 
 
 * `Ref` carries canonical names and only **true** descriptors from world state (`age_role`, `role`, `title`, ...).
 * `Speaker::knows` is the whole leak boundary: a fact not listed cannot be mentioned; `Unknown` lets a text say that something is not known, without showing it.
-* Money is rupees (`₹2.5 crore`, `Rs 75 lakh`); dates are resolved against `Request::now`.
-* Options (inbox) carry an `effect` id. **The simulation must implement each effect**; the consequence line only describes it. Current ids: `transfer.open_bid`, `transfer.drop_target`, `medical.request_report`, `callup.accept`, `academy.accept/decline`, `university.accept/decline`, `inbox.dismiss`.
+* Money takes the form `Request::currency` gives it: `Currency::Rupee` (the default: `₹2.5 crore`, `Rs 75 lakh`) or `Currency::Short(sym)` (`£2.5m`, `€450k`); dates are resolved against `Request::now`.
+* Options (inbox) carry an `effect` id. **The simulation must implement each effect**; the consequence line only describes it. With a decision, an option is shown only when its effect is one of the decision's own choices (`pw_narrate::lang::effect_choice`): `decision.accept/reject`, `academy.accept/decline`, `university.accept/decline` and `callup.accept` map to accept and reject; the answer is then applied by the decision exactly as before. Other ids (`transfer.open_bid`, `transfer.drop_target`, `medical.request_report`, `inbox.dismiss`) are not offered with a decision yet.
 
 ## Data (`data/lang/en/`)
 
@@ -29,9 +29,10 @@ Template syntax is documented at the top of `crates/pw-lang/src/template.rs`.
 
 ## In the simulation (`pw-narrate/src/lang.rs`)
 
-The bridge is the only place the world is read for the engine. It is used **only in worlds with an ecosystem** (India): the engine's money is
-rupees and its examples are Indian football, so other worlds keep the older templates in `pw-narrate`. Where the engine has no event for a story,
-or reports the article incomplete, the older text is used; nothing is ever half written.
+The bridge is the only place the world is read for the engine. It writes for **every world**: its words are football's with no country in them,
+and money takes the world's form (`lang::currency`: the Indian system in a world of Indian regions, `£` and short units elsewhere, the symbol
+the pages use by default). Where the engine has no event for a story, or reports the article incomplete, the older text is used; nothing is
+ever half written.
 
 | World thing | Engine event | Where it shows |
 | --- | --- | --- |
@@ -46,7 +47,12 @@ or reports the article incomplete, the older text is used; nothing is ever half 
 | milestone, record | `milestone.reached`, `record.broken`, `transfer.record` | press |
 | unhappy, praise, award stories | `player.unhappy`, `player.praise`, `award.won` | press |
 | a post relaying a story | the story's event, channel `social`, voice from the account | social |
-| trial invitation, talks about a move | `academy.invitation`, `transfer.bid_made` | inbox subject and message; the options stay the simulation's |
+| feature or data piece on a player | `player.reading` (the media label: in form, underrated, breakthrough ...) | press |
+| analysis the morning after a match | `match.analysis` | press |
+| incident made public (18 kinds; private matters keep the older text) | `incident.reported` | press |
+| pressure on a manager, discipline, criticism | `manager.pressure` (speculation), `player.discipline`, `player.criticism` | press |
+| supporters' reaction | `fans.reaction` (angry / delighted / divided, from the story's tone) | press |
+| trial invitation, talks about a move, university scholarship | `academy.invitation`, `transfer.bid_made`, `university.scholarship` | inbox subject, message, and options labelled with what each does, each tied to one of the decision's own choices |
 
 Rules the bridge keeps (tested in `crates/pw-cli/tests/lang_bridge.rs`):
 
@@ -56,7 +62,7 @@ Rules the bridge keeps (tested in `crates/pw-cli/tests/lang_bridge.rs`):
 * **Clean**: every written text passes `pw_lang::check::check_text`.
 * **Pure**: the same story reads the same way every time (the seed is the story id). Headline and body share one render.
 
-Measured on the tiny India world over 500 days: 90% of press stories are written by the engine (the rest are incident reports, analysis and features, discipline and
-fan reaction, which have no event yet); about 0.24 ms per story.
+Measured on the tiny India world over 500 days: all but 87 stories are written by the engine. The rest are season wrap-ups and manager changes
+(they rest on the event log, which forgets), denials and private matters.
 
 To add coverage: add the event to `events.toml`, frames to `frames/*.toml`, an entry in `articles.toml`, then map the world story in `lang::story_event`. `cargo test -p pw-lang` lints the data and fuzzes it.
