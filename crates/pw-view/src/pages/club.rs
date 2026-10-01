@@ -488,7 +488,8 @@ fn place(c: &Ctx, id: ClubId) -> Value {
             .map(|(oid, o)| (o.leaning == id, o.reach, oid))
             .collect();
         list.sort_by_key(|(own, reach, oid)| (std::cmp::Reverse(*own), std::cmp::Reverse(*reach), *oid));
-        list.into_iter().take(8).map(|(_, _, oid)| outlet_json(c, oid, id)).collect()
+        let mut shown = Vec::new();
+        list.into_iter().take(8).map(|(_, _, oid)| outlet_json(c, oid, id, &mut shown)).collect()
     };
     // How far it is from home, for the person you live as.
     let from_home = c.my_player().and_then(|p| eco.story.get(&p)).and_then(|s| eco.regions.get(s.home)).map(|h| {
@@ -559,8 +560,9 @@ fn language_name(code: &str) -> String {
 }
 
 /// An outlet as a reader meets it: what it is, how far it reaches, the languages it writes in (reference data), and its latest piece
-/// about the club, to open.
-fn outlet_json(c: &Ctx, oid: pw_core::OutletId, club: ClubId) -> Value {
+/// about the club, to open. Two outlets running the same headline are one piece of news to a reader: an outlet shows its latest piece
+/// whose headline no outlet before it in the list (`shown`) already shows, or none.
+fn outlet_json(c: &Ctx, oid: pw_core::OutletId, club: ClubId, shown: &mut Vec<String>) -> Value {
     let w = c.w;
     let o = &w.media.outlets[oid];
     let lore = w.ext.lore.outlets.get(&oid);
@@ -576,11 +578,16 @@ fn outlet_json(c: &Ctx, oid: pw_core::OutletId, club: ClubId) -> Value {
         },
     };
     let languages = lore.filter(|l| !l.languages.is_empty()).map(|l| l.languages.iter().map(|x| language_name(x)).collect::<Vec<_>>().join(", "));
-    let latest = w.media.stories.iter().filter(|s| s.outlet == oid && s.club == club && !c.story_spoils(s)).max_by_key(|s| (s.date, s.id));
+    let mut pieces: Vec<_> = w.media.stories.iter().filter(|s| s.outlet == oid && s.club == club && !c.story_spoils(s)).collect();
+    pieces.sort_by_key(|s| std::cmp::Reverse((s.date, s.id)));
+    let latest = pieces.into_iter().map(|s| (s, c.headline(s))).find(|(_, h)| !shown.contains(h));
+    if let Some((_, h)) = &latest {
+        shown.push(h.clone());
+    }
     json!({
         "name": o.name, "kind": outlet_kind_words(o.kind), "reach": reach, "languages": languages, "own": o.leaning == club,
         "origin": if lore.is_some() { "Imported" } else { "Generated" },
-        "story": latest.map(|s| s.id.0), "headline": latest.map(|s| c.headline(s)),
+        "story": latest.as_ref().map(|(s, _)| s.id.0), "headline": latest.map(|(_, h)| h),
     })
 }
 
@@ -685,7 +692,8 @@ fn country(c: &Ctx, id: ClubId) -> Value {
         .map(|(oid, o)| (o.reach, oid))
         .collect();
     national.sort_by_key(|(r, oid)| (std::cmp::Reverse(*r), *oid));
-    let media: Vec<Value> = national.into_iter().take(4).map(|(_, oid)| outlet_json(c, oid, id)).collect();
+    let mut shown = Vec::new();
+    let media: Vec<Value> = national.into_iter().take(4).map(|(_, oid)| outlet_json(c, oid, id, &mut shown)).collect();
     json!({
         "nation": named(Ref::nation(k.nation), n.name.clone()), "climate": climate, "altitude": altitude, "language": language, "clock": clock,
         "from_home": from_home, "football": football, "living": living, "media": media, "origin": if e.known { "Imported" } else { "Inferred" },
