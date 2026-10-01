@@ -126,6 +126,10 @@ pub fn post(w: &World, p: &Post) -> String {
                 format!("{} {}", what, word(&v, Slot::Mock, key))
             }
         }
+        // The facts of a match are kept for a few weeks; after that a post says how its author felt without the line that said what about.
+        Concept::Celebrate if what.is_empty() => word(&v, Slot::Celebrate, key).to_string(),
+        Concept::Lament if what.is_empty() => word(&v, Slot::Lament, key).to_string(),
+        Concept::Sarcasm if what.is_empty() => word(&v, Slot::Sarcasm, key).to_string(),
         Concept::Celebrate => format!("{}! {}", what, word(&v, Slot::Celebrate, key)),
         Concept::Lament => format!("{}. {}", what, word(&v, Slot::Lament, key)),
         Concept::Worry => format!("{} {}", word(&v, Slot::Worry, key), target),

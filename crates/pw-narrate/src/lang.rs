@@ -344,28 +344,7 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
             _ => None,
         },
         StoryKind::Interview => match w.media.links.get(&s.id) {
-            Some(pw_world::media::StoryLink::Quote(q)) => {
-                let speaker = person_ref(w, q.speaker, s.date)?;
-                let stance = match q.stance {
-                    pw_world::media::Stance::Praise => "praise",
-                    pw_world::media::Stance::Criticise => "criticise",
-                    pw_world::media::Stance::Deflect => "deflect",
-                    pw_world::media::Stance::Ambition => "ambition",
-                    pw_world::media::Stance::Loyalty => "loyalty",
-                    pw_world::media::Stance::Complain => "complain",
-                    pw_world::media::Stance::Support => "support",
-                    pw_world::media::Stance::Deny => "deny",
-                };
-                let mut ev = LEvent::new("interview.quote", s.date).ent("speaker", speaker).text("stance", stance);
-                if let Some(about) = if q.about.is_some() && q.about != q.speaker { person_ref(w, q.about, s.date) } else { None } {
-                    ev = ev.ent("about", about);
-                }
-                let club = person_club(w, q.speaker, s.date);
-                if club.is_some() {
-                    ev = ev.ent("club", club_ref(w, club));
-                }
-                Some(ev)
-            }
+            Some(pw_world::media::StoryLink::Quote(q)) => quote_event(w, q.speaker, q.about, q.stance, s.date),
             _ => None,
         },
         // These two are told from what the story itself carries (who, which clubs, what fee, when), not from the event it was written
@@ -443,24 +422,53 @@ fn story_event(w: &World, s: &Story) -> Option<LEvent> {
                     _ => return None,
                 },
             };
-            let i = w.incidents.get(incident)?;
-            let kind = incident_key(i.kind)?;
-            let mut ev = LEvent::new("incident.reported", s.date).text("kind", kind);
-            if i.club.is_some() {
-                ev = ev.ent("club", club_ref(w, i.club));
-            }
-            if let Some(r) = i.parties.first().and_then(|&p| person_ref(w, p, i.date)) {
-                ev = ev.ent("who", r);
-            }
-            if let Some(r) = i.parties.get(1).and_then(|&p| person_ref(w, p, i.date)) {
-                ev = ev.ent("other", r);
-            }
-            Some(ev)
+            incident_event(w, w.incidents.get(incident)?, s.date)
         }
         // Manager changes, seasons and contracts rest on the event log, which forgets: they keep the older text rather than change wording later.
         StoryKind::TransferNews | StoryKind::ManagerChange | StoryKind::Injury | StoryKind::Season | StoryKind::Contract => None,
         _ => None,
     }
+}
+
+/// What a published interview says, as the public has it: who spoke, about whom, and the stance (never the words).
+fn quote_event(w: &World, speaker: pw_core::PersonId, about: pw_core::PersonId, stance: pw_world::media::Stance, date: Date) -> Option<LEvent> {
+    use pw_world::media::Stance as S;
+    let who = person_ref(w, speaker, date)?;
+    let stance = match stance {
+        S::Praise => "praise",
+        S::Criticise => "criticise",
+        S::Deflect => "deflect",
+        S::Ambition => "ambition",
+        S::Loyalty => "loyalty",
+        S::Complain => "complain",
+        S::Support => "support",
+        S::Deny => "deny",
+    };
+    let mut ev = LEvent::new("interview.quote", date).ent("speaker", who).text("stance", stance);
+    if let Some(about) = if about.is_some() && about != speaker { person_ref(w, about, date) } else { None } {
+        ev = ev.ent("about", about);
+    }
+    let club = person_club(w, speaker, date);
+    if club.is_some() {
+        ev = ev.ent("club", club_ref(w, club));
+    }
+    Some(ev)
+}
+
+/// An incident as the public has it: its kind, the club and the first two people involved. Private matters and nation-wide ones have no event.
+fn incident_event(w: &World, i: &pw_world::incident::Incident, date: Date) -> Option<LEvent> {
+    let kind = incident_key(i.kind)?;
+    let mut ev = LEvent::new("incident.reported", date).text("kind", kind);
+    if i.club.is_some() {
+        ev = ev.ent("club", club_ref(w, i.club));
+    }
+    if let Some(r) = i.parties.first().and_then(|&p| person_ref(w, p, i.date)) {
+        ev = ev.ent("who", r);
+    }
+    if let Some(r) = i.parties.get(1).and_then(|&p| person_ref(w, p, i.date)) {
+        ev = ev.ent("other", r);
+    }
+    Some(ev)
 }
 
 /// The name the reference data gives a meeting of these two clubs (a derby), with its article: "the Kolkata Derby".
@@ -635,14 +643,110 @@ fn account_voice(k: pw_world::socialnet::AccountKind) -> &'static str {
     }
 }
 
-/// A post that relays a story, in the account's own voice. It can be no firmer than the story was and no firmer than the post's own claim;
-/// anything else about the post (opinion, banter, chants) stays with the personality-driven text.
+/// The voice an account writes in: the preset of its kind, moved toward the account's own personality, so that two supporters of one kind do not
+/// sound alike. A joker is funnier, a pessimist less sure, an ultra louder, an older account more formal; the same account always sounds the same.
+fn voice_of_account(a: &pw_world::socialnet::SocialAccount) -> pw_lang::Voice {
+    use pw_world::socialnet::Age;
+    let base = engine().voice(account_voice(a.kind));
+    let p = &a.persona;
+    let f = |v: u8| f32::from(v) / 100.0;
+    let slang = match a.age {
+        Age::Teen => 0.85,
+        Age::Young => 0.65,
+        Age::Middle => 0.3,
+        Age::Older => 0.1,
+    };
+    // The preset keeps the account's kind (a stats account stays technical); the personality does most of the rest.
+    let mix = |b: f32, own: f32| (0.4 * b + 0.6 * own).clamp(0.0, 1.0);
+    pw_lang::Voice {
+        formality: mix(base.formality, 1.0 - slang),
+        sentence_length: mix(base.sentence_length, 0.35 + (1.0 - slang) * 0.4),
+        confidence: mix(base.confidence, 0.5 * f(p.knowledge) + 0.5 * f(p.stubbornness)),
+        technical: mix(base.technical, 0.5 * f(p.stats) + 0.5 * f(p.knowledge)),
+        emotion: mix(base.emotion, 0.6 * f(a.intensity) + 0.4 * f(p.tribalism)),
+        humour: mix(base.humour, f(p.humour)),
+        history: mix(base.history, f(p.nostalgia)),
+        stats: mix(base.stats, f(p.stats)),
+        tactical: mix(base.tactical, 0.6 * f(p.knowledge)),
+        local: mix(base.local, f(p.local)),
+        slang: mix(base.slang, slang),
+        skepticism: mix(base.skepticism, 0.5 * (1.0 - f(p.credulity)) + 0.5 * f(p.hostility)),
+        optimism: mix(base.optimism, f(p.optimism)),
+    }
+}
+
+/// What a post is about, as an engine event, how sure the account may be of it, and which attitude (the engine's behaviour) it takes.
+struct PostPlan {
+    ev: LEvent,
+    cert: Certainty,
+    behaviour: Option<&'static str>,
+}
+
+/// A post, in the account's own voice: a relay of a story, or an opinion, banter or answer about something that happened. A post can be no firmer
+/// than the event or story it is about (and a relay no firmer than its own claim). Chants, memes, an account's own recollections, how someone looks
+/// and a person's own statements stay with the older text (`social::post`).
 pub fn post(w: &World, p: &pw_world::socialnet::Post) -> Option<String> {
-    use pw_world::media::ClaimType;
-    use pw_world::socialnet::{Concept, Frame};
-    if !enabled(w) || p.concept != Concept::Relay {
+    use pw_world::socialnet::Concept;
+    if !enabled(w) {
         return None;
     }
+    let a = w.net.accounts.get(p.author as usize)?;
+    let plan = if p.concept == Concept::Relay { relay_plan(w, p)? } else { opinion_plan(w, p)? };
+    let ev = &plan.ev;
+    let mut sp = engine().witness(&format!("account.{}", p.author), "fan", account_voice(a.kind), ev);
+    sp.voice = voice_of_account(a);
+    if plan.cert != Certainty::Fact {
+        let keys: Vec<String> = sp.knows.keys().cloned().collect();
+        for k in keys {
+            let know = if plan.cert == Certainty::SourceClaim { Know::of(plan.cert, "unnamed") } else { Know { certainty: plan.cert, source: None } };
+            sp.knows.insert(k, know);
+        }
+    }
+    let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(p.id), 0x50c]);
+    let mut tr = Tracker::new();
+    let mut req = Request::new(ev, &sp, "social", p.date, seed).currency(currency(w));
+    if let Some(b) = plan.behaviour {
+        req = req.behaviour(b);
+    }
+    let r = engine().render(&req, &mut tr);
+    if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required")) {
+        return None;
+    }
+    // An opinion without its attitude is not the post that was made: the older text then says it.
+    if plan.behaviour.is_some() && ev.kind != "social.reaction" && r.part("tail").is_none() {
+        return None;
+    }
+    let v = super::social::voice(w, a);
+    let shout = matches!(p.concept, Concept::Celebrate | Concept::Mock) && v.register == crate::lexicon::Register::Terrace;
+    let parts: Vec<String> = r.parts.iter().filter(|x| x.slot != "tag").map(|x| if shout && x.slot == "tail" && !x.text.contains(" a ") && !x.text.contains(" an ") { x.text.to_uppercase() } else { x.text.clone() }).collect();
+    if parts.is_empty() {
+        return None;
+    }
+    let mut text = parts.join(" ");
+    if p.concept != Concept::Relay {
+        // A local supporter celebrates in the club's own language as often as not: the word for a win after a result, for a goal after a late
+        // winner or a hat-trick, as the reference data writes it. Emoji go with the voice and the mood of the post.
+        use pw_world::socialnet::{AccountKind as K, Frame};
+        let key = u64::from(p.id);
+        if p.concept == Concept::Celebrate && matches!(a.kind, K::Supporter | K::Hardcore | K::Ultra | K::Local) && key.rotate_left(29) % 2 == 0 {
+            let concept = match p.frame {
+                Frame::Result { .. } => Some("match.win"),
+                Frame::LateWinner { .. } | Frame::HatTrick { .. } => Some("match.goal"),
+                _ => None,
+            };
+            if let Some(word) = concept.and_then(|c| super::social::local_word(w, a.club, c)) {
+                text = format!("{word}! {text}");
+            }
+        }
+        let positive = matches!(p.concept, Concept::Praise | Concept::Celebrate | Concept::ConcedeWrong | Concept::Defend | Concept::ReluctantPraise | Concept::Agree);
+        text.push_str(crate::lexicon::emoji(&v, positive, key));
+    }
+    Some(text)
+}
+
+fn relay_plan(w: &World, p: &pw_world::socialnet::Post) -> Option<PostPlan> {
+    use pw_world::media::ClaimType;
+    use pw_world::socialnet::Frame;
     let Frame::Story { story } = p.frame else { return None };
     let st = w.media.stories.get(story)?;
     let ev = story_event(w, st)?;
@@ -653,22 +757,149 @@ pub fn post(w: &World, p: &pw_world::socialnet::Post) -> Option<String> {
         ClaimType::Speculation | ClaimType::Opinion => Certainty::Speculation,
         _ => return None,
     };
-    let cert = Certainty::combine([certainty_of(st), post_cert]);
-    let a = w.net.accounts.get(p.author as usize)?;
-    let mut sp = engine().witness(&format!("account.{}", p.author), "fan", account_voice(a.kind), &ev);
-    if cert != Certainty::Fact {
-        let keys: Vec<String> = sp.knows.keys().cloned().collect();
-        for k in keys {
-            let know = if cert == Certainty::SourceClaim { Know::of(cert, "unnamed") } else { Know { certainty: cert, source: None } };
-            sp.knows.insert(k, know);
-        }
+    Some(PostPlan { ev, cert: Certainty::combine([certainty_of(st), post_cert]), behaviour: None })
+}
+
+/// The attitude an opinion post takes: the engine's behaviour for what the account did (`Concept`). Those left out (comparisons with a legend, call-outs,
+/// recollections, the folklore of a club, how someone looks, a person's own statements, chants and memes) are not opinions about an event the engine has.
+fn attitude(c: pw_world::socialnet::Concept) -> Option<&'static str> {
+    use pw_world::socialnet::Concept as C;
+    Some(match c {
+        C::Praise => "praise",
+        C::ReluctantPraise => "reluctant",
+        C::ConcedeWrong => "concede",
+        C::DoubleDown => "hold",
+        C::Criticise => "grumble",
+        C::Mock => "jibe",
+        C::Celebrate => "cheer",
+        C::Lament => "groan",
+        C::Worry => "worry",
+        C::Question => "ask",
+        C::Defend => "defend",
+        C::Sarcasm => "sarcasm",
+        C::Overrated => "overrated",
+        C::Agree => "agree",
+        C::Disagree => "disagree",
+        _ => return None,
+    })
+}
+
+/// An opinion, banter or answer: the public event it is about (only what the public holds), and the account's attitude to it.
+/// The certainty is the event's own: a rumour stays a rumour however strongly the account feels about it.
+fn opinion_plan(w: &World, p: &pw_world::socialnet::Post) -> Option<PostPlan> {
+    use pw_world::socialnet::{Concept, Frame};
+    let mut behaviour = attitude(p.concept)?;
+    // The author's side was pleased by the other side's sending off; that is glee, not praise.
+    if p.concept == Concept::Praise && matches!(p.frame, Frame::RedCard { .. } | Frame::Incident { .. } | Frame::TransferRequest { .. } | Frame::Injury { .. }) {
+        behaviour = "cheer";
     }
-    let seed = pw_core::rng::hash_key(&[pw_core::rng::stream::NARRATION, u64::from(p.id), 0x50c]);
-    let mut tr = Tracker::new();
-    let r = engine().render(&Request::new(&ev, &sp, "social", p.date, seed).currency(currency(w)), &mut tr);
-    if r.notes.iter().any(|n| n.contains("incomplete") || n.contains("required")) {
+    // Criticising the other side's goal-scorer is not criticism of him: it is the author's own side that is being found wanting.
+    if p.concept == Concept::Criticise && matches!(p.frame, Frame::LateWinner { .. } | Frame::HatTrick { .. }) {
+        behaviour = "groan";
+    }
+    // Posts about a manager's football use the manager's philosophy, which the older text knows; the engine has no event for it.
+    if matches!(p.concept, Concept::Praise | Concept::Criticise) && p.about.is_some() && w.people.get(p.about).is_some_and(|x| x.staff.get().is_some_and(|s| w.staff[s].role == pw_world::StaffRole::Manager)) {
         return None;
     }
-    let text: Vec<&str> = r.parts.iter().filter(|x| x.slot != "tag").map(|x| x.text.as_str()).collect();
-    if text.is_empty() { None } else { Some(text.join(" ")) }
+    let (ev, cert) = match p.frame {
+        // An answer to another post says nothing about the world, only what the account thinks of what was posted.
+        Frame::Post { .. } if matches!(p.concept, Concept::Agree | Concept::Disagree | Concept::Mock | Concept::Sarcasm | Concept::Celebrate | Concept::Question) => {
+            let mut ev = LEvent::new("social.reaction", p.date);
+            if p.club.is_some() && !matches!(p.concept, Concept::Agree | Concept::Disagree) {
+                ev = ev.ent("club", club_ref(w, p.club));
+            }
+            (ev, Certainty::Fact)
+        }
+        Frame::Post { .. } => return None,
+        Frame::Story { story } => {
+            let st = w.media.stories.get(story)?;
+            (story_event(w, st)?, certainty_of(st))
+        }
+        f => (frame_event(w, f, p)?, Certainty::Fact),
+    };
+    Some(PostPlan { ev, cert, behaviour: Some(behaviour) })
+}
+
+/// The public event behind a real thing supporters reacted to. Nothing the public does not hold (a fee, a diagnosis, the length of a deal) goes in.
+fn frame_event(w: &World, f: pw_world::socialnet::Frame, p: &pw_world::socialnet::Post) -> Option<LEvent> {
+    use pw_world::socialnet::Frame;
+    let day = p.date;
+    Some(match f {
+        Frame::Result { uid } => {
+            let m = w.recent_matches.by_uid(uid)?;
+            if m.home.is_none() || m.away.is_none() {
+                return None;
+            }
+            let mut ev = LEvent::new("match.result", m.date).ent("home", club_ref(w, m.home)).ent("away", club_ref(w, m.away)).num("home_goals", i64::from(m.hg)).num("away_goals", i64::from(m.ag));
+            // The man of the match is named only by those posting about him.
+            if m.pom.is_some() && p.about.is_some() && w.players.cold[m.pom].person == p.about {
+                ev = ev.ent("star", player_ref(w, m.pom, m.date));
+            }
+            if let Some(o) = occasion(w, m.home, m.away) {
+                ev = ev.text("occasion", &o);
+            }
+            ev
+        }
+        Frame::LateWinner { uid, player } | Frame::HatTrick { uid, player } | Frame::RedCard { uid, player } => {
+            let m = w.recent_matches.by_uid(uid)?;
+            let kind = match f {
+                Frame::LateWinner { .. } => "late_winner",
+                Frame::HatTrick { .. } => "hat_trick",
+                _ => "red_card",
+            };
+            let club = match m.late_winner {
+                Some(g) if kind == "late_winner" && g.player == player => {
+                    if g.side == 0 {
+                        m.home
+                    } else {
+                        m.away
+                    }
+                }
+                _ => club_at(w, player, m.date),
+            };
+            let club = if club == m.home || club == m.away { club } else { ClubId::NONE };
+            let mut ev = LEvent::new("match.moment", m.date).text("kind", kind).ent("player", player_ref(w, player, m.date));
+            if club.is_some() {
+                ev = ev.ent("club", club_ref(w, club)).ent("opponent", club_ref(w, if club == m.home { m.away } else { m.home }));
+            }
+            ev
+        }
+        Frame::Signing { player, club } if club.is_some() => LEvent::new("transfer.completed", day).ent("player", player_ref(w, player, day)).ent("to", club_ref(w, club)),
+        Frame::Departure { player, from, to } if from.is_some() && to.is_some() => {
+            LEvent::new("transfer.completed", day).ent("player", player_ref(w, player, day)).ent("from", club_ref(w, from)).ent("to", club_ref(w, to))
+        }
+        Frame::TransferRequest { player } => {
+            let club = club_at(w, player, day);
+            let mut ev = LEvent::new("player.transfer_request", day).ent("player", player_ref(w, player, day));
+            if club.is_some() {
+                ev = ev.ent("club", club_ref(w, club));
+            }
+            ev
+        }
+        Frame::Quote { quote } => {
+            let q = w.pressroom.quotes.get(quote as usize)?;
+            quote_event(w, q.speaker, q.about, q.stance, q.date)?
+        }
+        Frame::Incident { incident } => incident_event(w, w.incidents.get(incident)?, day)?,
+        Frame::Injury { player } => {
+            let club = club_at(w, player, day);
+            let mut ev = LEvent::new("injury.suffered", day).ent("player", player_ref(w, player, day));
+            if club.is_some() {
+                ev = ev.ent("club", club_ref(w, club));
+            }
+            ev
+        }
+        // The manager is the post's subject; the club is the frame's.
+        Frame::ManagerSacked { club } | Frame::ManagerAppointed { club } if club.is_some() && p.about.is_some() => {
+            let st = w.people.get(p.about)?.staff.get()?;
+            let sacked = matches!(f, Frame::ManagerSacked { .. });
+            let mut ev = LEvent::new(if sacked { "manager.departed" } else { "manager.appointed" }, day).ent("manager", manager_ref(w, st)).ent("club", club_ref(w, club));
+            if sacked {
+                ev = ev.text("manner", "sacked");
+            }
+            ev
+        }
+        // Awards, milestones and records do not carry which, and a disputed call has its own words in the older text.
+        _ => return None,
+    })
 }
