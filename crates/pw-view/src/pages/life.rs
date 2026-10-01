@@ -107,7 +107,7 @@ pub fn self_view(c: &Ctx) -> ApiResult<Value> {
 
 /// Someone else's private life is the observer's to see; an inhabited person sees only their own.
 pub fn life_of(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = args.get("id").and_then(Value::as_u64).map(|n| PersonId(n as u32));
+    let id = crate::contract::request::<crate::contract::PersonOptReq>(args.clone())?.id.map(PersonId);
     let who = match (c.me(), id) {
         (Some(me), None) => me,
         (Some(me), Some(x)) if x == me => me,

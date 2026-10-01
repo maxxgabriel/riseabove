@@ -249,10 +249,6 @@ export interface RumoursView {
   rumours: RumourRow[];
 }
 
-export interface PersonReq {
-  id: number;
-}
-
 export interface StepRow {
   date: number;
   kind: string;
@@ -447,6 +443,74 @@ export interface ScenarioView {
   rules: LabelRow[];
   languages: LabelRow[];
   note: string;
+}
+
+export interface PersonReq {
+  id: number;
+}
+
+export interface PersonOptReq {
+  id?: number | null;
+}
+
+export interface DistrictReq {
+  id?: number | null;
+}
+
+export interface CompOverviewReq {
+  id: number;
+  light?: boolean | null;
+}
+
+export interface InsightReq {
+  id: number;
+  limit?: number | null;
+}
+
+export interface InsightMatchReq {
+  uid: number;
+  limit?: number | null;
+}
+
+export interface MatchReq {
+  uid: number;
+}
+
+export interface MessageReq {
+  id: string;
+}
+
+export interface LimitReq {
+  limit?: number | null;
+}
+
+export interface NewsFeedReq {
+  filter?: string | null;
+  limit?: number | null;
+}
+
+export interface SearchReq {
+  q?: string | null;
+  limit?: number | null;
+}
+
+export interface CalendarReq {
+  from?: number | null;
+  to?: number | null;
+}
+
+export interface DirReq {
+  dir: string;
+}
+
+export interface DatabaseQueryReq {
+  source?: number | null;
+  table: string;
+  column?: string | null;
+  value?: string | null;
+  search?: string | null;
+  offset?: number | null;
+  limit?: number | null;
 }
 
 export interface ObserveReq {
@@ -1178,6 +1242,7 @@ export interface PersonViewPlayer {
   contract: PersonViewPlayerContract | null;
   foot: string;
   form: number[];
+  hidden: string[];
   height: number;
   internal: PersonViewPlayerInternal | null;
   intl_goals: number;
@@ -1185,12 +1250,13 @@ export interface PersonViewPlayer {
   loan: PersonViewPlayerLoan | null;
   player_id: number;
   positions: PersonViewPlayerPosition[];
-  senior_apps: number;
-  senior_goals: number;
+  senior_apps: number | null;
+  senior_goals: number | null;
   shirt: number;
   squad_status: string | null;
   team: string | null;
   traits: string[];
+  unknown: string[];
   value: number | null;
   weight: number;
   youth_club: Named | null;
@@ -2706,7 +2772,7 @@ export interface ApiMethods {
   "app.info": { kind: "query"; req: Record<string, unknown>; res: AppInfo };
   "world.status": { kind: "query"; req: Record<string, unknown>; res: StatusView };
   "world.new": { kind: "command"; req: Record<string, unknown>; res: Started };
-  "world.inspect_import": { kind: "query"; req: Record<string, unknown>; res: InspectImportView };
+  "world.inspect_import": { kind: "query"; req: DirReq; res: InspectImportView };
   "world.datasets": { kind: "query"; req: Record<string, unknown>; res: DatasetsView };
   "world.saves": { kind: "query"; req: Record<string, unknown>; res: WorldSavesView };
   "world.save": { kind: "command"; req: SaveReq; res: Saved };
@@ -2722,50 +2788,50 @@ export interface ApiMethods {
   "route.options": { kind: "query"; req: Record<string, unknown>; res: RouteOptionsView };
   "route.begin": { kind: "command"; req: RouteReq; res: Created };
   "table.query": { kind: "query"; req: TableReq; res: TableResp };
-  "search": { kind: "query"; req: Record<string, unknown>; res: SearchView };
+  "search": { kind: "query"; req: SearchReq; res: SearchView };
   "overview": { kind: "query"; req: Record<string, unknown>; res: OverviewView };
-  "world.pulse": { kind: "query"; req: Record<string, unknown>; res: WorldPulseView };
-  "news.feed": { kind: "query"; req: Record<string, unknown>; res: NewsFeedView };
+  "world.pulse": { kind: "query"; req: LimitReq; res: WorldPulseView };
+  "news.feed": { kind: "query"; req: NewsFeedReq; res: NewsFeedView };
   "news.story": { kind: "query"; req: IdReq; res: StoryFull };
   "diagnostics": { kind: "query"; req: Record<string, unknown>; res: DiagnosticsView };
   "capabilities": { kind: "query"; req: Record<string, unknown>; res: Capability[] };
-  "person": { kind: "query"; req: Record<string, unknown>; res: PersonView };
+  "person": { kind: "query"; req: PersonReq; res: PersonView };
   "person.attributes": { kind: "query"; req: PersonReq; res: AttributesView };
   "crest.colors": { kind: "query"; req: Record<string, unknown>; res: CrestColorsView };
-  "comp.overview": { kind: "query"; req: Record<string, unknown>; res: CompOverviewView };
-  "insight.club": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
-  "insight.comp": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
-  "insight.match": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
-  "insight.person": { kind: "query"; req: Record<string, unknown>; res: InsightsView };
-  "club": { kind: "query"; req: Record<string, unknown>; res: ClubView };
-  "club.systems": { kind: "query"; req: Record<string, unknown>; res: ClubSystemsView };
+  "comp.overview": { kind: "query"; req: CompOverviewReq; res: CompOverviewView };
+  "insight.club": { kind: "query"; req: InsightReq; res: InsightsView };
+  "insight.comp": { kind: "query"; req: InsightReq; res: InsightsView };
+  "insight.match": { kind: "query"; req: InsightMatchReq; res: InsightsView };
+  "insight.person": { kind: "query"; req: InsightReq; res: InsightsView };
+  "club": { kind: "query"; req: IdReq; res: ClubView };
+  "club.systems": { kind: "query"; req: IdReq; res: ClubSystemsView };
   "club.follow": { kind: "command"; req: FollowReq; res: Followed };
-  "comp": { kind: "query"; req: Record<string, unknown>; res: CompView };
-  "nation": { kind: "query"; req: Record<string, unknown>; res: NationView };
-  "match": { kind: "query"; req: Record<string, unknown>; res: MatchView };
-  "match.watch": { kind: "query"; req: Record<string, unknown>; res: MatchView };
+  "comp": { kind: "query"; req: IdReq; res: CompView };
+  "nation": { kind: "query"; req: IdReq; res: NationView };
+  "match": { kind: "query"; req: MatchReq; res: MatchView };
+  "match.watch": { kind: "query"; req: MatchReq; res: MatchView };
   "match.reveal": { kind: "command"; req: RevealReq; res: Revealed };
   "match.reveal_all": { kind: "command"; req: Record<string, unknown>; res: RevealedAll };
   "me.today": { kind: "query"; req: Record<string, unknown>; res: MeTodayView };
   "me.viewed": { kind: "command"; req: Record<string, unknown>; res: Done };
-  "me.messages": { kind: "query"; req: Record<string, unknown>; res: MeMessagesView };
-  "me.inbox": { kind: "query"; req: Record<string, unknown>; res: MeInboxView };
-  "me.thread": { kind: "query"; req: Record<string, unknown>; res: MeThreadView };
+  "me.messages": { kind: "query"; req: LimitReq; res: MeMessagesView };
+  "me.inbox": { kind: "query"; req: LimitReq; res: MeInboxView };
+  "me.thread": { kind: "query"; req: IdReq; res: MeThreadView };
   "me.thread_read": { kind: "command"; req: IdReq; res: Done };
   "me.reply": { kind: "command"; req: ReplyReq; res: ActDone };
-  "me.message": { kind: "query"; req: Record<string, unknown>; res: MeMessage };
+  "me.message": { kind: "query"; req: MessageReq; res: MeMessage };
   "me.answer": { kind: "command"; req: AnswerReq; res: Done };
   "me.act": { kind: "command"; req: ActReq; res: ActDone };
   "me.options": { kind: "query"; req: Record<string, unknown>; res: MeOptionsView };
   "me.self": { kind: "query"; req: Record<string, unknown>; res: MeSelfView };
   "me.life": { kind: "query"; req: Record<string, unknown>; res: MeLifeView };
-  "person.life": { kind: "query"; req: Record<string, unknown>; res: MeLifeView };
+  "person.life": { kind: "query"; req: PersonOptReq; res: MeLifeView };
   "me.people": { kind: "query"; req: Record<string, unknown>; res: PeopleView };
   "me.promises": { kind: "query"; req: Record<string, unknown>; res: PromisesView };
   "me.rumours": { kind: "query"; req: Record<string, unknown>; res: RumoursView };
   "me.press": { kind: "query"; req: Record<string, unknown>; res: MePressView };
-  "me.feed": { kind: "query"; req: Record<string, unknown>; res: MeFeedView };
-  "social.thread": { kind: "query"; req: Record<string, unknown>; res: SocialThreadView };
+  "me.feed": { kind: "query"; req: LimitReq; res: MeFeedView };
+  "social.thread": { kind: "query"; req: IdReq; res: SocialThreadView };
   "me.story": { kind: "query"; req: IdReq; res: OwnStoryView };
   "me.agent": { kind: "query"; req: Record<string, unknown>; res: AgentView };
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: JournalView };
@@ -2773,7 +2839,7 @@ export interface ApiMethods {
   "me.goal_done": { kind: "command"; req: GoalDoneReq; res: Done };
   "me.note": { kind: "command"; req: NoteReq; res: Done };
   "me.note_remove": { kind: "command"; req: IndexReq; res: Done };
-  "me.calendar": { kind: "query"; req: Record<string, unknown>; res: MeCalendarView };
+  "me.calendar": { kind: "query"; req: CalendarReq; res: MeCalendarView };
   "me.football": { kind: "query"; req: Record<string, unknown>; res: MeFootballView };
   "me.plan": { kind: "command"; req: PlanReq; res: PlanSet };
   "me.contract": { kind: "query"; req: Record<string, unknown>; res: MeContractView };
@@ -2781,10 +2847,10 @@ export interface ApiMethods {
   "ecosystem.regions": { kind: "query"; req: Record<string, unknown>; res: RegionOutputView };
   "ecosystem.export": { kind: "query"; req: Record<string, unknown>; res: ExportView };
   "ecosystem.scenario": { kind: "query"; req: Record<string, unknown>; res: ScenarioView };
-  "ecosystem.district": { kind: "query"; req: Record<string, unknown>; res: DistrictView };
+  "ecosystem.district": { kind: "query"; req: DistrictReq; res: DistrictView };
   "database.sources": { kind: "query"; req: Record<string, unknown>; res: DatabaseSourcesView };
-  "database.attach": { kind: "command"; req: Record<string, unknown>; res: DatabaseAttached };
-  "database.query": { kind: "query"; req: Record<string, unknown>; res: DatabaseQueryView };
+  "database.attach": { kind: "command"; req: DirReq; res: DatabaseAttached };
+  "database.query": { kind: "query"; req: DatabaseQueryReq; res: DatabaseQueryView };
 }
 
 /** The methods whose response type is declared here. */

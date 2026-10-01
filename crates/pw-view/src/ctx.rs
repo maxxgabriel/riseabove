@@ -17,7 +17,7 @@ pub struct Ctx<'a> {
 }
 
 /// How a viewer knows one attribute.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Serialize)]
 pub enum AttrView {
     Exact(u8),
     /// Assessed range with a central estimate.

@@ -516,10 +516,6 @@ contract! {
     pub struct RumoursView {
         pub rumours: Vec<RumourRow>,
     }
-
-    pub struct PersonReq {
-        pub id: u32,
-    }
 }
 
 contract! {
@@ -736,6 +732,89 @@ contract! {
         pub detail: String,
         pub note: String,
         pub origin: String,
+    }
+}
+
+// ------------------------------------------------------------------ requests (queries)
+
+request! {
+    /// A page about one person (`person`, `person.attributes`, `pathway.player`, `insight.person`).
+    pub struct PersonReq {
+        pub id: u32,
+    }
+
+    /// `person.life`: the life of the person asked for, or of the one being lived as when no id is given.
+    pub struct PersonOptReq {
+        pub id: Option<u32>,
+    }
+
+    /// `ecosystem.district`: a district, or the one the person being lived as grew up in when no id is given.
+    pub struct DistrictReq {
+        pub id: Option<u32>,
+    }
+
+    /// `comp.overview`; `light` leaves out the parts that cost the most to build.
+    pub struct CompOverviewReq {
+        pub id: u32,
+        pub light: Option<bool>,
+    }
+
+    /// `insight.club`, `insight.comp`, `insight.person`: the notes about one thing, the first `limit` of them.
+    pub struct InsightReq {
+        pub id: u32,
+        pub limit: Option<u64>,
+    }
+
+    /// `insight.match`: the notes about one fixture.
+    pub struct InsightMatchReq {
+        pub uid: u64,
+        pub limit: Option<u64>,
+    }
+
+    /// `match`, `match.watch`.
+    pub struct MatchReq {
+        pub uid: u64,
+    }
+
+    /// `me.message`: a message as the inbox names it (`d` and a number for a decision, `m` and a number for a mail).
+    pub struct MessageReq {
+        pub id: String,
+    }
+
+    /// A list of at most `limit` entries (the page clamps it to what it can show).
+    pub struct LimitReq {
+        pub limit: Option<u64>,
+    }
+
+    pub struct NewsFeedReq {
+        /// for_you, following or world.
+        pub filter: Option<String>,
+        pub limit: Option<u64>,
+    }
+
+    pub struct SearchReq {
+        pub q: Option<String>,
+        pub limit: Option<u64>,
+    }
+
+    pub struct CalendarReq {
+        pub from: Option<i64>,
+        pub to: Option<i64>,
+    }
+
+    /// A folder on this computer (`world.inspect_import`, `database.attach`).
+    pub struct DirReq {
+        pub dir: String,
+    }
+
+    pub struct DatabaseQueryReq {
+        pub source: Option<u64>,
+        pub table: String,
+        pub column: Option<String>,
+        pub value: Option<String>,
+        pub search: Option<String>,
+        pub offset: Option<u64>,
+        pub limit: Option<u64>,
     }
 }
 
@@ -1235,7 +1314,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("app.info"), None, "AppInfo"),
         typed(q("world.status"), None, "StatusView"),
         typed(c("world.new"), None, "Started"),
-        typed(q("world.inspect_import"), None, "InspectImportView"),
+        typed(q("world.inspect_import"), Some("DirReq"), "InspectImportView"),
         typed(q("world.datasets"), None, "DatasetsView"),
         typed(q("world.saves"), None, "WorldSavesView"),
         typed(c("world.save"), Some("SaveReq"), "Saved"),
@@ -1251,50 +1330,50 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("route.options"), None, "RouteOptionsView"),
         typed(c("route.begin"), Some("RouteReq"), "Created"),
         typed(q("table.query"), Some("TableReq"), "TableResp"),
-        typed(q("search"), None, "SearchView"),
+        typed(q("search"), Some("SearchReq"), "SearchView"),
         typed(q("overview"), None, "OverviewView"),
-        typed(q("world.pulse"), None, "WorldPulseView"),
-        typed(q("news.feed"), None, "NewsFeedView"),
+        typed(q("world.pulse"), Some("LimitReq"), "WorldPulseView"),
+        typed(q("news.feed"), Some("NewsFeedReq"), "NewsFeedView"),
         typed(q("news.story"), Some("IdReq"), "StoryFull"),
         typed(q("diagnostics"), None, "DiagnosticsView"),
         typed(q("capabilities"), None, "Capability[]"),
-        typed(q("person"), None, "PersonView"),
+        typed(q("person"), Some("PersonReq"), "PersonView"),
         typed(q("person.attributes"), Some("PersonReq"), "AttributesView"),
         typed(q("crest.colors"), None, "CrestColorsView"),
-        typed(q("comp.overview"), None, "CompOverviewView"),
-        typed(q("insight.club"), None, "InsightsView"),
-        typed(q("insight.comp"), None, "InsightsView"),
-        typed(q("insight.match"), None, "InsightsView"),
-        typed(q("insight.person"), None, "InsightsView"),
-        typed(q("club"), None, "ClubView"),
-        typed(q("club.systems"), None, "ClubSystemsView"),
+        typed(q("comp.overview"), Some("CompOverviewReq"), "CompOverviewView"),
+        typed(q("insight.club"), Some("InsightReq"), "InsightsView"),
+        typed(q("insight.comp"), Some("InsightReq"), "InsightsView"),
+        typed(q("insight.match"), Some("InsightMatchReq"), "InsightsView"),
+        typed(q("insight.person"), Some("InsightReq"), "InsightsView"),
+        typed(q("club"), Some("IdReq"), "ClubView"),
+        typed(q("club.systems"), Some("IdReq"), "ClubSystemsView"),
         typed(c("club.follow"), Some("FollowReq"), "Followed"),
-        typed(q("comp"), None, "CompView"),
-        typed(q("nation"), None, "NationView"),
-        typed(q("match"), None, "MatchView"),
-        typed(q("match.watch"), None, "MatchView"),
+        typed(q("comp"), Some("IdReq"), "CompView"),
+        typed(q("nation"), Some("IdReq"), "NationView"),
+        typed(q("match"), Some("MatchReq"), "MatchView"),
+        typed(q("match.watch"), Some("MatchReq"), "MatchView"),
         typed(c("match.reveal"), Some("RevealReq"), "Revealed"),
         typed(c("match.reveal_all"), None, "RevealedAll"),
         typed(q("me.today"), None, "MeTodayView"),
         typed(c("me.viewed"), None, "Done"),
-        typed(q("me.messages"), None, "MeMessagesView"),
-        typed(q("me.inbox"), None, "MeInboxView"),
-        typed(q("me.thread"), None, "MeThreadView"),
+        typed(q("me.messages"), Some("LimitReq"), "MeMessagesView"),
+        typed(q("me.inbox"), Some("LimitReq"), "MeInboxView"),
+        typed(q("me.thread"), Some("IdReq"), "MeThreadView"),
         typed(c("me.thread_read"), Some("IdReq"), "Done"),
         typed(c("me.reply"), Some("ReplyReq"), "ActDone"),
-        typed(q("me.message"), None, "MeMessage"),
+        typed(q("me.message"), Some("MessageReq"), "MeMessage"),
         typed(c("me.answer"), Some("AnswerReq"), "Done"),
         typed(c("me.act"), Some("ActReq"), "ActDone"),
         typed(q("me.options"), None, "MeOptionsView"),
         typed(q("me.self"), None, "MeSelfView"),
         typed(q("me.life"), None, "MeLifeView"),
-        typed(q("person.life"), None, "MeLifeView"),
+        typed(q("person.life"), Some("PersonOptReq"), "MeLifeView"),
         typed(q("me.people"), None, "PeopleView"),
         typed(q("me.promises"), None, "PromisesView"),
         typed(q("me.rumours"), None, "RumoursView"),
         typed(q("me.press"), None, "MePressView"),
-        typed(q("me.feed"), None, "MeFeedView"),
-        typed(q("social.thread"), None, "SocialThreadView"),
+        typed(q("me.feed"), Some("LimitReq"), "MeFeedView"),
+        typed(q("social.thread"), Some("IdReq"), "SocialThreadView"),
         typed(q("me.story"), Some("IdReq"), "OwnStoryView"),
         typed(q("me.agent"), None, "AgentView"),
         typed(q("me.journal"), None, "JournalView"),
@@ -1302,7 +1381,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(c("me.goal_done"), Some("GoalDoneReq"), "Done"),
         typed(c("me.note"), Some("NoteReq"), "Done"),
         typed(c("me.note_remove"), Some("IndexReq"), "Done"),
-        typed(q("me.calendar"), None, "MeCalendarView"),
+        typed(q("me.calendar"), Some("CalendarReq"), "MeCalendarView"),
         typed(q("me.football"), None, "MeFootballView"),
         typed(c("me.plan"), Some("PlanReq"), "PlanSet"),
         typed(q("me.contract"), None, "MeContractView"),
@@ -1310,10 +1389,10 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("ecosystem.regions"), None, "RegionOutputView"),
         typed(q("ecosystem.export"), None, "ExportView"),
         typed(q("ecosystem.scenario"), None, "ScenarioView"),
-        typed(q("ecosystem.district"), None, "DistrictView"),
+        typed(q("ecosystem.district"), Some("DistrictReq"), "DistrictView"),
         typed(q("database.sources"), None, "DatabaseSourcesView"),
-        typed(c("database.attach"), None, "DatabaseAttached"),
-        typed(q("database.query"), None, "DatabaseQueryView"),
+        typed(c("database.attach"), Some("DirReq"), "DatabaseAttached"),
+        typed(q("database.query"), Some("DatabaseQueryReq"), "DatabaseQueryView"),
     ]
 }
 
@@ -1382,7 +1461,6 @@ pub fn declarations() -> Vec<String> {
         PeopleView::declaration(),
         RumourRow::declaration(),
         RumoursView::declaration(),
-        PersonReq::declaration(),
         StepRow::declaration(),
         CreationView::declaration(),
         EvidenceRow::declaration(),
@@ -1405,6 +1483,20 @@ pub fn declarations() -> Vec<String> {
         DerbyRow::declaration(),
         LabelRow::declaration(),
         ScenarioView::declaration(),
+        PersonReq::declaration(),
+        PersonOptReq::declaration(),
+        DistrictReq::declaration(),
+        CompOverviewReq::declaration(),
+        InsightReq::declaration(),
+        InsightMatchReq::declaration(),
+        MatchReq::declaration(),
+        MessageReq::declaration(),
+        LimitReq::declaration(),
+        NewsFeedReq::declaration(),
+        SearchReq::declaration(),
+        CalendarReq::declaration(),
+        DirReq::declaration(),
+        DatabaseQueryReq::declaration(),
         ObserveReq::declaration(),
         InhabitReq::declaration(),
         StopsReq::declaration(),

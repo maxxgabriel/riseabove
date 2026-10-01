@@ -18,6 +18,7 @@ mod pages;
 mod session;
 mod table;
 mod tables;
+mod visible;
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
@@ -208,7 +209,7 @@ impl Api {
             }
 
             "table.query" => {
-                let req: model::TableReq = serde_json::from_value(args).map_err(|e| ApiError::Bad(e.to_string()))?;
+                let req: model::TableReq = contract::request(args)?;
                 self.with(|c| tables::query(c, &req))
             }
             "search" => self.with(|c| pages::world::search(c, &args)),
@@ -350,7 +351,8 @@ impl Api {
     }
 
     fn inspect_import(&self, args: Value) -> ApiResult<Value> {
-        let dir = args.get("dir").and_then(Value::as_str).ok_or_else(|| ApiError::Bad("missing folder".into()))?;
+        let req: contract::DirReq = contract::request(args)?;
+        let dir = req.dir.as_str();
         let files: Vec<Value> = match std::fs::read_dir(dir) {
             Ok(rd) => {
                 let mut v: Vec<Value> =

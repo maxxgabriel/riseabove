@@ -250,7 +250,7 @@ fn awaiting(w: &World, m: &Message) -> bool {
 pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let me = need(c)?;
     let w = c.w;
-    let limit = args.get("limit").and_then(Value::as_u64).map_or(120, |n| n.clamp(10, 400) as usize);
+    let limit = crate::contract::request::<crate::contract::LimitReq>(args.clone())?.limit.map_or(120, |n| n.clamp(10, 400) as usize);
     let mut rows: Vec<Value> = Vec::new();
     let mut unread_total = 0usize;
     let mut action_total = 0usize;
@@ -285,7 +285,7 @@ pub fn inbox(c: &Ctx, args: &Value) -> ApiResult<Value> {
 /// `me.thread`: one conversation, oldest first.
 pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let me = need(c)?;
-    let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing thread".into()))? as usize;
+    let id = crate::contract::request::<crate::contract::IdReq>(args.clone())?.id as usize;
     let t = c.w.inbox.threads.get(id).filter(|t| t.owner == me).ok_or_else(|| ApiError::NotFound("conversation".into()))?;
     let (title, with, kind) = thread_title(c, t);
     // The same words from the same person on the same day, with nothing to reply to, are said once.

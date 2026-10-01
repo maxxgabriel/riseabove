@@ -25,7 +25,7 @@ pub fn gone(c: &Ctx, uid: u64) -> ApiError {
 }
 
 pub fn uid_arg(args: &Value) -> ApiResult<u64> {
-    args.get("uid").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing match id".into()))
+    Ok(crate::contract::request::<crate::contract::MatchReq>(args.clone())?.uid)
 }
 
 fn ev_label(e: Ev) -> &'static str {

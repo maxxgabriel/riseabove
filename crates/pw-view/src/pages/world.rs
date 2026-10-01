@@ -82,12 +82,13 @@ pub fn overview(c: &Ctx) -> ApiResult<Value> {
 
 /// Entity search obeying the current perspective.
 pub fn search(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let q = args.get("q").and_then(Value::as_str).unwrap_or("").trim().to_lowercase();
+    let req: crate::contract::SearchReq = crate::contract::request(args.clone())?;
+    let q = req.q.as_deref().unwrap_or("").trim().to_lowercase();
     if q.chars().count() < 2 {
         return Ok(json!({"groups": []}));
     }
     let w = c.w;
-    let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(8) as usize;
+    let limit = req.limit.unwrap_or(8) as usize;
     let score = |name: &str| -> Option<u8> {
         let n = name.to_lowercase();
         if n == q {

@@ -387,12 +387,13 @@ fn word(x: f32) -> &'static str {
 /// `ecosystem.district {id?}`: what a place is like for a child growing up in it, and who is near. With no id, the district of the person
 /// being lived as. These are facts about the place (its coaching, its scouting, its money), never about any child in it.
 pub fn district(c: &Ctx, args: &Value) -> ApiResult<Value> {
+    let req: crate::contract::DistrictReq = crate::contract::request(args.clone())?;
     let eco = &c.w.ext.ecosystem;
     let none = |why: &str| to_json(&DistrictView { available: false, reason: Some(why.into()), name: String::new(), state: String::new(), association: None, population_k: 0, aspects: Vec::new(), academies: Vec::new(), universities: Vec::new(), schools: 0 });
     if !eco.is_configured() {
         return none("This world has no districts.");
     }
-    let id = match args.get("id").and_then(Value::as_u64) {
+    let id = match req.id.map(u64::from) {
         Some(n) => pw_core::RegionId(n as u32),
         None => match c.my_player().and_then(|p| eco.story.get(&p)) {
             Some(s) => s.dev,

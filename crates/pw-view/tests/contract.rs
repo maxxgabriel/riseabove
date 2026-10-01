@@ -581,3 +581,115 @@ fn a_story_from_a_paper_in_another_language_says_it_is_translated() {
     assert_eq!(full["translated_from"], translated[0]["translated_from"]);
     check_against(&ts, "StoryFull", &full);
 }
+
+/// Queries are read through declared request types like commands are: a field the request does not name, or one of the wrong type, is an
+/// `InvalidRequest` that names the problem, and a well-formed call is not refused.
+#[test]
+fn queries_are_read_through_declared_requests_that_refuse_what_they_do_not_name() {
+    let ts = contract::typescript();
+    let api = world();
+    let me = inhabit(&api);
+    let kind = |r: pw_view::ApiResult<Value>| r.map(|_| ()).map_err(|e| e.kind());
+    // Every query that takes arguments, with a well-formed call and the field that carries its identity (or None).
+    let valid: Vec<(&str, Value, Option<&str>)> = vec![
+        ("table.query", json!({"table": "players", "limit": 3}), Some("table")),
+        ("search", json!({"q": "a", "limit": 3}), Some("q")),
+        ("world.pulse", json!({"limit": 5}), Some("limit")),
+        ("news.feed", json!({"filter": "world", "limit": 5}), Some("filter")),
+        ("news.story", json!({"id": 0}), Some("id")),
+        ("person", json!({"id": me}), Some("id")),
+        ("person.attributes", json!({"id": me}), Some("id")),
+        ("person.life", json!({"id": me}), Some("id")),
+        ("pathway.player", json!({"id": me}), Some("id")),
+        ("comp.overview", json!({"id": 0, "light": true}), Some("id")),
+        ("insight.club", json!({"id": 0, "limit": 2}), Some("id")),
+        ("insight.comp", json!({"id": 0, "limit": 2}), Some("id")),
+        ("insight.person", json!({"id": me, "limit": 2}), Some("id")),
+        ("insight.match", json!({"uid": 1, "limit": 2}), Some("uid")),
+        ("club", json!({"id": 0}), Some("id")),
+        ("club.systems", json!({"id": 0}), Some("id")),
+        ("comp", json!({"id": 0}), Some("id")),
+        ("nation", json!({"id": 0}), Some("id")),
+        ("match", json!({"uid": 1}), Some("uid")),
+        ("match.watch", json!({"uid": 1}), Some("uid")),
+        ("me.messages", json!({"limit": 20}), Some("limit")),
+        ("me.inbox", json!({"limit": 20}), Some("limit")),
+        ("me.thread", json!({"id": 0}), Some("id")),
+        ("me.message", json!({"id": "d0"}), Some("id")),
+        ("me.feed", json!({"limit": 10}), Some("limit")),
+        ("social.thread", json!({"id": 0}), Some("id")),
+        ("me.story", json!({"id": 0}), Some("id")),
+        ("me.calendar", json!({"from": 20_000, "to": 20_010}), Some("from")),
+        ("ecosystem.district", json!({}), None),
+        ("world.inspect_import", json!({"dir": "/no/such/folder"}), Some("dir")),
+    ];
+    // None is forgotten: a query the manifest gives a request must be in the list above, and every one in the list has one declared.
+    for m in contract::manifest().iter().filter(|m| m.kind == MethodKind::Query) {
+        if let Some(req) = m.request {
+            assert!(valid.iter().any(|(n, _, _)| *n == m.name) || m.name == "database.query", "{} has a request type ({req}) and no test of it", m.name);
+            assert!(ts.contains(&format!("export interface {req} ")), "{}: {req} is not declared", m.name);
+        }
+    }
+    for (name, args, ident) in &valid {
+        assert!(contract::manifest().iter().any(|m| m.name == *name && m.request.is_some()), "{name} has no declared request");
+        // The well-formed call is read (it may answer or may say what it asks for is not there, but it is not malformed).
+        assert_ne!(kind(api.call(name, args.clone())), Err(ErrorKind::InvalidRequest), "{name} refuses a well-formed request {args}");
+        // A field no request of this query has.
+        let mut extra = args.clone();
+        extra["zz_not_a_field"] = json!(1);
+        let err = api.call(name, extra).unwrap_err();
+        assert_eq!(err.kind(), ErrorKind::InvalidRequest, "{name} accepted a field it does not declare");
+        assert!(err.to_string().contains("zz_not_a_field"), "{name}: the refusal names the field: {err}");
+        // A field of the wrong type.
+        if let Some(field) = ident {
+            let mut bad = args.clone();
+            bad[*field] = json!({"not": "that"});
+            assert_eq!(kind(api.call(name, bad)), Err(ErrorKind::InvalidRequest), "{name} read a mistyped {field}");
+        }
+    }
+    // What is required is required.
+    for name in ["person", "club", "comp", "nation", "match", "me.thread", "me.message", "social.thread", "table.query", "world.inspect_import"] {
+        assert_eq!(kind(api.call(name, json!({}))), Err(ErrorKind::InvalidRequest), "{name} answered a request with no subject");
+    }
+    // The source browser is the debug view's: its request is read once the viewer is allowed it.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
+    assert_eq!(kind(api.call("database.query", json!({"table": "players.csv", "zz_not_a_field": 1}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("database.query", json!({}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("database.attach", json!({"dir": "/no/such/folder", "zz_not_a_field": 1}))), Err(ErrorKind::InvalidRequest));
+    // The table protocol: unknown fields at either level are refused, the fields it names are not.
+    assert_eq!(kind(api.call("table.query", json!({"table": "players", "sort": {"key": "name", "desc": false, "zz": 1}}))), Err(ErrorKind::InvalidRequest));
+    assert_eq!(kind(api.call("table.query", json!({"table": "players", "filters": {"kind": "first"}, "sort": {"key": "name"}, "offset": 0, "limit": 5, "columns": null, "preset": null}))), Ok(()));
+}
+
+/// A `null` on the person page is not left to be guessed: what the viewer may not see is named in `hidden`, what nobody has a record of
+/// in `unknown`; a null that is in neither simply does not apply (a free agent has no contract).
+#[test]
+fn a_null_on_the_person_page_says_whether_it_is_hidden_or_unknown() {
+    let api = world();
+    let t = api.call("table.query", json!({"table": "players", "filters": {"kind": "first", "status": "active"}, "limit": 60})).unwrap();
+    let people: Vec<u64> = t["rows"].as_array().unwrap().iter().map(|r| r["open"]["id"].as_u64().unwrap()).collect();
+    let all = ["contract", "value", "condition", "internal"];
+    let page = |api: &Api, id: u64| api.call("person", json!({"id": id})).unwrap()["player"].clone();
+    // The omniscient view hides nothing.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
+    for &id in &people {
+        let p = page(&api, id);
+        assert_eq!(p["hidden"], json!([]), "the omniscient view hides something from {id}");
+        assert!(all.iter().all(|f| !p[f].is_null()) && !p["squad_status"].is_null(), "{id}: {p}");
+    }
+    // The public view is told it, and what it is told is true: every hidden field is null.
+    api.call("persp.observe", json!({"public": true})).unwrap();
+    for &id in &people {
+        let p = page(&api, id);
+        let hidden: Vec<&str> = p["hidden"].as_array().unwrap().iter().map(|v| v.as_str().unwrap()).collect();
+        assert_eq!(hidden, all, "a stranger is told what is withheld ({id})");
+        assert!(hidden.iter().all(|f| p[*f].is_null()) && p["squad_status"].is_null(), "{id}: a field listed as hidden is not null: {p}");
+        assert_eq!(p["unknown"], json!([]), "nothing about a made-up career is unknown ({id})");
+    }
+    // The man himself is not hidden from himself: his own terms, worth and body are his; the engine's numbers are not.
+    let me = people[people.len() / 2];
+    api.call("persp.inhabit", json!({"person": me})).unwrap();
+    assert_eq!(page(&api, me)["hidden"], json!(["internal"]));
+    let stranger = page(&api, people[0]);
+    assert_eq!(stranger["hidden"].as_array().unwrap().len(), 4);
+}

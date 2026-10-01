@@ -19,7 +19,6 @@ use serde_json::Value;
 use crate::ctx::Ctx;
 use crate::contract::{InsightItem, InsightVisual, InsightsView};
 use crate::model::{ApiError, ApiResult, Named, Ref, Tone};
-use crate::pages::person::person_id;
 
 // ---- the shape of a note -----------------------------------------------------------------
 
@@ -58,9 +57,9 @@ impl Notes {
         }
     }
 
-    fn finish(mut self, args: &Value) -> Value {
+    fn finish(mut self, limit: Option<u64>) -> Value {
         self.items.sort_by(|a, b| b.weight.cmp(&a.weight));
-        let limit = args.get("limit").and_then(Value::as_u64).map_or(usize::MAX, |n| n as usize);
+        let limit = limit.map_or(usize::MAX, |n| n as usize);
         let total = self.items.len();
         self.items.truncate(limit);
         crate::contract::wire(InsightsView {
@@ -226,7 +225,8 @@ fn year_line(c: &Ctx, p: PlayerId, hidden: &[Date]) -> Option<SeasonLine> {
 
 /// Notes on a person: a player's form and body, a manager's record.
 pub fn person(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = person_id(args)?;
+    let req: crate::contract::InsightReq = crate::contract::request(args.clone())?;
+    let id = pw_core::PersonId(req.id);
     let person = c.w.people.get(id).ok_or_else(|| ApiError::NotFound(format!("person {}", id.0)))?;
     let mut n = Notes::default();
     if let Some(p) = person.player.get() {
@@ -235,7 +235,7 @@ pub fn person(c: &Ctx, args: &Value) -> ApiResult<Value> {
     if let Some(s) = person.staff.get() {
         staff_notes(c, &mut n, id, s);
     }
-    Ok(n.finish(args))
+    Ok(n.finish(req.limit))
 }
 
 
@@ -928,7 +928,8 @@ fn streaks(n: &mut Notes, who: &str, form: &[char], scope: &str, weight: u8) {
 }
 
 pub fn club(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = pw_core::ClubId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing club id".into()))? as u32);
+    let req: crate::contract::InsightReq = crate::contract::request(args.clone())?;
+    let id = pw_core::ClubId(req.id);
     if id.0 as usize >= c.w.clubs.len() {
         return Err(ApiError::NotFound(format!("club {}", id.0)));
     }
@@ -1319,13 +1320,14 @@ pub fn club(c: &Ctx, args: &Value) -> ApiResult<Value> {
     if ahead >= 5 {
         n.add("calendar", Tone::Info, 46, "A crowded fortnight", format!("{} matches in the next 14 days.", count_word(ahead)), "Fixture list");
     }
-    Ok(n.finish(args))
+    Ok(n.finish(req.limit))
 }
 
 // ---- competitions --------------------------------------------------------------------------
 
 pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = CompId(args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing competition id".into()))? as u32);
+    let req: crate::contract::InsightReq = crate::contract::request(args.clone())?;
+    let id = CompId(req.id);
     if id.0 as usize >= c.w.comps.len() {
         return Err(ApiError::NotFound(format!("competition {}", id.0)));
     }
@@ -1333,15 +1335,15 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let co = &w.comps[id];
     let mut n = Notes::default();
     if !co.is_league() {
-        return Ok(n.finish(args));
+        return Ok(n.finish(req.limit));
     }
     let (rows, hidden) = crate::tables::visible_table(c, id);
     n.held = hidden;
     let cnt = rows.len();
     if cnt < 4 {
-        return Ok(n.finish(args));
+        return Ok(n.finish(req.limit));
     }
-    let pw_world::Format::League { rounds } = co.format else { return Ok(n.finish(args)) };
+    let pw_world::Format::League { rounds } = co.format else { return Ok(n.finish(req.limit)) };
     let per_team = usize::from(rounds) * (cnt - 1);
     let left = |r: &pw_world::comp::TableRow| per_team.saturating_sub(usize::from(r.played));
     let pts = |i: usize| i32::from(rows[i].points);
@@ -1350,7 +1352,7 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let tr = |i: usize| c.team_ref(rows[i].team);
     let basis = format!("{} table, {} teams", co.short_name, cnt);
     if rows.iter().all(|r| r.played == 0) {
-        return Ok(n.finish(args));
+        return Ok(n.finish(req.limit));
     }
 
     // The top of the table.
@@ -1577,20 +1579,21 @@ pub fn comp(c: &Ctx, args: &Value) -> ApiResult<Value> {
             n.link(c.player_ref(top.player), c.player_short(top.player));
         }
     }
-    Ok(n.finish(args))
+    Ok(n.finish(req.limit))
 }
 
 // ---- matches -------------------------------------------------------------------------------
 
 /// Talking points for a match: what is at stake before it, and what it meant after.
 pub fn matchup(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let uid = crate::pages::matchp::uid_arg(args)?;
+    let req: crate::contract::InsightMatchReq = crate::contract::request(args.clone())?;
+    let uid = req.uid;
     let (_, fx) = crate::pages::matchp::find(c, uid).ok_or_else(|| crate::pages::matchp::gone(c, uid))?;
     let w = c.w;
     let mut n = Notes::default();
     if c.is_concealed(uid) {
         n.held = 1;
-        return Ok(n.finish(args));
+        return Ok(n.finish(req.limit));
     }
     let co = &w.comps[fx.comp];
     let (home, away) = (fx.home, fx.away);
@@ -1818,7 +1821,7 @@ pub fn matchup(c: &Ctx, args: &Value) -> ApiResult<Value> {
             }
         }
     }
-    Ok(n.finish(args))
+    Ok(n.finish(req.limit))
 }
 
 /// "an important player", "a regular starter".

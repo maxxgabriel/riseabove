@@ -62,7 +62,7 @@ pub fn post_json(c: &Ctx, p: &Post, depth: u8) -> Value {
 /// The inhabited person's feed.
 pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
     let me = c.me().ok_or_else(|| ApiError::Unauthorized("You are observing the world. Inhabit someone to read their feed.".into()))?;
-    let n = args.get("limit").and_then(Value::as_u64).map_or(40, |n| n.clamp(5, 100) as usize);
+    let n = crate::contract::request::<crate::contract::LimitReq>(args.clone())?.limit.map_or(40, |n| n.clamp(5, 100) as usize);
     let ids = pw_sim::socialnet::feed(c.w, me, n);
     // One account saying the same words twice on one day is shown once.
     let mut said: std::collections::HashSet<(u32, i32, String)> = std::collections::HashSet::new();
@@ -82,7 +82,7 @@ pub fn feed(c: &Ctx, args: &Value) -> ApiResult<Value> {
 
 /// Replies under a post, newest last.
 pub fn thread(c: &Ctx, args: &Value) -> ApiResult<Value> {
-    let id = args.get("id").and_then(Value::as_u64).ok_or_else(|| ApiError::Bad("missing post".into()))? as u32;
+    let id = crate::contract::request::<crate::contract::IdReq>(args.clone())?.id;
     let p = c.w.net.post(id).ok_or_else(|| ApiError::NotFound("post".into()))?;
     if c.post_spoils(p) { return Err(ApiError::NotFound("post".into())); }
     let replies: Vec<Value> = c.w.net.posts.iter().filter(|r| r.reply_to == id && !c.post_spoils(r) && !c.post_text(r).trim().is_empty()).take(30).map(|r| post_json(c, r, 1)).collect();

@@ -412,9 +412,10 @@ fn engine_truth_is_read_only_in_the_files_that_gate_it() {
     ];
     // file -> what it may read (each gated; see the file's own comments)
     let allowed: &[(&str, &str)] = &[
-        ("pages/person.rs", "true ability"),
-        ("pages/person.rs", "personality"),
-        ("pages/person.rs", "private medical"),
+        // The view-type layer: the one file that turns a player into what a viewer may know of him (`VisiblePlayer`, `VisibleAbility`).
+        ("visible.rs", "true ability"),
+        ("visible.rs", "personality"),
+        ("visible.rs", "private medical"),
         ("pages/insights.rs", "true ability"),
         ("pages/insights.rs", "private books"),
         ("pages/insights.rs", "private medical"),
@@ -423,8 +424,6 @@ fn engine_truth_is_read_only_in_the_files_that_gate_it() {
         ("pages/life.rs", "relationship internals"),
         ("pages/life.rs", "private medical"),
         ("pages/matchp.rs", "private medical"),
-        ("tables/players.rs", "true ability"),
-        ("tables/players.rs", "private medical"),
         ("tables/systems.rs", "private books"),
         ("tables/society.rs", "private books"),
         ("tables/society.rs", "personality"),
@@ -437,6 +436,7 @@ fn engine_truth_is_read_only_in_the_files_that_gate_it() {
         ("advance.rs", "private books"),
     ];
     let mut found: Vec<(String, &str)> = Vec::new();
+    let mut reads: Vec<(String, &str)> = Vec::new();
     fn walk(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
         for e in std::fs::read_dir(dir).unwrap().flatten() {
             let p = e.path();
@@ -454,12 +454,24 @@ fn engine_truth_is_read_only_in_the_files_that_gate_it() {
         let text = std::fs::read_to_string(&f).unwrap();
         let code: String = text.lines().filter(|l| !l.trim_start().starts_with("//")).collect::<Vec<_>>().join("\n");
         for (name, pats) in patterns {
-            if pats.iter().any(|p| code.contains(p)) && !allowed.iter().any(|&(af, an)| af == rel && an == name) {
-                found.push((rel.clone(), name));
+            if pats.iter().any(|p| code.contains(p)) {
+                reads.push((rel.clone(), name));
+                if !allowed.iter().any(|&(af, an)| af == rel && an == name) {
+                    found.push((rel.clone(), name));
+                }
             }
         }
     }
     assert!(found.is_empty(), "engine truth is read in files that are not on the reviewed list: {found:?}");
+    // The player list rows and the person page's attribute and ability readout are built from the view types, not from the world:
+    // they are off the list, and they stay off it. `visible.rs` is where that truth is read and gated.
+    for off in ["tables/players.rs", "pages/person.rs"] {
+        let leaks: Vec<_> = reads.iter().filter(|(f, _)| f == off).collect();
+        assert!(leaks.is_empty(), "{off} reads engine truth again instead of using VisiblePlayer/VisibleAbility: {leaks:?}");
+    }
+    for need in ["true ability", "personality", "private medical"] {
+        assert!(reads.iter().any(|(f, n)| f == "visible.rs" && *n == need), "visible.rs no longer reads {need}: the layer is not where the gate is");
+    }
 }
 
 #[test]
@@ -523,4 +535,80 @@ fn the_viewers_own_state_is_in_words_and_a_forecast_is_not_a_percentage() {
     set(&api, 99);
     let b = pages(&api);
     assert_eq!(a[0]["condition"], b[0]["condition"], "the condition page moved inside one word");
+}
+
+/// The people (first-team players, in list order) a view-type test looks at.
+fn sample_people(api: &Api, n: usize) -> Vec<u32> {
+    let t = api.call("table.query", json!({"table": "players", "filters": {"kind": "first", "status": "active"}, "limit": 400})).unwrap();
+    let all: Vec<u32> = ids(&t).into_iter().map(|i| i as u32).collect();
+    let step = (all.len() / n).max(1);
+    all.into_iter().step_by(step).take(n).collect()
+}
+
+/// `VisiblePlayer` and `VisibleAbility` (the view types the player list rows and the attribute readout are built from) can only be
+/// built through `Ctx`, so for a public or inhabited viewer they do not hold the true ability, the potential, the personality, other
+/// people's private terms, their body state or their diagnosis: not as a value a page forgot to hide, but as `None`. Hidden truth is
+/// then changed under them and they do not move; in the omniscient view the same types do carry it (the test is not vacuous).
+#[test]
+fn the_view_type_cannot_carry_hidden_truth_to_a_public_or_inhabited_viewer() {
+    let api = world();
+    let people = sample_people(&api, 40);
+    let shown = |api: &Api| -> BTreeMap<u32, Value> { people.iter().map(|&p| (p, api.debug_visible_player(p).expect("a player"))).collect() };
+
+    // The omniscient view is the only one that has the truth in the types.
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
+    for (p, v) in shown(&api) {
+        for field in ["engine", "terms", "value", "body"] {
+            assert!(!v["player"][field].is_null(), "the omniscient view lacks {field} for {p}: {}", v["player"]);
+        }
+        assert!(v["ability"]["engine"].is_object() && v["ability"]["hidden"].is_array(), "the omniscient readout lacks the truth for {p}");
+        assert_eq!(v["ability"]["assessment"], "Omniscient");
+    }
+
+    for public in [true, false] {
+        let me = if public {
+            api.call("persp.observe", json!({"public": true})).unwrap();
+            None
+        } else {
+            Some(inhabit_mid(&api))
+        };
+        let before = shown(&api);
+        for (&p, v) in &before {
+            let own = Some(p) == me;
+            // Never, for anyone: the engine's numbers and the personality behind the readout.
+            assert!(v["player"]["engine"].is_null(), "true ability or personality reached the view of {p} (public: {public}): {}", v["player"]["engine"]);
+            assert!(v["ability"]["engine"].is_null() && v["ability"]["hidden"].is_null(), "the readout of {p} carries the truth (public: {public})");
+            assert_ne!(v["ability"]["assessment"], "Omniscient");
+            // Private terms, worth and body state: the man's own, or nothing.
+            for field in ["terms", "value", "body"] {
+                assert_eq!(!v["player"][field].is_null(), own, "{field} of {p} (public: {public}, own: {own}): {}", v["player"][field]);
+            }
+        }
+        // Change everything hidden. The types for a viewer who may not know it do not move.
+        perturb_hidden(&api, me.map(PersonId));
+        let after = shown(&api);
+        for (p, a) in &before {
+            let mut d = Vec::new();
+            diff(a, &after[p], "", &mut d);
+            assert!(d.is_empty(), "the view of {p} moved when only hidden truth did (public: {public}): {}", d.join(" | "));
+        }
+    }
+}
+
+/// A person page used to give any viewer the injury and its days. It is now built from `VisiblePlayer`: strangers see that he is out.
+#[test]
+fn the_person_page_keeps_a_strangers_diagnosis_to_the_club() {
+    let api = world();
+    api.call("persp.observe", json!({"omniscient": true})).unwrap();
+    let t = api.call("table.query", json!({"table": "players", "filters": {"kind": "first", "status": "active", "injured": true}, "limit": 20})).unwrap();
+    let id = ids(&t).first().copied().expect("after ten weeks somebody is injured");
+    let avail = |api: &Api| api.call("person", json!({"id": id})).unwrap()["player"]["availability"].clone();
+    let omniscient = avail(&api);
+    assert!(omniscient["label"].as_str().unwrap().contains("about") && !omniscient["detail"].as_str().unwrap().is_empty(), "{omniscient}");
+    api.call("persp.observe", json!({"public": true})).unwrap();
+    let public = avail(&api);
+    assert_eq!((public["label"].as_str(), public["detail"].as_str()), (Some("Injured"), Some("")), "the public sees that he is out, nothing more: {public}");
+    // The man himself knows.
+    api.call("persp.inhabit", json!({"person": id})).unwrap();
+    assert_eq!(avail(&api), omniscient, "he knows his own injury");
 }
