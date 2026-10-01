@@ -1136,9 +1136,37 @@ response! {
         /// player or manager.
         pub role: String,
     }
+    /// A match your team played while you were out.
+    pub struct MeTodayViewMissed {
+        pub uid: f64,
+        pub date: f64,
+        pub opponent: NamedIn,
+        pub score: String,
+        /// win, draw or loss.
+        pub outcome: String,
+    }
+    /// An injury as you live it: the diagnosis and how sure they are, where you are in the return, who is treating you, what you
+    /// are missing.
+    pub struct MeTodayViewRecovery {
+        pub injury: String,
+        pub since: f64,
+        pub treatment: String,
+        /// The medical team's estimate of days out, and how sure they say they are.
+        pub estimate: f64,
+        pub sureness: String,
+        /// The return, step by step, and the step you are on.
+        pub stages: Vec<String>,
+        pub stage: f64,
+        pub setbacks: f64,
+        pub recurrence: bool,
+        pub rushed: bool,
+        pub physio: Option<NamedIn>,
+        pub missed: Vec<MeTodayViewMissed>,
+    }
     pub struct MeTodayView {
         pub availability: MeTodayViewAvailability,
         pub known_faces: Vec<MeTodayViewKnownFace>,
+        pub recovery: Option<MeTodayViewRecovery>,
         pub changes: Vec<MeTodayViewChange>,
         pub commitments: Vec<MeTodayViewCommitment>,
         pub conceal_mine: bool,
@@ -1987,6 +2015,8 @@ pub fn declarations() -> Vec<String> {
         MeTodayViewRecent::declaration(),
         MeTodayViewWaitingOn::declaration(),
         MeTodayViewKnownFace::declaration(),
+        MeTodayViewMissed::declaration(),
+        MeTodayViewRecovery::declaration(),
         MeTodayView::declaration(),
         MeMessagesViewMessage::declaration(),
         MeMessagesView::declaration(),

@@ -81,6 +81,26 @@ export function Portal() {
               )}
               {t.next_match && <Insights method="insight.match" args={{ uid: t.next_match.uid }} title="What to watch" limit={2} compact hideEmpty />}
             </Section>
+            {t.recovery && (
+              <Section title="Your recovery" aside={<span>since <Dt d={t.recovery.since} year={false} /></span>}>
+                <div className="recovery">
+                  <div><strong>{t.recovery.injury}</strong> <span className="muted">· {t.recovery.treatment}</span></div>
+                  <div className="hint">{t.recovery.sureness}: about {Math.max(1, Math.round(t.recovery.estimate / 7))} weeks out{t.recovery.setbacks > 0 ? `, after ${t.recovery.setbacks} setback${t.recovery.setbacks > 1 ? "s" : ""}` : ""}.</div>
+                  {t.recovery.recurrence && <div className="hint tone-warn">The same place as before. The doctors are watching it.</div>}
+                  {t.recovery.rushed && <div className="hint tone-warn">Cleared early: the manager wanted you back.</div>}
+                  <ol className="stages">
+                    {t.recovery.stages.map((s, i) => <li key={s} className={i < t.recovery!.stage ? "done" : i === t.recovery!.stage ? "now" : ""}>{s}</li>)}
+                  </ol>
+                  {t.recovery.physio && <div className="hint">Working with <EntityLink r={t.recovery.physio}>{t.recovery.physio.name}</EntityLink></div>}
+                  {t.recovery.missed.length > 0 && (
+                    <div className="missed">
+                      <div className="subhead">Watched from the stands</div>
+                      {t.recovery.missed.map((m) => <a key={m.uid} href={href(`/match/${m.uid}`)}><OutcomeChip o={m.outcome as "win" | "draw" | "loss"} /> {m.score} v {m.opponent.name}</a>)}
+                    </div>
+                  )}
+                </div>
+              </Section>
+            )}
             <Section title="Your status" aside={<a href={href(`/person/${t.me.person}`)}>Profile</a>}>
               <div className="portal-status">{(["condition", "sharpness", "morale", "confidence", "wellbeing", "fatigue"] as const).map((k) => <div className="meter-row" key={k}><span>{k === "fatigue" ? "Legs" : cap(k)}</span><Meter value={bandFill(t.condition[k])} label={t.condition[k].label} /></div>)}</div>
               {(t.availability.injured || t.availability.ban > 0) && <div className="portal-alert">{t.availability.injured ? `Injured: ${t.availability.injury}` : `Suspended for ${t.availability.ban} matches`}</div>}

@@ -240,6 +240,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
         .into_iter()
         .map(|(who, how, role)| json!({"who": named(Ref::person(who), c.person_name(who)), "how": how, "role": role}))
         .collect();
+    let recovery = recovery(c, p, team);
     let open_promises = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).count();
     let next_due = w.social.promises.iter().filter(|pr| (pr.to == me || pr.from == me) && pr.state == pw_world::PromiseState::Open).map(|pr| pr.due.0).min();
 
@@ -269,7 +270,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery,
         "promises": {"open": open_promises, "next_due": next_due},
         "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,
@@ -528,4 +529,47 @@ pub fn contract(c: &Ctx) -> ApiResult<Value> {
         "transfer_request": w.market.requests.get(&p).map(|d| d.0), "listed": w.market.listed.contains_key(&p),
         "guaranteed_note": "Bonuses are paid only when earned. The wage shown is the current weekly figure including any yearly rises.",
     }))
+}
+
+/// The open injury as it is lived: diagnosis, sureness, the step of the return, the physio, the matches missed.
+fn recovery(c: &Ctx, p: pw_core::PlayerId, team: pw_core::TeamId) -> Value {
+    use pw_world::medical::ReturnStage;
+    let w = c.w;
+    let h = &w.players.hot[p];
+    let Some(case) = w.medical.open.get(&p).filter(|_| h.injury != 0) else { return Value::Null };
+    const STAGES: [(ReturnStage, &str); 6] = [
+        (ReturnStage::Rehab, "Treatment and rest"),
+        (ReturnStage::Individual, "Working alone with the physio"),
+        (ReturnStage::PartialTeam, "Parts of training with the group"),
+        (ReturnStage::FullTraining, "Full training"),
+        (ReturnStage::BenchReady, "Fit for the bench"),
+        (ReturnStage::MatchReady, "Match fit"),
+    ];
+    let now = ReturnStage::of(f32::from(h.injury_days) / f32::from(h.injury_total.max(1)));
+    let stage = STAGES.iter().position(|(s, _)| *s == now).unwrap_or(0);
+    let sureness = match case.certainty {
+        0..=39 => "The physios are not sure yet",
+        40..=69 => "A rough estimate",
+        _ => "A firm estimate",
+    };
+    let physio = w.staff.iter().find(|s| s.club == h.club && s.role == pw_world::staff::StaffRole::Physio && s.employed()).map(|s| named(Ref::person(s.person), c.person_name(s.person)));
+    let missed: Vec<Value> = if team.is_some() {
+        let mut v = my_fixtures(c, case.date, w.date.add_days(-1));
+        v.retain(|f| f.score.is_some() && !c.is_concealed(f.uid));
+        v.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
+        v.iter()
+            .take(5)
+            .map(|f| {
+                let b = result_brief(c, f);
+                json!({"uid": f.uid, "date": f.date.0, "opponent": b["opponent"], "score": b["score"], "outcome": b["outcome"]})
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    json!({
+        "injury": health::injury_name(w, case.injury), "since": case.date.0, "treatment": case.treatment.label(), "estimate": case.estimate,
+        "sureness": sureness, "stages": STAGES.iter().map(|(_, l)| *l).collect::<Vec<_>>(), "stage": stage, "setbacks": case.setbacks,
+        "recurrence": case.recurrence, "rushed": case.rushed, "physio": physio, "missed": missed,
+    })
 }

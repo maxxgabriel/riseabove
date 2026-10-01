@@ -2218,9 +2218,33 @@ export interface MeTodayViewKnownFace {
   role: string;
 }
 
+export interface MeTodayViewMissed {
+  uid: number;
+  date: number;
+  opponent: Named;
+  score: string;
+  outcome: string;
+}
+
+export interface MeTodayViewRecovery {
+  injury: string;
+  since: number;
+  treatment: string;
+  estimate: number;
+  sureness: string;
+  stages: string[];
+  stage: number;
+  setbacks: number;
+  recurrence: boolean;
+  rushed: boolean;
+  physio: Named | null;
+  missed: MeTodayViewMissed[];
+}
+
 export interface MeTodayView {
   availability: MeTodayViewAvailability;
   known_faces: MeTodayViewKnownFace[];
+  recovery: MeTodayViewRecovery | null;
   changes: MeTodayViewChange[];
   commitments: MeTodayViewCommitment[];
   conceal_mine: boolean;
