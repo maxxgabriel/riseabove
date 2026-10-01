@@ -235,8 +235,9 @@ pub fn enquire(w: &mut World, buyer: ClubId, p: PlayerId, need: Option<PosGroup>
     let value = market::fair_value(w, buyer, p);
     let budget = w.clubs[buyer].finance.transfer_budget;
     let opening_guess = ((value as f32 * 0.85).min(budget as f32 * 1.1)) as Money;
-    // Whether the club goes ahead is decided by whoever holds the power there, not by the shortlist alone.
-    if !crate::boardroom::consider_target(w, buyer, p, need, opening_guess, budget) {
+    // Whether the club goes ahead is decided by whoever holds the power there, not by the shortlist alone; and nobody starts a deal
+    // whose wage the budget cannot carry.
+    if !market::wage_fits(w, buyer, market::wage_demand(w, p, buyer)) || !crate::boardroom::consider_target(w, buyer, p, need, opening_guess, budget) {
         w.market.cooldown.insert((buyer, p), today.add_days(45));
         return false;
     }
@@ -769,7 +770,12 @@ pub fn pre_contracts(w: &mut World) {
                 let left = c.contract.days_left(today);
                 let current = w.players.hot[p].club;
                 let abroad = current.is_some() && w.clubs[current].nation != w.clubs[club].nation;
-                if !(1..=180).contains(&left) || !abroad || w.market.talking.contains_key(&p) || w.deals.pre_contracts.iter().any(|x| x.player == p) {
+                if !(1..=180).contains(&left)
+                    || !abroad
+                    || w.market.talking.contains_key(&p)
+                    || w.deals.pre_contracts.iter().any(|x| x.player == p)
+                    || !market::wage_fits(w, club, market::wage_demand(w, p, club))
+                {
                     continue;
                 }
                 let causes: Causes = pw_world::causes![Cause::Fact(Fact::ContractRunningDown { player: p, days: left as u16 })];
@@ -814,7 +820,8 @@ pub fn trials(w: &mut World) {
     for t in ending {
         let need = w.clubs[t.club].market.needs.iter().find(|n| n.group == w.players.cold[t.player].best_pos.group()).copied();
         let (ca, _, _, _) = scouting::view(w, t.club, t.player);
-        let offered = need.is_some_and(|n| ca >= f32::from(n.min_ability)) && w.players.hot[t.player].status != PlayerStatus::Active;
+        let offered =
+            need.is_some_and(|n| ca >= f32::from(n.min_ability)) && w.players.hot[t.player].status != PlayerStatus::Active && market::wage_fits(w, t.club, market::wage_demand(w, t.player, t.club));
         w.events.push(today, Visibility::Person(w.players.cold[t.player].person), EventKind::TrialEnded { player: t.player, club: t.club, offered });
         if offered {
             let causes: Causes = pw_world::causes![Cause::Fact(Fact::SquadNeed { club: t.club })];
@@ -827,7 +834,7 @@ pub fn trials(w: &mut World) {
         w.knowledge.observe(t.club, t.player, 180, today);
     }
     // New invitations: clubs uncertain about an unattached player they've heard of.
-    let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| !w.clubs[c].market.needs.is_empty() && (c.0 + (today.0 / 7) as u32).is_multiple_of(4)).collect();
+    let clubs: Vec<ClubId> = w.clubs.ids().filter(|&c| !w.clubs[c].market.needs.is_empty() && (c.0 + (today.0 / 7) as u32).is_multiple_of(4) && market::wage_room(w, c) > 0).collect();
     for club in clubs {
         let needs = w.clubs[club].market.needs.clone();
         let cands: Vec<PlayerId> = w

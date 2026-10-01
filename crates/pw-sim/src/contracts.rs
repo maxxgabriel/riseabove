@@ -74,6 +74,9 @@ pub fn renew(w: &mut World, p: PlayerId, contract: Contract) {
     h.morale = (h.morale + 5).min(100);
 }
 
+/// Eleven and seven substitutes.
+const MATCHDAY_SQUAD: usize = 18;
+
 /// Clubs approach players entering the final stretch of their deals (07 §8).
 pub fn weekly(w: &mut World) {
     let today = w.date;
@@ -104,6 +107,11 @@ pub fn weekly(w: &mut World) {
                 _ => age < 33 || ca >= 130.0,
             }
         };
+        // A rise has to fit the wage budget, unless the club counts on him or cannot do without: a key player is kept even over budget,
+        // and so is anyone wanted while the first team could not otherwise fill a matchday squad. Over budget, the rest are let go.
+        let rise = market::wage_demand(w, p, h.club) - c.contract.current_wage(today);
+        let short = w.club_team(h.club, pw_world::TeamKind::First).is_none_or(|t| w.teams[t].squad.len() <= MATCHDAY_SQUAD);
+        let wanted = wanted && (key || short || market::wage_fits(w, h.club, rise));
         if !wanted || w.market.on_cooldown(h.club, p, today) {
             continue;
         }

@@ -107,8 +107,8 @@ pub fn open_renewal(w: &mut World, p: PlayerId, club: ClubId, causes: Causes) ->
 /// What a club will go to, never shown to the player: wage room, wage
 /// structure and how much they want this player.
 fn club_limit(w: &World, club: ClubId, p: PlayerId, offer: &Terms) -> Terms {
-    let f = &w.clubs[club].finance;
-    let room = (f.wage_budget - f.wage_bill).max(f.wage_budget / 25).max(offer.wage);
+    // Over the wage budget a club goes no higher than its opening offer.
+    let room = market::wage_room(w, club).max(offer.wage);
     let want = package::want(w, club, p);
     let stretch = (1.12 + 0.35 * want).clamp(1.02, 1.6);
     let status = if want > 0.5 {
@@ -122,7 +122,7 @@ fn club_limit(w: &World, club: ClubId, p: PlayerId, offer: &Terms) -> Terms {
     // the club badly wants.
     let ceiling = if want > 0.6 { Money::MAX } else { crate::governance::wage_ceiling(w, club).max(offer.wage) };
     Terms {
-        wage: ((offer.wage as f32 * stretch) as Money).min(offer.wage + room).min(ceiling),
+        wage: ((offer.wage as f32 * stretch) as Money).min(offer.wage.saturating_add(room)).min(ceiling),
         signing_fee: (offer.signing_fee as f32 * stretch * 1.5) as Money,
         status,
         years: offer.years,

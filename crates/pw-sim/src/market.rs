@@ -76,12 +76,17 @@ fn wage_curve(ca: f32) -> f32 {
     400.0 * exp(0.048 * (ca - 60.0))
 }
 
+/// The part of the wage budget the first team's going rate adds up to. The rest pays the staff, the reserves and the scholars: with the
+/// first team alone priced at the whole budget, a club with an ordinary squad and staff was over budget from its first week, and a
+/// budget every club is over limits nobody. (A constant, not tuning: the tuning table is part of the save layout.)
+const FIRST_TEAM_PART: f32 = 0.85;
+
 /// How a club's means scale the wage curve: the board allows `wage_share` of revenue for wages, and the scale is what makes the wage
-/// curve, applied to the players the market reads in the club's own first team, add up to exactly that. A richer club pays more for the
+/// curve, applied to the players the market reads in the club's own first team, add up to its part of that (`FIRST_TEAM_PART`). A richer club pays more for the
 /// same ability and wages keep pace with revenue as both inflate, whatever the squad's size or spread.
 pub fn wage_pool_scale(w: &World, club: ClubId) -> f32 {
     let revenue = crate::finance::season_revenue(w, club) as f32;
-    let pool = revenue * w.data.tuning.finance.wage_share / 52.0;
+    let pool = revenue * w.data.tuning.finance.wage_share * FIRST_TEAM_PART / 52.0;
     let first = w.clubs[club].first_team();
     let mut demand: f32 = w.teams[first]
         .squad
@@ -96,6 +101,20 @@ pub fn wage_pool_scale(w: &World, club: ClubId) -> f32 {
         demand = 24.0 * wage_curve(ideal_ca(w.clubs[club].reputation) - 6.0) * 1.2;
     }
     (pool / demand).max(0.02)
+}
+
+/// What is left of the wage budget the board set, after what the club pays now. Nothing when it is over; a club whose budget has not
+/// been set yet (the first week of a world) is not limited.
+pub fn wage_room(w: &World, club: ClubId) -> Money {
+    let f = &w.clubs[club].finance;
+    if f.wage_budget == 0 { Money::MAX } else { (f.wage_budget - f.wage_bill).max(0) }
+}
+
+/// Every way a club takes on a wage (a signing, a renewal, a first professional deal) goes through the board's wage budget: `extra`
+/// is what the club would pay on top of what it pays now. (Without this only the transfer search looked, and renewals, trials and
+/// enquiries carried on regardless until a state-league club paid its whole revenue in wages.)
+pub fn wage_fits(w: &World, club: ClubId, extra: Money) -> bool {
+    extra <= 0 || extra <= wage_room(w, club)
 }
 
 /// Weekly wage a player expects at `club`.
@@ -312,7 +331,9 @@ fn search(w: &mut World, club: ClubId) {
     let today = w.date;
     let needs = w.clubs[club].market.needs.clone();
     let budget = w.clubs[club].finance.transfer_budget;
-    let wage_room = (w.clubs[club].finance.wage_budget - w.clubs[club].finance.wage_bill).max(w.clubs[club].finance.wage_budget / 20);
+    // A new signing must fit the wage budget. (A floor of a twentieth of the budget let a club already over it keep signing: cheap
+    // players at small clubs, week after week, until squads of fifty paid out everything the club earned.)
+    let wage_room = wage_room(w, club);
     for need in needs {
         let mut best: Option<Target> = None;
         for (p, seen) in w.knowledge.known(club).collect::<Vec<_>>() {
@@ -630,6 +651,8 @@ pub fn free_agent_sweep(w: &mut World) {
         }
         let need = w.clubs[club].market.needs[0];
         let nation = w.clubs[club].nation;
+        // Free players cost wages like any other: a club with no room in its wage budget does not sign one.
+        let wage_room = wage_room(w, club);
         let pick = free
             .iter()
             .copied()
@@ -643,6 +666,7 @@ pub fn free_agent_sweep(w: &mut World) {
                     && !w.market.is_pending(p)
                     && !crate::negotiation::in_talks(w, p)
                     && crate::scouting::view(w, club, p).0 >= f32::from(need.min_ability)
+                    && wage_demand(w, p, club) <= wage_room
             })
             .max_by_key(|&p| ((crate::scouting::view(w, club, p).0 * 10.0) as i32, std::cmp::Reverse(p)));
         if let Some(p) = pick {
