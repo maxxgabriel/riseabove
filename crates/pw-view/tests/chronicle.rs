@@ -176,3 +176,35 @@ fn the_squad_and_the_people_close_to_you_write_and_their_words_stay_put() {
         }
     }
 }
+
+#[test]
+fn your_match_is_a_day_lived_and_a_hidden_result_stays_hidden() {
+    let api = lived(4, 90);
+    let today = api.call("me.today", json!({})).unwrap();
+    let recent = today["recent"].as_array().unwrap().clone();
+    assert!(!recent.is_empty(), "three months at a club and no match");
+    let uid = recent[0]["uid"].clone();
+    // The India world keeps your own results hidden until you choose to see them: the day stops at kick-off.
+    let hidden = api.call("me.matchday", json!({"uid": uid})).unwrap();
+    let said: String = hidden["steps"].as_array().unwrap().iter().flat_map(|s| s["parts"].as_array().unwrap().iter().map(|p| p["t"].as_str().unwrap_or("").to_string())).collect();
+    assert!(!said.contains("Won ") && !said.contains("Lost ") && !said.contains("Drew ") && !said.contains("at the break"), "a hidden result is not told: {said}");
+    api.call("match.reveal_all", json!({})).unwrap();
+    let day = api.call("me.matchday", json!({"uid": uid})).unwrap();
+    if let Some(Err(e)) = pw_view::contract_pages::check_response("me.matchday", &day) {
+        panic!("me.matchday is not its declared type: {e}");
+    }
+    let kinds: Vec<&str> = day["steps"].as_array().unwrap().iter().map(|s| s["kind"].as_str().unwrap()).collect();
+    for k in ["squad", "half", "result"] {
+        assert!(kinds.contains(&k), "a played match day has {k}: {kinds:?}");
+    }
+    for s in day["steps"].as_array().unwrap() {
+        let t = text(s);
+        assert!(!t.trim().is_empty() && !t.contains("  ") && !t.contains('{'), "clean: {t}");
+    }
+    // Someone else's match is not yours to relive.
+    let other = api.call("table.query", json!({"table": "fixtures", "filters": {"played": true}, "limit": 50})).unwrap();
+    let mine = today["me"]["club"]["name"].as_str().unwrap_or("").to_string();
+    if let Some(f) = other["rows"].as_array().unwrap().iter().find(|r| !r.to_string().contains(&mine)) {
+        assert!(api.call("me.matchday", json!({"uid": f["open"]["id"]})).is_err());
+    }
+}

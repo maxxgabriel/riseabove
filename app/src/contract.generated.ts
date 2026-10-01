@@ -810,6 +810,18 @@ export interface ChronicleView {
   reach: ChronicleReach[];
 }
 
+export interface MatchdayStep {
+  when: string;
+  kind: string;
+  parts: Part[];
+}
+
+export interface MatchdayView {
+  uid: number;
+  played: boolean;
+  steps: MatchdayStep[];
+}
+
 export interface ChatRoomRow {
   id: number;
   kind: string;
@@ -2907,6 +2919,7 @@ export interface ApiMethods {
   "me.journal": { kind: "query"; req: Record<string, unknown>; res: JournalView };
   "me.chronicle": { kind: "query"; req: Record<string, unknown>; res: ChronicleView };
   "me.chats": { kind: "query"; req: Record<string, unknown>; res: ChatsView };
+  "me.matchday": { kind: "query"; req: MatchReq; res: MatchdayView };
   "me.chat": { kind: "query"; req: IdReq; res: ChatView };
   "me.chat_read": { kind: "command"; req: IdReq; res: Done };
   "me.goal": { kind: "command"; req: GoalReq; res: Done };
@@ -2997,6 +3010,7 @@ export type TypedMethod =
   | "me.journal"
   | "me.chronicle"
   | "me.chats"
+  | "me.matchday"
   | "me.chat"
   | "me.chat_read"
   | "me.goal"

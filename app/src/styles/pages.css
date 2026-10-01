@@ -342,3 +342,9 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width:
 .episodes .hint { display: inline-block; min-width: 5.5rem; }
 .chat { display: grid; gap: 0.8rem; max-width: 46rem; }
 .chat h2 { font-size: 1.2rem; }
+.matchday { display: grid; gap: 0.1rem; }
+.matchday li { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0.6rem; padding: 0.3rem 0 0.3rem 0.6rem; border-left: 2px solid var(--line-2); }
+.md-when { color: var(--text-3); font-size: 0.88rem; }
+.matchday .md-result, .matchday .md-you { border-left-color: var(--accent); }
+.matchday .md-injury { border-left-color: var(--neg); }
+.matchday .md-chat, .matchday .md-press { border-left-color: var(--info); }

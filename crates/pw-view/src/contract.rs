@@ -1185,6 +1185,21 @@ contract! {
         pub lines: Vec<ChatLine>,
     }
 
+    /// One moment of a match day you lived.
+    pub struct MatchdayStep {
+        /// "The day before", "Half-time", "That night" ...
+        pub when: String,
+        /// travel, weather, squad, kickoff, half, you, result, injury, chat, press or recovery.
+        pub kind: String,
+        pub parts: Vec<crate::model::Part>,
+    }
+
+    pub struct MatchdayView {
+        pub uid: u64,
+        pub played: bool,
+        pub steps: Vec<MatchdayStep>,
+    }
+
     pub struct ChronicleView {
         pub person: Named,
         pub since: i32,
@@ -1463,6 +1478,7 @@ pub fn manifest() -> Vec<MethodSpec> {
         typed(q("me.journal"), None, "JournalView"),
         typed(q("me.chronicle"), None, "ChronicleView"),
         typed(q("me.chats"), None, "ChatsView"),
+        typed(q("me.matchday"), Some("MatchReq"), "MatchdayView"),
         typed(q("me.chat"), Some("IdReq"), "ChatView"),
         typed(c("me.chat_read"), Some("IdReq"), "Done"),
         typed(c("me.goal"), Some("GoalReq"), "Done"),
@@ -1633,6 +1649,8 @@ pub fn declarations() -> Vec<String> {
         ChronicleTie::declaration(),
         ChronicleReach::declaration(),
         ChronicleView::declaration(),
+        MatchdayStep::declaration(),
+        MatchdayView::declaration(),
         ChatRoomRow::declaration(),
         ChatsView::declaration(),
         ChatLine::declaration(),

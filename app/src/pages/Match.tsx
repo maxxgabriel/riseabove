@@ -1,9 +1,10 @@
 import { Insights } from "../components/Insights";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { EntityLink, Dt } from "../components/links";
+import { EntityLink, Dt, Parts } from "../components/links";
 import { dateLong, fmtInt, ordinal } from "../format";
 import { href, useRoute } from "../router";
-import { act, notify, useApi } from "../store";
+import { act, notify, useApi, useStatus } from "../store";
+import type { MatchdayView } from "../contract.generated";
 import type { Named } from "../types";
 import { Icon } from "../ui/Icon";
 import { Badge, Button, ErrorState, KeyVal, Section, Segmented, Skeleton, Tabs } from "../ui/ui";
@@ -197,6 +198,7 @@ function MatchBody({ m, watching, setWatching, reload }: { m: MatchResp; watchin
       </header>
 
       <div className="stage-body">
+      {!m.concealed && <MyMatchday uid={m.uid} />}
       {m.concealed && !watching && (
         <div className="note">
           <Icon name="lock" size={15} />
@@ -657,3 +659,22 @@ function Preview({ m }: { m: MatchResp }) {
   );
 }
 
+
+/** Your own match as a day lived: the trip, the squad, half-time, your minutes, the treatment room, the chat, the papers. */
+function MyMatchday({ uid }: { uid: number }) {
+  const inhabiting = useStatus().perspective?.mode === "inhabit";
+  const q = useApi<MatchdayView>(inhabiting ? "me.matchday" : null, { uid });
+  if (!q.data || q.data.steps.length === 0) return null;
+  return (
+    <Section title="Your match day">
+      <ol className="matchday">
+        {q.data.steps.map((s, i) => (
+          <li key={i} className={`md-${s.kind}`}>
+            <span className="md-when">{s.when}</span>
+            <span><Parts parts={s.parts} /></span>
+          </li>
+        ))}
+      </ol>
+    </Section>
+  );
+}

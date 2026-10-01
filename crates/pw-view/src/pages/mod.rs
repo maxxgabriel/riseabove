@@ -4,6 +4,7 @@ pub mod compview;
 pub mod inbox;
 pub mod insights;
 pub mod life;
+pub mod matchday;
 pub mod matchp;
 pub mod me;
 pub mod newsroom;

@@ -268,6 +268,7 @@ impl Api {
             "me.journal" => self.with(pages::life::journal),
             "me.chronicle" => self.with(pages::chronicle::chronicle),
             "me.chats" => self.with(pages::chat::rooms),
+            "me.matchday" => self.with(|c| pages::matchday::matchday(c, &args)),
             "me.chat" => self.with(|c| pages::chat::room(c, &args)),
             "me.chat_read" => self.with_mut(|s| pages::chat::read(s, &args)),
             "me.goal" => self.with_mut(|s| pages::life::add_goal(s, &args)),

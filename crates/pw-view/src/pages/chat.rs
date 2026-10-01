@@ -49,7 +49,7 @@ fn about_words(c: &Ctx, a: About) -> String {
     }
 }
 
-fn words(c: &Ctx, me: PersonId, m: &ChatMsg, i: usize, family: bool) -> Vec<Part> {
+pub(crate) fn words(c: &Ctx, me: PersonId, m: &ChatMsg, i: usize, family: bool) -> Vec<Part> {
     let t = |s: String| vec![Part::t(s)];
     match m.said {
         Said::AfterMatch { result, gf, ga, scored, derby, .. } => {
