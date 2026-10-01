@@ -312,7 +312,12 @@ fn on_event(w: &World, life: &mut Life, who: PersonId, p: PlayerId, e: &Event, t
         E::Life { person, kind } if person == who => push(life, Line::Life { kind }),
         E::MovedHome { person, bought } if person == who => push(life, Line::MovedHome { bought }),
         E::Retired { person } if person == who => push(life, Line::Retired),
-        _ => meanwhile(w, life, who, p, e),
+        _ => {
+            if let Some((club, news)) = club_news(w, p, &e.kind) {
+                push(life, Line::AtClub { club, news });
+            }
+            meanwhile(w, life, who, p, e);
+        }
     }
 }
 
@@ -466,4 +471,26 @@ fn faced(w: &World, life: &mut Life, opp: ClubId, uid: u64, today: Date) {
     for l in lines {
         life.push(today, l, EventId::NONE);
     }
+}
+
+/// What changed at the person's own club: a new manager or a sacking, a takeover, administration, a points deduction, an owner's
+/// money, a new facility.
+pub fn club_news(w: &World, p: PlayerId, kind: &E) -> Option<(ClubId, pw_world::chronicle::ClubNews)> {
+    use pw_world::chronicle::ClubNews as N;
+    if p.is_none() {
+        return None;
+    }
+    let mine = w.players.hot[p].club;
+    let staff_person = |s: pw_core::StaffId| w.staff.get(s).map_or(PersonId::NONE, |x| x.person);
+    let (club, news) = match *kind {
+        E::ManagerAppointed { staff, club } => (club, N::NewManager { who: staff_person(staff) }),
+        E::ManagerSacked { staff, club } => (club, N::ManagerSacked { who: staff_person(staff) }),
+        E::Takeover { club, owner, .. } => (club, N::Takeover { owner }),
+        E::Administration { club } => (club, N::Administration),
+        E::PointsDeducted { club, points } => (club, N::PointsDeducted { points }),
+        E::OwnerInvestment { club, .. } => (club, N::Investment),
+        E::ProjectCompleted { club, kind } => (club, N::Facility { kind }),
+        _ => return None,
+    };
+    (club.is_some() && club == mine).then_some((club, news))
 }

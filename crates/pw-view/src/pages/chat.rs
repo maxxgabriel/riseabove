@@ -100,6 +100,22 @@ pub(crate) fn words(c: &Ctx, me: PersonId, m: &ChatMsg, i: usize, family: bool) 
         Said::Birthday { who } if who == me => t(if family { "Happy birthday! Call us tonight." } else { pick(m, i, &["Happy birthday! Cake's on you.", "Happy birthday, legend."]) }.to_string()),
         Said::Birthday { who } => t(pick(m, i, &["Happy birthday {n}!", "Happy birthday {n}, have a good one."]).replace("{n}", &first(c, who))),
         Said::Missing => t(pick(m, i, &["When are you coming home? Everyone keeps asking.", "We miss you. Call when you can.", "The house is quiet without you."]).to_string()),
+        Said::ClubNews { news } => {
+            use pw_world::chronicle::ClubNews as N;
+            t(match news {
+                N::NewManager { who } => format!("New gaffer: {}. Clean slate for everyone.", if who.is_some() && c.w.people.get(who).is_some() { c.person_name(who) } else { "someone new".into() }),
+                N::ManagerSacked { .. } => pick(m, i, &["Gaffer's gone. Heads up, we keep going.", "Can't believe the gaffer's gone. Back to work."]).to_string(),
+                N::Takeover { .. } => "New owner. Let's see what it means for us.".to_string(),
+                N::Administration => "Administration. Nobody knows anything yet. Stick together.".to_string(),
+                N::PointsDeducted { points } => format!("{points} points gone, just like that. We have to win them back on the pitch."),
+                N::Investment => "Owner's putting money in. Better be on the pitch, not the car park.".to_string(),
+                N::Facility { kind } => format!("New {} finally open. No more excuses.", kind.label()),
+            })
+        }
+        Said::LifeNews { who, child } => {
+            let n = first(c, who);
+            t(if child { format!("Congrats {n}! Welcome to the little one.") } else { format!("Congrats {n} on the wedding! Great day.") })
+        }
         Said::AgentNews { club } => {
             let s = pick(m, i, &["Had a call from {c} about you. Early days, I'll keep you posted.", "{c} asked about you. Nothing concrete yet."]);
             let (a, b) = s.split_once("{c}").unwrap_or((s, ""));

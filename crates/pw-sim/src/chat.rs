@@ -181,6 +181,16 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
                     inbox.post(Room::Direct { with: a }, today, Sender::Person(a), Said::AgentNews { club: k }, ev);
                 }
             }
+            // A teammate's wedding or a child.
+            E::Life { person, kind: pw_world::event::LifeEventKind::Married { .. } | pw_world::event::LifeEventKind::ChildBorn } if person != me && club.is_some() && {
+                let q = w.people.get(person).map_or(PlayerId::NONE, |x| x.player);
+                q.is_some() && w.players.hot[q].club == club
+            } => {
+                let child = matches!(e.kind, E::Life { kind: pw_world::event::LifeEventKind::ChildBorn, .. });
+                if let Some(c) = captain(w, club, me).filter(|c| *c != person) {
+                    inbox.post(squad_room, today, Sender::Person(c), Said::LifeNews { who: person, child }, ev);
+                }
+            }
             // Someone joins or leaves the squad.
             E::Transfer { player, from, to, .. } if player != p && club.is_some() && (to == club || from == club) => {
                 let who = person_of(w, player);
@@ -189,7 +199,14 @@ fn day(w: &World, inbox: &mut Inbox, me: PersonId, p: PlayerId) {
                     inbox.post(squad_room, today, Sender::Person(c), said, ev);
                 }
             }
-            _ => {}
+            _ => {
+                // The club changing: the squad talks about it.
+                if let Some((_, news)) = crate::chronicle::club_news(w, p, &e.kind)
+                    && let Some(&q) = closest(w, me, club, 1, &mut rng).first()
+                {
+                    inbox.post(squad_room, today, Sender::Person(q), Said::ClubNews { news }, ev);
+                }
+            }
         }
     }
     if club.is_none() {

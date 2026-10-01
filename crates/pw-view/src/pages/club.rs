@@ -101,7 +101,7 @@ pub fn get(c: &Ctx, args: &Value) -> ApiResult<Value> {
         "fan_mood": club.fan_mood,
         "league": league_json, "manager": manager, "teams": teams, "relation": relation, "followed": followed,
         "staff_counts": staff_counts,
-        "also_known": also_known, "academy": academy, "partners": partners, "channels": channels,
+        "also_known": also_known, "academy": academy, "partners": partners, "channels": channels, "place": place(c, id),
         "finance": if internals { json!({
             "balance": club.finance.balance, "transfer_budget": club.finance.transfer_budget,
             "wage_budget": club.finance.wage_budget, "wage_bill": club.finance.wage_bill,
@@ -434,4 +434,59 @@ pub fn systems(c: &Ctx, args: &Value) -> ApiResult<Value> {
         None
     };
     Ok(json!({"board": board, "plan": plan, "scouting": scouting, "room": room, "sponsors": sponsors, "rivalries": rivalries, "supporters": supporters, "culture": culture, "internal": internals}))
+}
+
+/// The club's place, from the regions of the world (clubs in a world without regions have none).
+fn place(c: &Ctx, id: ClubId) -> Value {
+    use pw_world::ecosystem::Climate;
+    let w = c.w;
+    let eco = &w.ext.ecosystem;
+    let Some(&rid) = eco.club_region.get(&id) else { return Value::Null };
+    let Some(r) = eco.regions.get(rid) else { return Value::Null };
+    let state = eco.state_of(rid);
+    let state_name = (state != rid).then(|| eco.regions.get(state).map(|s| s.name.clone())).flatten();
+    let climate = match r.climate {
+        Climate::HumidCoastal => "Humid and coastal",
+        Climate::HotDry => "Hot and dry, with a fierce summer",
+        Climate::HighAltitude => "High up: the air is thin",
+        Climate::CoolHill => "Cool hill country, cold in winter",
+        Climate::HeavyMonsoon => "Heavy monsoon rains from June to September",
+        Climate::NorthEast => "Wet and green, the hills of the north-east",
+        Climate::Temperate => "Temperate",
+    };
+    let population = match r.population_k {
+        0 => "Not known".to_string(),
+        k if k >= 1_000 => format!("About {:.1} million people", f64::from(k) / 1_000.0),
+        k => format!("About {k} thousand people"),
+    };
+    let football = match r.culture {
+        x if x >= 60.0 => "Football runs deep here",
+        x if x >= 35.0 => "A real football following",
+        _ => "Football is still finding its place here",
+    };
+    let mut nearby: Vec<(u16, ClubId)> = eco.club_region.iter().filter(|(k, rr)| **k != id && eco.state_of(**rr) == state).map(|(k, _)| (w.clubs[*k].reputation, *k)).collect();
+    nearby.sort_by_key(|(rep, k)| (std::cmp::Reverse(*rep), *k));
+    let nearby: Vec<Value> = nearby.into_iter().take(6).map(|(_, k)| named(Ref::club(k), c.club_name(k))).collect();
+    let mut unis: Vec<(u16, String)> = eco
+        .inst
+        .iter()
+        .filter(|(_, p)| eco.state_of(p.region) == state)
+        .filter_map(|(i, _)| w.minor.institutions.get(*i as usize))
+        .filter(|i| i.kind == pw_world::minor::InstKind::University)
+        .map(|i| (i.prestige, i.name.clone()))
+        .collect();
+    unis.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    let universities: Vec<String> = unis.into_iter().take(4).map(|(_, n)| n).collect();
+    // How far it is from home, for the person you live as.
+    let from_home = c.my_player().and_then(|p| eco.story.get(&p)).and_then(|s| eco.regions.get(s.home)).map(|h| {
+        let (dx, dy) = (f32::from(h.x) - f32::from(r.x), f32::from(h.y) - f32::from(r.y));
+        let km = (dx * dx + dy * dy).sqrt() * 30.0;
+        let n = ((km / 10.0).round() * 10.0) as u32;
+        let grouped = if n >= 1_000 { format!("{},{:03}", n / 1_000, n % 1_000) } else { n.to_string() };
+        if km < 40.0 { "Home ground: this is where you grew up".to_string() } else { format!("About {grouped} km from home") }
+    });
+    json!({
+        "region": r.name, "state": state_name, "climate": climate, "language": eco.languages.get(usize::from(r.language)).cloned(),
+        "population": population, "football": football, "nearby": nearby, "universities": universities, "from_home": from_home,
+    })
 }

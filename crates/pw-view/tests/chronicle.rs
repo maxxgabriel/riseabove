@@ -230,3 +230,29 @@ fn a_wage_becomes_payslips_bonuses_and_a_life() {
     assert!(!m["meaning"].as_array().unwrap().is_empty(), "the numbers are said in words");
     assert_eq!(api.call("world.status", json!({})).unwrap()["currency"], "₹", "an India world counts in rupees");
 }
+
+#[test]
+fn a_club_is_a_place_and_your_club_has_a_mood() {
+    let api = lived(4, 60);
+    let today = api.call("me.today", json!({})).unwrap();
+    let atmosphere = &today["atmosphere"];
+    assert!(atmosphere["mood"].is_string(), "your club has a mood: {atmosphere}");
+    let mine = today["me"]["club"]["id"].clone();
+    let club = api.call("club", json!({"id": mine})).unwrap();
+    let place = &club["place"];
+    for k in ["region", "climate", "population", "football"] {
+        assert!(place[k].as_str().is_some_and(|s| !s.is_empty()), "an India club has its {k}: {place}");
+    }
+    assert!(place["from_home"].is_string(), "how far from home, for the person you live as");
+    assert!(!place["nearby"].as_array().unwrap().iter().any(|n| n["id"] == mine), "a club is not its own neighbour");
+    // A club in a world without regions has no place to describe, and says nothing rather than guessing.
+    let synth = api_synthetic();
+    assert!(synth.call("club", json!({"id": 0})).unwrap()["place"].is_null());
+}
+
+fn api_synthetic() -> Api {
+    let api = api();
+    api.call("world.new", json!({"kind": "synthetic", "scale": "tiny"})).unwrap();
+    wait(&api, "task");
+    api
+}

@@ -153,6 +153,20 @@ pub enum Line {
     Meanwhile { who: PersonId, tie: u16, then: Then },
     /// A match against someone from the past.
     Faced { who: PersonId, tie: u16, uid: u64, club: ClubId },
+    /// Something that changed the club you were at (appended: older chronicles never hold it).
+    AtClub { club: ClubId, news: ClubNews },
+}
+
+/// What changed at a club while you were there.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum ClubNews {
+    NewManager { who: PersonId },
+    ManagerSacked { who: PersonId },
+    Takeover { owner: PersonId },
+    Administration,
+    PointsDeducted { points: u8 },
+    Investment,
+    Facility { kind: crate::governance::ProjectKind },
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

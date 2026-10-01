@@ -16,6 +16,7 @@ const CATS: { id: string; label: string }[] = [
   { id: "international", label: "Selection" },
   { id: "recognition", label: "Recognition" },
   { id: "people", label: "People" },
+  { id: "club", label: "Club" },
   { id: "injury", label: "Injuries" },
   { id: "life", label: "Life" },
 ];

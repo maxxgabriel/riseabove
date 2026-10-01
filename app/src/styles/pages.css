@@ -327,6 +327,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 0.5rem 0; width:
 .chron-line.c-recognition { border-left-color: var(--accent-strong); }
 .chron-line.c-injury { border-left-color: var(--neg); }
 .chron-line.c-people { border-left-color: var(--text-3); }
+.chron-line.c-club { border-left-color: var(--warn); }
 @media (max-width: 700px) { .chron-month { grid-template-columns: minmax(0, 1fr); } }
 .scrapbook { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.6rem; }
 .keepsake { display: grid; gap: 0.35rem; align-content: start; padding: 0.7rem 0.8rem; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--line-2); border-radius: var(--radius-lg); }

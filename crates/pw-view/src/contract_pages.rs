@@ -595,8 +595,22 @@ response! {
         pub squad: f64,
         pub team: f64,
     }
+    /// Where the club is: the place as it is lived (climate, language, how big it is, how much football matters), its neighbours, and
+    /// how far it is from the home of the person you live as.
+    pub struct ClubViewPlace {
+        pub region: String,
+        pub state: Option<String>,
+        pub climate: String,
+        pub language: Option<String>,
+        pub population: String,
+        pub football: String,
+        pub nearby: Vec<NamedIn>,
+        pub universities: Vec<String>,
+        pub from_home: Option<String>,
+    }
     pub struct ClubView {
         pub academy: Option<ClubViewAcademy>,
+        pub place: Option<ClubViewPlace>,
         pub also_known: Vec<ClubViewAlsoKnown>,
         pub board: Option<ClubViewBoard>,
         pub capacity: f64,
@@ -1170,8 +1184,15 @@ response! {
         pub significance: f64,
         pub lines: Vec<Vec<PartIn>>,
     }
+    /// How the club feels: a word for the mood and the reasons, from results, the table, the supporters, the dressing room and the
+    /// press.
+    pub struct MeTodayViewAtmosphere {
+        pub mood: String,
+        pub lines: Vec<String>,
+    }
     pub struct MeTodayView {
         pub availability: MeTodayViewAvailability,
+        pub atmosphere: Option<MeTodayViewAtmosphere>,
         pub buildup: Option<MeTodayViewBuildup>,
         pub known_faces: Vec<MeTodayViewKnownFace>,
         pub recovery: Option<MeTodayViewRecovery>,
@@ -1963,6 +1984,7 @@ pub fn declarations() -> Vec<String> {
         ClubViewPartner::declaration(),
         ClubViewStaffCount::declaration(),
         ClubViewTeam::declaration(),
+        ClubViewPlace::declaration(),
         ClubView::declaration(),
         ClubSystemsViewBoardConcern::declaration(),
         ClubSystemsViewBoardOwnerTraits::declaration(),
@@ -2024,6 +2046,7 @@ pub fn declarations() -> Vec<String> {
         MeTodayViewWaitingOn::declaration(),
         MeTodayViewKnownFace::declaration(),
         MeTodayViewBuildup::declaration(),
+        MeTodayViewAtmosphere::declaration(),
         MeTodayViewMissed::declaration(),
         MeTodayViewRecovery::declaration(),
         MeTodayView::declaration(),

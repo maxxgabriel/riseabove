@@ -70,6 +70,10 @@ pub enum Said {
     Missing,
     /// Your agent passing on interest, or saying there is none yet.
     AgentNews { club: ClubId },
+    /// News about the club (appended).
+    ClubNews { news: crate::chronicle::ClubNews },
+    /// A teammate married or became a parent (appended).
+    LifeNews { who: PersonId, child: bool },
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

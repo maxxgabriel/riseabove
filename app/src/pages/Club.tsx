@@ -184,6 +184,7 @@ function Overview({ c }: { c: ClubResp }) {
               ]}
             />
         </SideCard>
+        <Place c={c} />
         <Identity c={c} />
         <Section title="Squads">
           <div className="card">
@@ -382,5 +383,27 @@ function History({ c }: { c: ClubResp }) {
         <TableView id="club-events" table="events" label="Club events" filters={{ club: c.id }} height={12} noPresets noColumns empty="Nothing has happened yet." />
       </Section>
     </div>
+  );
+}
+
+/** Where the club is, as a place to live and play: climate, language, people, football, neighbours, how far from home. */
+function Place({ c }: { c: ClubResp }) {
+  const p = c.place;
+  if (!p) return null;
+  return (
+    <Section title="The place">
+      <KeyVal
+        rows={[
+          { k: "Where", v: <>{p.region}{p.state ? `, ${p.state}` : ""}</> },
+          ...(p.from_home ? [{ k: "From home", v: p.from_home }] : []),
+          { k: "Climate", v: p.climate },
+          ...(p.language ? [{ k: "Language", v: p.language }] : []),
+          { k: "People", v: p.population },
+          { k: "Football", v: p.football },
+          ...(p.nearby.length ? [{ k: "Neighbours", v: <>{p.nearby.map((n, i) => <span key={n.id}>{i > 0 && ", "}<EntityLink r={n}>{n.name}</EntityLink></span>)}</> }] : []),
+          ...(p.universities.length ? [{ k: "Universities", v: p.universities.join(", ") }] : []),
+        ]}
+      />
+    </Section>
   );
 }

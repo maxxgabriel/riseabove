@@ -257,6 +257,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             position_in_league = json!({"comp": named(Ref::comp(l), c.comp_name(l)), "position": pos + 1, "teams": rows.len(), "points": rows[pos].points});
         }
     }
+    let atmosphere = atmosphere(c, h.club, team, &position_in_league);
     let queued: Vec<String> = {
         let mut seen = std::collections::HashSet::new();
         c.w.intents.queue.iter().filter(|pi| Some(pi.person) == c.me()).map(|pi| super::act::intent_text(c, &pi.intent)).filter(|t| seen.insert(t.clone())).collect()
@@ -271,7 +272,7 @@ pub fn today(c: &Ctx) -> ApiResult<Value> {
             "shirt": cold.shirt,
         },
         "day": {"label": day_label, "kind": day_key},
-        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery, "buildup": buildup,
+        "commitments": commitments, "decisions": decisions, "changes": changes, "mind": mind, "waiting_on": waiting_on, "known_faces": known_faces, "recovery": recovery, "buildup": buildup, "atmosphere": atmosphere,
         "promises": {"open": open_promises, "next_due": next_due},
         "routine_hours": life.routine.total(), "lifestyle": life.finances.lifestyle.label(),
         "next_match": next.map(|f| fixture_brief(c, f)), "recent": recent, "unrevealed": unrevealed,
@@ -655,4 +656,95 @@ fn buildup(c: &Ctx, f: &pw_world::Fixture, team: pw_core::TeamId) -> Value {
         lines.push(vec![Part::t(format!("{}: \u{201c}{}\u{201d}", pw_narrate::press::outlet_name(w, s), c.headline(s)))]);
     }
     json!({"name": name, "significance": m.significance, "lines": lines})
+}
+
+/// The mood around the club, in a word and its reasons: the run of results (hidden ones left out), the table, the supporters, the
+/// dressing room's harmony and faith in the manager, the press.
+fn atmosphere(c: &Ctx, club: pw_core::ClubId, team: pw_core::TeamId, league: &Value) -> Value {
+    let w = c.w;
+    if club.is_none() || team.is_none() {
+        return Value::Null;
+    }
+    let mut score: i32 = 0;
+    let mut lines: Vec<String> = Vec::new();
+    // Results, newest first.
+    let mut played = my_fixtures(c, w.date.add_days(-120), w.date.add_days(-1));
+    played.retain(|f| f.score.is_some() && !c.is_concealed(f.uid));
+    played.sort_by_key(|f| std::cmp::Reverse((f.date, f.uid)));
+    let outcome = |f: &pw_world::Fixture| -> i8 {
+        let s = f.score.as_ref().expect("played");
+        match s.home_won() {
+            Some(h) if h == (f.home == team) => 1,
+            Some(_) => -1,
+            None => 0,
+        }
+    };
+    let res: Vec<i8> = played.iter().take(10).map(|f| outcome(f)).collect();
+    let run = |pred: &dyn Fn(i8) -> bool| res.iter().take_while(|r| pred(**r)).count();
+    let (wins, unbeaten, losses, winless) = (run(&|r| r == 1), run(&|r| r >= 0), run(&|r| r == -1), run(&|r| r <= 0));
+    if wins >= 3 {
+        lines.push(format!("{wins} wins in a row"));
+        score += 2 + wins as i32 / 2;
+    } else if unbeaten >= 5 {
+        lines.push(format!("Unbeaten in {unbeaten}"));
+        score += 2;
+    } else if losses >= 3 {
+        lines.push(format!("{losses} defeats in a row"));
+        score -= 2 + losses as i32 / 2;
+    } else if winless >= 5 {
+        lines.push(format!("{winless} games without a win"));
+        score -= 2;
+    }
+    if let (Some(pos), Some(n)) = (league["position"].as_u64(), league["teams"].as_u64()) {
+        if pos == 1 {
+            lines.push("Top of the league".into());
+            score += 2;
+        } else if pos <= 3 {
+            lines.push("In the top three".into());
+            score += 1;
+        } else if pos + 2 >= n && n > 4 {
+            lines.push("In the bottom three".into());
+            score -= 2;
+        }
+    }
+    let fans = w.clubs[club].fan_mood;
+    if fans >= 70 {
+        lines.push("The supporters are singing again".into());
+        score += 1;
+    } else if fans <= 30 {
+        lines.push("The supporters are restless".into());
+        score -= 1;
+    }
+    // The dressing room you are in: how it feels, not a number.
+    if let Some(room) = w.rooms.clubs.get(&club) {
+        if room.harmony >= 70 {
+            lines.push("The dressing room is tight".into());
+            score += 1;
+        } else if room.harmony <= 35 {
+            lines.push("The dressing room is split".into());
+            score -= 2;
+        }
+        if room.backing <= 35 {
+            lines.push("Players are losing faith in the manager".into());
+            score -= 1;
+        }
+    }
+    let week = |d: pw_core::Date| d.days_until(w.date) <= 7;
+    let hostile = w.media.stories.iter().rev().take_while(|s| week(s.date)).filter(|s| (s.club == club) && s.tone < -20).count();
+    if hostile >= 3 {
+        lines.push("Journalists are waiting outside the training ground".into());
+        score -= 1;
+    }
+    if w.media.stories.iter().rev().take_while(|s| s.date.days_until(w.date) <= 14).any(|s| s.club == club && s.kind == pw_world::media::StoryKind::ManagerPressure) {
+        lines.push("The papers say the manager is under pressure".into());
+        score -= 1;
+    }
+    let mood = match score {
+        6.. => "Buoyant",
+        2..=5 => "Good",
+        -1..=1 => "Steady",
+        -5..=-2 => "Uneasy",
+        _ => "In crisis",
+    };
+    json!({"mood": mood, "lines": lines})
 }

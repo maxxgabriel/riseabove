@@ -44,6 +44,11 @@ export function Portal() {
               {t.decisions.length > 0 && <div className="portal-decisions">{t.decisions.slice(0, 2).map((d) => <a key={d.id} href={href(`/messages/${d.id}`)}><Badge tone="warn">Decision</Badge><strong>{d.title}</strong><span>{d.summary}</span><small>Reply by <Dt d={d.deadline} year={false} /></small></a>)}</div>}
               {inbox.data?.threads.length ? <div className="portal-inbox-list">{inbox.data.threads.slice(0, 6).map((m) => <a key={m.id} href={href(`/messages/t/${m.id}`)} className={m.unread ? "unread" : ""}><span className="portal-inbox-row"><strong>{m.title}</strong><small><Dt d={m.last} year={false} /></small></span><span className="portal-inbox-preview">{m.preview}</span>{m.needs_action && <Badge tone="warn">Needs an answer</Badge>}</a>)}</div> : <div className="card muted">{inbox.error ? "Inbox unavailable." : "No conversations yet. People will reach you as the world moves."}</div>}
             </Section>
+            {t.atmosphere && (
+              <Section title="Around the club" aside={<Badge tone={t.atmosphere.mood === "Buoyant" || t.atmosphere.mood === "Good" ? "pos" : t.atmosphere.mood === "Steady" ? "muted" : "neg"}>{t.atmosphere.mood}</Badge>}>
+                {t.atmosphere.lines.length > 0 ? <ul className="portal-waiting">{t.atmosphere.lines.map((l) => <li key={l}>{l}</li>)}</ul> : <p className="muted">Nothing much is being said. A normal week.</p>}
+              </Section>
+            )}
             {t.waiting_on.length > 0 && (
               <Section title="Waiting to hear">
                 <ul className="portal-waiting">

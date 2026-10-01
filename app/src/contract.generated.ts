@@ -1646,8 +1646,21 @@ export interface ClubViewTeam {
   team: number;
 }
 
+export interface ClubViewPlace {
+  region: string;
+  state: string | null;
+  climate: string;
+  language: string | null;
+  population: string;
+  football: string;
+  nearby: Named[];
+  universities: string[];
+  from_home: string | null;
+}
+
 export interface ClubView {
   academy: ClubViewAcademy | null;
+  place: ClubViewPlace | null;
   also_known: ClubViewAlsoKnown[];
   board: ClubViewBoard | null;
   capacity: number;
@@ -2251,6 +2264,11 @@ export interface MeTodayViewBuildup {
   lines: Part[][];
 }
 
+export interface MeTodayViewAtmosphere {
+  mood: string;
+  lines: string[];
+}
+
 export interface MeTodayViewMissed {
   uid: number;
   date: number;
@@ -2276,6 +2294,7 @@ export interface MeTodayViewRecovery {
 
 export interface MeTodayView {
   availability: MeTodayViewAvailability;
+  atmosphere: MeTodayViewAtmosphere | null;
   buildup: MeTodayViewBuildup | null;
   known_faces: MeTodayViewKnownFace[];
   recovery: MeTodayViewRecovery | null;

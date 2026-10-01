@@ -405,6 +405,19 @@ fn render(c: &Ctx, life: &pw_world::chronicle::Life, line: Line) -> Option<(Vec<
             let then = if young { S::new(c).t("gave up playing").done() } else { then_parts(c, then) };
             (s.person(who).t(", ").parts(tie_parts(c, t, false)).t(", ").parts(then).done(), "people", None)
         }
+        Line::AtClub { club, news } => {
+            use pw_world::chronicle::ClubNews as N;
+            let s = match news {
+                N::NewManager { who } => s.person(who).t(" became manager of ").club(club),
+                N::ManagerSacked { who } => s.club(club).t(" sacked ").person(who),
+                N::Takeover { owner } => s.person(owner).t(" took over ").club(club),
+                N::Administration => s.club(club).t(" went into administration"),
+                N::PointsDeducted { points } => s.club(club).t(format!(" were docked {points} points")),
+                N::Investment => s.t("The owner put money into ").club(club),
+                N::Facility { kind } => s.club(club).t(format!(" opened their new {}", kind.label())),
+            };
+            (s.done(), "club", None)
+        }
         Line::Faced { who, tie, club, .. } => {
             let t = life.ties.get(usize::from(tie))?;
             let role = if matches!(t.kind, TieKind::Coach { .. } | TieKind::LetGo { .. }) { ", in charge of " } else { ", now at " };
